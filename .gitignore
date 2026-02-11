@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs / outputs
+*.log
+slurm-*.out
+*.out
+*.err
+runs/
+outputs/
+tmp/
+
+# OS/editor
+.DS_Store
+.vscode/
+EOF
