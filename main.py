@@ -150,20 +150,20 @@ if __name__ == "__main__":
     X_train, y_train = df_train.drop(columns=['meta_sale_date', 'meta_sale_price']), df_train['meta_sale_price']
     X_test, y_test = df_test.drop(columns=['meta_sale_date', 'meta_sale_price']), df_test['meta_sale_price']
     
-   # 4.2. Log-prices as objective
+   # Log-prices as objective
     y_train_log = np.log(y_train)
     y_test_log = np.log(y_test)
 
-    # 4.2. Fit pipeline on training set and transform the testing set
+    # Fit pipeline on training set and transform the testing set
     X_train_prep = linear_pipeline.fit_transform(X_train, y_train_log)
     X_test_prep = linear_pipeline.transform(X_test)
 
-    # 4.3. Category type-correction
+    # Category type-correction
     cat_cols = [col for col in set(X_train.columns) & set(params['model']['predictor']['categorical']) ]
     X_train[cat_cols] = X_train[cat_cols].astype("category")
     X_test[cat_cols] = X_test[cat_cols].astype("category")
 
-    # 5. Evolution of the metrics on different folds train/test
+    # Evolution of the metrics on different folds train/test
     fold_results = []
     for model in models:
         print(f"Fitting model={str(model)} in fold=test...")
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     X_train[cat_cols] = X_train[cat_cols].astype("category")
     X_test[cat_cols] = X_test[cat_cols].astype("category")
 
-    # 5. Evolution of the metrics on different folds train/test
+    # Evolution of the metrics on different folds train/test
     fold_results = []
     for model in models:
         print(f"Fitting model={str(model)} in fold=test...")
