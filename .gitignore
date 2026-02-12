@@ -20,3 +20,27 @@ tmp/
 .DS_Store
 .vscode/
 EOF
+
+# Ignore build artifacts
+bin/
+obj/
+
+# Ignore editor-specific files
+.vscode/
+.idea/
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+
+# Ignore .csv
+*.csv
+*.parquet
+core.*
+
+# Ignore outputs
+2025_assessment_python/outputs
+2025_assessment_python/logs
+2025_assessment_python/img

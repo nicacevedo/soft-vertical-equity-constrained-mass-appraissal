@@ -1,0 +1,16 @@
+# Core
+numpy>=1.23
+pandas>=1.5
+PyYAML>=6.0
+
+# ML / preprocessing
+scikit-learn>=1.2
+scipy>=1.9
+joblib>=1.2
+
+# Gradient boosting
+lightgbm>=4.0
+
+# Plotting / viz
+matplotlib>=3.6
+seaborn>=0.12
