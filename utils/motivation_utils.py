@@ -635,6 +635,19 @@ def _safe_model_name(model) -> str:
         return str(model).split("(")[0]
 
 
+def _display_model_name(model, base_name: str) -> str:
+    """
+    Human-friendly model label for plots/tables.
+    For CVaR models, append keep value so variants are visually distinct.
+    """
+    if "CVaR" in base_name:
+        if hasattr(model, "mse_keep"):
+            return f"{base_name}(keep={float(getattr(model, 'mse_keep')):.3g})"
+        if hasattr(model, "keep"):
+            return f"{base_name}(keep={float(getattr(model, 'keep')):.3g})"
+    return base_name
+
+
 def _blend_with_white(rgb_color, intensity: float):
     """
     Blend RGB color with white.
@@ -652,6 +665,26 @@ def _rho_run_key(model_name: str, model_template_repr: str, penalty_attr: Option
     return f"{model_name}||{model_template_repr}||{attr_token}||{rho_token}"
 
 
+def _select_rho_values_for_model(
+    model_name: str,
+    default_rho_values: np.ndarray,
+    rho_values_by_name_contains: Optional[Dict[str, np.ndarray]] = None,
+) -> np.ndarray:
+    """
+    Select rho grid for a model by substring match.
+    First matching key (in dict insertion order) is used; fallback to default_rho_values.
+    """
+    if not rho_values_by_name_contains:
+        return default_rho_values
+    for key, values in rho_values_by_name_contains.items():
+        if key in model_name:
+            arr = np.asarray(values, dtype=float).reshape(-1)
+            if arr.size == 0:
+                raise ValueError(f"rho_values_by_name_contains['{key}'] is empty.")
+            return arr
+    return default_rho_values
+
+
 def run_rho_sweep_predictions(
     models: List[Any],
     rho_values: np.ndarray,
@@ -659,11 +692,15 @@ def run_rho_sweep_predictions(
     y_train,
     X_test,
     y_test,
+    split_name: Optional[str] = None,
     cache_path: Optional[str] = None,
     load_if_exists: bool = True,
     save_predictions: bool = True,
     penalty_attrs: Tuple[str, ...] = ("rho",),
+    rho_values_by_name_contains: Optional[Dict[str, np.ndarray]] = None,
     include_models_without_rho: bool = False,
+    always_include_model_names: Tuple[str, ...] = ("LinearRegression", "LGBMRegressor"),
+    model_data_overrides: Optional[Dict[str, Dict[str, Any]]] = None,
     continue_on_error: bool = False,
     verbose: bool = True,
 ) -> Dict[str, Any]:
@@ -678,6 +715,8 @@ def run_rho_sweep_predictions(
         Penalty strengths to sweep for models that expose any attribute in `penalty_attrs`.
     X_train, y_train, X_test, y_test :
         Data used to fit and evaluate predictions (test-set predictions are stored).
+    split_name : str or None
+        Optional label for the evaluation split (e.g., "test", "assessment").
     cache_path : str or None
         If provided, serialized artifacts are read/written with pickle.
     load_if_exists : bool
@@ -686,8 +725,26 @@ def run_rho_sweep_predictions(
         If True and cache_path provided, writes artifacts to cache_path after each successful run.
     penalty_attrs : tuple[str]
         Attribute names to try for setting rho-like penalties (default: ("rho",)).
+    rho_values_by_name_contains : dict or None
+        Optional per-model rho grids selected by substring in model class name.
+        Example:
+            {
+              "SmoothPenalty": np.linspace(0, 3, 7),
+              "CovPenalty": np.linspace(0, 10, 11),
+            }
+        If no key matches, uses `rho_values`.
     include_models_without_rho : bool
         If True, models without penalty attrs are trained once with rho=np.nan.
+    always_include_model_names : tuple[str]
+        Model class names that should be included as single baseline points even when
+        `include_models_without_rho=False`.
+    model_data_overrides : dict or None
+        Optional model-specific data overrides:
+            {
+              "LinearRegression": {"X_train": X_train_prep, "X_test": X_test_prep},
+              "LGBMRegressor": {"X_train": X_train, "X_test": X_test}
+            }
+        This is useful when some models need different feature representations.
     continue_on_error : bool
         If True, logs fit/predict errors and continues with remaining runs.
         If False, raises the exception immediately (completed runs remain checkpointed).
@@ -755,6 +812,7 @@ def run_rho_sweep_predictions(
                 "n_runs": len(runs),
                 "n_test": int(y_test_arr.size),
                 "penalty_attrs": tuple(penalty_attrs),
+                "split_name": split_name,
             },
             "runs": runs,
             "y_train": y_train_arr,
@@ -764,19 +822,28 @@ def run_rho_sweep_predictions(
         with open(cache_path, "wb") as f:
             pickle.dump(artifact_ckpt, f)
 
+    model_data_overrides = model_data_overrides or {}
+    always_include_model_names = tuple(always_include_model_names or ())
+
     for model in models:
-        model_name = _safe_model_name(model)
+        model_name_base = _safe_model_name(model)
+        model_name = _display_model_name(model, model_name_base)
         model_template_repr = str(model)
         penalty_attr = _resolve_penalty_attr(model, penalty_attrs)
 
         if penalty_attr is None:
-            if not include_models_without_rho:
+            force_baseline = model_name_base in always_include_model_names
+            if (not include_models_without_rho) and (not force_baseline):
                 if verbose:
                     print(f"[rho-sweep] Skipping model without penalty attr: {model_name}")
                 continue
             sweep_values = [np.nan]
         else:
-            sweep_values = rho_values
+            sweep_values = _select_rho_values_for_model(
+                model_name=model_name_base,
+                default_rho_values=rho_values,
+                rho_values_by_name_contains=rho_values_by_name_contains,
+            )
 
         for rho in sweep_values:
             run_key = _rho_run_key(
@@ -800,8 +867,11 @@ def run_rho_sweep_predictions(
                 print(f"[rho-sweep] Fitting model={model_name} | {penalty_attr}={rho_text}")
 
             try:
-                model_fit.fit(X_train, y_train_arr)
-                y_pred = np.asarray(model_fit.predict(X_test), dtype=float)
+                data_override = model_data_overrides.get(model_name, {})
+                X_train_use = data_override.get("X_train", X_train)
+                X_test_use = data_override.get("X_test", X_test)
+                model_fit.fit(X_train_use, y_train_arr)
+                y_pred = np.asarray(model_fit.predict(X_test_use), dtype=float)
             except Exception as e:
                 if continue_on_error:
                     if verbose:
@@ -812,6 +882,7 @@ def run_rho_sweep_predictions(
             runs.append(
                 {
                     "model_name": model_name,
+                    "model_class_name": model_name_base,
                     "model_template_repr": model_template_repr,
                     "model_repr": str(model_fit),
                     "rho": float(rho) if np.isfinite(rho) else np.nan,
@@ -834,6 +905,7 @@ def run_rho_sweep_predictions(
             "n_runs": len(runs),
             "n_test": int(y_test_arr.size),
             "penalty_attrs": tuple(penalty_attrs),
+            "split_name": split_name,
         },
         "runs": runs,
         "y_train": y_train_arr,
@@ -853,6 +925,7 @@ def compute_rho_sweep_metrics(
     artifact_or_path: Any,
     scale: str = "log",
     save_path: Optional[str] = None,
+    split_name: Optional[str] = None,
     verbose: bool = True,
 ) -> pd.DataFrame:
     """
@@ -880,6 +953,10 @@ def compute_rho_sweep_metrics(
     y_test = np.asarray(artifact["y_test"])
     y_pred_matrix = np.asarray(artifact["y_pred_matrix"])
 
+    inferred_split_name = split_name
+    if inferred_split_name is None:
+        inferred_split_name = artifact.get("meta", {}).get("split_name", None)
+
     rows = []
     for idx, run in enumerate(runs):
         metrics = compute_taxation_metrics(
@@ -893,6 +970,7 @@ def compute_rho_sweep_metrics(
             "model_repr": run["model_repr"],
             "rho": run["rho"],
             "penalty_attr": run["penalty_attr"],
+            "split_name": inferred_split_name,
         }
         row.update(metrics)
         rows.append(row)
@@ -916,6 +994,8 @@ def plot_rho_tradeoff_curves(
     metrics_df: pd.DataFrame,
     model_col: str = "model_name",
     rho_col: str = "rho",
+    split_col: str = "split_name",
+    omit_model_names: Optional[Tuple[str, ...]] = None,
     accuracy_metrics: Optional[List[str]] = None,
     regressivity_metrics: Optional[List[str]] = None,
     save_dir: str = "img/rho_tradeoff",
@@ -950,48 +1030,89 @@ def plot_rho_tradeoff_curves(
     if len(present_acc) == 0 or len(present_reg) == 0:
         raise ValueError("No requested metric columns found in metrics_df.")
 
+    omit_model_names = set(omit_model_names or ())
+    if len(omit_model_names) > 0:
+        metrics_df = metrics_df[~metrics_df[model_col].isin(omit_model_names)].copy()
+
     model_names = list(pd.unique(metrics_df[model_col]))
     palette = sns.color_palette("tab10", n_colors=max(1, len(model_names)))
     base_color_map = {m: palette[i] for i, m in enumerate(model_names)}
+    split_name = None
+    if split_col in metrics_df.columns:
+        split_values = [v for v in pd.unique(metrics_df[split_col]) if isinstance(v, str) and len(v) > 0]
+        split_name = split_values[0] if len(split_values) > 0 else None
 
     for acc_m in present_acc:
         for reg_m in present_reg:
             fig, ax = plt.subplots(figsize=(9, 6))
-            legend_handles = []
+            legend_model_entries = []
 
             for model_name in model_names:
                 sub = metrics_df[metrics_df[model_col] == model_name].copy()
-                sub = sub[np.isfinite(sub[rho_col])]
                 if sub.empty:
                     continue
-                sub.sort_values(by=rho_col, inplace=True)
-
-                rhos = sub[rho_col].to_numpy(dtype=float)
-                if len(np.unique(rhos)) == 1:
-                    norm = np.ones_like(rhos)
-                else:
-                    norm = (rhos - np.min(rhos)) / (np.max(rhos) - np.min(rhos))
-                # keep colors visible: intensity in [0.35, 1.0]
-                intensity = 0.35 + 0.65 * norm
+                sub_rho = sub[np.isfinite(sub[rho_col])].copy()
+                sub_base = sub[~np.isfinite(sub[rho_col])].copy()
+                sub_rho.sort_values(by=rho_col, inplace=True)
 
                 base_color = base_color_map[model_name]
-                point_colors = [_blend_with_white(base_color, t) for t in intensity]
+                if not sub_rho.empty:
+                    rhos = sub_rho[rho_col].to_numpy(dtype=float)
+                    if len(np.unique(rhos)) == 1:
+                        norm = np.ones_like(rhos)
+                    else:
+                        norm = (rhos - np.min(rhos)) / (np.max(rhos) - np.min(rhos))
+                    # keep colors visible: intensity in [0.35, 1.0]
+                    intensity = 0.35 + 0.65 * norm
+                    point_colors = [_blend_with_white(base_color, t) for t in intensity]
 
-                x = sub[reg_m].to_numpy(dtype=float)
-                y = sub[acc_m].to_numpy(dtype=float)
+                    x = sub_rho[reg_m].to_numpy(dtype=float)
+                    y = sub_rho[acc_m].to_numpy(dtype=float)
+                    # NO connecting lines; points only
+                    ax.scatter(x, y, c=point_colors, s=70, edgecolors="k", linewidths=0.5, marker="o")
 
-                ax.plot(x, y, color=base_color, linewidth=1.5, alpha=0.6)
-                ax.scatter(x, y, c=point_colors, s=70, edgecolors="k", linewidths=0.5)
+                    if annotate_rho:
+                        for xi, yi, ri in zip(x, y, rhos):
+                            ax.annotate(f"{ri:.3g}", (xi, yi), textcoords="offset points", xytext=(4, 3), fontsize=8)
 
-                if annotate_rho:
-                    for xi, yi, ri in zip(x, y, rhos):
-                        ax.annotate(f"{ri:.3g}", (xi, yi), textcoords="offset points", xytext=(4, 3), fontsize=8)
+                if not sub_base.empty:
+                    xb = sub_base[reg_m].to_numpy(dtype=float)
+                    yb = sub_base[acc_m].to_numpy(dtype=float)
+                    # Baseline (non-rho) points as stars
+                    ax.scatter(
+                        xb,
+                        yb,
+                        c=[_blend_with_white(base_color, 1.0)],
+                        s=180,
+                        edgecolors="k",
+                        linewidths=0.8,
+                        marker="*",
+                    )
+                    if annotate_rho:
+                        for xi, yi in zip(xb, yb):
+                            ax.annotate("baseline", (xi, yi), textcoords="offset points", xytext=(4, 3), fontsize=8)
 
-                legend_handles.append(Line2D([0], [0], color=base_color, lw=2, label=model_name))
+                is_baseline_model = not sub_base.empty
+                model_marker = "*" if is_baseline_model else "o"
+                model_marker_size = 10 if is_baseline_model else 8
+                legend_model_entries.append(
+                    (
+                        model_name,
+                        is_baseline_model,
+                        Line2D([0], [0], color=base_color, marker=model_marker, lw=0, markersize=model_marker_size, label=model_name),
+                    )
+                )
+
+            # Sort legend names alphabetically, with baseline models first.
+            legend_model_entries.sort(key=lambda t: (not t[1], t[0]))
+            legend_handles = [t[2] for t in legend_model_entries]
 
             ax.set_xlabel(reg_m)
             ax.set_ylabel(acc_m)
-            ax.set_title(f"Tradeoff: {acc_m} vs {reg_m}")
+            title = f"Tradeoff: {acc_m} vs {reg_m}"
+            if split_name is not None:
+                title += f" | split={split_name}"
+            ax.set_title(title)
             ax.grid(True, alpha=0.25)
             if legend_handles:
                 ax.legend(handles=legend_handles, loc="best", frameon=True)
@@ -999,7 +1120,10 @@ def plot_rho_tradeoff_curves(
             fig.tight_layout()
             safe_acc = acc_m.replace("/", "_").replace(" ", "_")
             safe_reg = reg_m.replace("/", "_").replace(" ", "_")
-            fig.savefig(os.path.join(save_dir, f"tradeoff_{safe_acc}_vs_{safe_reg}.png"), dpi=300)
+            split_suffix = ""
+            if split_name is not None:
+                split_suffix = f"_{split_name.replace(' ', '_')}"
+            fig.savefig(os.path.join(save_dir, f"tradeoff_{safe_acc}_vs_{safe_reg}{split_suffix}.png"), dpi=300)
             plt.close(fig)
 
     print(f"Rho tradeoff plots saved to '{save_dir}'.")
@@ -1013,13 +1137,18 @@ def run_rho_sweep_and_tradeoff(
     X_test,
     y_test,
     scale: str = "log",
+    split_name: Optional[str] = None,
     predictions_cache_path: Optional[str] = None,
     metrics_csv_path: Optional[str] = None,
     plots_dir: str = "img/rho_tradeoff",
+    omit_model_names: Optional[Tuple[str, ...]] = None,
     load_predictions_if_exists: bool = True,
     save_predictions: bool = True,
     penalty_attrs: Tuple[str, ...] = ("rho",),
+    rho_values_by_name_contains: Optional[Dict[str, np.ndarray]] = None,
     include_models_without_rho: bool = False,
+    always_include_model_names: Tuple[str, ...] = ("LinearRegression", "LGBMRegressor"),
+    model_data_overrides: Optional[Dict[str, Dict[str, Any]]] = None,
     continue_on_error: bool = False,
     verbose: bool = True,
 ) -> pd.DataFrame:
@@ -1041,11 +1170,15 @@ def run_rho_sweep_and_tradeoff(
         y_train=y_train,
         X_test=X_test,
         y_test=y_test,
+        split_name=split_name,
         cache_path=predictions_cache_path,
         load_if_exists=load_predictions_if_exists,
         save_predictions=save_predictions,
         penalty_attrs=penalty_attrs,
+        rho_values_by_name_contains=rho_values_by_name_contains,
         include_models_without_rho=include_models_without_rho,
+        always_include_model_names=always_include_model_names,
+        model_data_overrides=model_data_overrides,
         continue_on_error=continue_on_error,
         verbose=verbose,
     )
@@ -1054,11 +1187,13 @@ def run_rho_sweep_and_tradeoff(
         artifact_or_path=artifact,
         scale=scale,
         save_path=metrics_csv_path,
+        split_name=split_name,
         verbose=verbose,
     )
 
     plot_rho_tradeoff_curves(
         metrics_df=metrics_df,
+        omit_model_names=omit_model_names,
         save_dir=plots_dir,
     )
 

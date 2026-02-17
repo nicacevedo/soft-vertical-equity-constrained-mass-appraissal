@@ -249,6 +249,10 @@ if __name__ == "__main__":
         metrics_df = run_rho_sweep_and_tradeoff(
             models=models,
             rho_values=rho_grid,
+            rho_values_by_name_contains={
+                "SmoothPenalty": np.linspace(0, 7, 10),#np.logspace(-4, np.log10(7), 10),#np.linspace(0, 7, 10),
+                "CovPenalty": np.linspace(0, 7, 10),#np.logspace(-4, np.log10(10), 10),#np.linspace(0, 10, 10),
+            },
             X_train=X_train,
             y_train=y_train_log,
             X_test=X_test,
@@ -261,6 +265,12 @@ if __name__ == "__main__":
             save_predictions=True,
             penalty_attrs=("rho",),
             include_models_without_rho=False,
+            always_include_model_names=("LinearRegression", "LGBMRegressor"),
+            omit_model_names=("LinearRegression",),
+            model_data_overrides={
+                "LinearRegression": {"X_train": X_train_prep, "X_test": X_test_prep},
+            },
+            split_name="test",
             verbose=True,
         )
         print("Rho-sweep metrics (test split):")
