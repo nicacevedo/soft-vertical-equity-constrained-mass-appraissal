@@ -169,6 +169,185 @@ class LGBCovPenalty:
         return f"LGBCovPenalty(rho={self.rho}, ratio_mode={self.ratio_mode})" #, anchor_mode={self.anchor_mode})"
 
 
+
+# # CVaR Surrogate of the MSE
+# class LGBCovPenaltyCVaR:
+#     """LightGBM objective: (robust) MSE + rho * (Cov(r, y))^2
+
+#     Change vs original:
+#       - Adds CVaR on the MSE term ONLY (penalty unchanged).
+#       - When mse_keep < 1, we focus on the worst mse_keep fraction of squared errors.
+#       - Proper scaling: use (n / n_keep) multiplier on the selected tail so mse_keep=1
+#         matches the original mean-MSE gradient scale, and mse_keep<1 increases emphasis
+#         on the tail (roughly by 1/mse_keep).
+
+#     Existing penalty (unchanged):
+#       penalty = 0.5 * rho * n * cov^2
+#       cov = mean(r_eff * (y_true - y_mean_))
+#       grad_pen_i = rho * n * cov * a_i,    a_i = (yc_i * dr_i) / n
+#       hess_pen_i = rho * n * a_i^2         (diag approx)
+#     """
+
+#     def __init__(
+#         self,
+#         rho=1e-3,
+#         ratio_mode="div",            # "div" or "diff"
+#         anchor_mode="target",        # "none" | "target" | "iter_mean"  (no-op here; see note)
+#         target_value=None,           # if anchor_mode="target": default 1.0 (div) or 0.0 (diff)
+
+#         # --- CVaR on MSE ---
+#         mse_keep=1.0,                # 1.0 => original mean MSE; <1 => CVaR tail mean of squared errors
+#         mse_mix_uniform=0.0,         # optional mixing with uniform weights in [0,1); default 0.0
+
+#         zero_grad_tol=1e-6,
+#         eps_y=1e-12,
+#         lgbm_params=None,
+#         verbose=True,
+#     ):
+#         self.rho = float(rho)
+#         self.ratio_mode = ratio_mode
+#         self.anchor_mode = anchor_mode
+#         self.target_value = target_value
+
+#         self.mse_keep = float(mse_keep)
+#         self.mse_mix_uniform = float(mse_mix_uniform)
+
+#         self.zero_grad_tol = float(zero_grad_tol)
+#         self.eps_y = float(eps_y)
+#         self.verbose = bool(verbose)
+#         self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+#     def fit(self, X, y):
+#         self.y_mean_ = float(np.mean(y))
+#         self.model.set_params(objective=self.fobj)
+#         self.model.fit(X, y)
+#         return self
+
+#     def predict(self, X):
+#         return self.model.predict(X)
+
+#     # ------------------------
+#     # CVaR weights for MSE
+#     # ------------------------
+#     def _cvar_mse_weights(self, sq_err):
+#         """
+#         Returns:
+#           w_eff: per-sample multiplier applied to base MSE grad/hess
+#           n_keep: number of samples in tail set
+#           cvar_mse: tail-mean squared error (for logging)
+#         """
+#         n = sq_err.size
+#         keep = float(self.mse_keep)
+
+#         if keep >= 1.0:
+#             w_eff = np.ones(n, dtype=float)
+#             return w_eff, n, float(np.mean(sq_err))
+
+#         keep = max(min(keep, 1.0), 1.0 / n)
+#         n_keep = int(np.ceil(keep * n))
+
+#         idx = np.argpartition(sq_err, -n_keep)[-n_keep:]
+#         mask = np.zeros(n, dtype=float)
+#         mask[idx] = 1.0
+
+#         # scaling so keep=1 recovers original mean-MSE scale
+#         w_eff = (n / float(n_keep)) * mask
+
+#         mix = float(self.mse_mix_uniform)
+#         if mix > 0.0:
+#             mix = min(max(mix, 0.0), 0.999)
+#             w_eff = (1.0 - mix) * w_eff + mix * np.ones(n, dtype=float)
+
+#         return w_eff, n_keep, float(np.mean(sq_err[idx]))
+
+#     def fobj(self, y_true, y_pred):
+#         y_true = np.asarray(y_true, dtype=float)
+#         y_pred = np.asarray(y_pred, dtype=float)
+#         n = y_pred.size
+
+#         yc = (y_true - self.y_mean_)  # centered y (mean ~ 0 on training)
+
+#         # ---- choose r and dr/dy_pred ----
+#         if self.ratio_mode == "div":
+#             denom = np.maximum(np.abs(y_true), self.eps_y)
+#             r = y_pred / denom
+#             dr = 1.0 / denom
+#         elif self.ratio_mode == "diff":
+#             r = y_pred - y_true
+#             dr = np.ones_like(y_pred)
+#         else:
+#             raise ValueError("ratio_mode must be 'div' or 'diff'.")
+
+#         # ---- optional anchor (no-op for centered yc; kept for API symmetry) ----
+#         anchor = 0.0
+#         if self.anchor_mode == "none":
+#             anchor = 0.0
+#         elif self.anchor_mode == "iter_mean":
+#             anchor = float(np.mean(r))
+#         elif self.anchor_mode == "target":
+#             if self.target_value is None:
+#                 anchor = 1.0 if self.ratio_mode == "div" else 0.0
+#             else:
+#                 anchor = float(self.target_value)
+#         else:
+#             raise ValueError("anchor_mode must be 'none', 'iter_mean', or 'target'.")
+
+#         r_eff = r - anchor
+
+#         # ---- covariance ----
+#         cov = float(np.mean(r_eff * yc))
+
+#         # ---- MSE pieces ----
+#         mse_vec = (y_true - y_pred) ** 2
+#         mse_mean = float(np.mean(mse_vec))
+
+#         # CVaR weights for MSE only
+#         w_mse_eff, n_keep, cvar_mse = self._cvar_mse_weights(mse_vec)
+
+#         # ---- penalty value for logging (unchanged) ----
+#         pen_value = 0.5 * self.rho * float(n) * (cov ** 2)
+
+#         try:
+#             corr = float(np.corrcoef(r, y_true)[0, 1])
+#         except Exception:
+#             corr = float("nan")
+
+#         if self.verbose:
+#             model_name = self.__str__().split("(")[0]
+#             # a proxy "loss" using CVaR-MSE + penalty
+#             loss_proxy = cvar_mse + pen_value
+#             print(
+#                 f"[{model_name}] "
+#                 f"Loss~: {loss_proxy:.6f} | MSE(mean): {mse_mean:.6f} | "
+#                 f"MSE(CVaR@keep={self.mse_keep:.2f}): {cvar_mse:.6f} | "
+#                 f"Cov: {cov:.6e} | Pen: {pen_value:.6f} | Corr(r,y): {corr:.6f} | "
+#                 f"n_keep: {n_keep}"
+#             )
+
+#         # ---- base MSE grads/hess (weighted by CVaR) ----
+#         grad_base = 2.0 * (y_pred - y_true)
+#         hess_base = 2.0 * np.ones_like(y_pred)
+
+#         grad_base = w_mse_eff * grad_base
+#         hess_base = w_mse_eff * hess_base
+
+#         # ---- cov penalty grads/hess (unchanged) ----
+#         a = (yc * dr) / float(n)                 # dc/dy_pred_i
+#         grad_pen = self.rho * float(n) * cov * a
+#         hess_pen = self.rho * float(n) * (a ** 2)
+
+#         grad = grad_base + grad_pen
+#         hess = hess_base + hess_pen
+
+#         grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+#         hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+#         return grad, hess
+
+#     def __str__(self):
+#         return f"LGBCovPenalty(rho={self.rho}, ratio_mode={self.ratio_mode}, mse_keep={self.mse_keep})"
+
+
 # ==========================================================
 # 1) Plain (no dual/adversary): minimize MSE + rho * Cov-surrogate (separable)
 # ==========================================================
@@ -290,13 +469,359 @@ class LGBSmoothPenalty:
 
 
 
+# CVaR Surrogate of the
+class LGBSmoothPenaltyCVaR:
+    """LightGBM custom objective: robust MSE (CVaR) + rho * separable surrogate penalty.
+
+    Base objective:
+      - If mse_keep == 1.0: mean MSE (original behavior)
+      - If mse_keep <  1.0: CVaR_keep of per-sample squared errors, implemented via top-k reweighting
+
+    Penalty term (unchanged, global average, non-adversarial):
+      ratio_mode="div": surrogate = ((y_pred / denom) - t)^2 * (y_true - y_mean)^2
+      ratio_mode="diff": surrogate = ((y_pred - y_true) - t)^2 * (y_true - y_mean)^2
+      with defaults: t=1.0 for div, t=0.0 for diff (unless target_value provided).
+
+    Notes on CVaR implementation:
+      - We compute squared errors s_i = (y_true - y_pred)^2.
+      - Let n_keep = ceil(mse_keep * n). We select the top-n_keep errors.
+      - We apply per-sample weights:
+            w_eff_i = (n / n_keep) * 1{i in top-k}
+        so that when mse_keep=1, w_eff_i = 1 (original scaling).
+      - Optional mild mixing with uniform weights:
+            w_eff_i = (1-mix)* (n/n_keep)*1{i in top-k} + mix*1
+        This reduces oscillations when the top-k set changes a lot.
+      - This is a piecewise-smooth objective (the top-k set can change as y_pred changes).
+        In practice it works well as a robustification heuristic.
+    """
+
+    def __init__(
+        self,
+        rho=1e-3,
+        ratio_mode="div",        # "div" (default) or "diff"
+        target_value=None,       # default: 1.0 for div, 0.0 for diff
+
+        # --- CVaR on MSE ---
+        mse_keep=1.0,            # keep fraction for CVaR on squared error; 1.0 => original mean MSE
+        mse_mix_uniform=0.0,     # optional mixing with uniform weights in [0,1); default 0.0
+
+        # --- numerical ---
+        zero_grad_tol=1e-6,
+        eps_y=1e-12,
+        verbose=True,
+
+        # --- LightGBM ---
+        lgbm_params=None,
+    ):
+        self.rho = float(rho)
+        self.ratio_mode = ratio_mode
+        self.target_value = target_value
+
+        self.mse_keep = float(mse_keep)
+        self.mse_mix_uniform = float(mse_mix_uniform)
+
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.eps_y = float(eps_y)
+        self.verbose = bool(verbose)
+
+        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+    def fit(self, X, y):
+        self.y_mean_ = float(np.mean(y))
+        self.model.set_params(objective=self.fobj)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    # ------------------------
+    # CVaR weights for MSE
+    # ------------------------
+    def _cvar_mse_weights(self, sq_err):
+        """
+        Returns:
+          w_eff: per-sample multiplier applied to base grad/hess (MSE part only)
+          n_keep: number of samples in the tail set
+          cvar_mse: tail mean of squared errors (for logging)
+        """
+        n = sq_err.size
+        keep = float(self.mse_keep)
+
+        # Original mean MSE
+        if keep >= 1.0:
+            w_eff = np.ones(n, dtype=float)
+            cvar_mse = float(np.mean(sq_err))
+            return w_eff, n, cvar_mse
+
+        # Clamp keep to at least 1 sample
+        keep = max(min(keep, 1.0), 1.0 / n)
+        n_keep = int(np.ceil(keep * n))
+
+        # Top-k indices of squared error
+        idx = np.argpartition(sq_err, -n_keep)[-n_keep:]
+
+        mask = np.zeros(n, dtype=float)
+        mask[idx] = 1.0
+
+        # CVaR scaling: mean over top-k is (1/n_keep) sum_{idx} s_i.
+        # To match the original mean-MSE gradient scale (which corresponds to (1/n) sum s_i),
+        # we multiply selected points by n/n_keep.
+        w_eff = (n / float(n_keep)) * mask
+
+        # Optional mild mixing with uniform (stability)
+        mix = float(self.mse_mix_uniform)
+        if mix > 0.0:
+            mix = min(max(mix, 0.0), 0.999)
+            # convex combo: (1-mix)*CVaR + mix*mean
+            w_eff = (1.0 - mix) * w_eff + mix * np.ones(n, dtype=float)
+
+        cvar_mse = float(np.mean(sq_err[idx]))
+        return w_eff, n_keep, cvar_mse
+
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true, dtype=float)
+        y_pred = np.asarray(y_pred, dtype=float)
+
+        z = y_true
+        zc = (y_true - self.y_mean_)
+        denom = np.maximum(np.abs(z), self.eps_y)
+
+        # choose r, dr/dy_pred, and default target
+        if self.ratio_mode == "div":
+            r = y_pred / denom
+            dr = 1.0 / denom
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "diff":
+            r = y_pred - z
+            dr = np.ones_like(y_pred)
+            t = 0.0 if self.target_value is None else float(self.target_value)
+        else:
+            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+
+        # ------------------------
+        # MSE + CVaR(MSE) weighting
+        # ------------------------
+        sq_err = (y_true - y_pred) ** 2
+        w_mse_eff, n_keep, cvar_mse = self._cvar_mse_weights(sq_err)
+
+        # base gradients/hessians for squared error
+        grad_base = 2.0 * (y_pred - y_true)
+        hess_base = 2.0 * np.ones_like(y_pred)
+
+        # Apply CVaR weights ONLY to the MSE term
+        grad_base = w_mse_eff * grad_base
+        hess_base = w_mse_eff * hess_base
+
+        # ------------------------
+        # penalty (unchanged, global mean behavior via uniform aggregation)
+        # ------------------------
+        # pen_i = (r_i - t)^2 * zc_i^2
+        scale = (zc ** 2)
+        cov_surr_value = (r - t) ** 2 * scale
+
+        grad_pen = 2.0 * (r - t) * dr * scale
+        hess_pen = 2.0 * (dr ** 2) * scale
+
+        grad = grad_base + self.rho * grad_pen
+        hess = hess_base + self.rho * hess_pen
+
+        # Logging (kept close, now includes CVaR info)
+        if self.verbose:
+            try:
+                corr = float(np.corrcoef(r, y_true)[0, 1])
+            except Exception:
+                corr = float("nan")
+
+            # "Mean MSE" (unweighted) is still useful to track, plus CVaR tail mean
+            mse_mean = float(np.mean(sq_err))
+            cov_surr_mean = float(np.mean(cov_surr_value))
+
+            # A comparable "objective-like" scalar (rough): mean(MSE) replaced by CVaR(MSE)
+            # penalty stays as mean
+            loss_proxy = cvar_mse + self.rho * cov_surr_mean
+
+            print(
+                f"[{self.__str__().split('(')[0]}] "
+                f"Loss~: {loss_proxy:.6f} "
+                f"| MSE(mean): {mse_mean:.6f} "
+                f"| MSE(CVaR@keep={self.mse_keep:.2f}): {cvar_mse:.6f} "
+                f"| CovSurr(mean): {cov_surr_mean:.6f} "
+                f"| Corr(r,y): {corr:.6f} "
+                f"| n_keep: {n_keep} | mode: {self.ratio_mode} | target: {t:.6f}"
+            )
+
+        # numerical floor
+        grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        return grad, hess
+
+    def __str__(self):
+        return f"LGBSmoothPenalty(rho={self.rho}, mode={self.ratio_mode}, mse_keep={self.mse_keep})"
 
 
 
+# CVar on the whole objective (MSE + rho*penalty)
+class LGBSmoothPenaltyCVaRTotal:
+    """LightGBM custom objective: CVaR_keep of (MSE + rho*penalty) using top-k reweighting.
 
+    Compared to LGBSmoothPenaltyCVaR (CVaR only on MSE):
+      - We select the worst tail based on per-sample total score:
+            score_i = (y_true - y_pred)^2 + rho * ((r - t)^2 * zc^2)
+      - We apply the resulting CVaR weights to BOTH MSE and penalty gradients/hessians.
 
+    Scaling:
+      - weights w_eff_i = (n / n_keep) * 1{i in top-k}
+        so keep=1 => w_eff_i=1 (original scale).
 
+    Optional mild mixing:
+      - w_eff = (1-mix)*w_eff + mix*1
+        stabilizes training when the top-k set changes abruptly.
+    """
 
+    def __init__(
+        self,
+        rho=1e-3,
+        ratio_mode="div",        # "div" or "diff"
+        target_value=None,       # default: 1.0 for div, 0.0 for diff
+
+        # --- CVaR on total (MSE + rho*penalty) ---
+        keep=1.0,                # keep fraction for CVaR tail; 1.0 => original mean objective scaling
+        mix_uniform=0.0,         # optional mixing with uniform weights in [0,1); default 0.0
+
+        # --- numerical ---
+        zero_grad_tol=1e-6,
+        eps_y=1e-12,
+        verbose=True,
+
+        # --- LightGBM ---
+        lgbm_params=None,
+    ):
+        self.rho = float(rho)
+        self.ratio_mode = ratio_mode
+        self.target_value = target_value
+
+        self.keep = float(keep)
+        self.mix_uniform = float(mix_uniform)
+
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.eps_y = float(eps_y)
+        self.verbose = bool(verbose)
+
+        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+    def fit(self, X, y):
+        self.y_mean_ = float(np.mean(y))
+        self.model.set_params(objective=self.fobj)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    # ------------------------
+    # CVaR weights for a generic per-sample score
+    # ------------------------
+    def _cvar_weights(self, score):
+        """
+        Returns:
+          w_eff: per-sample multiplier applied to (grad_total, hess_total)
+          n_keep: number of samples in the tail set
+          cvar_score: tail mean of score (for logging)
+        """
+        n = score.size
+        keep = float(self.keep)
+
+        # Original: no CVaR (equivalent to keep=1)
+        if keep >= 1.0:
+            w_eff = np.ones(n, dtype=float)
+            return w_eff, n, float(np.mean(score))
+
+        keep = max(min(keep, 1.0), 1.0 / n)
+        n_keep = int(np.ceil(keep * n))
+
+        idx = np.argpartition(score, -n_keep)[-n_keep:]
+        mask = np.zeros(n, dtype=float)
+        mask[idx] = 1.0
+
+        w_eff = (n / float(n_keep)) * mask
+
+        mix = float(self.mix_uniform)
+        if mix > 0.0:
+            mix = min(max(mix, 0.0), 0.999)
+            w_eff = (1.0 - mix) * w_eff + mix * np.ones(n, dtype=float)
+
+        cvar_score = float(np.mean(score[idx]))
+        return w_eff, n_keep, cvar_score
+
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true, dtype=float)
+        y_pred = np.asarray(y_pred, dtype=float)
+
+        z = y_true
+        zc = (y_true - self.y_mean_)
+        denom = np.maximum(np.abs(z), self.eps_y)
+
+        # choose r, dr/dy_pred, and default target
+        if self.ratio_mode == "div":
+            r = y_pred / denom
+            dr = 1.0 / denom
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "diff":
+            r = y_pred - z
+            dr = np.ones_like(y_pred)
+            t = 0.0 if self.target_value is None else float(self.target_value)
+        else:
+            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+
+        # per-sample pieces
+        sq_err = (y_true - y_pred) ** 2
+        scale = (zc ** 2)
+        pen_i = (r - t) ** 2 * scale
+
+        # CVaR selection score: total per-sample objective
+        score = sq_err + self.rho * pen_i
+        w_eff, n_keep, cvar_score = self._cvar_weights(score)
+
+        # gradients/hessians (separable parts)
+        grad_mse = 2.0 * (y_pred - y_true)
+        hess_mse = 2.0 * np.ones_like(y_pred)
+
+        grad_pen = 2.0 * (r - t) * dr * scale
+        hess_pen = 2.0 * (dr ** 2) * scale
+
+        # Apply CVaR weights to the TOTAL gradient/hessian
+        grad = w_eff * (grad_mse + self.rho * grad_pen)
+        hess = w_eff * (hess_mse + self.rho * hess_pen)
+
+        # Logging
+        if self.verbose:
+            mse_mean = float(np.mean(sq_err))
+            pen_mean = float(np.mean(pen_i))
+            score_mean = float(np.mean(score))
+
+            try:
+                corr = float(np.corrcoef(r, y_true)[0, 1])
+            except Exception:
+                corr = float("nan")
+
+            print(
+                f"[{self.__str__().split('(')[0]}] "
+                f"Score(mean): {score_mean:.6f} | Score(CVaR@keep={self.keep:.2f}): {cvar_score:.6f} | "
+                f"MSE(mean): {mse_mean:.6f} | Pen(mean): {pen_mean:.6f} | "
+                f"rho: {self.rho:.3g} | Corr(r,y): {corr:.6f} | n_keep: {n_keep} | "
+                f"mode: {self.ratio_mode} | target: {t:.6f}"
+            )
+
+        # numerical floor
+        grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        return grad, hess
+
+    def __str__(self):
+        return f"LGBSmoothPenaltyCVaRTotal(rho={self.rho}, mode={self.ratio_mode}, keep={self.keep})"
 
 
 
@@ -671,6 +1196,500 @@ class LGBPrimalDual:
         return f"LGBPrimalDual({self.rho}, {self.adversary_type}, {self.eta_adv})" #adversary_type={self.adversary_type})" #, eta_adv={self.eta_adv}, tol={self.zero_grad_tol})"
 
 
+# Experimental binning
+import numpy as np
+import lightgbm as lgb
+from sklearn.base import BaseEstimator, RegressorMixin
+
+
+class LGBBinnedAdversarialRegressivityPenalty(BaseEstimator, RegressorMixin):
+    """
+    LightGBM objective:
+        MSE + (rho/2) * sum_{b=1..B} w_b * (m_b)^2
+
+    where bins b partition samples by a binning variable (typically the target value y_true,
+    or log(y_true) if y_true is price). Within each bin:
+        m_b = mean_{i in bin b} t_i
+
+    and t_i is a "regressivity signal" you choose:
+
+    penalty_signal="residual" (Option 2, recommended stable):
+        t_i = (y_pred - y_true) - target_residual      (default target_residual = 0)
+
+    penalty_signal="ratio" (Option 1):
+        define r_i via ratio_mode, then:
+        t_i = r_i - target_ratio                       (default target_ratio = 1)
+
+        ratio_mode="div":
+            r_i = y_pred / max(|y_true|, eps_y)
+            (NOTE: this is only meaningful if y_true is on the same scale as y_pred and y_true>0)
+
+        ratio_mode="expdiff" (recommended if y_true is log-price):
+            r_i = exp(y_pred - y_true)
+
+    Adversary:
+        weights w over bins are updated by mirror ascent on v_b = (m_b)^2 (fairness only),
+        with capped simplex projection and mild uniform mixing:
+            w <- (1-mix) * Proj_CapSimplex(w * exp(eta_adv*(v - max(v)))) + mix * uniform
+
+    Binning:
+        binning="quantile" | "uniform" | "quantile_tails" | "custom"
+        hard bins by default; optionally soft bins via soft_bins=True, which assigns each sample
+        to two neighboring bins with linear interpolation (smooth across bin boundaries).
+
+    Notes:
+      * This penalty controls *binwise mean* violation, i.e. piecewise-constant approximation
+        to E[t | value_bin]. It can strongly reduce nonlinear regressivity patterns.
+      * Use capped simplex + mixing + update_every to improve stability/generalization.
+      * For log targets, ratio_mode="expdiff" aligns with original-scale ratios.
+    """
+
+    def __init__(
+        self,
+        rho=1e-3,
+
+        # --- penalty definition ---
+        penalty_signal="residual",      # "residual" or "ratio"
+        ratio_mode="div",           # "expdiff" or "div" (used if penalty_signal="ratio")
+        target_residual=0.0,            # residual anchor
+        target_ratio=1.0,               # ratio anchor
+        eps_y=1e-12,                    # for div ratio
+
+        # --- binning ---
+        n_bins=20,
+        binning="quantile",             # "quantile" | "uniform" | "quantile_tails" | "custom"
+        bin_on="y",                     # "y" (use y_true) | "logy" (use log(y_true), requires y_true>0)
+        custom_edges=None,              # array-like length B+1 if binning="custom"
+        tails_frac=0.2,                 # for quantile_tails: fraction in each tail
+        tails_bins_each=6,              # for quantile_tails: bins per tail (middle gets remaining)
+        soft_bins=False,                # smooth bin assignment (linear interpolation between adjacent bins)
+
+        # --- adversary (bins) ---
+        eta_adv=0.2,                    # mirror-ascent step size for adversary
+        keep=0.7,                       # CVaR-style cap: w_b <= 1/K with K = ceil(keep * B_eff)
+        mix_uniform=0.05,               # mild uniform mixing (0..1)
+        update_every=1,                 # update adversary every k boosting rounds
+
+        # --- curvature / numerical ---
+        hess_mode="gauss_newton",       # "gauss_newton" | "full_diag"
+        zero_grad_tol=1e-8,
+        verbose=True,
+
+        # --- LightGBM params ---
+        lgbm_params=None,
+    ):
+        self.rho = float(rho)
+
+        self.penalty_signal = penalty_signal
+        self.ratio_mode = ratio_mode
+        self.target_residual = float(target_residual)
+        self.target_ratio = float(target_ratio)
+        self.eps_y = float(eps_y)
+
+        self.n_bins = int(n_bins)
+        self.binning = binning
+        self.bin_on = bin_on
+        self.custom_edges = custom_edges
+        self.tails_frac = float(tails_frac)
+        self.tails_bins_each = int(tails_bins_each)
+        self.soft_bins = bool(soft_bins)
+
+        self.eta_adv = float(eta_adv)
+        self.keep = float(keep)
+        self.mix_uniform = float(mix_uniform)
+        self.update_every = int(update_every)
+
+        self.hess_mode = hess_mode
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.verbose = bool(verbose)
+
+        self.lgbm_params = dict(lgbm_params or {})
+        # ensure boost_from_average=True for stable cached-pred updates
+        self.lgbm_params.setdefault("boost_from_average", True)
+
+        self.model = lgb.LGBMRegressor(**self.lgbm_params)
+
+    # ------------------------
+    # sklearn API
+    # ------------------------
+    def fit(self, X, y):
+        self.X_ = X
+        self.y_ = np.asarray(y).astype(float)
+        self.n_ = self.y_.size
+
+        # initialize cached predictions to mean label if boost_from_average=True
+        self.y_mean_ = float(np.mean(self.y_))
+        self.y_hat_ = np.ones(self.n_) * self.y_mean_
+
+        # prepare bins (on y or logy)
+        self._prepare_bins(self.y_)
+
+        # initialize adversary weights over bins (uniform)
+        self.w_bins_ = np.ones(self.B_) / self.B_
+        self.cap_ = self._cap_from_keep(self.keep, self.B_)
+
+        # attach custom objective and callback
+        self.model.set_params(objective=self.fobj)
+        self.model.fit(X, y, callbacks=[self._adv_callback])
+
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    # ------------------------
+    # binning helpers
+    # ------------------------
+    def _cap_from_keep(self, keep, B):
+        K = max(1, int(np.ceil(keep * B)))
+        return 1.0 / K
+
+    def _prepare_bins(self, y_true):
+        # choose binning variable
+        if self.bin_on == "y":
+            v = y_true
+        elif self.bin_on == "logy":
+            if np.any(y_true <= 0):
+                raise ValueError("bin_on='logy' requires y_true > 0.")
+            v = np.log(y_true)
+        else:
+            raise ValueError("bin_on must be 'y' or 'logy'.")
+
+        v = np.asarray(v, dtype=float)
+        self.bin_values_ = v
+
+        # build edges
+        if self.binning == "custom":
+            if self.custom_edges is None:
+                raise ValueError("custom_edges must be provided when binning='custom'.")
+            edges = np.asarray(self.custom_edges, dtype=float)
+            if edges.ndim != 1 or edges.size < 3:
+                raise ValueError("custom_edges must be a 1D array of length >= 3 (B+1).")
+            # allow finite edges; we'll clamp endpoints
+            edges = edges.copy()
+        elif self.binning == "uniform":
+            lo, hi = np.min(v), np.max(v)
+            if lo == hi:
+                edges = np.array([lo - 1.0, lo + 1.0])
+            else:
+                edges = np.linspace(lo, hi, self.n_bins + 1)
+        elif self.binning == "quantile":
+            qs = np.linspace(0.0, 1.0, self.n_bins + 1)
+            edges = np.quantile(v, qs)
+        elif self.binning == "quantile_tails":
+            # More bins in tails, fewer in middle
+            frac = self.tails_frac
+            k_tail = self.tails_bins_each
+            if not (0.0 < frac < 0.5):
+                raise ValueError("tails_frac must be in (0, 0.5).")
+            if 2 * k_tail >= self.n_bins:
+                raise ValueError("tails_bins_each too large for n_bins.")
+            k_mid = self.n_bins - 2 * k_tail
+
+            # quantiles for low tail, mid, high tail
+            q_low = np.linspace(0.0, frac, k_tail + 1)
+            q_mid = np.linspace(frac, 1.0 - frac, k_mid + 1)
+            q_high = np.linspace(1.0 - frac, 1.0, k_tail + 1)
+
+            edges = np.unique(np.concatenate([
+                np.quantile(v, q_low),
+                np.quantile(v, q_mid[1:]),   # avoid duplicate at frac
+                np.quantile(v, q_high[1:]),  # avoid duplicate at 1-frac
+            ]))
+        else:
+            raise ValueError("binning must be 'quantile', 'uniform', 'quantile_tails', or 'custom'.")
+
+        # ensure edges strictly increasing as much as possible
+        edges = np.asarray(edges, dtype=float)
+        edges = np.unique(edges)
+        if edges.size < 3:
+            # degenerate: all values same
+            lo = float(np.min(v))
+            edges = np.array([lo - 1.0, lo, lo + 1.0])
+
+        # add infinite endpoints for safe searchsorted-based hard binning
+        edges[0] = -np.inf
+        edges[-1] = np.inf
+        self.bin_edges_ = edges
+        self.B_ = edges.size - 1  # number of bins
+
+        # precompute hard bin ids for training points
+        # bin id in {0,...,B_-1}
+        self.bin_id_ = np.searchsorted(self.bin_edges_, v, side="right") - 1
+        self.bin_id_ = np.clip(self.bin_id_, 0, self.B_ - 1)
+
+        # counts for hard bins (used even if soft_bins=True as fallback)
+        self.bin_counts_ = np.bincount(self.bin_id_, minlength=self.B_).astype(float)
+
+    # ------------------------
+    # adversary helpers
+    # ------------------------
+    def _project_capped_simplex(self, w):
+        """Project to {w>=0, sum w=1, w_i<=cap_} with cap-and-redistribute."""
+        w = np.maximum(w, 0.0)
+        s = w.sum()
+        if s <= 0:
+            w = np.ones_like(w) / w.size
+        else:
+            w = w / s
+
+        cap = float(self.cap_)
+        for _ in range(20):
+            over = w > cap
+            if not np.any(over):
+                break
+            excess = w[over].sum() - cap * over.sum()
+            w[over] = cap
+            under = ~over
+            if not np.any(under):
+                break
+            w[under] += excess * (w[under] / w[under].sum())
+        # numerical normalization
+        w = np.maximum(w, 0.0)
+        w = w / w.sum()
+        return w
+
+    def _mirror_ascent_step(self, w, v):
+        """Exponentiated-gradient / mirror ascent on simplex with capped projection."""
+        v = np.asarray(v, dtype=float)
+        z = self.eta_adv * (v - np.max(v))  # stabilize
+        w_new = w * np.exp(z)
+        w_new = self._project_capped_simplex(w_new)
+        # mild uniform mixing (stability / generalization)
+        if self.mix_uniform > 0:
+            u = np.ones_like(w_new) / w_new.size
+            w_new = (1.0 - self.mix_uniform) * w_new + self.mix_uniform * u
+            w_new = self._project_capped_simplex(w_new)
+        return w_new
+
+    def _adv_callback(self, env):
+        """Update bin weights once per boosting iteration using current predictions."""
+        it = env.iteration + 1  # 1-index
+        if self.update_every <= 0:
+            return
+        if (it % self.update_every) != 0:
+            # still update cached preds if we rely on delta
+            delta = env.model.predict(self.X_, start_iteration=it-1, num_iteration=1)
+            self.y_hat_ = self.y_hat_ + delta
+            return
+
+        # Update cached predictions by adding only the newest tree contribution
+        delta = env.model.predict(self.X_, start_iteration=it-1, num_iteration=1)
+        self.y_hat_ = self.y_hat_ + delta
+        y_pred = self.y_hat_
+
+        # compute bin violations m_b under current predictions
+        m_b, _ = self._compute_bin_means_and_derivatives(self.y_, y_pred, need_derivatives=False)
+
+        v = m_b ** 2  # adversary focuses on fairness only
+        self.w_bins_ = self._mirror_ascent_step(self.w_bins_, v)
+
+        if self.verbose:
+            worst = float(np.max(v))
+            avg = float(np.mean(v))
+            print(f"[ADV bins] it={it:04d} | mean(m_b^2)={avg:.3e} | max(m_b^2)={worst:.3e}")
+
+    # ------------------------
+    # penalty signal: t, dt, d2t
+    # ------------------------
+    def _signal_and_derivatives(self, y_true, y_pred):
+        """
+        Returns:
+          t:   per-sample violation signal
+          dt:  dt/dy_pred (same shape)
+          d2t: d^2t/dy_pred^2 (same shape)
+        """
+        y_true = np.asarray(y_true, dtype=float)
+        y_pred = np.asarray(y_pred, dtype=float)
+
+        if self.penalty_signal == "residual":
+            # t = (pred - true) - target
+            t = (y_pred - y_true) - self.target_residual
+            dt = np.ones_like(y_pred)
+            d2t = np.zeros_like(y_pred)
+            return t, dt, d2t
+
+        if self.penalty_signal != "ratio":
+            raise ValueError("penalty_signal must be 'residual' or 'ratio'.")
+
+        # ratio signals
+        if self.ratio_mode == "div":
+            denom = np.maximum(np.abs(y_true), self.eps_y)
+            r = y_pred / denom
+            t = r - self.target_ratio
+            dt = 1.0 / denom
+            d2t = np.zeros_like(y_pred)
+            return t, dt, d2t
+
+        if self.ratio_mode == "expdiff":
+            # r = exp(pred - true)  (true original-scale ratio if targets are log-prices)
+            e = y_pred - y_true
+            r = np.exp(np.clip(e, -50, 50))  # clip for numerical stability
+            t = r - self.target_ratio
+            dt = r
+            d2t = r
+            return t, dt, d2t
+
+        raise ValueError("ratio_mode must be 'div' or 'expdiff'.")
+
+    # ------------------------
+    # bin aggregation (hard / soft) and derivatives
+    # ------------------------
+    def _compute_bin_means_and_derivatives(self, y_true, y_pred, need_derivatives=True):
+        """
+        Computes:
+          m_b: bin mean of t
+        If need_derivatives=True, also returns per-sample:
+          dm_i: d m_{bin(i)} / d y_pred_i (hard bins)
+          (for soft bins, returns dm_coeff_i such that grad_pen_i = rho * dt_i * dm_coeff_i)
+        """
+        t, dt, d2t = self._signal_and_derivatives(y_true, y_pred)
+
+        if not self.soft_bins:
+            # hard bins: each sample belongs to exactly one bin
+            bid = self.bin_id_
+            B = self.B_
+            counts = np.bincount(bid, minlength=B).astype(float)
+            sum_t = np.bincount(bid, weights=t, minlength=B).astype(float)
+
+            # avoid division by zero
+            denom = np.maximum(counts, 1.0)
+            m_b = sum_t / denom
+
+            if not need_derivatives:
+                return m_b, None
+
+            # per-sample mean derivative: d m_b / d y_pred_i = dt_i / n_b
+            n_b = denom[bid]
+            dm_i = dt / n_b
+            # also provide d2t for full_diag option
+            return m_b, (dm_i, dt, d2t, n_b)
+
+        # soft bins: linear interpolation between adjacent hard bins (smooth across edges)
+        # Each sample contributes to its primary bin j and neighbor j+1 by fraction.
+        v = self.bin_values_
+        edges = self.bin_edges_
+        B = self.B_
+
+        # primary bin index j (hard)
+        j = self.bin_id_.copy()
+        j = np.clip(j, 0, B - 1)
+
+        # compute fractional position within the bin, for bins that have finite width
+        left = edges[j]
+        right = edges[j + 1]
+        width = right - left
+        # where width is inf or 0, set frac = 0 (all mass on j)
+        frac = np.zeros_like(v, dtype=float)
+        finite = np.isfinite(width) & (width > 0)
+        frac[finite] = (v[finite] - left[finite]) / width[finite]
+        frac = np.clip(frac, 0.0, 1.0)
+
+        # weights to j and j+1 (if exists)
+        wj = 1.0 - frac
+        jp1 = np.clip(j + 1, 0, B - 1)
+        wjp1 = np.where(jp1 != j, frac, 0.0)  # last bin has no +1 neighbor
+
+        # aggregate weighted sums and denominators
+        denom = np.zeros(B, dtype=float)
+        sum_t = np.zeros(B, dtype=float)
+
+        np.add.at(denom, j, wj)
+        np.add.at(sum_t, j, wj * t)
+
+        np.add.at(denom, jp1, wjp1)
+        np.add.at(sum_t, jp1, wjp1 * t)
+
+        denom_safe = np.maximum(denom, 1e-12)
+        m_b = sum_t / denom_safe
+
+        if not need_derivatives:
+            return m_b, None
+
+        # For gradients, we need coefficient per sample:
+        # grad_pen_i = rho * dt_i * sum_b w_adv_b * m_b * (w_ib / denom_b)
+        w_adv = self.w_bins_
+        term_j = w_adv[j] * m_b[j] * (wj / denom_safe[j])
+        term_jp1 = w_adv[jp1] * m_b[jp1] * (wjp1 / denom_safe[jp1])
+        dm_coeff = term_j + term_jp1
+        return m_b, (dm_coeff, dt, d2t, denom_safe, j, jp1, wj, wjp1)
+
+    # ------------------------
+    # LightGBM custom objective
+    # ------------------------
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true, dtype=float)
+        y_pred = np.asarray(y_pred, dtype=float)
+        n = y_pred.size
+        n_f = float(n)
+
+        # base MSE
+        grad_base = 2.0 * (y_pred - y_true)
+        hess_base = 2.0 * np.ones_like(y_pred)
+
+        # penalty pieces
+        m_b, aux = self._compute_bin_means_and_derivatives(y_true, y_pred, need_derivatives=True)
+        w_adv = self.w_bins_
+
+        # compute penalty value (for logging)
+        pen_value = 0.5 * self.rho * n_f * float(np.sum(w_adv * (m_b ** 2)))
+
+        # gradients/hessians for penalty
+        if not self.soft_bins:
+            dm_i, dt, d2t, n_b = aux  # dt = dt/dy_pred, d2t = second derivative
+            bid = self.bin_id_
+
+            m_i = m_b[bid]
+            w_i = w_adv[bid]
+
+            # grad: rho * w_b * m_b * (dt / n_b)
+            grad_pen = self.rho * n_f * w_i * m_i * dm_i
+
+            if self.hess_mode == "full_diag":
+                # diag Hess: rho*w_b*(dm_i^2 + m_b*(d2t/n_b))
+                hess_pen = self.rho * n_f * w_i * (dm_i ** 2 + m_i * (d2t / n_b))
+            else:
+                # Gauss-Newton style: rho*w_b*dm_i^2
+                hess_pen = self.rho * n_f * w_i * (dm_i ** 2)
+
+        else:
+            dm_coeff, dt, d2t, denom_safe, j, jp1, wj, wjp1 = aux
+            # grad: rho * dt_i * dm_coeff_i
+            grad_pen = self.rho * n_f * dt * dm_coeff
+
+            if self.hess_mode == "full_diag":
+                # full diag is messy for soft case with expdiff; use GN for stability
+                pass
+
+            # Gauss-Newton style diag Hess:
+            # rho * dt_i^2 * sum_b w_b*(w_ib/denom_b)^2
+            # where only j and j+1 bins contribute
+            term_j = w_adv[j] * (wj / denom_safe[j]) ** 2
+            term_jp1 = w_adv[jp1] * (wjp1 / denom_safe[jp1]) ** 2
+            hess_pen = self.rho * n_f * (dt ** 2) * (term_j + term_jp1)
+
+        grad = grad_base + grad_pen
+        hess = hess_base + hess_pen
+
+        # numerical floors
+        grad[np.abs(grad) < self.zero_grad_tol] = np.sign(grad[np.abs(grad) < self.zero_grad_tol]) * self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        # optional prints
+        if self.verbose:
+            mse_mean = float(np.mean((y_true - y_pred) ** 2))
+            # simple diagnostic: worst bin violation magnitude
+            worst_bin = float(np.max(np.abs(m_b))) if m_b.size else float("nan")
+            print(
+                f"[{self.__class__.__name__}] "
+                f"MSE={mse_mean:.6f} | Pen={pen_value:.6f} | "
+                f"mean(m_b^2)={float(np.mean(m_b**2)):.3e} | max|m_b|={worst_bin:.3e}"
+            )
+
+        return grad, hess
+
+    def __str__(self):
+        return f"LGBBinnedAdversarialRegressivityPenalty(rho={self.rho}, penalty_signal={self.penalty_signal}, ratio_mode={self.ratio_mode}, target_residual={self.target_residual}, target_ratio={self.target_ratio}, eps_y={self.eps_y}, n_bins={self.n_bins}, binning={self.binning}, custom_edges={self.custom_edges}, tails_frac={self.tails_frac}, tails_bins_each={self.tails_bins_each}, soft_bins={self.soft_bins}, eta_adv={self.eta_adv}, keep={self.keep}, mix_uniform={self.mix_uniform}, update_every={self.update_every}, hess_mode={self.hess_mode}, zero_grad_tol={self.zero_grad_tol})"
 
 
 

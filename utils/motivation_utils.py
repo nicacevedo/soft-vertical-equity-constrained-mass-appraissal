@@ -3,8 +3,11 @@ import pandas as pd
 import seaborn as sns
 from pandas.tseries.frequencies import to_offset
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error, median_absolute_error
 import os
+import copy
+import pickle
 # from typing import Union, List
 from typing import Optional, Tuple, Dict, Any, List
 
@@ -614,6 +617,369 @@ def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):
         # metrics["cos(r,y)"] = (ratios @ y_real) / (np.linalg.norm(ratios) * np.linalg.norm(y_real))
 
         return metrics
+
+
+def _resolve_penalty_attr(model, penalty_attrs: Tuple[str, ...]) -> Optional[str]:
+    """Return the first penalty attribute present in the model, else None."""
+    for attr in penalty_attrs:
+        if hasattr(model, attr):
+            return attr
+    return None
+
+
+def _safe_model_name(model) -> str:
+    """Compact model name for logs and tables."""
+    try:
+        return model.__class__.__name__
+    except Exception:
+        return str(model).split("(")[0]
+
+
+def _blend_with_white(rgb_color, intensity: float):
+    """
+    Blend RGB color with white.
+    intensity=0 -> white, intensity=1 -> original color.
+    """
+    intensity = float(np.clip(intensity, 0.0, 1.0))
+    c = np.array(rgb_color, dtype=float)
+    return tuple((1.0 - intensity) * np.ones(3) + intensity * c)
+
+
+def run_rho_sweep_predictions(
+    models: List[Any],
+    rho_values: np.ndarray,
+    X_train,
+    y_train,
+    X_test,
+    y_test,
+    cache_path: Optional[str] = None,
+    load_if_exists: bool = True,
+    save_predictions: bool = True,
+    penalty_attrs: Tuple[str, ...] = ("rho",),
+    include_models_without_rho: bool = False,
+    verbose: bool = True,
+) -> Dict[str, Any]:
+    """
+    Train model/rho combinations and store test predictions for later evaluation.
+
+    Parameters
+    ----------
+    models : list
+        List of instantiated models.
+    rho_values : array-like
+        Penalty strengths to sweep for models that expose any attribute in `penalty_attrs`.
+    X_train, y_train, X_test, y_test :
+        Data used to fit and evaluate predictions (test-set predictions are stored).
+    cache_path : str or None
+        If provided, serialized artifacts are read/written with pickle.
+    load_if_exists : bool
+        If True and cache_path exists, returns cached artifacts and skips training.
+    save_predictions : bool
+        If True and cache_path provided, writes artifacts to cache_path.
+    penalty_attrs : tuple[str]
+        Attribute names to try for setting rho-like penalties (default: ("rho",)).
+    include_models_without_rho : bool
+        If True, models without penalty attrs are trained once with rho=np.nan.
+    verbose : bool
+        Print progress messages.
+
+    Returns
+    -------
+    artifact : dict
+        Contains metadata, y_train, y_test, run descriptors, and prediction matrix.
+    """
+    rho_values = np.asarray(rho_values, dtype=float).reshape(-1)
+    if rho_values.size == 0:
+        raise ValueError("rho_values must contain at least one value.")
+
+    if cache_path is not None and load_if_exists and os.path.exists(cache_path):
+        if verbose:
+            print(f"[rho-sweep] Loading cached predictions from: {cache_path}")
+        with open(cache_path, "rb") as f:
+            return pickle.load(f)
+
+    y_train_arr = np.asarray(y_train)
+    y_test_arr = np.asarray(y_test)
+
+    runs = []
+    preds = []
+
+    for model in models:
+        model_name = _safe_model_name(model)
+        penalty_attr = _resolve_penalty_attr(model, penalty_attrs)
+
+        if penalty_attr is None:
+            if not include_models_without_rho:
+                if verbose:
+                    print(f"[rho-sweep] Skipping model without penalty attr: {model_name}")
+                continue
+            sweep_values = [np.nan]
+        else:
+            sweep_values = rho_values
+
+        for rho in sweep_values:
+            model_fit = copy.deepcopy(model)
+            if penalty_attr is not None:
+                setattr(model_fit, penalty_attr, float(rho))
+
+            if verbose:
+                rho_text = "nan" if np.isnan(rho) else f"{float(rho):.6g}"
+                print(f"[rho-sweep] Fitting model={model_name} | {penalty_attr}={rho_text}")
+
+            model_fit.fit(X_train, y_train_arr)
+            y_pred = np.asarray(model_fit.predict(X_test), dtype=float)
+
+            runs.append(
+                {
+                    "model_name": model_name,
+                    "model_repr": str(model_fit),
+                    "rho": float(rho) if np.isfinite(rho) else np.nan,
+                    "penalty_attr": penalty_attr,
+                }
+            )
+            preds.append(y_pred)
+
+    if len(preds) == 0:
+        raise ValueError("No model/rho runs were executed. Check models and penalty_attrs.")
+
+    y_pred_matrix = np.vstack(preds)
+
+    artifact = {
+        "meta": {
+            "n_runs": len(runs),
+            "n_test": int(y_test_arr.size),
+            "penalty_attrs": tuple(penalty_attrs),
+        },
+        "runs": runs,
+        "y_train": y_train_arr,
+        "y_test": y_test_arr,
+        "y_pred_matrix": y_pred_matrix,
+    }
+
+    if cache_path is not None and save_predictions:
+        cache_dir = os.path.dirname(cache_path)
+        if cache_dir:
+            os.makedirs(cache_dir, exist_ok=True)
+        with open(cache_path, "wb") as f:
+            pickle.dump(artifact, f)
+        if verbose:
+            print(f"[rho-sweep] Saved predictions cache to: {cache_path}")
+
+    return artifact
+
+
+def compute_rho_sweep_metrics(
+    artifact_or_path: Any,
+    scale: str = "log",
+    save_path: Optional[str] = None,
+    verbose: bool = True,
+) -> pd.DataFrame:
+    """
+    Compute `compute_taxation_metrics` for each model/rho run from sweep artifacts.
+
+    Parameters
+    ----------
+    artifact_or_path : dict or str
+        Artifact returned by `run_rho_sweep_predictions`, or cache path to load it.
+    scale : str
+        Passed to `compute_taxation_metrics` ("log" or "original").
+    save_path : str or None
+        Optional CSV path to save the metrics table.
+    verbose : bool
+        Print progress logs.
+    """
+    if isinstance(artifact_or_path, str):
+        with open(artifact_or_path, "rb") as f:
+            artifact = pickle.load(f)
+    else:
+        artifact = artifact_or_path
+
+    runs = artifact["runs"]
+    y_train = np.asarray(artifact["y_train"])
+    y_test = np.asarray(artifact["y_test"])
+    y_pred_matrix = np.asarray(artifact["y_pred_matrix"])
+
+    rows = []
+    for idx, run in enumerate(runs):
+        metrics = compute_taxation_metrics(
+            y_real=y_test,
+            y_pred=y_pred_matrix[idx],
+            scale=scale,
+            y_train=y_train,
+        )
+        row = {
+            "model_name": run["model_name"],
+            "model_repr": run["model_repr"],
+            "rho": run["rho"],
+            "penalty_attr": run["penalty_attr"],
+        }
+        row.update(metrics)
+        rows.append(row)
+
+    df_metrics = pd.DataFrame(rows)
+    df_metrics.sort_values(by=["model_name", "rho"], inplace=True, na_position="last")
+    df_metrics.reset_index(drop=True, inplace=True)
+
+    if save_path is not None:
+        save_dir = os.path.dirname(save_path)
+        if save_dir:
+            os.makedirs(save_dir, exist_ok=True)
+        df_metrics.to_csv(save_path, index=False)
+        if verbose:
+            print(f"[rho-sweep] Saved metrics table to: {save_path}")
+
+    return df_metrics
+
+
+def plot_rho_tradeoff_curves(
+    metrics_df: pd.DataFrame,
+    model_col: str = "model_name",
+    rho_col: str = "rho",
+    accuracy_metrics: Optional[List[str]] = None,
+    regressivity_metrics: Optional[List[str]] = None,
+    save_dir: str = "img/rho_tradeoff",
+    annotate_rho: bool = True,
+):
+    """
+    Plot tradeoff curves per model with color intensity mapped to rho values.
+
+    - One base color per model.
+    - Within each model, lighter -> lower rho, darker -> higher rho.
+    - Saves one figure per (accuracy metric, regressivity metric) pair.
+    """
+    if accuracy_metrics is None:
+        accuracy_metrics = ["R2", "OOS R2", "R2 (log)", "RMSE", "MAE", "MAPE"]
+    if regressivity_metrics is None:
+        regressivity_metrics = [
+            "Corr(r,price)",
+            "Corr(r,logprice)",
+            "Slope(r~logy)",
+            "PRB",
+            "PRD",
+            "VEI",
+            "COD",
+            "COV_IAAO",
+            "MKI",
+        ]
+
+    os.makedirs(save_dir, exist_ok=True)
+
+    present_acc = [m for m in accuracy_metrics if m in metrics_df.columns]
+    present_reg = [m for m in regressivity_metrics if m in metrics_df.columns]
+    if len(present_acc) == 0 or len(present_reg) == 0:
+        raise ValueError("No requested metric columns found in metrics_df.")
+
+    model_names = list(pd.unique(metrics_df[model_col]))
+    palette = sns.color_palette("tab10", n_colors=max(1, len(model_names)))
+    base_color_map = {m: palette[i] for i, m in enumerate(model_names)}
+
+    for acc_m in present_acc:
+        for reg_m in present_reg:
+            fig, ax = plt.subplots(figsize=(9, 6))
+            legend_handles = []
+
+            for model_name in model_names:
+                sub = metrics_df[metrics_df[model_col] == model_name].copy()
+                sub = sub[np.isfinite(sub[rho_col])]
+                if sub.empty:
+                    continue
+                sub.sort_values(by=rho_col, inplace=True)
+
+                rhos = sub[rho_col].to_numpy(dtype=float)
+                if len(np.unique(rhos)) == 1:
+                    norm = np.ones_like(rhos)
+                else:
+                    norm = (rhos - np.min(rhos)) / (np.max(rhos) - np.min(rhos))
+                # keep colors visible: intensity in [0.35, 1.0]
+                intensity = 0.35 + 0.65 * norm
+
+                base_color = base_color_map[model_name]
+                point_colors = [_blend_with_white(base_color, t) for t in intensity]
+
+                x = sub[reg_m].to_numpy(dtype=float)
+                y = sub[acc_m].to_numpy(dtype=float)
+
+                ax.plot(x, y, color=base_color, linewidth=1.5, alpha=0.6)
+                ax.scatter(x, y, c=point_colors, s=70, edgecolors="k", linewidths=0.5)
+
+                if annotate_rho:
+                    for xi, yi, ri in zip(x, y, rhos):
+                        ax.annotate(f"{ri:.3g}", (xi, yi), textcoords="offset points", xytext=(4, 3), fontsize=8)
+
+                legend_handles.append(Line2D([0], [0], color=base_color, lw=2, label=model_name))
+
+            ax.set_xlabel(reg_m)
+            ax.set_ylabel(acc_m)
+            ax.set_title(f"Tradeoff: {acc_m} vs {reg_m}")
+            ax.grid(True, alpha=0.25)
+            if legend_handles:
+                ax.legend(handles=legend_handles, loc="best", frameon=True)
+
+            fig.tight_layout()
+            safe_acc = acc_m.replace("/", "_").replace(" ", "_")
+            safe_reg = reg_m.replace("/", "_").replace(" ", "_")
+            fig.savefig(os.path.join(save_dir, f"tradeoff_{safe_acc}_vs_{safe_reg}.png"), dpi=300)
+            plt.close(fig)
+
+    print(f"Rho tradeoff plots saved to '{save_dir}'.")
+
+
+def run_rho_sweep_and_tradeoff(
+    models: List[Any],
+    rho_values: np.ndarray,
+    X_train,
+    y_train,
+    X_test,
+    y_test,
+    scale: str = "log",
+    predictions_cache_path: Optional[str] = None,
+    metrics_csv_path: Optional[str] = None,
+    plots_dir: str = "img/rho_tradeoff",
+    load_predictions_if_exists: bool = True,
+    save_predictions: bool = True,
+    penalty_attrs: Tuple[str, ...] = ("rho",),
+    include_models_without_rho: bool = False,
+    verbose: bool = True,
+) -> pd.DataFrame:
+    """
+    End-to-end helper:
+      1) Runs (or loads) model/rho predictions on test set.
+      2) Computes taxation metrics for each run.
+      3) Generates tradeoff plots by model with rho intensity.
+
+    Returns
+    -------
+    pd.DataFrame
+        Metrics table with one row per model/rho run.
+    """
+    artifact = run_rho_sweep_predictions(
+        models=models,
+        rho_values=rho_values,
+        X_train=X_train,
+        y_train=y_train,
+        X_test=X_test,
+        y_test=y_test,
+        cache_path=predictions_cache_path,
+        load_if_exists=load_predictions_if_exists,
+        save_predictions=save_predictions,
+        penalty_attrs=penalty_attrs,
+        include_models_without_rho=include_models_without_rho,
+        verbose=verbose,
+    )
+
+    metrics_df = compute_rho_sweep_metrics(
+        artifact_or_path=artifact,
+        scale=scale,
+        save_path=metrics_csv_path,
+        verbose=verbose,
+    )
+
+    plot_rho_tradeoff_curves(
+        metrics_df=metrics_df,
+        save_dir=plots_dir,
+    )
+
+    return metrics_df
 
 
 
