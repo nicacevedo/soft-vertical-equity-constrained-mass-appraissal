@@ -1,0 +1,117 @@
+{
+  "bootstrap_protocol": {
+    "block_freq": "M",
+    "n_bootstrap": 4,
+    "seed": 2025,
+    "type": "time_block"
+  },
+  "folds": [
+    {
+      "fold_id": 0,
+      "train_end": "2016-09-30",
+      "train_index_hash": "aed417c8937a70af",
+      "train_size": 13928,
+      "train_start": "2016-01-01",
+      "val_end": "2016-10-31",
+      "val_index_hash": "f5b7835210f51ac1",
+      "val_size": 1414,
+      "val_start": "2016-10-01"
+    },
+    {
+      "fold_id": 1,
+      "train_end": "2017-06-30",
+      "train_index_hash": "b9c837aa81576b26",
+      "train_size": 26215,
+      "train_start": "2016-01-01",
+      "val_end": "2017-07-31",
+      "val_index_hash": "8d34a10254c67ed1",
+      "val_size": 1728,
+      "val_start": "2017-07-01"
+    },
+    {
+      "fold_id": 2,
+      "train_end": "2018-03-31",
+      "train_index_hash": "7df33e3fa6bffed0",
+      "train_size": 39078,
+      "train_start": "2016-01-01",
+      "val_end": "2018-04-30",
+      "val_index_hash": "ae39e72880fefcc7",
+      "val_size": 1714,
+      "val_start": "2018-04-01"
+    },
+    {
+      "fold_id": 3,
+      "train_end": "2018-12-31",
+      "train_index_hash": "6a9c3d3d4968a172",
+      "train_size": 53630,
+      "train_start": "2016-01-01",
+      "val_end": "2019-01-31",
+      "val_index_hash": "b018b0bad90b228d",
+      "val_size": 975,
+      "val_start": "2019-01-01"
+    },
+    {
+      "fold_id": 4,
+      "train_end": "2019-09-30",
+      "train_index_hash": "0c8a9e2f39fdfb4b",
+      "train_size": 67113,
+      "train_start": "2016-01-01",
+      "val_end": "2019-10-31",
+      "val_index_hash": "eda9f72c2127eaec",
+      "val_size": 1487,
+      "val_start": "2019-10-01"
+    },
+    {
+      "fold_id": 5,
+      "train_end": "2020-06-30",
+      "train_index_hash": "d036dc62326daae1",
+      "train_size": 78357,
+      "train_start": "2016-01-01",
+      "val_end": "2020-07-31",
+      "val_index_hash": "095bed54ead967b6",
+      "val_size": 1897,
+      "val_start": "2020-07-01"
+    },
+    {
+      "fold_id": 6,
+      "train_end": "2021-03-31",
+      "train_index_hash": "a97732243d97ec7d",
+      "train_size": 93500,
+      "train_start": "2016-01-01",
+      "val_end": "2021-04-30",
+      "val_index_hash": "7fd0c02552f14f13",
+      "val_size": 1723,
+      "val_start": "2021-04-01"
+    },
+    {
+      "fold_id": 7,
+      "train_end": "2021-12-31",
+      "train_index_hash": "99cc899dbe7858a2",
+      "train_size": 108217,
+      "train_start": "2016-01-01",
+      "val_end": "2022-01-31",
+      "val_index_hash": "68dfdddee79de76a",
+      "val_size": 1315,
+      "val_start": "2022-01-01"
+    },
+    {
+      "fold_id": 8,
+      "train_end": "2022-09-30",
+      "train_index_hash": "77651629fbd86323",
+      "train_size": 122473,
+      "train_start": "2016-01-01",
+      "val_end": "2022-10-31",
+      "val_index_hash": "9e3fc033ddf39e10",
+      "val_size": 1163,
+      "val_start": "2022-10-01"
+    }
+  ],
+  "split_protocol": {
+    "initial_train_months": 9,
+    "min_train_rows": 300,
+    "min_val_rows": 100,
+    "step_months": 9,
+    "train_mode": "expanding",
+    "val_fraction": 0.1
+  }
+}

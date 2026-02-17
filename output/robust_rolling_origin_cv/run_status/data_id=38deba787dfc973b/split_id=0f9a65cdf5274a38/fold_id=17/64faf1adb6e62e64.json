@@ -1,0 +1,16 @@
+{
+  "artifacts": {
+    "bootstrap_file": "output\\robust_rolling_origin_cv\\bootstrap_metrics\\data_id=38deba787dfc973b\\split_id=0f9a65cdf5274a38\\fold_id=17\\64faf1adb6e62e64.parquet",
+    "predictions_file": "output\\robust_rolling_origin_cv\\predictions\\data_id=38deba787dfc973b\\split_id=0f9a65cdf5274a38\\fold_id=17\\64faf1adb6e62e64.parquet",
+    "run_file": "output\\robust_rolling_origin_cv\\runs\\data_id=38deba787dfc973b\\split_id=0f9a65cdf5274a38\\fold_id=17\\64faf1adb6e62e64.parquet"
+  },
+  "config_id": "a5107ff9f62be22d",
+  "data_id": "38deba787dfc973b",
+  "fold_id": 17,
+  "model_name": "LinearRegression",
+  "run_id": "64faf1adb6e62e64",
+  "runtime_sec": 3.622480600000003,
+  "split_id": "0f9a65cdf5274a38",
+  "status": "completed",
+  "timestamp_utc": "2026-02-17T21:55:55.366706+00:00"
+}

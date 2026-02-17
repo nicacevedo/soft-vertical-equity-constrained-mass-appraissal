@@ -3,10 +3,23 @@ import pandas as pd
 import seaborn as sns
 from pandas.tseries.frequencies import to_offset
 import matplotlib.pyplot as plt
-from sklearn.metrics import root_mean_squared_error, mean_absolute_error, r2_score, mean_absolute_percentage_error, median_absolute_error
+from sklearn.metrics import mean_absolute_error, r2_score, mean_absolute_percentage_error, median_absolute_error, mean_squared_error
 import os
+import json
+import hashlib
+import socket
+import time
+import traceback
+from pathlib import Path
+from datetime import datetime, timezone
 # from typing import Union, List
-from typing import Optional, Tuple, Dict, Any, List
+from typing import Optional, Tuple, Dict, Any, List, Callable
+
+try:
+    from sklearn.metrics import root_mean_squared_error as _root_mse
+except ImportError:  # sklearn < 1.4 compatibility
+    def _root_mse(y_true, y_pred):
+        return np.sqrt(mean_squared_error(y_true, y_pred))
 
 
 
@@ -116,6 +129,597 @@ def get_sliding_window_indices(df, date_col, train_duration='3YS', slide_step='9
             indices_list.append((train_indices, val_indices))
             
     return indices_list
+
+
+def _stable_json(data: Dict[str, Any]) -> str:
+    return json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
+
+
+def _stable_hash(data: Dict[str, Any], hash_len: int = 16) -> str:
+    payload = _stable_json(data).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()[:hash_len]
+
+
+def _write_json_atomic(path: Path, data: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    with tmp_path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, sort_keys=True, default=str)
+    tmp_path.replace(path)
+
+
+def _safe_corr_and_fisher(x: np.ndarray, y: np.ndarray) -> Tuple[float, float]:
+    if x.size < 2 or y.size < 2:
+        return np.nan, np.nan
+    c = float(np.corrcoef(x, y)[0, 1])
+    if not np.isfinite(c):
+        return np.nan, np.nan
+    c_clip = float(np.clip(c, -0.999999, 0.999999))
+    return c, float(np.arctanh(c_clip))
+
+
+def _build_time_block_bootstrap_indices(
+    val_dates: pd.Series,
+    n_bootstrap: int,
+    block_freq: str,
+    rng_seed: int,
+) -> List[np.ndarray]:
+    # Build contiguous time blocks (e.g., weeks/months), then resample blocks w/ replacement.
+    block_labels = val_dates.dt.to_period(block_freq).astype(str)
+    groups: Dict[str, np.ndarray] = {}
+    for label in pd.unique(block_labels):
+        groups[label] = np.where(block_labels == label)[0]
+
+    if not groups:
+        return []
+
+    labels = list(groups.keys())
+    target_n = val_dates.shape[0]
+    rng = np.random.default_rng(rng_seed)
+    out: List[np.ndarray] = []
+    for _ in range(n_bootstrap):
+        sampled = []
+        while len(sampled) < target_n:
+            selected = labels[int(rng.integers(0, len(labels)))]
+            sampled.extend(groups[selected].tolist())
+        out.append(np.asarray(sampled[:target_n], dtype=int))
+    return out
+
+
+def build_rolling_origin_protocol(
+    df: pd.DataFrame,
+    date_col: str,
+    *,
+    train_mode: str = "expanding",
+    initial_train_months: int = 9,
+    val_fraction: Optional[float] = None,
+    val_window_months: int = 1,
+    step_months: int = 1,
+    min_train_rows: int = 200,
+    min_val_rows: int = 100,
+) -> List[Dict[str, Any]]:
+    """
+    Build leakage-safe rolling-origin folds using fixed *time* windows.
+    Returns fold dictionaries with explicit boundaries and row indices.
+    """
+    if train_mode not in {"expanding", "sliding"}:
+        raise ValueError("train_mode must be 'expanding' or 'sliding'.")
+
+    dfx = df[[date_col]].copy()
+    dfx = dfx.sort_values(date_col).reset_index(drop=False).rename(columns={"index": "_row_id"})
+    min_date = pd.Timestamp(dfx[date_col].min()).normalize()
+    max_date = pd.Timestamp(dfx[date_col].max()).normalize()
+
+    folds: List[Dict[str, Any]] = []
+    # Mode A (CCAO figure logic): fixed-size validation block, always the next contiguous rows.
+    # This matches "validation set is always 10% of sales immediately following training set."
+    if val_fraction is not None:
+        if not (0.0 < float(val_fraction) < 1.0):
+            raise ValueError("val_fraction must be in (0, 1) when provided.")
+
+        n_total = int(dfx.shape[0])
+        val_size = max(int(np.floor(n_total * float(val_fraction))), 1)
+
+        initial_end = min_date + pd.DateOffset(months=initial_train_months)
+        initial_train_mask = dfx[date_col] < initial_end
+        initial_train_size = int(initial_train_mask.sum())
+
+        if initial_train_size < min_train_rows:
+            initial_train_size = min_train_rows
+
+        fold_idx = 0
+        train_end_pos = initial_train_size
+        while (train_end_pos + val_size) <= n_total:
+            if train_mode == "expanding":
+                train_start_pos = 0
+            else:
+                # For sliding mode under fixed-size validation, keep train width fixed.
+                train_start_pos = max(0, train_end_pos - initial_train_size)
+
+            train_rows = dfx.iloc[train_start_pos:train_end_pos]["_row_id"].to_numpy(dtype=int)
+            val_rows = dfx.iloc[train_end_pos:train_end_pos + val_size]["_row_id"].to_numpy(dtype=int)
+
+            if train_rows.size < min_train_rows or val_rows.size < min_val_rows:
+                train_end_pos += val_size
+                continue
+
+            train_start_date = dfx.iloc[train_start_pos][date_col]
+            train_end_date = dfx.iloc[train_end_pos - 1][date_col]
+            val_start_date = dfx.iloc[train_end_pos][date_col]
+            val_end_date = dfx.iloc[train_end_pos + val_size - 1][date_col]
+
+            folds.append(
+                {
+                    "fold_id": fold_idx,
+                    "train_start": str(pd.Timestamp(train_start_date).date()),
+                    "train_end": str(pd.Timestamp(train_end_date).date()),
+                    "val_start": str(pd.Timestamp(val_start_date).date()),
+                    "val_end": str(pd.Timestamp(val_end_date).date()),
+                    "train_indices": train_rows.tolist(),
+                    "val_indices": val_rows.tolist(),
+                    "train_size": int(train_rows.size),
+                    "val_size": int(val_rows.size),
+                    "train_index_hash": _stable_hash({"idx": train_rows.tolist()}),
+                    "val_index_hash": _stable_hash({"idx": val_rows.tolist()}),
+                }
+            )
+            fold_idx += 1
+            # Advance by one full validation block so each fold validates on the "next 10%".
+            train_end_pos += val_size
+
+        return folds
+
+    # Mode B: fixed-time validation windows (kept for backward compatibility).
+    initial_end = min_date + pd.DateOffset(months=initial_train_months)
+    current_train_end = initial_end
+    fold_idx = 0
+    while True:
+        val_start = current_train_end
+        val_end = val_start + pd.DateOffset(months=val_window_months)
+        if val_start > max_date:
+            break
+
+        if train_mode == "expanding":
+            train_start = min_date
+        else:
+            train_start = val_start - pd.DateOffset(months=initial_train_months)
+
+        train_mask = (dfx[date_col] >= train_start) & (dfx[date_col] < val_start)
+        val_mask = (dfx[date_col] >= val_start) & (dfx[date_col] < val_end)
+        train_rows = dfx.loc[train_mask, "_row_id"].to_numpy(dtype=int)
+        val_rows = dfx.loc[val_mask, "_row_id"].to_numpy(dtype=int)
+
+        if train_rows.size >= min_train_rows and val_rows.size >= min_val_rows:
+            folds.append(
+                {
+                    "fold_id": fold_idx,
+                    "train_start": str(pd.Timestamp(train_start).date()),
+                    "train_end": str((pd.Timestamp(val_start) - pd.Timedelta(days=1)).date()),
+                    "val_start": str(pd.Timestamp(val_start).date()),
+                    "val_end": str((pd.Timestamp(val_end) - pd.Timedelta(days=1)).date()),
+                    "train_indices": train_rows.tolist(),
+                    "val_indices": val_rows.tolist(),
+                    "train_size": int(train_rows.size),
+                    "val_size": int(val_rows.size),
+                    "train_index_hash": _stable_hash({"idx": train_rows.tolist()}),
+                    "val_index_hash": _stable_hash({"idx": val_rows.tolist()}),
+                }
+            )
+            fold_idx += 1
+
+        current_train_end = current_train_end + pd.DateOffset(months=step_months)
+        if current_train_end + pd.DateOffset(months=val_window_months) > (max_date + pd.DateOffset(days=1)):
+            break
+
+    return folds
+
+
+def _compute_extended_metrics(
+    y_true_log: np.ndarray,
+    y_pred_log: np.ndarray,
+    y_train_log: Optional[np.ndarray] = None,
+    ratio_mode: str = "div",
+    eps_y: float = 1e-12,
+) -> Dict[str, Any]:
+    base = compute_taxation_metrics(
+        y_true_log,
+        y_pred_log,
+        scale="log",
+        y_train=y_train_log if y_train_log is not None else y_true_log,
+    )
+    y_true = np.exp(y_true_log)
+    y_pred = np.exp(y_pred_log)
+
+    if ratio_mode == "diff":
+        r = y_pred_log - y_true_log
+    else:
+        r = y_pred / np.maximum(np.abs(y_true), eps_y)
+
+    corr_ry, fisher_ry = _safe_corr_and_fisher(r, y_true)
+    slope = np.nan
+    if y_true.size >= 2:
+        try:
+            slope = float(np.polyfit(y_true, r, 1)[0])
+        except Exception:
+            slope = np.nan
+
+    small_y = float(np.mean(np.abs(y_true) <= eps_y * 10.0))
+    quantiles = [0.05, 0.5, 0.95]
+    y_q = np.quantile(y_true, quantiles)
+    r_q = np.quantile(r, quantiles)
+    return {
+        **base,
+        "fairness_ratio_mode": ratio_mode,
+        "Corr(r,y)_price": corr_ry,
+        "FisherZ(r,y)_price": fisher_ry,
+        "Slope(r~y)_price": slope,
+        "Var(r)": float(np.var(r)),
+        "Var(y)": float(np.var(y_true)),
+        "val_rows": int(y_true.size),
+        "small_abs_y_share": small_y,
+        "y_q05": float(y_q[0]),
+        "y_q50": float(y_q[1]),
+        "y_q95": float(y_q[2]),
+        "r_q05": float(r_q[0]),
+        "r_q50": float(r_q[1]),
+        "r_q95": float(r_q[2]),
+    }
+
+
+def run_robust_rolling_origin_cv(
+    df_train_validate: pd.DataFrame,
+    *,
+    date_col: str,
+    target_col: str,
+    predictor_cols: List[str],
+    categorical_cols: List[str],
+    model_specs: List[Dict[str, Any]],
+    linear_pipeline_builder: Callable[[], Any],
+    result_root: str,
+    data_signature: Dict[str, Any],
+    split_protocol: Dict[str, Any],
+    bootstrap_protocol: Dict[str, Any],
+    fairness_ratio_mode: str = "div",
+    predict_store: bool = True,
+    parquet_engine: str = "fastparquet",
+    log_progress: bool = True,
+) -> Dict[str, Any]:
+    """
+    End-to-end robust rolling-origin CV runner with:
+    - deterministic IDs
+    - fold-level full metrics
+    - fold-level bootstrap metrics
+    - append-only parquet artifacts (one file per run_id)
+    """
+    output_root = Path(result_root)
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    folds = build_rolling_origin_protocol(
+        df_train_validate,
+        date_col,
+        train_mode=split_protocol.get("train_mode", "expanding"),
+        initial_train_months=int(split_protocol.get("initial_train_months", 9)),
+        val_window_months=int(split_protocol.get("val_window_months", 1)),
+        step_months=int(split_protocol.get("step_months", 1)),
+        min_train_rows=int(split_protocol.get("min_train_rows", 200)),
+        min_val_rows=int(split_protocol.get("min_val_rows", 100)),
+    )
+
+    fold_signature = {
+        "split_protocol": split_protocol,
+        "folds": [
+            {
+                k: f[k]
+                for k in (
+                    "fold_id",
+                    "train_start",
+                    "train_end",
+                    "val_start",
+                    "val_end",
+                    "train_size",
+                    "val_size",
+                    "train_index_hash",
+                    "val_index_hash",
+                )
+            }
+            for f in folds
+        ],
+        "bootstrap_protocol": bootstrap_protocol,
+    }
+    data_id = _stable_hash({"data_signature": data_signature})
+    split_id = _stable_hash(fold_signature)
+
+    protocol_dir = output_root / "protocol" / f"data_id={data_id}" / f"split_id={split_id}"
+    protocol_dir.mkdir(parents=True, exist_ok=True)
+    with (protocol_dir / "folds.json").open("w", encoding="utf-8") as f:
+        json.dump(fold_signature, f, indent=2, sort_keys=True)
+    if log_progress:
+        print(
+            f"[cv] protocol saved | data_id={data_id} split_id={split_id} "
+            f"| folds={len(folds)} | models={len(model_specs)}"
+        )
+
+    bootstrap_indices_by_fold: Dict[int, List[np.ndarray]] = {}
+    for fold in folds:
+        fold_id = int(fold["fold_id"])
+        val_idx = np.asarray(fold["val_indices"], dtype=int)
+        val_dates = df_train_validate.iloc[val_idx][date_col]
+        bs_indices = _build_time_block_bootstrap_indices(
+            val_dates=val_dates,
+            n_bootstrap=int(bootstrap_protocol.get("n_bootstrap", 100)),
+            block_freq=str(bootstrap_protocol.get("block_freq", "M")),
+            rng_seed=int(bootstrap_protocol.get("seed", 2025)) + fold_id,
+        )
+        bootstrap_indices_by_fold[fold_id] = bs_indices
+
+        bs_dir = protocol_dir / "bootstrap_indices"
+        bs_dir.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            bs_dir / f"fold_{fold_id}.npz",
+            **{f"bs_{i}": arr for i, arr in enumerate(bs_indices)},
+        )
+
+    run_records: List[Dict[str, Any]] = []
+    bootstrap_records: List[Dict[str, Any]] = []
+    failed_records: List[Dict[str, Any]] = []
+
+    runs_root = output_root / "runs"
+    boots_root = output_root / "bootstrap_metrics"
+    preds_root = output_root / "predictions"
+    status_root = output_root / "run_status"
+    total_runs = max(1, len(model_specs) * len(folds))
+    processed_runs = 0
+    skipped_runs = 0
+    completed_runs = 0
+    failed_runs = 0
+
+    for spec in model_specs:
+        model_name = str(spec["name"])
+        model_config = dict(spec.get("config", {}))
+        config_id = _stable_hash({"model_name": model_name, "config": model_config})
+        if log_progress:
+            print(f"[cv] model start | model={model_name} | config_id={config_id}")
+
+        for fold in folds:
+            fold_id = int(fold["fold_id"])
+            processed_runs += 1
+            pct = 100.0 * processed_runs / float(total_runs)
+            run_id = _stable_hash(
+                {
+                    "data_id": data_id,
+                    "split_id": split_id,
+                    "fold_id": fold_id,
+                    "config_id": config_id,
+                }
+            )
+            run_dir = runs_root / f"data_id={data_id}" / f"split_id={split_id}" / f"fold_id={fold_id}"
+            run_dir.mkdir(parents=True, exist_ok=True)
+            run_file = run_dir / f"{run_id}.parquet"
+            bs_dir = boots_root / f"data_id={data_id}" / f"split_id={split_id}" / f"fold_id={fold_id}"
+            bs_file = bs_dir / f"{run_id}.parquet"
+            pred_dir = preds_root / f"data_id={data_id}" / f"split_id={split_id}" / f"fold_id={fold_id}"
+            pred_file = pred_dir / f"{run_id}.parquet"
+            status_dir = status_root / f"data_id={data_id}" / f"split_id={split_id}" / f"fold_id={fold_id}"
+            status_file = status_dir / f"{run_id}.json"
+
+            # Skip only when completion is explicitly marked and expected artifacts exist.
+            if status_file.exists():
+                try:
+                    status_payload = json.loads(status_file.read_text(encoding="utf-8"))
+                except Exception:
+                    status_payload = {}
+                completed = status_payload.get("status") == "completed"
+                bootstrap_expected = int(bootstrap_protocol.get("n_bootstrap", 100)) > 0
+                artifacts_ok = (
+                    run_file.exists()
+                    and ((not bootstrap_expected) or bs_file.exists())
+                    and ((not predict_store) or pred_file.exists())
+                )
+                if completed and artifacts_ok:
+                    skipped_runs += 1
+                    if log_progress:
+                        print(
+                            f"[cv] [{processed_runs}/{total_runs} {pct:5.1f}%] skip "
+                            f"| model={model_name} fold={fold_id} run_id={run_id}"
+                        )
+                    continue
+
+            if log_progress:
+                print(
+                    f"[cv] [{processed_runs}/{total_runs} {pct:5.1f}%] run "
+                    f"| model={model_name} fold={fold_id} run_id={run_id}"
+                )
+            _write_json_atomic(
+                status_file,
+                {
+                    "status": "started",
+                    "run_id": run_id,
+                    "data_id": data_id,
+                    "split_id": split_id,
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "fold_id": fold_id,
+                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+
+            try:
+                train_idx = np.asarray(fold["train_indices"], dtype=int)
+                val_idx = np.asarray(fold["val_indices"], dtype=int)
+                train_df = df_train_validate.iloc[train_idx].copy()
+                val_df = df_train_validate.iloc[val_idx].copy()
+
+                X_train = train_df[predictor_cols].copy()
+                y_train = np.log(train_df[target_col].to_numpy())
+                X_val = val_df[predictor_cols].copy()
+                y_val = np.log(val_df[target_col].to_numpy())
+
+                cat_cols = [c for c in categorical_cols if c in X_train.columns]
+                for c in cat_cols:
+                    X_train[c] = X_train[c].astype("category")
+                    X_val[c] = X_val[c].astype("category")
+
+                start = time.perf_counter()
+                estimator = spec["factory"]()
+                if bool(spec.get("requires_linear_pipeline", False)):
+                    linear_pipeline = linear_pipeline_builder()
+                    X_train_model = linear_pipeline.fit_transform(X_train, y_train)
+                    X_val_model = linear_pipeline.transform(X_val)
+                else:
+                    X_train_model = X_train
+                    X_val_model = X_val
+
+                estimator.fit(X_train_model, y_train)
+                y_pred_val = estimator.predict(X_val_model)
+                runtime_sec = float(time.perf_counter() - start)
+
+                metrics_full = _compute_extended_metrics(
+                    y_true_log=y_val,
+                    y_pred_log=y_pred_val,
+                    y_train_log=y_train,
+                    ratio_mode=fairness_ratio_mode,
+                )
+
+                run_row = {
+                    "data_id": data_id,
+                    "split_id": split_id,
+                    "config_id": config_id,
+                    "run_id": run_id,
+                    "model_name": model_name,
+                    "fold_id": fold_id,
+                    "train_start": fold["train_start"],
+                    "train_end": fold["train_end"],
+                    "val_start": fold["val_start"],
+                    "val_end": fold["val_end"],
+                    "train_size": fold["train_size"],
+                    "val_size": fold["val_size"],
+                    "hostname": socket.gethostname(),
+                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                    "runtime_sec": runtime_sec,
+                    "model_config_json": _stable_json(model_config),
+                    **metrics_full,
+                }
+                pd.DataFrame([run_row]).to_parquet(run_file, index=False, engine=parquet_engine)
+                run_records.append(run_row)
+                completed_runs += 1
+                if log_progress:
+                    print(
+                        f"[cv] stored run metrics | model={model_name} fold={fold_id} "
+                        f"| rows=1 | file={run_file}"
+                    )
+
+                bs_rows: List[Dict[str, Any]] = []
+                bs_indices = bootstrap_indices_by_fold.get(fold_id, [])
+                for b_idx, sample_idx in enumerate(bs_indices):
+                    y_val_bs = y_val[sample_idx]
+                    y_pred_bs = np.asarray(y_pred_val)[sample_idx]
+                    m_bs = _compute_extended_metrics(
+                        y_true_log=y_val_bs,
+                        y_pred_log=y_pred_bs,
+                        y_train_log=y_train,
+                        ratio_mode=fairness_ratio_mode,
+                    )
+                    bs_rows.append(
+                        {
+                            "run_id": run_id,
+                            "data_id": data_id,
+                            "split_id": split_id,
+                            "fold_id": fold_id,
+                            "config_id": config_id,
+                            "bootstrap_id": b_idx,
+                            "bootstrap_seed": int(bootstrap_protocol.get("seed", 2025)) + fold_id,
+                            "bootstrap_block_freq": str(bootstrap_protocol.get("block_freq", "M")),
+                            "bootstrap_sample_size": int(sample_idx.size),
+                            **m_bs,
+                        }
+                    )
+                if bs_rows:
+                    bs_dir.mkdir(parents=True, exist_ok=True)
+                    pd.DataFrame(bs_rows).to_parquet(bs_file, index=False, engine=parquet_engine)
+                    bootstrap_records.extend(bs_rows)
+                    if log_progress:
+                        print(
+                            f"[cv] stored bootstrap metrics | model={model_name} fold={fold_id} "
+                            f"| rows={len(bs_rows)} | file={bs_file}"
+                        )
+
+                if predict_store:
+                    pred_dir.mkdir(parents=True, exist_ok=True)
+                    pred_df = pd.DataFrame(
+                        {
+                            "run_id": run_id,
+                            "row_id": val_df.index.to_numpy(),
+                            "y_true_log": y_val,
+                            "y_pred_log": np.asarray(y_pred_val),
+                            "y_true": np.exp(y_val),
+                            "y_pred": np.exp(np.asarray(y_pred_val)),
+                            "sale_date": val_df[date_col].to_numpy(),
+                        }
+                    )
+                    pred_df.to_parquet(pred_file, index=False, engine=parquet_engine)
+                    if log_progress:
+                        print(
+                            f"[cv] stored validation predictions | model={model_name} fold={fold_id} "
+                            f"| rows={pred_df.shape[0]} | file={pred_file}"
+                        )
+
+                _write_json_atomic(
+                    status_file,
+                    {
+                        "status": "completed",
+                        "run_id": run_id,
+                        "data_id": data_id,
+                        "split_id": split_id,
+                        "config_id": config_id,
+                        "model_name": model_name,
+                        "fold_id": fold_id,
+                        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                        "runtime_sec": runtime_sec,
+                        "artifacts": {
+                            "run_file": str(run_file),
+                            "bootstrap_file": str(bs_file) if bs_file.exists() else None,
+                            "predictions_file": str(pred_file) if predict_store and pred_file.exists() else None,
+                        },
+                    }
+                )
+            except Exception as exc:
+                failed_payload = {
+                    "status": "failed",
+                    "run_id": run_id,
+                    "data_id": data_id,
+                    "split_id": split_id,
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "fold_id": fold_id,
+                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                    "error_type": exc.__class__.__name__,
+                    "error_message": str(exc),
+                    "traceback": traceback.format_exc(),
+                }
+                _write_json_atomic(status_file, failed_payload)
+                failed_records.append(failed_payload)
+                failed_runs += 1
+                if log_progress:
+                    print(
+                        f"[cv] FAILED | model={model_name} fold={fold_id} run_id={run_id} "
+                        f"| error={exc.__class__.__name__}: {exc}"
+                    )
+                continue
+
+    if log_progress:
+        print(
+            f"[cv] done | total={total_runs} processed={processed_runs} "
+            f"completed={completed_runs} skipped={skipped_runs} failed={failed_runs}"
+        )
+
+    return {
+        "data_id": data_id,
+        "split_id": split_id,
+        "fold_count": len(folds),
+        "run_records": pd.DataFrame(run_records) if run_records else pd.DataFrame(),
+        "bootstrap_records": pd.DataFrame(bootstrap_records) if bootstrap_records else pd.DataFrame(),
+        "failed_records": pd.DataFrame(failed_records) if failed_records else pd.DataFrame(),
+    }
 
 
 
@@ -549,7 +1153,7 @@ def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):
         if y_train.all() is not None:
             metrics["OOS R2"] = oos_r2_score(y_real, y_pred, y_train)
         metrics["R2 (log)"] = r2_score(y_real_log, y_pred_log)
-        metrics["RMSE"] = root_mean_squared_error(y_real, y_pred)
+        metrics["RMSE"] = _root_mse(y_real, y_pred)
         metrics["MAE"] = mean_absolute_error(y_real, y_pred)
         # metrics["MdAE"] = median_absolute_error(y_real, y_pred)
         metrics["MAPE"] = mean_absolute_percentage_error(y_real, y_pred)

@@ -1,0 +1,16 @@
+{
+  "artifacts": {
+    "bootstrap_file": "output\\robust_rolling_origin_cv\\bootstrap_metrics\\data_id=38deba787dfc973b\\split_id=218bb4ede78e89f8\\fold_id=1\\8c6921e701a900d5.parquet",
+    "predictions_file": "output\\robust_rolling_origin_cv\\predictions\\data_id=38deba787dfc973b\\split_id=218bb4ede78e89f8\\fold_id=1\\8c6921e701a900d5.parquet",
+    "run_file": "output\\robust_rolling_origin_cv\\runs\\data_id=38deba787dfc973b\\split_id=218bb4ede78e89f8\\fold_id=1\\8c6921e701a900d5.parquet"
+  },
+  "config_id": "aa775d7778b9aebe",
+  "data_id": "38deba787dfc973b",
+  "fold_id": 1,
+  "model_name": "LGBSmoothPenalty_rho_4.6415888336127775",
+  "run_id": "8c6921e701a900d5",
+  "runtime_sec": 8.050851299999977,
+  "split_id": "218bb4ede78e89f8",
+  "status": "completed",
+  "timestamp_utc": "2026-02-17T22:09:18.624679+00:00"
+}

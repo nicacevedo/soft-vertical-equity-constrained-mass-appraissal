@@ -1,0 +1,16 @@
+{
+  "artifacts": {
+    "bootstrap_file": "output\\robust_rolling_origin_cv\\bootstrap_metrics\\data_id=38deba787dfc973b\\split_id=218bb4ede78e89f8\\fold_id=7\\76c8db8bd61242b0.parquet",
+    "predictions_file": "output\\robust_rolling_origin_cv\\predictions\\data_id=38deba787dfc973b\\split_id=218bb4ede78e89f8\\fold_id=7\\76c8db8bd61242b0.parquet",
+    "run_file": "output\\robust_rolling_origin_cv\\runs\\data_id=38deba787dfc973b\\split_id=218bb4ede78e89f8\\fold_id=7\\76c8db8bd61242b0.parquet"
+  },
+  "config_id": "dc8f3e821d1ac137",
+  "data_id": "38deba787dfc973b",
+  "fold_id": 7,
+  "model_name": "LGBMRegressor",
+  "run_id": "76c8db8bd61242b0",
+  "runtime_sec": 18.313942199999985,
+  "split_id": "218bb4ede78e89f8",
+  "status": "completed",
+  "timestamp_utc": "2026-02-17T22:02:44.559254+00:00"
+}
