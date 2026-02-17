@@ -645,6 +645,13 @@ def _blend_with_white(rgb_color, intensity: float):
     return tuple((1.0 - intensity) * np.ones(3) + intensity * c)
 
 
+def _rho_run_key(model_name: str, model_template_repr: str, penalty_attr: Optional[str], rho: float) -> str:
+    """Stable key for identifying a model/rho run in cached artifacts."""
+    rho_token = "nan" if not np.isfinite(rho) else f"{float(rho):.16g}"
+    attr_token = penalty_attr if penalty_attr is not None else "none"
+    return f"{model_name}||{model_template_repr}||{attr_token}||{rho_token}"
+
+
 def run_rho_sweep_predictions(
     models: List[Any],
     rho_values: np.ndarray,
@@ -657,6 +664,7 @@ def run_rho_sweep_predictions(
     save_predictions: bool = True,
     penalty_attrs: Tuple[str, ...] = ("rho",),
     include_models_without_rho: bool = False,
+    continue_on_error: bool = False,
     verbose: bool = True,
 ) -> Dict[str, Any]:
     """
@@ -673,13 +681,16 @@ def run_rho_sweep_predictions(
     cache_path : str or None
         If provided, serialized artifacts are read/written with pickle.
     load_if_exists : bool
-        If True and cache_path exists, returns cached artifacts and skips training.
+        If True and cache_path exists, loads cache and resumes only missing model/rho runs.
     save_predictions : bool
-        If True and cache_path provided, writes artifacts to cache_path.
+        If True and cache_path provided, writes artifacts to cache_path after each successful run.
     penalty_attrs : tuple[str]
         Attribute names to try for setting rho-like penalties (default: ("rho",)).
     include_models_without_rho : bool
         If True, models without penalty attrs are trained once with rho=np.nan.
+    continue_on_error : bool
+        If True, logs fit/predict errors and continues with remaining runs.
+        If False, raises the exception immediately (completed runs remain checkpointed).
     verbose : bool
         Print progress messages.
 
@@ -692,20 +703,70 @@ def run_rho_sweep_predictions(
     if rho_values.size == 0:
         raise ValueError("rho_values must contain at least one value.")
 
-    if cache_path is not None and load_if_exists and os.path.exists(cache_path):
-        if verbose:
-            print(f"[rho-sweep] Loading cached predictions from: {cache_path}")
-        with open(cache_path, "rb") as f:
-            return pickle.load(f)
-
     y_train_arr = np.asarray(y_train)
     y_test_arr = np.asarray(y_test)
 
     runs = []
     preds = []
 
+    # Resume from cache (if available)
+    if cache_path is not None and load_if_exists and os.path.exists(cache_path):
+        if verbose:
+            print(f"[rho-sweep] Loading cache for resume: {cache_path}")
+        with open(cache_path, "rb") as f:
+            cached = pickle.load(f)
+
+        runs = list(cached.get("runs", []))
+        y_pred_matrix_cached = np.asarray(cached.get("y_pred_matrix", np.empty((0, y_test_arr.size))), dtype=float)
+        preds = [y_pred_matrix_cached[i] for i in range(y_pred_matrix_cached.shape[0])]
+
+        # Basic consistency checks to avoid corrupt resumes
+        y_test_cached = np.asarray(cached.get("y_test", y_test_arr))
+        y_train_cached = np.asarray(cached.get("y_train", y_train_arr))
+        if y_test_cached.shape != y_test_arr.shape:
+            raise ValueError("Cached y_test shape mismatch. Use a different cache_path.")
+        if y_train_cached.shape != y_train_arr.shape:
+            raise ValueError("Cached y_train shape mismatch. Use a different cache_path.")
+        y_test_arr = y_test_cached
+        y_train_arr = y_train_cached
+
+        if len(runs) != len(preds):
+            raise ValueError("Cached artifact is inconsistent: runs and prediction rows have different lengths.")
+
+    completed_keys = set()
+    for run in runs:
+        completed_keys.add(
+            _rho_run_key(
+                model_name=run["model_name"],
+                model_template_repr=run.get("model_template_repr", run.get("model_repr", run["model_name"])),
+                penalty_attr=run.get("penalty_attr", None),
+                rho=float(run["rho"]) if np.isfinite(run["rho"]) else np.nan,
+            )
+        )
+
+    def _checkpoint_save():
+        if cache_path is None or not save_predictions:
+            return
+        cache_dir = os.path.dirname(cache_path)
+        if cache_dir:
+            os.makedirs(cache_dir, exist_ok=True)
+        artifact_ckpt = {
+            "meta": {
+                "n_runs": len(runs),
+                "n_test": int(y_test_arr.size),
+                "penalty_attrs": tuple(penalty_attrs),
+            },
+            "runs": runs,
+            "y_train": y_train_arr,
+            "y_test": y_test_arr,
+            "y_pred_matrix": np.vstack(preds) if len(preds) > 0 else np.empty((0, y_test_arr.size), dtype=float),
+        }
+        with open(cache_path, "wb") as f:
+            pickle.dump(artifact_ckpt, f)
+
     for model in models:
         model_name = _safe_model_name(model)
+        model_template_repr = str(model)
         penalty_attr = _resolve_penalty_attr(model, penalty_attrs)
 
         if penalty_attr is None:
@@ -718,6 +779,18 @@ def run_rho_sweep_predictions(
             sweep_values = rho_values
 
         for rho in sweep_values:
+            run_key = _rho_run_key(
+                model_name=model_name,
+                model_template_repr=model_template_repr,
+                penalty_attr=penalty_attr,
+                rho=float(rho) if np.isfinite(rho) else np.nan,
+            )
+            if run_key in completed_keys:
+                if verbose:
+                    rho_text = "nan" if np.isnan(rho) else f"{float(rho):.6g}"
+                    print(f"[rho-sweep] Skipping cached run: model={model_name} | {penalty_attr}={rho_text}")
+                continue
+
             model_fit = copy.deepcopy(model)
             if penalty_attr is not None:
                 setattr(model_fit, penalty_attr, float(rho))
@@ -726,18 +799,30 @@ def run_rho_sweep_predictions(
                 rho_text = "nan" if np.isnan(rho) else f"{float(rho):.6g}"
                 print(f"[rho-sweep] Fitting model={model_name} | {penalty_attr}={rho_text}")
 
-            model_fit.fit(X_train, y_train_arr)
-            y_pred = np.asarray(model_fit.predict(X_test), dtype=float)
+            try:
+                model_fit.fit(X_train, y_train_arr)
+                y_pred = np.asarray(model_fit.predict(X_test), dtype=float)
+            except Exception as e:
+                if continue_on_error:
+                    if verbose:
+                        print(f"[rho-sweep] ERROR model={model_name} rho={rho}: {e}")
+                    continue
+                raise
 
             runs.append(
                 {
                     "model_name": model_name,
+                    "model_template_repr": model_template_repr,
                     "model_repr": str(model_fit),
                     "rho": float(rho) if np.isfinite(rho) else np.nan,
                     "penalty_attr": penalty_attr,
                 }
             )
             preds.append(y_pred)
+            completed_keys.add(run_key)
+            _checkpoint_save()
+            if verbose and cache_path is not None and save_predictions:
+                print(f"[rho-sweep] Checkpoint saved ({len(runs)} completed runs).")
 
     if len(preds) == 0:
         raise ValueError("No model/rho runs were executed. Check models and penalty_attrs.")
@@ -757,13 +842,9 @@ def run_rho_sweep_predictions(
     }
 
     if cache_path is not None and save_predictions:
-        cache_dir = os.path.dirname(cache_path)
-        if cache_dir:
-            os.makedirs(cache_dir, exist_ok=True)
-        with open(cache_path, "wb") as f:
-            pickle.dump(artifact, f)
+        _checkpoint_save()
         if verbose:
-            print(f"[rho-sweep] Saved predictions cache to: {cache_path}")
+            print(f"[rho-sweep] Final cache saved to: {cache_path}")
 
     return artifact
 
@@ -939,6 +1020,7 @@ def run_rho_sweep_and_tradeoff(
     save_predictions: bool = True,
     penalty_attrs: Tuple[str, ...] = ("rho",),
     include_models_without_rho: bool = False,
+    continue_on_error: bool = False,
     verbose: bool = True,
 ) -> pd.DataFrame:
     """
@@ -964,6 +1046,7 @@ def run_rho_sweep_and_tradeoff(
         save_predictions=save_predictions,
         penalty_attrs=penalty_attrs,
         include_models_without_rho=include_models_without_rho,
+        continue_on_error=continue_on_error,
         verbose=verbose,
     )
 
