@@ -38,6 +38,7 @@ obj/
 # Ignore .csv
 *.csv
 *.parquet
+*.json
 core.*
 
 # Ignore outputs
