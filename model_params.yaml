@@ -2,7 +2,6 @@ LGBMRegressor:
   boosting_type: "gbdt"
   num_leaves: 31
   max_depth: 15
-  # num_leaves:  2**(max_depth)//8 # must be at most 2^max_depth 
   learning_rate: 1e-1
   n_estimators: 200
   subsample_for_bin: 200000

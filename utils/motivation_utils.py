@@ -12,6 +12,7 @@ import time
 import traceback
 from pathlib import Path
 from datetime import datetime, timezone
+from joblib import Parallel, delayed
 # from typing import Union, List
 from typing import Optional, Tuple, Dict, Any, List, Callable
 
@@ -383,6 +384,10 @@ def run_robust_rolling_origin_cv(
     predict_store: bool = True,
     parquet_engine: str = "fastparquet",
     log_progress: bool = True,
+    parallel_enabled: bool = False,
+    parallel_cpu_fraction: float = 0.75,
+    parallel_max_workers: Optional[int] = None,
+    parallel_backend: str = "loky",
 ) -> Dict[str, Any]:
     """
     End-to-end robust rolling-origin CV runner with:
@@ -473,6 +478,8 @@ def run_robust_rolling_origin_cv(
     completed_runs = 0
     failed_runs = 0
 
+    pending_jobs: List[Dict[str, Any]] = []
+
     for spec in model_specs:
         model_name = str(spec["name"])
         model_config = dict(spec.get("config", {}))
@@ -523,168 +530,162 @@ def run_robust_rolling_origin_cv(
                             f"| model={model_name} fold={fold_id} run_id={run_id}"
                         )
                     continue
-
-            if log_progress:
-                print(
-                    f"[cv] [{processed_runs}/{total_runs} {pct:5.1f}%] run "
-                    f"| model={model_name} fold={fold_id} run_id={run_id}"
-                )
-            _write_json_atomic(
-                status_file,
+            pending_jobs.append(
                 {
-                    "status": "started",
-                    "run_id": run_id,
-                    "data_id": data_id,
-                    "split_id": split_id,
-                    "config_id": config_id,
+                    "spec": spec,
                     "model_name": model_name,
+                    "model_config": model_config,
+                    "config_id": config_id,
+                    "fold": fold,
                     "fold_id": fold_id,
-                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                },
+                    "run_id": run_id,
+                    "run_file": run_file,
+                    "bs_dir": bs_dir,
+                    "bs_file": bs_file,
+                    "pred_dir": pred_dir,
+                    "pred_file": pred_file,
+                    "status_file": status_file,
+                }
             )
 
-            try:
-                train_idx = np.asarray(fold["train_indices"], dtype=int)
-                val_idx = np.asarray(fold["val_indices"], dtype=int)
-                train_df = df_train_validate.iloc[train_idx].copy()
-                val_df = df_train_validate.iloc[val_idx].copy()
+    def _execute_single_job(job: Dict[str, Any]) -> Dict[str, Any]:
+        spec = job["spec"]
+        model_name = job["model_name"]
+        model_config = job["model_config"]
+        config_id = job["config_id"]
+        fold = job["fold"]
+        fold_id = job["fold_id"]
+        run_id = job["run_id"]
+        run_file = job["run_file"]
+        bs_dir = job["bs_dir"]
+        bs_file = job["bs_file"]
+        pred_dir = job["pred_dir"]
+        pred_file = job["pred_file"]
+        status_file = job["status_file"]
 
-                X_train = train_df[predictor_cols].copy()
-                y_train = np.log(train_df[target_col].to_numpy())
-                X_val = val_df[predictor_cols].copy()
-                y_val = np.log(val_df[target_col].to_numpy())
+        if log_progress:
+            print(f"[cv] run | model={model_name} fold={fold_id} run_id={run_id}")
 
-                cat_cols = [c for c in categorical_cols if c in X_train.columns]
-                for c in cat_cols:
-                    X_train[c] = X_train[c].astype("category")
-                    X_val[c] = X_val[c].astype("category")
+        _write_json_atomic(
+            status_file,
+            {
+                "status": "started",
+                "run_id": run_id,
+                "data_id": data_id,
+                "split_id": split_id,
+                "config_id": config_id,
+                "model_name": model_name,
+                "fold_id": fold_id,
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            },
+        )
 
-                start = time.perf_counter()
-                estimator = spec["factory"]()
-                if bool(spec.get("requires_linear_pipeline", False)):
-                    linear_pipeline = linear_pipeline_builder()
-                    X_train_model = linear_pipeline.fit_transform(X_train, y_train)
-                    X_val_model = linear_pipeline.transform(X_val)
-                else:
-                    X_train_model = X_train
-                    X_val_model = X_val
+        try:
+            train_idx = np.asarray(fold["train_indices"], dtype=int)
+            val_idx = np.asarray(fold["val_indices"], dtype=int)
+            train_df = df_train_validate.iloc[train_idx].copy()
+            val_df = df_train_validate.iloc[val_idx].copy()
 
-                estimator.fit(X_train_model, y_train)
-                y_pred_val = estimator.predict(X_val_model)
-                runtime_sec = float(time.perf_counter() - start)
+            X_train = train_df[predictor_cols].copy()
+            y_train = np.log(train_df[target_col].to_numpy())
+            X_val = val_df[predictor_cols].copy()
+            y_val = np.log(val_df[target_col].to_numpy())
 
-                metrics_full = _compute_extended_metrics(
-                    y_true_log=y_val,
-                    y_pred_log=y_pred_val,
+            cat_cols = [c for c in categorical_cols if c in X_train.columns]
+            for c in cat_cols:
+                X_train[c] = X_train[c].astype("category")
+                X_val[c] = X_val[c].astype("category")
+
+            start = time.perf_counter()
+            estimator = spec["factory"]()
+            if bool(spec.get("requires_linear_pipeline", False)):
+                linear_pipeline = linear_pipeline_builder()
+                X_train_model = linear_pipeline.fit_transform(X_train, y_train)
+                X_val_model = linear_pipeline.transform(X_val)
+            else:
+                X_train_model = X_train
+                X_val_model = X_val
+
+            estimator.fit(X_train_model, y_train)
+            y_pred_val = estimator.predict(X_val_model)
+            runtime_sec = float(time.perf_counter() - start)
+
+            metrics_full = _compute_extended_metrics(
+                y_true_log=y_val,
+                y_pred_log=y_pred_val,
+                y_train_log=y_train,
+                ratio_mode=fairness_ratio_mode,
+            )
+
+            run_row = {
+                "data_id": data_id,
+                "split_id": split_id,
+                "config_id": config_id,
+                "run_id": run_id,
+                "model_name": model_name,
+                "fold_id": fold_id,
+                "train_start": fold["train_start"],
+                "train_end": fold["train_end"],
+                "val_start": fold["val_start"],
+                "val_end": fold["val_end"],
+                "train_size": fold["train_size"],
+                "val_size": fold["val_size"],
+                "hostname": socket.gethostname(),
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "runtime_sec": runtime_sec,
+                "model_config_json": _stable_json(model_config),
+                **metrics_full,
+            }
+            pd.DataFrame([run_row]).to_parquet(run_file, index=False, engine=parquet_engine)
+
+            bs_rows: List[Dict[str, Any]] = []
+            bs_indices = bootstrap_indices_by_fold.get(fold_id, [])
+            for b_idx, sample_idx in enumerate(bs_indices):
+                y_val_bs = y_val[sample_idx]
+                y_pred_bs = np.asarray(y_pred_val)[sample_idx]
+                m_bs = _compute_extended_metrics(
+                    y_true_log=y_val_bs,
+                    y_pred_log=y_pred_bs,
                     y_train_log=y_train,
                     ratio_mode=fairness_ratio_mode,
                 )
-
-                run_row = {
-                    "data_id": data_id,
-                    "split_id": split_id,
-                    "config_id": config_id,
-                    "run_id": run_id,
-                    "model_name": model_name,
-                    "fold_id": fold_id,
-                    "train_start": fold["train_start"],
-                    "train_end": fold["train_end"],
-                    "val_start": fold["val_start"],
-                    "val_end": fold["val_end"],
-                    "train_size": fold["train_size"],
-                    "val_size": fold["val_size"],
-                    "hostname": socket.gethostname(),
-                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                    "runtime_sec": runtime_sec,
-                    "model_config_json": _stable_json(model_config),
-                    **metrics_full,
-                }
-                pd.DataFrame([run_row]).to_parquet(run_file, index=False, engine=parquet_engine)
-                run_records.append(run_row)
-                completed_runs += 1
-                if log_progress:
-                    print(
-                        f"[cv] stored run metrics | model={model_name} fold={fold_id} "
-                        f"| rows=1 | file={run_file}"
-                    )
-
-                bs_rows: List[Dict[str, Any]] = []
-                bs_indices = bootstrap_indices_by_fold.get(fold_id, [])
-                for b_idx, sample_idx in enumerate(bs_indices):
-                    y_val_bs = y_val[sample_idx]
-                    y_pred_bs = np.asarray(y_pred_val)[sample_idx]
-                    m_bs = _compute_extended_metrics(
-                        y_true_log=y_val_bs,
-                        y_pred_log=y_pred_bs,
-                        y_train_log=y_train,
-                        ratio_mode=fairness_ratio_mode,
-                    )
-                    bs_rows.append(
-                        {
-                            "run_id": run_id,
-                            "data_id": data_id,
-                            "split_id": split_id,
-                            "fold_id": fold_id,
-                            "config_id": config_id,
-                            "bootstrap_id": b_idx,
-                            "bootstrap_seed": int(bootstrap_protocol.get("seed", 2025)) + fold_id,
-                            "bootstrap_block_freq": str(bootstrap_protocol.get("block_freq", "M")),
-                            "bootstrap_sample_size": int(sample_idx.size),
-                            **m_bs,
-                        }
-                    )
-                if bs_rows:
-                    bs_dir.mkdir(parents=True, exist_ok=True)
-                    pd.DataFrame(bs_rows).to_parquet(bs_file, index=False, engine=parquet_engine)
-                    bootstrap_records.extend(bs_rows)
-                    if log_progress:
-                        print(
-                            f"[cv] stored bootstrap metrics | model={model_name} fold={fold_id} "
-                            f"| rows={len(bs_rows)} | file={bs_file}"
-                        )
-
-                if predict_store:
-                    pred_dir.mkdir(parents=True, exist_ok=True)
-                    pred_df = pd.DataFrame(
-                        {
-                            "run_id": run_id,
-                            "row_id": val_df.index.to_numpy(),
-                            "y_true_log": y_val,
-                            "y_pred_log": np.asarray(y_pred_val),
-                            "y_true": np.exp(y_val),
-                            "y_pred": np.exp(np.asarray(y_pred_val)),
-                            "sale_date": val_df[date_col].to_numpy(),
-                        }
-                    )
-                    pred_df.to_parquet(pred_file, index=False, engine=parquet_engine)
-                    if log_progress:
-                        print(
-                            f"[cv] stored validation predictions | model={model_name} fold={fold_id} "
-                            f"| rows={pred_df.shape[0]} | file={pred_file}"
-                        )
-
-                _write_json_atomic(
-                    status_file,
+                bs_rows.append(
                     {
-                        "status": "completed",
                         "run_id": run_id,
                         "data_id": data_id,
                         "split_id": split_id,
-                        "config_id": config_id,
-                        "model_name": model_name,
                         "fold_id": fold_id,
-                        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                        "runtime_sec": runtime_sec,
-                        "artifacts": {
-                            "run_file": str(run_file),
-                            "bootstrap_file": str(bs_file) if bs_file.exists() else None,
-                            "predictions_file": str(pred_file) if predict_store and pred_file.exists() else None,
-                        },
+                        "config_id": config_id,
+                        "bootstrap_id": b_idx,
+                        "bootstrap_seed": int(bootstrap_protocol.get("seed", 2025)) + fold_id,
+                        "bootstrap_block_freq": str(bootstrap_protocol.get("block_freq", "M")),
+                        "bootstrap_sample_size": int(sample_idx.size),
+                        **m_bs,
                     }
                 )
-            except Exception as exc:
-                failed_payload = {
-                    "status": "failed",
+            if bs_rows:
+                bs_dir.mkdir(parents=True, exist_ok=True)
+                pd.DataFrame(bs_rows).to_parquet(bs_file, index=False, engine=parquet_engine)
+
+            if predict_store:
+                pred_dir.mkdir(parents=True, exist_ok=True)
+                pred_df = pd.DataFrame(
+                    {
+                        "run_id": run_id,
+                        "row_id": val_df.index.to_numpy(),
+                        "y_true_log": y_val,
+                        "y_pred_log": np.asarray(y_pred_val),
+                        "y_true": np.exp(y_val),
+                        "y_pred": np.exp(np.asarray(y_pred_val)),
+                        "sale_date": val_df[date_col].to_numpy(),
+                    }
+                )
+                pred_df.to_parquet(pred_file, index=False, engine=parquet_engine)
+
+            _write_json_atomic(
+                status_file,
+                {
+                    "status": "completed",
                     "run_id": run_id,
                     "data_id": data_id,
                     "split_id": split_id,
@@ -692,19 +693,71 @@ def run_robust_rolling_origin_cv(
                     "model_name": model_name,
                     "fold_id": fold_id,
                     "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                    "error_type": exc.__class__.__name__,
-                    "error_message": str(exc),
-                    "traceback": traceback.format_exc(),
-                }
-                _write_json_atomic(status_file, failed_payload)
-                failed_records.append(failed_payload)
-                failed_runs += 1
-                if log_progress:
-                    print(
-                        f"[cv] FAILED | model={model_name} fold={fold_id} run_id={run_id} "
-                        f"| error={exc.__class__.__name__}: {exc}"
-                    )
-                continue
+                    "runtime_sec": runtime_sec,
+                    "artifacts": {
+                        "run_file": str(run_file),
+                        "bootstrap_file": str(bs_file) if bs_file.exists() else None,
+                        "predictions_file": str(pred_file) if predict_store and pred_file.exists() else None,
+                    },
+                },
+            )
+            return {"status": "completed", "run_row": run_row, "bs_rows": bs_rows}
+        except Exception as exc:
+            failed_payload = {
+                "status": "failed",
+                "run_id": run_id,
+                "data_id": data_id,
+                "split_id": split_id,
+                "config_id": config_id,
+                "model_name": model_name,
+                "fold_id": fold_id,
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                "error_type": exc.__class__.__name__,
+                "error_message": str(exc),
+                "traceback": traceback.format_exc(),
+            }
+            _write_json_atomic(status_file, failed_payload)
+            return {"status": "failed", "failed_payload": failed_payload}
+
+    cpu_total = max(1, int(os.cpu_count() or 1))
+    frac = float(parallel_cpu_fraction)
+    if frac <= 0.0 or frac > 1.0:
+        raise ValueError("parallel_cpu_fraction must be in (0, 1].")
+    workers_by_fraction = max(1, int(np.floor(cpu_total * frac)))
+    workers_cap = int(parallel_max_workers) if parallel_max_workers is not None else workers_by_fraction
+    if workers_cap < 1:
+        workers_cap = 1
+    n_workers = min(workers_by_fraction, workers_cap, max(1, len(pending_jobs)))
+    if (not parallel_enabled) or (len(pending_jobs) <= 1):
+        n_workers = 1
+
+    if parallel_backend not in ("loky", "threading"):
+        raise ValueError("parallel_backend must be 'loky' or 'threading'.")
+
+    if log_progress:
+        print(
+            f"[cv] execution plan | pending_runs={len(pending_jobs)} skipped={skipped_runs} "
+            f"| parallel_enabled={parallel_enabled} backend={parallel_backend} "
+            f"| workers={n_workers}/{cpu_total}"
+        )
+
+    if n_workers == 1:
+        job_results = [_execute_single_job(job) for job in pending_jobs]
+    else:
+        job_results = Parallel(n_jobs=n_workers, backend=parallel_backend)(
+            delayed(_execute_single_job)(job) for job in pending_jobs
+        )
+
+    for res in job_results:
+        if res.get("status") == "completed":
+            run_records.append(res["run_row"])
+            completed_runs += 1
+            bs_rows = res.get("bs_rows", [])
+            if bs_rows:
+                bootstrap_records.extend(bs_rows)
+        else:
+            failed_records.append(res["failed_payload"])
+            failed_runs += 1
 
     if log_progress:
         print(

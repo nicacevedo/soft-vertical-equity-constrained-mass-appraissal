@@ -8,9 +8,20 @@ scikit-learn>=1.2
 scipy>=1.9
 joblib>=1.2
 
+# Parquet IO (this repo uses engine="fastparquet")
+fastparquet>=2023.8.0
+
 # Gradient boosting
 lightgbm>=4.0
 
 # Plotting / viz
 matplotlib>=3.6
 seaborn>=0.12
+
+# Optimization (stacking_pf_opt)
+cvxpy>=1.4
+ecos>=2.0
+scs>=3.2
+
+# Optional (faster / commercial solver)
+# mosek>=10.0
