@@ -14,7 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -56,9 +56,7 @@ def _align_complete_grid(
     dfx = df.loc[:, base_cols + required_metrics + ["model_name"]].copy()
     dfx = dfx.dropna(subset=required_metrics)
 
-    # Identify complete pairs (fold, model) that have all required metrics.
-    pairs = dfx.groupby(base_cols, as_index=False).size()
-    # If any duplicate rows exist per (fold, model), keep the first occurrence.
+    # Drop duplicate rows per (fold, model) before building the presence grid.
     dfx = dfx.drop_duplicates(subset=base_cols, keep="first")
 
     # Build pivot presence grid: rows=folds, cols=models, value=1 if present.
@@ -67,27 +65,17 @@ def _align_complete_grid(
         .pivot_table(index=fold_col, columns=model_col, values="_present", aggfunc="max", fill_value=0)
     )
 
-    # Keep only folds and models with full presence.
+    # Keep only folds that have all models, and models that have all folds.
     folds_keep = present.index[present.sum(axis=1) == present.shape[1]].tolist()
     models_keep = present.columns[present.sum(axis=0) == present.shape[0]].tolist()
 
-    # If nothing survives, fall back to intersection-by-column approach.
+    # If nothing survives (e.g., no config ran across every fold), fall back.
     if len(folds_keep) == 0 or len(models_keep) == 0:
         folds_keep = sorted(dfx[fold_col].unique().tolist())
         models_keep = sorted(dfx[model_col].unique().tolist())
 
     dfx = dfx[dfx[fold_col].isin(folds_keep) & dfx[model_col].isin(models_keep)].copy()
-
-    # Recompute to ensure full grid after filtering.
-    present2 = (
-        dfx.assign(_present=1)
-        .pivot_table(index=fold_col, columns=model_col, values="_present", aggfunc="max", fill_value=0)
-    )
-    folds_keep2 = present2.index[present2.sum(axis=1) == present2.shape[1]].tolist()
-    models_keep2 = present2.columns[present2.sum(axis=0) == present2.shape[0]].tolist()
-    dfx = dfx[dfx[fold_col].isin(folds_keep2) & dfx[model_col].isin(models_keep2)].copy()
-
-    return dfx, folds_keep2, models_keep2
+    return dfx, folds_keep, models_keep
 
 
 def _pivot_metric(df: pd.DataFrame, *, metric: str, folds: List[int], models: List[str]) -> np.ndarray:
@@ -103,7 +91,7 @@ def _choose_solver(preferred: str | None = None) -> str:
     installed = set(cp.installed_solvers())
     if preferred is not None and preferred.upper() in installed:
         return preferred.upper()
-    for s in ["MOSEK", "ECOS", "OSQP", "SCS", "CLARABEL"]:
+    for s in ["GUROBI", "MOSEK", "ECOS", "OSQP", "SCS", "CLARABEL"]:
         if s in installed:
             return s
     raise RuntimeError("No cvxpy solvers installed. Install one of: ecos, scs, osqp, clarabel, mosek.")
@@ -145,7 +133,7 @@ def run_stacking_pf_optimization(
         aligned_df, folds, models = _align_complete_grid(aligned_df, required_metrics=required)
 
     A = _pivot_metric(aligned_df, metric=str(accuracy_metric), folds=folds, models=models)
-    R2 = _pivot_metric(aligned_df, metric="R2", folds=folds, models=models)
+    R2 = A if str(accuracy_metric) == "R2" else _pivot_metric(aligned_df, metric="R2", folds=folds, models=models)
     PRD = _pivot_metric(aligned_df, metric="PRD", folds=folds, models=models)
     PRB = _pivot_metric(aligned_df, metric="PRB", folds=folds, models=models)
     VEI = _pivot_metric(aligned_df, metric="VEI", folds=folds, models=models)
@@ -164,10 +152,10 @@ def run_stacking_pf_optimization(
         constraints += [
             PRD[f, :] @ w >= prd_lo,
             PRD[f, :] @ w <= prd_hi,
-            PRB[f, :] @ w >= prb_lo,
-            PRB[f, :] @ w <= prb_hi,
-            VEI[f, :] @ w >= vei_lo,
-            VEI[f, :] @ w <= vei_hi,
+            # PRB[f, :] @ w >= prb_lo,
+            # PRB[f, :] @ w <= prb_hi,
+            # VEI[f, :] @ w >= vei_lo,
+            # VEI[f, :] @ w <= vei_hi,
         ]
 
     if objective_mode == "worst_fold":

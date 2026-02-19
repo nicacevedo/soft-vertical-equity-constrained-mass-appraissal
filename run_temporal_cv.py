@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import json
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -33,16 +32,13 @@ from soft_constrained_models.boosting_models import LGBCovPenalty, LGBPrimalDual
 from utils.motivation_utils import _compute_extended_metrics, _stable_hash, run_robust_rolling_origin_cv
 
 
+_ASSESSMENT_YEAR: int = 2024  # Calendar year used as the held-out assessment block.
+
+
 def _parse_float_list(values: str) -> List[float]:
     if values.strip() == "":
         return []
     return [float(x) for x in values.split(",")]
-
-
-def _parse_int_list(values: str) -> List[int]:
-    if values.strip() == "":
-        return []
-    return [int(x) for x in values.split(",")]
 
 
 def _build_lgbm_params_from_files(model_params: dict, ccao_params: dict, seed: int) -> dict:
@@ -114,8 +110,8 @@ def _load_and_split_data(
     df[date_column] = pd.to_datetime(df[date_column])
     df = df.sort_values(date_column).reset_index(drop=True)
 
-    df_assess = df.loc[df[date_column].dt.year == 2024, :].copy()
-    df_pre2024 = df.loc[df[date_column].dt.year < 2024, :].copy()
+    df_assess = df.loc[df[date_column].dt.year == _ASSESSMENT_YEAR, :].copy()
+    df_pre2024 = df.loc[df[date_column].dt.year < _ASSESSMENT_YEAR, :].copy()
 
     train_prop = float(params["cv"]["split_prop"])
     split_idx = int(train_prop * df_pre2024.shape[0])
@@ -199,7 +195,6 @@ def _evaluate_models_on_test_set(
     target_col: str,
     model_specs: List[Dict[str, Any]],
     linear_pipeline_builder,
-    lgbm_params: dict,
     fairness_ratio_mode: str,
     analysis_dir: Path,
     parquet_engine: str,
@@ -249,7 +244,7 @@ def _evaluate_models_on_test_set(
             {
                 "config_id": config_id,
                 "model_name": model_name,
-                "model_config_json": yaml.safe_dump(model_config, sort_keys=True).strip(),
+                "model_config_json": json.dumps(model_config, sort_keys=True),
                 **metrics,
             }
         )
@@ -310,6 +305,15 @@ def run_full_pipeline(
     parallel_max_workers: Optional[int],
     parquet_engine: str,
 ) -> Dict[str, Any]:
+    """
+    Run the full pipeline end-to-end:
+      1. Load and split data into train/validate and held-out test sets.
+      2. Build model specs (baseline + penalty sweeps) from YAML configs.
+      3. Run robust rolling-origin CV with bootstrap resampling.
+      4. Evaluate each model on the held-out test set (single run).
+
+    Returns a summary dict with data_id, split_id, artifact paths, and row counts.
+    """
     target_col = "meta_sale_price"
     date_col = "meta_sale_date"
     fairness_ratio_mode = "diff"
@@ -389,7 +393,6 @@ def run_full_pipeline(
         target_col=target_col,
         model_specs=model_specs,
         linear_pipeline_builder=linear_pipeline_builder,
-        lgbm_params=lgbm_params,
         fairness_ratio_mode=fairness_ratio_mode,
         analysis_dir=analysis_dir,
         parquet_engine=parquet_engine,

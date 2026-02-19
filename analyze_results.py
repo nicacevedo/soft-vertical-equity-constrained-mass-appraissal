@@ -46,7 +46,7 @@ def _load_runs_df(*, result_root: str, data_id: str, split_id: str) -> pd.DataFr
 
 def _prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     dfx = df.copy()
-    for c in ["R2", "OOS R2", "PRD", "PRB", "VEI"]:
+    for c in ["R2", "OOS R2", "PRD", "PRB", "VEI", "COD"]:
         if c in dfx.columns:
             dfx[c] = pd.to_numeric(dfx[c], errors="coerce")
     if "PRD" in dfx.columns:
@@ -68,6 +68,277 @@ def _summary_by_config(runs_df: pd.DataFrame) -> pd.DataFrame:
     std_df = gb.std().add_suffix("_std")
     out = mean_df.join(std_df, how="outer").reset_index()
     return out
+
+
+def _load_bootstrap_df(*, result_root: str, data_id: str, split_id: str) -> pd.DataFrame:
+    boots_dir = Path(result_root) / "bootstrap_metrics" / f"data_id={data_id}" / f"split_id={split_id}"
+    paths = sorted(boots_dir.rglob("*.parquet"))
+    if not paths:
+        return pd.DataFrame()
+    return pd.concat([pd.read_parquet(p) for p in paths], ignore_index=True)
+
+
+def _select_configs_for_evolution(
+    runs_df: pd.DataFrame,
+    *,
+    top_k: Optional[int],
+) -> List[str]:
+    """
+    Select configs to include in evolution plots.
+
+    Strategy:
+      - Top-K configs by mean validation accuracy (prefer OOS R2, fallback R2)
+      - Always include the two baseline families if present
+    """
+    dfx = _prepare_df(runs_df)
+    acc_col = "OOS R2" if "OOS R2" in dfx.columns else "R2"
+    mean_acc = dfx.groupby(["config_id", "model_name"], as_index=False)[acc_col].mean()
+    mean_acc = mean_acc.sort_values(acc_col, ascending=False, ignore_index=True)
+
+    k = None if top_k is None else int(top_k)
+    if k is not None and k > 0:
+        picked = mean_acc.head(k)["config_id"].tolist()
+    else:
+        picked = mean_acc["config_id"].tolist()
+
+    baselines = dfx.loc[dfx["model_name"].isin(["LinearRegression", "LGBMRegressor"]), "config_id"].unique().tolist()
+    out = list(dict.fromkeys(picked + baselines))  # stable unique
+    return [str(x) for x in out]
+
+
+def _config_label_from_runs(runs_df: pd.DataFrame, config_id: str) -> str:
+    row = runs_df.loc[runs_df["config_id"] == config_id, ["model_name", "model_config_json"]].drop_duplicates().head(1)
+    if row.empty:
+        return str(config_id)
+    model_name = str(row["model_name"].iloc[0])
+    cfg_raw = row["model_config_json"].iloc[0] if "model_config_json" in row.columns else None
+    tag = ""
+    if isinstance(cfg_raw, str) and cfg_raw.strip():
+        try:
+            cfg = json.loads(cfg_raw)
+        except Exception:
+            cfg = {}
+        if isinstance(cfg, dict):
+            parts = []
+            if "rho" in cfg:
+                parts.append(f"rho={cfg['rho']}")
+            if "keep" in cfg:
+                parts.append(f"keep={cfg['keep']}")
+            if parts:
+                tag = " (" + ", ".join(parts) + ")"
+    return f"{model_name}{tag}"
+
+
+def _make_model_color_map(model_names: List[str]) -> Dict[str, Any]:
+    palette = list(plt.cm.tab20.colors)
+    uniq = sorted({str(m) for m in model_names})
+    if not uniq:
+        return {}
+    return {m: palette[i % len(palette)] for i, m in enumerate(uniq)}
+
+
+def _bootstrap_summary_long(
+    boots_df: pd.DataFrame,
+    runs_df: pd.DataFrame,
+    *,
+    metrics: List[str],
+) -> pd.DataFrame:
+    """
+    Returns long-form summary:
+      fold_id, config_id, model_name, metric, mean, std
+    computed across bootstrap draws within each fold/config.
+    """
+    if boots_df.empty:
+        return pd.DataFrame()
+
+    dfx = _prepare_df(boots_df)
+    # Bootstrap rows don't include model_name; join via run_id or (config_id, fold_id).
+    meta_cols = ["run_id", "model_name", "model_config_json"]
+    meta = runs_df.loc[:, [c for c in meta_cols if c in runs_df.columns]].drop_duplicates()
+    if "run_id" not in meta.columns:
+        # fallback: join on fold_id+config_id
+        meta = runs_df.loc[:, [c for c in ["config_id", "fold_id", "model_name", "model_config_json"] if c in runs_df.columns]].drop_duplicates()
+        dfx = dfx.merge(meta, on=["config_id", "fold_id"], how="left")
+    else:
+        dfx = dfx.merge(meta, on="run_id", how="left")
+
+    keep_cols = ["fold_id", "config_id", "model_name", "bootstrap_id"] + [m for m in metrics if m in dfx.columns]
+    dfx = dfx.loc[:, [c for c in keep_cols if c in dfx.columns]].copy()
+    if dfx.empty:
+        return pd.DataFrame()
+
+    out_rows: List[pd.DataFrame] = []
+    for m in metrics:
+        if m not in dfx.columns:
+            continue
+        g = dfx.groupby(["fold_id", "config_id", "model_name"])[m].agg(mean="mean", std="std").reset_index()
+        g["metric"] = m
+        out_rows.append(g.loc[:, ["fold_id", "config_id", "model_name", "metric", "mean", "std"]])
+    if not out_rows:
+        return pd.DataFrame()
+    out = pd.concat(out_rows, ignore_index=True)
+    out["fold_id"] = pd.to_numeric(out["fold_id"], errors="coerce").astype("Int64")
+    out["config_id"] = out["config_id"].astype(str)
+    out["model_name"] = out["model_name"].astype(str)
+    return out
+
+
+def _stacking_bootstrap_evolution(
+    boots_df: pd.DataFrame,
+    *,
+    analysis_dir: Path,
+    metrics: List[str],
+) -> pd.DataFrame:
+    """
+    If weights exist, compute ensemble metric per bootstrap draw by weighting config-level metrics:
+      metric_ens(fold, bs) = Σ_j w_j metric_j(fold, bs)
+    Then summarize mean/std across bootstrap draws per fold.
+
+    Returns long form like `_bootstrap_summary_long` but with model_name='STACKING_OPTIMUM_BOOTSTRAP'
+    and config_id='STACKING_OPTIMUM_BOOTSTRAP'.
+    """
+    weights_path = analysis_dir / "stacking_pf_opt" / "weights.csv"
+    if not weights_path.exists():
+        return pd.DataFrame()
+    if boots_df.empty:
+        return pd.DataFrame()
+
+    wdf = pd.read_csv(weights_path)
+    wdf["config_id"] = wdf["config_id"].astype(str)
+    wdf["weight"] = pd.to_numeric(wdf["weight"], errors="coerce").fillna(0.0)
+    wdf = wdf[wdf["weight"] > 0.0].copy()
+    if wdf.empty:
+        return pd.DataFrame()
+
+    dfx = boots_df.copy()
+    dfx["config_id"] = dfx["config_id"].astype(str)
+    dfx = dfx[dfx["config_id"].isin(wdf["config_id"])].copy()
+    if dfx.empty:
+        return pd.DataFrame()
+
+    dfx = dfx.merge(wdf.loc[:, ["config_id", "weight"]], on="config_id", how="inner")
+
+    rows: List[pd.DataFrame] = []
+    for m in metrics:
+        if m not in dfx.columns:
+            continue
+        tmp = dfx.loc[:, ["fold_id", "bootstrap_id", "weight", m]].copy()
+        tmp[m] = pd.to_numeric(tmp[m], errors="coerce")
+        tmp = tmp.dropna(subset=[m])
+        if tmp.empty:
+            continue
+        tmp["weighted"] = tmp["weight"] * tmp[m]
+        # ensemble per fold, per bootstrap draw
+        ens = tmp.groupby(["fold_id", "bootstrap_id"], as_index=False)["weighted"].sum()
+        # summarize across bootstrap draws within fold
+        summ = ens.groupby("fold_id")["weighted"].agg(mean="mean", std="std").reset_index()
+        summ["metric"] = m
+        summ["config_id"] = "STACKING_OPTIMUM_BOOTSTRAP"
+        summ["model_name"] = "STACKING_OPTIMUM_BOOTSTRAP"
+        rows.append(summ.loc[:, ["fold_id", "config_id", "model_name", "metric", "mean", "std"]])
+    if not rows:
+        return pd.DataFrame()
+    out = pd.concat(rows, ignore_index=True)
+    out["fold_id"] = pd.to_numeric(out["fold_id"], errors="coerce").astype("Int64")
+    return out
+
+
+def _load_stacking_linear_fold_metrics(*, analysis_dir: Path, metrics: List[str]) -> pd.DataFrame:
+    """
+    Load deterministic fold-level ensemble metrics from optimizer output (no bootstrap).
+
+    Returns long form with model_name='STACKING_OPTIMUM_LINEAR' and std=NaN.
+    """
+    fold_path = analysis_dir / "stacking_pf_opt" / "fold_ensemble_metrics.csv"
+    if not fold_path.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(fold_path)
+    # normalize expected names from optimizer output
+    rename_map = {
+        "R2_ensemble": "R2",
+        "PRD_ensemble": "PRD",
+        "PRB_ensemble": "PRB",
+        "VEI_ensemble": "VEI",
+        "COD_ensemble": "COD",
+        "OOS R2_ensemble": "OOS R2",
+    }
+    df = df.rename(columns=rename_map)
+    df = _prepare_df(df)
+
+    rows: List[pd.DataFrame] = []
+    for m in metrics:
+        if m not in df.columns:
+            continue
+        tmp = df.loc[:, ["fold_id", m]].copy()
+        tmp = tmp.rename(columns={m: "mean"})
+        tmp["std"] = np.nan
+        tmp["metric"] = m
+        tmp["config_id"] = "STACKING_OPTIMUM_LINEAR"
+        tmp["model_name"] = "STACKING_OPTIMUM_LINEAR"
+        rows.append(tmp.loc[:, ["fold_id", "config_id", "model_name", "metric", "mean", "std"]])
+    if not rows:
+        return pd.DataFrame()
+    out = pd.concat(rows, ignore_index=True)
+    out["fold_id"] = pd.to_numeric(out["fold_id"], errors="coerce").astype("Int64")
+    return out
+
+
+def _plot_metric_evolution(
+    evo_long: pd.DataFrame,
+    *,
+    metric: str,
+    title: str,
+    out_path: Path,
+    color_map: Dict[str, Any],
+    config_labels: Dict[str, str],
+) -> None:
+    dfm = evo_long[evo_long["metric"] == metric].copy()
+    if dfm.empty:
+        return
+
+    dfm["fold_id"] = pd.to_numeric(dfm["fold_id"], errors="coerce")
+    dfm = dfm.dropna(subset=["fold_id", "mean"])
+    dfm = dfm.sort_values(["fold_id", "model_name", "config_id"], ignore_index=True)
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.grid(True, alpha=0.35)
+
+    # IAAO reference bands (only for the raw fairness metrics)
+    if metric == "PRD":
+        ax.axhspan(float(IAAO_PRD_RANGE[0]), float(IAAO_PRD_RANGE[1]), color="gray", alpha=0.18, label="IAAO band")
+        ax.axhline(1.0, color="gray", linewidth=1.0)
+    elif metric == "PRB":
+        ax.axhspan(float(IAAO_PRB_RANGE[0]), float(IAAO_PRB_RANGE[1]), color="gray", alpha=0.18, label="IAAO band")
+        ax.axhline(0.0, color="gray", linewidth=1.0)
+    elif metric == "VEI":
+        ax.axhspan(float(IAAO_VEI_RANGE[0]), float(IAAO_VEI_RANGE[1]), color="gray", alpha=0.18, label="IAAO band")
+        ax.axhline(0.0, color="gray", linewidth=1.0)
+
+    # Plot each config as a separate curve.
+    for (cfg_id, model_name), g in dfm.groupby(["config_id", "model_name"], sort=False):
+        x = g["fold_id"].to_numpy(dtype=float)
+        y = pd.to_numeric(g["mean"], errors="coerce").to_numpy(dtype=float)
+        s = pd.to_numeric(g["std"], errors="coerce").to_numpy(dtype=float) if "std" in g.columns else np.full_like(y, np.nan)
+
+        base_color = color_map.get(str(model_name), "C0")
+        label = config_labels.get(str(cfg_id), str(cfg_id))
+
+        is_stacking = str(model_name).startswith("STACKING_OPTIMUM")
+        lw = 2.6 if is_stacking else 1.6
+        ls = "--" if str(model_name) == "STACKING_OPTIMUM_LINEAR" else "-"
+
+        ax.plot(x, y, color=base_color, linewidth=lw, linestyle=ls, label=label)
+        if np.any(np.isfinite(s)) and str(model_name) != "STACKING_OPTIMUM_LINEAR":
+            ax.fill_between(x, y - s, y + s, color=base_color, alpha=0.12)
+
+    ax.set_title(title)
+    ax.set_xlabel("fold_id")
+    ax.set_ylabel(metric)
+    ax.legend(loc="best", frameon=True, ncol=1)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=160)
+    plt.close(fig)
 
 
 def _compute_2d_pareto_mask(x: np.ndarray, y: np.ndarray, *, maximize_x: bool, minimize_y: bool) -> np.ndarray:
@@ -167,6 +438,7 @@ def _load_stacking_validation_overlay(*, analysis_dir: Path, fold_id: int) -> Tu
     fold_df = pd.read_csv(fold_path)
     fold_df = _prepare_df(fold_df.rename(columns={"OOS R2_ensemble": "OOS R2", "R2_ensemble": "R2", "PRD_ensemble": "PRD", "PRB_ensemble": "PRB", "VEI_ensemble": "VEI"}))
     avg = fold_df.drop(columns=["fold_id"], errors="ignore").mean(numeric_only=True).to_frame().T
+    avg.columns = [f"{c}_mean" for c in avg.columns]  # match column names used in validation avg plots
     single = fold_df.loc[fold_df["fold_id"] == int(fold_id)].copy()
     return avg, single
 
@@ -289,6 +561,7 @@ def run_results_analysis(
     val_dir = plots_root / "validation"
     single_dir = plots_root / "validation_single_run"
     test_dir = plots_root / "test"
+    evolution_dir = plots_root / "evolution"
 
     # Validation: use summary table means (one point per config)
     val_plot_df = summary_df.copy()
@@ -296,7 +569,7 @@ def run_results_analysis(
         if x_col not in val_plot_df.columns or y_col not in val_plot_df.columns:
             continue
         _plot_tradeoff(
-            val_plot_df.rename(columns={"model_name": "model_name"}),  # no-op but keeps call consistent
+            val_plot_df,
             x_col=x_col,
             y_col=y_col,
             title=f"Validation (avg folds): {x_col} vs {y_col}",
@@ -333,6 +606,59 @@ def run_results_analysis(
                 out_path=test_dir / f"tradeoff_{x_col}__{y_col}.png",
                 show_top_k=plot_top_k,
                 overlay_points=overlay,
+            )
+
+    # -----------------------
+    # Evolution plots (bootstrap mean ± std across windows/folds)
+    # -----------------------
+    metrics_for_evolution = ["R2", "OOS R2", "VEI", "PRD", "PRB", "COD"]
+    boots_df = _load_bootstrap_df(result_root=result_root, data_id=data_id, split_id=split_id)
+    if not boots_df.empty:
+        selected_config_ids = _select_configs_for_evolution(runs_df, top_k=plot_top_k)
+        (analysis_dir / "evolution_models_selected.json").write_text(
+            json.dumps({"selected_config_ids": selected_config_ids}, indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+
+        evo_long = _bootstrap_summary_long(boots_df, runs_df, metrics=metrics_for_evolution)
+        evo_long = evo_long[evo_long["config_id"].isin(selected_config_ids)].copy()
+
+        # Optional stacking curves (bootstrap-weighted + deterministic fold metrics)
+        evo_stack_boot = _stacking_bootstrap_evolution(boots_df, analysis_dir=analysis_dir, metrics=metrics_for_evolution)
+        evo_stack_lin = _load_stacking_linear_fold_metrics(analysis_dir=analysis_dir, metrics=metrics_for_evolution)
+        if not evo_stack_boot.empty:
+            evo_long = pd.concat([evo_long, evo_stack_boot], ignore_index=True)
+        if not evo_stack_lin.empty:
+            evo_long = pd.concat([evo_long, evo_stack_lin], ignore_index=True)
+
+        # Save aggregated table used for plotting
+        evo_long.to_csv(analysis_dir / "evolution_bootstrap_summary.csv", index=False)
+
+        # Color mapping by model family (model_name)
+        model_color_map = _make_model_color_map(evo_long["model_name"].tolist())
+        # Force stacking colors to be distinct and consistent
+        if "STACKING_OPTIMUM_BOOTSTRAP" in model_color_map:
+            model_color_map["STACKING_OPTIMUM_BOOTSTRAP"] = "crimson"
+        if "STACKING_OPTIMUM_LINEAR" in model_color_map:
+            model_color_map["STACKING_OPTIMUM_LINEAR"] = "black"
+
+        # Labels per config_id
+        labels: Dict[str, str] = {}
+        for cfg_id in sorted(set(evo_long["config_id"].astype(str).tolist())):
+            if cfg_id.startswith("STACKING_OPTIMUM"):
+                labels[cfg_id] = cfg_id
+            else:
+                labels[cfg_id] = _config_label_from_runs(runs_df, cfg_id)
+
+        for m in metrics_for_evolution:
+            print(f"  [evolution] plotting {m} ...")
+            _plot_metric_evolution(
+                evo_long,
+                metric=m,
+                title=f"Evolution across folds (bootstrap mean ± std): {m}",
+                out_path=evolution_dir / f"evolution_{m.replace(' ', '_')}.png",
+                color_map=model_color_map,
+                config_labels=labels,
             )
 
     return {
