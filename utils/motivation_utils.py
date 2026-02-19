@@ -399,13 +399,23 @@ def run_robust_rolling_origin_cv(
     output_root = Path(result_root)
     output_root.mkdir(parents=True, exist_ok=True)
 
+    _val_frac = split_protocol.get("val_fraction", None)
+    if _val_frac is not None:
+        try:
+            _val_frac = float(_val_frac)
+        except (TypeError, ValueError):
+            _val_frac = None
+    if _val_frac is not None and not (0.0 < _val_frac < 1.0):
+        _val_frac = None
+
     folds = build_rolling_origin_protocol(
         df_train_validate,
         date_col,
         train_mode=split_protocol.get("train_mode", "expanding"),
         initial_train_months=int(split_protocol.get("initial_train_months", 9)),
-        val_window_months=int(split_protocol.get("val_window_months", 1)),
-        step_months=int(split_protocol.get("step_months", 1)),
+        val_fraction=_val_frac,
+        val_window_months=int(split_protocol.get("val_window_months", 9)),
+        step_months=int(split_protocol.get("step_months", 9)),
         min_train_rows=int(split_protocol.get("min_train_rows", 200)),
         min_val_rows=int(split_protocol.get("min_val_rows", 100)),
     )

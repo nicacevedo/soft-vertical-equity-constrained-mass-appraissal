@@ -412,38 +412,93 @@ def run_full_pipeline(
     }
 
 
-def _build_arg_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Run rolling-origin CV and held-out test evaluation.")
-    p.add_argument("--result-root", type=str, default="./output/robust_rolling_origin_cv", help="Root directory for outputs.")
-    p.add_argument("--data-path", type=str, default="./data/CCAO/2025/training_data.parquet", help="Path to training_data.parquet.")
-    p.add_argument("--sample-frac", type=float, default=None, help="Optional down-sampling fraction in (0,1].")
-    p.add_argument("--seed", type=int, default=4050, help="Random seed for sampling/bootstraps.")
-    p.add_argument("--rho-values", type=str, default="0.0,0.001,0.01,0.1,1.0", help="Comma-separated rhos for penalty models.")
-    p.add_argument("--keep-values", type=str, default="0.3,0.5,0.7,0.9", help="Comma-separated keep values for primal-dual models.")
+_CV_CONFIG_PATH = "cv_config.yaml"
 
-    # Split protocol
-    p.add_argument("--initial-train-months", type=int, default=9)
-    p.add_argument("--val-window-months", type=int, default=1)
-    p.add_argument("--step-months", type=int, default=1)
-    p.add_argument("--min-train-rows", type=int, default=200)
-    p.add_argument("--min-val-rows", type=int, default=100)
-    p.add_argument("--train-mode", type=str, default="expanding", choices=["expanding", "sliding"])
 
-    # Bootstrap protocol
-    p.add_argument("--n-bootstrap", type=int, default=200)
-    p.add_argument("--bootstrap-block-freq", type=str, default="Q", help="Pandas Period freq for blocks (e.g. 'M', 'Q').")
+def _load_cv_config(config_path: str = _CV_CONFIG_PATH) -> dict:
+    """Load cv_config.yaml, falling back to an empty dict if the file is absent."""
+    p = Path(config_path)
+    if p.is_file():
+        with open(p, "r", encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    return {}
 
-    # Parallelism
-    p.add_argument("--parallel", action="store_true", help="Enable joblib parallel CV execution.")
-    p.add_argument("--parallel-cpu-fraction", type=float, default=0.75)
-    p.add_argument("--parallel-max-workers", type=int, default=None)
 
-    p.add_argument("--parquet-engine", type=str, default="fastparquet", choices=["fastparquet", "pyarrow"])
+def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
+    """
+    Build the CLI parser.  Defaults come from cv_config.yaml (via `cfg`); any
+    flag passed on the command line overrides the YAML value.
+    """
+    sp = cfg.get("split_protocol", {})
+    bp = cfg.get("bootstrap_protocol", {})
+    pp = cfg.get("parallel", {})
+
+    p = argparse.ArgumentParser(
+        description="Run rolling-origin CV and held-out test evaluation.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    # --- I/O ---
+    p.add_argument("--config", type=str, default=_CV_CONFIG_PATH, help="Path to cv_config.yaml.")
+    p.add_argument("--result-root", type=str, default=cfg.get("result_root", "./output/robust_rolling_origin_cv"))
+    p.add_argument("--data-path", type=str, default=cfg.get("data_path", "./data/CCAO/2025/training_data.parquet"))
+    p.add_argument("--sample-frac", type=float, default=cfg.get("sample_frac", None))
+    p.add_argument("--seed", type=int, default=cfg.get("seed", 2025))
+
+    # --- Sweep grids ---
+    default_rho = ",".join(str(v) for v in cfg.get("rho_values", [0.0, 0.001, 0.01, 0.1, 1.0, 10.0]))
+    default_keep = ",".join(str(v) for v in cfg.get("keep_values", [0.5, 0.7, 0.9]))
+    p.add_argument("--rho-values", type=str, default=default_rho, help="Comma-separated rhos for penalty models.")
+    p.add_argument("--keep-values", type=str, default=default_keep, help="Comma-separated keep values for primal-dual models.")
+
+    # --- Split protocol ---
+    p.add_argument("--train-mode", type=str, default=sp.get("train_mode", "expanding"), choices=["expanding", "sliding"])
+    p.add_argument("--initial-train-months", type=int, default=sp.get("initial_train_months", 9))
+    p.add_argument("--val-fraction", type=float, default=sp.get("val_fraction", None),
+                   help="Fraction of rows used as validation each fold (Mode A). Set to 0 or omit to use fixed-time-window mode.")
+    p.add_argument("--val-window-months", type=int, default=sp.get("val_window_months", 9),
+                   help="Calendar length of each validation block (Mode B, used when --val-fraction is not set).")
+    p.add_argument("--step-months", type=int, default=sp.get("step_months", 9),
+                   help="Months the origin advances between folds (Mode B).")
+    p.add_argument("--min-train-rows", type=int, default=sp.get("min_train_rows", 200))
+    p.add_argument("--min-val-rows", type=int, default=sp.get("min_val_rows", 100))
+
+    # --- Bootstrap protocol ---
+    p.add_argument("--n-bootstrap", type=int, default=bp.get("n_bootstrap", 200))
+    p.add_argument("--bootstrap-block-freq", type=str, default=bp.get("bootstrap_block_freq", "M"),
+                   help="Pandas Period freq for time blocks (e.g. 'M', 'W', 'Q').")
+
+    # --- Parallelism ---
+    p.add_argument("--parallel", action="store_true", default=bool(pp.get("enabled", False)),
+                   help="Enable joblib parallel CV execution.")
+    p.add_argument("--no-parallel", dest="parallel", action="store_false",
+                   help="Disable parallel execution (overrides --parallel / YAML).")
+    p.add_argument("--parallel-cpu-fraction", type=float, default=float(pp.get("cpu_fraction", 0.9)))
+    p.add_argument("--parallel-max-workers", type=int, default=pp.get("max_workers", 32))
+
+    # --- Storage ---
+    p.add_argument("--parquet-engine", type=str, default=cfg.get("parquet_engine", "fastparquet"),
+                   choices=["fastparquet", "pyarrow"])
     return p
 
 
 if __name__ == "__main__":
-    args = _build_arg_parser().parse_args()
+    # Two-pass parse: first resolve --config so we load the right YAML, then
+    # re-parse with full defaults derived from that YAML.
+    _pre = argparse.ArgumentParser(add_help=False)
+    _pre.add_argument("--config", type=str, default=_CV_CONFIG_PATH)
+    _known, _ = _pre.parse_known_args()
+
+    cfg = _load_cv_config(_known.config)
+    args = _build_arg_parser(cfg).parse_args()
+
+    # Re-load config if --config was overridden explicitly on the CLI so the
+    # YAML path recorded in output matches what was actually used.
+    if args.config != _CV_CONFIG_PATH:
+        cfg = _load_cv_config(args.config)
+
+    val_fraction = float(args.val_fraction) if (args.val_fraction is not None and float(args.val_fraction) > 0) else None
+
     out = run_full_pipeline(
         result_root=str(args.result_root),
         data_path=str(args.data_path),
@@ -454,6 +509,7 @@ if __name__ == "__main__":
         split_protocol={
             "train_mode": str(args.train_mode),
             "initial_train_months": int(args.initial_train_months),
+            "val_fraction": val_fraction,
             "val_window_months": int(args.val_window_months),
             "step_months": int(args.step_months),
             "min_train_rows": int(args.min_train_rows),

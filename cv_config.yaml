@@ -1,0 +1,106 @@
+# =============================================================================
+# cv_config.yaml — default settings for run_temporal_cv.py
+#
+# Edit this file to change any default. All keys match the argument names used
+# in run_temporal_cv.py.  CLI flags (when provided) override these values.
+# =============================================================================
+
+
+# ---------------------------------------------------------------------------
+# I/O
+# ---------------------------------------------------------------------------
+result_root: "./output/robust_rolling_origin_cv"
+data_path:   "./data/CCAO/2025/training_data.parquet"
+
+# Random seed used for both data sampling and bootstrap resampling.
+seed: 2025
+
+
+# ---------------------------------------------------------------------------
+# Data sampling (optional speed-up)
+#   Set sample_frac to a float in (0, 1) to randomly downsample the training
+#   universe before the CV.  Use null to disable (full dataset).
+# ---------------------------------------------------------------------------
+sample_frac: null          # e.g. 0.40  or  null for full data
+
+
+# ---------------------------------------------------------------------------
+# Penalty / model sweep grids
+#   rho_values  : list of rho penalties tried for LGBSmoothPenalty / LGBCovPenalty
+#   keep_values : list of CVaR keep fractions tried for LGBPrimalDual
+# ---------------------------------------------------------------------------
+rho_values:  [0.0, 0.001, 0.01, 0.1, 1.0, 10.0]
+keep_values: [0.5, 0.7, 0.9]
+
+
+# ---------------------------------------------------------------------------
+# Rolling-origin split protocol
+#
+#   train_mode           : "expanding" (CCAO standard) or "sliding"
+#   initial_train_months : length of the first training window (months)
+#
+#   Validation sizing — choose ONE of the two modes:
+#     A) val_fraction mode:
+#        Set val_fraction to a float in (0,1).
+#        Each fold's validation block is the next val_fraction × n_total rows
+#        immediately after the training window.  val_window_months and
+#        step_months are IGNORED in this mode.
+#        -> Use this to reproduce the "top-10%-slice" logic from the paper.
+#
+#     B) fixed-time-window mode:
+#        Set val_fraction to null.
+#        val_window_months : calendar length of each validation block
+#        step_months       : how far the origin advances between folds
+#        -> Use this for "9-month step" cadence
+#           (set both val_window_months: 9 and step_months: 9).
+#
+#   min_train_rows / min_val_rows : skip folds that are too small
+# ---------------------------------------------------------------------------
+split_protocol:
+  train_mode:           "expanding"
+  initial_train_months: 9
+
+  # Mode A: fraction-based (set to null to use Mode B instead)
+  val_fraction:         0.10
+
+  # Mode B: fixed-time-window (used only if val_fraction is null)
+  val_window_months:    9
+  step_months:          9
+
+  min_train_rows:       200
+  min_val_rows:         100
+
+
+# ---------------------------------------------------------------------------
+# Block-bootstrap protocol
+#   n_bootstrap       : number of bootstrap resamples per fold
+#   bootstrap_block_freq : pandas Period frequency for time blocks.
+#                         Must span multiple blocks within each validation
+#                         window to produce nonzero std bands in plots.
+#                         Common choices:
+#                           "M"  (monthly)  — good for 9-month val windows
+#                           "W"  (weekly)   — finer, more variability
+#                           "Q"  (quarterly)— use only for long val windows
+# ---------------------------------------------------------------------------
+bootstrap_protocol:
+  n_bootstrap:           200
+  bootstrap_block_freq:  "M"
+
+
+# ---------------------------------------------------------------------------
+# Parallelism
+#   parallel          : true to run fold × model jobs in parallel
+#   cpu_fraction      : fraction of available CPUs to use  (0.0 < f ≤ 1.0)
+#   max_workers       : hard cap on workers; set to null for no cap
+# ---------------------------------------------------------------------------
+parallel:
+  enabled:              true
+  cpu_fraction:         0.90
+  max_workers:          32   # set to null for no hard cap
+
+
+# ---------------------------------------------------------------------------
+# Storage
+#   parquet_engine : "fastparquet" or "pyarrow"
+# ---------------------------------------------------------------------------
+parquet_engine: "fastparquet"
