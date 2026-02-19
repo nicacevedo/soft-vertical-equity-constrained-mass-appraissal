@@ -69,7 +69,7 @@ two CSV tables with `R2`, `OOS R2`, PRD/PRB/VEI, etc.:
 It mirrors the preprocessing and split logic used in the full pipeline so it’s
 a reliable “smoke test” before running CV.
 
-### `run_temporal_cv.py` / `main.py`
+### `run_temporal_cv.py`
 
 1. Loads `training_data.parquet` and keeps only selected predictors + target/date.
 2. Optionally applies random sampling (`sample_frac`, `sample_seed`) for smaller experiments.
@@ -87,9 +87,9 @@ a reliable “smoke test” before running CV.
    - `analysis/.../test_metrics.csv`
    - `analysis/.../test_predictions.parquet` (per-row predictions; used for true stacking-on-test metrics)
 
-When `main.py` finishes it prints the `data_id` and `split_id` you should reuse.
+When `run_temporal_cv.py` finishes it prints the `data_id` and `split_id` you should reuse.
 
-### `optimize_stacking_weights.py` / `optimize_stacking_pf.py`
+### `optimize_stacking_weights.py`
 
 Reads CV fold-level metrics and solves a convex weight optimization:
 - decision variables: nonnegative weights \(w\) that sum to 1
@@ -102,7 +102,7 @@ Writes under:
 - `fold_ensemble_metrics.csv`
 - `optimization_summary.json`
 
-### `analyze_results.py` / `results_analysis.py`
+### `analyze_results.py`
 
 Loads CV artifacts and produces:
 - summary tables (`summary_by_config.*`, `pareto_front.*`, `shortlist.json`)
@@ -115,7 +115,7 @@ If `stacking_pf_opt/weights.csv` exists *and* `test_predictions.parquet` exists,
 - **stacking optimum (avg)**: computed from blended test predictions
 - **stacking optimum (worst block)**: worst quarterly block on test (robustness analogue)
 
-## Key settings to edit in `main.py`
+## Key settings to edit in `run_temporal_cv.py`
 
 - `sample_frac` and `sample_seed`: optional dataset down-sampling with reproducibility.
 - `split_protocol`: rolling-origin settings (`initial_train_months`, `val_fraction`, minimum rows).
