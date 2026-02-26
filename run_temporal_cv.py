@@ -28,7 +28,7 @@ except ImportError as e:  # pragma: no cover
     raise ImportError("`run_temporal_cv.py` requires lightgbm. Install via `pip install lightgbm`.") from e
 
 from preprocessing.recipes_pipelined import build_model_pipeline
-from soft_constrained_models.boosting_models import LGBCovPenalty, LGBPrimalDual, LGBSmoothPenalty
+from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty, LGBSmoothPenaltyCVaR, LGBSmoothPenaltyCVaRTotal
 from utils.motivation_utils import _compute_extended_metrics, _stable_hash, run_robust_rolling_origin_cv
 
 
@@ -41,12 +41,88 @@ def _parse_float_list(values: str) -> List[float]:
     return [float(x) for x in values.split(",")]
 
 
-def _build_lgbm_params_from_files(model_params: dict, ccao_params: dict, seed: int) -> dict:
+def _build_rho_values(
+    rho_values_raw: List[float],
+    *,
+    rho_count: int,
+    rho_scale: str,
+) -> List[float]:
     """
-    Use `model_params.yaml` as primary defaults and fall back to `params.yaml` for missing keys.
+    Build rho sweep values from either:
+      - range form [rho_min, rho_max] + (count, scale), or
+      - explicit list (backward-compatible fallback).
+    """
+    vals = [float(x) for x in rho_values_raw]
+    if not vals:
+        return []
+
+    count = int(rho_count)
+    if count < 1:
+        raise ValueError("rho_count must be >= 1.")
+
+    scale = str(rho_scale).strip().lower()
+    if scale not in {"linear", "log", "geom"}:
+        raise ValueError("rho_scale must be one of: linear, log, geom.")
+
+    # Preferred new behavior: 2-point range [min, max].
+    if len(vals) == 2:
+        lo, hi = float(vals[0]), float(vals[1])
+        if count == 1:
+            return [lo]
+        if scale == "linear":
+            out = np.linspace(lo, hi, count, dtype=float)
+        else:
+            if lo <= 0.0 or hi <= 0.0:
+                raise ValueError("For rho_scale=log/geom, rho range bounds must be > 0.")
+            out = np.geomspace(lo, hi, count, dtype=float)
+        return [float(x) for x in out.tolist()]
+
+    # Backward-compatible fallback: explicit list passthrough.
+    return vals
+
+
+# LightGBM's own built-in defaults for keys that model_params.yaml may not specify.
+# Used when use_ccao_fallback=False (the default) so that only model_params.yaml
+# drives behaviour and there is no silent override from params.yaml.
+_LGBM_NATIVE_DEFAULTS: Dict[str, Any] = {
+    "num_iterations": 100,
+    "learning_rate": 0.1,
+    "num_leaves": 31,
+    "max_bin": 255,
+    "min_gain_to_split": 0.0,    # LightGBM native default; params.yaml uses 75.5 (strongly regularising)
+    "min_data_in_leaf": 20,
+    "feature_fraction": 1.0,
+    "lambda_l1": 0.0,
+    "lambda_l2": 0.0,
+    "max_cat_threshold": 32,
+    "min_data_per_group": 100,
+    "cat_smooth": 10.0,
+    "cat_l2": 10.0,
+}
+
+
+def _build_lgbm_params_from_files(
+    model_params: dict,
+    ccao_params: dict,
+    seed: int,
+    use_ccao_fallback: bool = False,
+) -> dict:
+    """
+    Build LightGBM params dict.
+
+    When use_ccao_fallback=False (default):
+      model_params.yaml is the only source; any missing key falls back to
+      LightGBM's own native defaults (_LGBM_NATIVE_DEFAULTS).
+
+    When use_ccao_fallback=True (opt-in):
+      model_params.yaml is primary; missing keys fall back to params.yaml's
+      hyperparameter.default section (the original CCAO behaviour).
     """
     model_default = dict(model_params.get("LGBMRegressor", {}))
-    hp_default = dict(ccao_params["model"]["hyperparameter"]["default"])
+    if use_ccao_fallback:
+        hp_default = dict(ccao_params["model"]["hyperparameter"]["default"])
+    else:
+        hp_default = dict(_LGBM_NATIVE_DEFAULTS)
 
     num_leaves = int(model_default.get("num_leaves", hp_default["num_leaves"]))
     if "max_depth" in model_default and model_default["max_depth"] is not None:
@@ -149,6 +225,7 @@ def _build_model_specs(
     )
 
     # Soft penalty variants (rho sweep)
+    keep_sweep = [float(k) for k in keep_values] if keep_values else [1.0]
     for rho in rho_values:
         r = float(rho)
         specs.append(
@@ -167,20 +244,56 @@ def _build_model_specs(
                 "factory": (lambda rho=r: LGBCovPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
             }
         )
-
-    # Primal-dual (CVaR-like) variants (rho × keep sweep)
-    for rho in rho_values:
-        for keep in keep_values:
-            r = float(rho)
+        for keep in keep_sweep:
             k = float(keep)
             specs.append(
                 {
-                    "name": "LGBPrimalDual",
+                    "name": "LGBSmoothPenaltyCVaR",
                     "config": {"rho": r, "keep": k},
                     "requires_linear_pipeline": False,
-                    "factory": (lambda rho=r, keep=k: LGBPrimalDual(rho=rho, keep=keep, adversary_type="overall", eta_adv=0.1, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params))),
+                    "factory": (
+                        lambda rho=r, keep=k: LGBSmoothPenaltyCVaR(
+                            rho=rho,
+                            mse_keep=keep,
+                            ratio_mode=fairness_ratio_mode,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=dict(lgbm_params),
+                            verbose=False,
+                        )
+                    ),
                 }
             )
+            specs.append(
+                {
+                    "name": "LGBSmoothPenaltyCVaRTotal",
+                    "config": {"rho": r, "keep": k},
+                    "requires_linear_pipeline": False,
+                    "factory": (
+                        lambda rho=r, keep=k: LGBSmoothPenaltyCVaRTotal(
+                            rho=rho,
+                            keep=keep,
+                            ratio_mode=fairness_ratio_mode,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=dict(lgbm_params),
+                            verbose=False,
+                        )
+                    ),
+                }
+            )
+
+    # # Primal-dual (CVaR-like) variants (rho × keep sweep)
+    # for rho in rho_values:
+    #     for keep in keep_values:
+    #         r = float(rho)
+    #         k = float(keep)
+    #         specs.append(
+    #             {
+    #                 "name": "LGBPrimalDual",
+    #                 "config": {"rho": r, "keep": k},
+    #                 "requires_linear_pipeline": False,
+    #                 "factory": (lambda rho=r, keep=k: LGBPrimalDual(rho=rho, keep=keep, adversary_type="overall", eta_adv=0.1, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params))),
+    #             }
+    #         )
 
     return specs
 
@@ -304,6 +417,7 @@ def run_full_pipeline(
     parallel_cpu_fraction: float,
     parallel_max_workers: Optional[int],
     parquet_engine: str,
+    use_ccao_fallback: bool = False,
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -338,7 +452,7 @@ def run_full_pipeline(
         id_vars=params["model"]["predictor"]["id"],
     )
 
-    lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed)
+    lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed, use_ccao_fallback=use_ccao_fallback)
     model_specs = _build_model_specs(
         lgbm_params=lgbm_params,
         rho_values=rho_values,
@@ -446,9 +560,19 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
     p.add_argument("--seed", type=int, default=cfg.get("seed", 2025))
 
     # --- Sweep grids ---
-    default_rho = ",".join(str(v) for v in cfg.get("rho_values", [0.0, 0.001, 0.01, 0.1, 1.0, 10.0]))
+    default_rho = ",".join(str(v) for v in cfg.get("rho_values", [0.0, 10.0]))
     default_keep = ",".join(str(v) for v in cfg.get("keep_values", [0.5, 0.7, 0.9]))
-    p.add_argument("--rho-values", type=str, default=default_rho, help="Comma-separated rhos for penalty models.")
+    p.add_argument(
+        "--rho-values",
+        type=str,
+        default=default_rho,
+        help="Preferred: two comma-separated bounds 'rho_min,rho_max'. Backward-compatible: explicit comma-separated rho list.",
+    )
+    p.add_argument("--rho-count", type=int, default=int(cfg.get("rho_count", 6)),
+                   help="Number of rho values generated between rho min/max (inclusive).")
+    p.add_argument("--rho-scale", type=str, default=str(cfg.get("rho_scale", "linear")),
+                   choices=["linear", "log", "geom"],
+                   help="Spacing scale used when --rho-values provides two bounds.")
     p.add_argument("--keep-values", type=str, default=default_keep, help="Comma-separated keep values for primal-dual models.")
 
     # --- Split protocol ---
@@ -479,6 +603,18 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
     # --- Storage ---
     p.add_argument("--parquet-engine", type=str, default=cfg.get("parquet_engine", "fastparquet"),
                    choices=["fastparquet", "pyarrow"])
+
+    # --- LGBM param sourcing ---
+    p.add_argument(
+        "--use-ccao-params-fallback",
+        action="store_true",
+        default=bool(cfg.get("use_ccao_params_fallback", False)),
+        help=(
+            "When set, missing keys in model_params.yaml fall back to params.yaml's "
+            "hyperparameter.default (original CCAO behaviour). "
+            "By default, missing keys fall back to LightGBM's own native defaults."
+        ),
+    )
     return p
 
 
@@ -499,12 +635,19 @@ if __name__ == "__main__":
 
     val_fraction = float(args.val_fraction) if (args.val_fraction is not None and float(args.val_fraction) > 0) else None
 
+    rho_values_raw = _parse_float_list(str(args.rho_values))
+    rho_values = _build_rho_values(
+        rho_values_raw,
+        rho_count=int(args.rho_count),
+        rho_scale=str(args.rho_scale),
+    )
+
     out = run_full_pipeline(
         result_root=str(args.result_root),
         data_path=str(args.data_path),
         sample_frac=(None if args.sample_frac is None else float(args.sample_frac)),
         seed=int(args.seed),
-        rho_values=_parse_float_list(str(args.rho_values)),
+        rho_values=rho_values,
         keep_values=[float(x) for x in _parse_float_list(str(args.keep_values))],
         split_protocol={
             "train_mode": str(args.train_mode),
@@ -524,6 +667,7 @@ if __name__ == "__main__":
         parallel_cpu_fraction=float(args.parallel_cpu_fraction),
         parallel_max_workers=(None if args.parallel_max_workers is None else int(args.parallel_max_workers)),
         parquet_engine=str(args.parquet_engine),
+        use_ccao_fallback=bool(args.use_ccao_params_fallback),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")
