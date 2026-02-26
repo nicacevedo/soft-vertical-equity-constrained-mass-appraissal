@@ -220,6 +220,8 @@ def _solve_prd_socp_for_mode(
     cvar_alpha: float,
     prd_constraint_aggregation: str,
     prd_constraint_cvar_alpha: float,
+    prd_feasibility_mode: str,
+    prd_gap_penalty: float,
     use_bootstrap_scenarios: bool,
     n_bootstrap_scenarios: int,
     bootstrap_seed: int,
@@ -243,6 +245,12 @@ def _solve_prd_socp_for_mode(
     prd_constraint_aggregation = str(prd_constraint_aggregation)
     if prd_constraint_aggregation not in {"worst", "average", "cvar"}:
         raise ValueError("prd_constraint_aggregation must be one of: worst, average, cvar")
+    prd_feasibility_mode = str(prd_feasibility_mode)
+    if prd_feasibility_mode not in {"priced_gap", "hard"}:
+        raise ValueError("prd_feasibility_mode must be one of: priced_gap, hard")
+    prd_gap_penalty = float(prd_gap_penalty)
+    if prd_feasibility_mode == "priced_gap" and prd_gap_penalty < 0.0:
+        raise ValueError("prd_gap_penalty must be >= 0.")
     prd_cvar_alpha = float(prd_constraint_cvar_alpha)
     if prd_constraint_aggregation == "cvar" and not (0.0 < prd_cvar_alpha < 1.0):
         raise ValueError("prd_constraint_cvar_alpha must be in (0, 1) when prd_constraint_aggregation=cvar")
@@ -270,7 +278,9 @@ def _solve_prd_socp_for_mode(
         prd_high_affine_terms.append(high_aff)
         denom_constraints += [(b @ w) >= 1e-9]
 
-        loss_f = cp.sum_squares(Pn @ w - y_norm) / float(y_norm.shape[0])
+        # Scale-stable objective: mean squared ratio residual, ((yhat / y) - 1)^2.
+        # With y treated as fixed positive data, this remains a convex quadratic in w.
+        loss_f = cp.sum_squares(cp.multiply(1.0 / y_norm, Pn @ w) - 1.0) / float(y_norm.shape[0])
         scenario_losses.append(loss_f)
 
         if use_bootstrap_scenarios and int(n_bootstrap_scenarios) > 0:
@@ -288,39 +298,62 @@ def _solve_prd_socp_for_mode(
                 prd_low_affine_terms.append(low_aff_b)
                 prd_high_affine_terms.append(high_aff_b)
                 denom_constraints += [(bb @ w) >= 1e-9]
-                scenario_losses.append(cp.sum_squares(Pb @ w - yb_pos) / float(yb_pos.shape[0]))
+                scenario_losses.append(
+                    cp.sum_squares(cp.multiply(1.0 / yb_pos, Pb @ w) - 1.0) / float(yb_pos.shape[0])
+                )
+
+    gap_var = cp.Variable(nonneg=True) if prd_feasibility_mode == "priced_gap" else None
 
     if prd_constraint_aggregation == "worst":
         for low_aff, high_aff in zip(prd_low_affine_terms, prd_high_affine_terms):
-            prd_constraints.append(low_aff <= 0.0)
-            prd_constraints.append(high_aff <= 0.0)
+            if gap_var is None:
+                prd_constraints.append(low_aff <= 0.0)
+                prd_constraints.append(high_aff <= 0.0)
+            else:
+                prd_constraints.append(low_aff <= gap_var)
+                prd_constraints.append(high_aff <= gap_var)
     elif prd_constraint_aggregation == "average":
-        prd_constraints.append(cp.sum(cp.hstack(prd_low_affine_terms)) / float(len(prd_low_affine_terms)) <= 0.0)
-        prd_constraints.append(cp.sum(cp.hstack(prd_high_affine_terms)) / float(len(prd_high_affine_terms)) <= 0.0)
+        if gap_var is None:
+            prd_constraints.append(cp.sum(cp.hstack(prd_low_affine_terms)) / float(len(prd_low_affine_terms)) <= 0.0)
+            prd_constraints.append(cp.sum(cp.hstack(prd_high_affine_terms)) / float(len(prd_high_affine_terms)) <= 0.0)
+        else:
+            prd_constraints.append(cp.sum(cp.hstack(prd_low_affine_terms)) / float(len(prd_low_affine_terms)) <= gap_var)
+            prd_constraints.append(cp.sum(cp.hstack(prd_high_affine_terms)) / float(len(prd_high_affine_terms)) <= gap_var)
     else:  # cvar
         eta_low = cp.Variable()
         u_low = cp.Variable(len(prd_low_affine_terms), nonneg=True)
         for i, low_aff in enumerate(prd_low_affine_terms):
             prd_constraints.append(u_low[i] >= low_aff - eta_low)
-        prd_constraints.append(
-            eta_low + (1.0 / ((1.0 - prd_cvar_alpha) * float(len(prd_low_affine_terms)))) * cp.sum(u_low) <= 0.0
-        )
+        if gap_var is None:
+            prd_constraints.append(
+                eta_low + (1.0 / ((1.0 - prd_cvar_alpha) * float(len(prd_low_affine_terms)))) * cp.sum(u_low) <= 0.0
+            )
+        else:
+            prd_constraints.append(
+                eta_low + (1.0 / ((1.0 - prd_cvar_alpha) * float(len(prd_low_affine_terms)))) * cp.sum(u_low) <= gap_var
+            )
 
         eta_high = cp.Variable()
         u_high = cp.Variable(len(prd_high_affine_terms), nonneg=True)
         for i, high_aff in enumerate(prd_high_affine_terms):
             prd_constraints.append(u_high[i] >= high_aff - eta_high)
-        prd_constraints.append(
-            eta_high + (1.0 / ((1.0 - prd_cvar_alpha) * float(len(prd_high_affine_terms)))) * cp.sum(u_high) <= 0.0
-        )
+        if gap_var is None:
+            prd_constraints.append(
+                eta_high + (1.0 / ((1.0 - prd_cvar_alpha) * float(len(prd_high_affine_terms)))) * cp.sum(u_high) <= 0.0
+            )
+        else:
+            prd_constraints.append(
+                eta_high + (1.0 / ((1.0 - prd_cvar_alpha) * float(len(prd_high_affine_terms)))) * cp.sum(u_high) <= gap_var
+            )
 
+    objective_expr = None
     if mode == "average":
-        objective = cp.Minimize(cp.sum(cp.hstack(scenario_losses)) / float(len(scenario_losses)))
+        objective_expr = cp.sum(cp.hstack(scenario_losses)) / float(len(scenario_losses))
     elif mode == "worst":
         t = cp.Variable()
         for lf in scenario_losses:
             objective_link_constraints.append(lf <= t)
-        objective = cp.Minimize(t)
+        objective_expr = t
     elif mode == "time_decay":
         gamma = float(time_decay_gamma)
         if not (0.0 < gamma <= 1.0):
@@ -337,7 +370,7 @@ def _solve_prd_socp_for_mode(
             for _ in range(rep):
                 weighted_terms.append(float(fold_weights[i]) * scenario_losses[idx] / float(rep))
                 idx += 1
-        objective = cp.Minimize(cp.sum(cp.hstack(weighted_terms)))
+        objective_expr = cp.sum(cp.hstack(weighted_terms))
     else:  # cvar
         alpha = float(cvar_alpha)
         if not (0.0 < alpha < 1.0):
@@ -346,7 +379,11 @@ def _solve_prd_socp_for_mode(
         u = cp.Variable(len(scenario_losses), nonneg=True)
         for i, lf in enumerate(scenario_losses):
             objective_link_constraints.append(u[i] >= lf - eta)
-        objective = cp.Minimize(eta + (1.0 / ((1.0 - alpha) * float(len(scenario_losses)))) * cp.sum(u))
+        objective_expr = eta + (1.0 / ((1.0 - alpha) * float(len(scenario_losses)))) * cp.sum(u)
+
+    if gap_var is not None:
+        objective_expr = objective_expr + float(prd_gap_penalty) * gap_var
+    objective = cp.Minimize(objective_expr)
 
     hard_constraints = simplex_constraints + denom_constraints + objective_link_constraints + prd_constraints
     prob = cp.Problem(objective, hard_constraints)
@@ -388,7 +425,7 @@ def _solve_prd_socp_for_mode(
         # Final fallback: drop PRD constraints and solve simplex-only objective.
         # Runtime evidence showed some splits are infeasible under hard PRD bounds.
         fallback_constraints = simplex_constraints + objective_link_constraints
-        fallback_prob = cp.Problem(cp.Minimize(objective.args[0]), fallback_constraints)
+        fallback_prob = cp.Problem(cp.Minimize(objective_expr), fallback_constraints)
         for candidate in solvers_to_try:
             print(f"[stacking][{mode}] trying solver={candidate} (unconstrained fallback)")
             try:
@@ -441,6 +478,9 @@ def _solve_prd_socp_for_mode(
         "solver": solver_name,
         "objective_mode": mode,
         "prd_constraint_mode": str(prd_constraint_mode),
+        "prd_feasibility_mode": str(prd_feasibility_mode),
+        "prd_gap_penalty": float(prd_gap_penalty),
+        "prd_gap_value": (float(gap_var.value) if (gap_var is not None and gap_var.value is not None) else 0.0),
         "prd_constraint_aggregation": str(prd_constraint_aggregation),
         "prd_constraint_cvar_alpha": float(prd_cvar_alpha),
         "objective_value": float(prob.value) if prob.value is not None else None,
@@ -459,7 +499,7 @@ def run_stacking_pf_optimization(
     objective_mode: str = "worst_fold",
     max_models: Optional[int] = 100,
     solver: Optional[str] = None,
-    solver_verbose: bool = False,
+    solver_verbose: bool = True,
 ) -> Dict[str, str]:
     """
     Solve:
@@ -584,7 +624,7 @@ def run_stacking_prd_socp_optimization(
     objective_mode: str = "average",
     max_models: Optional[int] = 100,
     solver: Optional[str] = None,
-    solver_verbose: bool = False,
+    solver_verbose: bool = True,
     prd_constraint_aggregation: str = "worst",
     prd_constraint_cvar_alpha: float = 0.8,
     use_bootstrap_scenarios: bool = False,
@@ -592,11 +632,14 @@ def run_stacking_prd_socp_optimization(
     bootstrap_seed: int = 2025,
     time_decay_gamma: float = 0.9,
     cvar_alpha: float = 0.8,
+    solve_all_modes: bool = False,
+    prd_feasibility_mode: str = "priced_gap",
+    prd_gap_penalty: float = 1000.0,
 ) -> Dict[str, str]:
     """
     PRD-constrained exact convex stacking using row-level fold predictions.
-    Always solves and stores both `average` and `worst` objectives, plus the
-    requested objective_mode if different.
+    By default, solves only the requested objective_mode.
+    Set solve_all_modes=True to also solve and store `average` and `worst`.
     """
     objective_mode = str(objective_mode)
     if objective_mode not in {"average", "worst", "time_decay", "cvar"}:
@@ -610,10 +653,13 @@ def run_stacking_prd_socp_optimization(
         max_models=max_models,
     )
 
-    modes_to_run: List[str] = []
-    for m in ["average", "worst", objective_mode]:
-        if m not in modes_to_run:
-            modes_to_run.append(m)
+    if bool(solve_all_modes):
+        modes_to_run: List[str] = []
+        for m in ["average", "worst", objective_mode]:
+            if m not in modes_to_run:
+                modes_to_run.append(m)
+    else:
+        modes_to_run = [objective_mode]
 
     out_dir = Path(result_root) / "analysis" / f"data_id={data_id}" / f"split_id={split_id}" / "stacking_prd_socp_opt"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -631,6 +677,8 @@ def run_stacking_prd_socp_optimization(
             cvar_alpha=cvar_alpha,
             prd_constraint_aggregation=prd_constraint_aggregation,
             prd_constraint_cvar_alpha=prd_constraint_cvar_alpha,
+            prd_feasibility_mode=prd_feasibility_mode,
+            prd_gap_penalty=prd_gap_penalty,
             use_bootstrap_scenarios=bool(use_bootstrap_scenarios),
             n_bootstrap_scenarios=int(n_bootstrap_scenarios),
             bootstrap_seed=int(bootstrap_seed),
@@ -700,6 +748,9 @@ def run_stacking_prd_socp_optimization(
                 "cvar_alpha": float(cvar_alpha),
                 "prd_constraint_aggregation": str(prd_constraint_aggregation),
                 "prd_constraint_cvar_alpha": float(prd_constraint_cvar_alpha),
+                "solve_all_modes": bool(solve_all_modes),
+                "prd_feasibility_mode": str(prd_feasibility_mode),
+                "prd_gap_penalty": float(prd_gap_penalty),
                 "modes": all_summaries,
             },
             indent=2,
@@ -723,6 +774,21 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     p.add_argument("--split-id", type=str, required=True)
     p.add_argument("--stacking-method", type=str, default="prd_socp", choices=["prd_socp", "legacy_linear"])
     p.add_argument("--objective-mode", type=str, default="average", choices=["average", "worst", "time_decay", "cvar"])
+    p.add_argument(
+        "--only-requested-objective",
+        dest="only_requested_objective",
+        action="store_true",
+        default=True,
+        help=(
+            "Run only --objective-mode for PRD-SOCP (default behavior)."
+        ),
+    )
+    p.add_argument(
+        "--all-objectives",
+        dest="only_requested_objective",
+        action="store_false",
+        help="Run average, worst, and requested objective for PRD-SOCP (legacy behavior).",
+    )
     p.add_argument("--use-bootstrap-scenarios", action="store_true", help="Augment fold scenarios with row-bootstrap scenarios (PRD-SOCP method only).")
     p.add_argument("--n-bootstrap-scenarios", type=int, default=0)
     p.add_argument("--bootstrap-seed", type=int, default=2025)
@@ -741,11 +807,29 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default=0.8,
         help="CVaR alpha in (0,1) when --prd-constraint-aggregation=cvar.",
     )
+    p.add_argument(
+        "--prd-feasibility-mode",
+        type=str,
+        default="priced_gap",
+        choices=["priced_gap", "hard"],
+        help=(
+            "PRD feasibility handling for PRD-SOCP. "
+            "'priced_gap' minimizes objective + xi*gap with softened PRD constraints; "
+            "'hard' enforces hard PRD constraints."
+        ),
+    )
+    p.add_argument(
+        "--prd-gap-penalty",
+        type=float,
+        default=1000.0,
+        help="Penalty xi for PRD gap when --prd-feasibility-mode=priced_gap (>=0).",
+    )
     p.add_argument("--accuracy-metric", type=str, default="OOS R2", help="Metric column name to maximize (e.g., 'OOS R2' or 'R2').")
     p.add_argument("--legacy-objective-mode", type=str, default="worst_fold", choices=["worst_fold", "mean_fold"])
     p.add_argument("--max-models", type=int, default=100, help="Optional pruning: keep top-K models by mean accuracy.")
     p.add_argument("--solver", type=str, default=None, help="Preferred solver (e.g. MOSEK, ECOS, SCS).")
-    p.add_argument("--solver-verbose", action="store_true")
+    p.add_argument("--solver-verbose", dest="solver_verbose", action="store_true", default=True)
+    p.add_argument("--no-solver-verbose", dest="solver_verbose", action="store_false")
     return p
 
 
@@ -778,6 +862,9 @@ if __name__ == "__main__":
             bootstrap_seed=int(args.bootstrap_seed),
             time_decay_gamma=float(args.time_decay_gamma),
             cvar_alpha=float(args.cvar_alpha),
+            solve_all_modes=not bool(args.only_requested_objective),
+            prd_feasibility_mode=str(args.prd_feasibility_mode),
+            prd_gap_penalty=float(args.prd_gap_penalty),
         )
     print("=" * 90)
     print("STACKING WEIGHTS OPTIMIZATION COMPLETED")
