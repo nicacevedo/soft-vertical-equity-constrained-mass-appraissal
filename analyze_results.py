@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -36,7 +38,17 @@ from utils.motivation_utils import (
     IAAO_VEI_RANGE,
     _build_time_block_bootstrap_indices,
     _compute_extended_metrics,
+    compute_taxation_metrics,
 )
+from utils.plotting_utils import plot_vertical_equity_lowess
+
+
+def _progress_log(message: str, *, t0: Optional[float] = None) -> None:
+    if t0 is None:
+        print(f"[analyze_results] {message}", flush=True)
+        return
+    dt = time.time() - float(t0)
+    print(f"[analyze_results +{dt:7.1f}s] {message}", flush=True)
 
 
 def _analysis_dir(result_root: str, data_id: str, split_id: str) -> Path:
@@ -97,6 +109,14 @@ def _summary_by_config(runs_df: pd.DataFrame) -> pd.DataFrame:
 def _load_bootstrap_df(*, result_root: str, data_id: str, split_id: str) -> pd.DataFrame:
     boots_dir = Path(result_root) / "bootstrap_metrics" / f"data_id={data_id}" / f"split_id={split_id}"
     paths = sorted(boots_dir.rglob("*.parquet"))
+    if not paths:
+        return pd.DataFrame()
+    return pd.concat([pd.read_parquet(p) for p in paths], ignore_index=True)
+
+
+def _load_validation_predictions_df(*, result_root: str, data_id: str, split_id: str) -> pd.DataFrame:
+    preds_dir = Path(result_root) / "predictions" / f"data_id={data_id}" / f"split_id={split_id}"
+    paths = sorted(preds_dir.rglob("*.parquet"))
     if not paths:
         return pd.DataFrame()
     return pd.concat([pd.read_parquet(p) for p in paths], ignore_index=True)
@@ -714,6 +734,9 @@ def _load_stacking_linear_fold_metrics(*, analysis_dir: Path, metrics: List[str]
         candidates: List[Tuple[str, Path]] = [
             (f"STACKING_OPTIMUM_AVERAGE_{source_tag}", sdir / "fold_ensemble_metrics_average.csv"),
             (f"STACKING_OPTIMUM_WORST_{source_tag}", sdir / "fold_ensemble_metrics_worst.csv"),
+            (f"STACKING_OPTIMUM_UTOPIA_{source_tag}", sdir / "fold_ensemble_metrics_utopia.csv"),
+            (f"SINGLE_OPTIMUM_REQUESTED_{source_tag}", sdir / "fold_ensemble_metrics_single_requested.csv"),
+            (f"SINGLE_OPTIMUM_UTOPIA_{source_tag}", sdir / "fold_ensemble_metrics_single_utopia.csv"),
             (f"STACKING_OPTIMUM_LINEAR_{source_tag}", sdir / "fold_ensemble_metrics.csv"),
         ]
         for model_tag, fold_path in candidates:
@@ -783,16 +806,22 @@ def _plot_metric_evolution(
         label = config_labels.get(str(cfg_id), str(cfg_id))
 
         is_stacking = str(model_name).startswith("STACKING_OPTIMUM")
+        is_single = str(model_name).startswith("SINGLE_OPTIMUM")
         lw = 2.6 if is_stacking else 1.6
+        if is_single:
+            lw = 2.8
         mname = str(model_name)
         if "LINEAR_LEGACY" in mname:
             ls = ":"
         elif "LINEAR_ROBUST" in mname or mname == "STACKING_OPTIMUM_LINEAR":
             ls = "--"
+        elif is_single:
+            ls = "-."
         else:
             ls = "-"
 
-        ax.plot(x, y, color=base_color, linewidth=lw, linestyle=ls, label=label)
+        marker = "^" if is_single else None
+        ax.plot(x, y, color=base_color, linewidth=lw, linestyle=ls, marker=marker, markersize=5, label=label)
         if np.any(np.isfinite(s)) and "LINEAR" not in str(model_name):
             ax.fill_between(x, y - s, y + s, color=base_color, alpha=0.12)
 
@@ -908,7 +937,31 @@ def _plot_tradeoff(
             for name, og in o.groupby("_overlay_name", sort=True):
                 n = str(name)
                 n_up = n.upper()
-                if "WORST" in n_up:
+                if n_up.startswith("SINGLE_OPTIMUM_UTOPIA"):
+                    marker = "^"
+                    if "LEGACY" in n_up:
+                        color = "mediumpurple"
+                        label = "single optimum (legacy utopia)"
+                    else:
+                        color = "darkviolet"
+                        label = "single optimum (robust utopia)"
+                elif n_up.startswith("SINGLE_OPTIMUM_REQUESTED"):
+                    marker = "v"
+                    if "LEGACY" in n_up:
+                        color = "cornflowerblue"
+                        label = "single optimum (legacy requested)"
+                    else:
+                        color = "navy"
+                        label = "single optimum (robust requested)"
+                elif "UTOPIA" in n_up:
+                    marker = "D"
+                    if "LEGACY" in n_up:
+                        color = "slateblue"
+                        label = "stacking optimum (legacy utopia)"
+                    else:
+                        color = "darkcyan"
+                        label = "stacking optimum (robust utopia)"
+                elif "WORST" in n_up:
                     marker = "X"
                     if "LEGACY" in n_up:
                         color = "purple"
@@ -974,33 +1027,39 @@ def _load_stacking_validation_overlay(*, analysis_dir: Path, fold_id: int) -> Tu
     avg_rows: List[pd.DataFrame] = []
     single_rows: List[pd.DataFrame] = []
     for source_tag, sdir in sdirs:
-        fold_path = sdir / "fold_ensemble_metrics_average.csv"
-        if not fold_path.exists():
-            fold_path = sdir / "fold_ensemble_metrics.csv"
-        if not fold_path.exists():
-            continue
-        fold_df = pd.read_csv(fold_path)
-        fold_df = _prepare_df(
-            fold_df.rename(
-                columns={
-                    "OOS R2_ensemble": "OOS R2",
-                    "R2_ensemble": "R2",
-                    "PRD_ensemble": "PRD",
-                    "PRB_ensemble": "PRB",
-                    "VEI_ensemble": "VEI",
-                    "COD_ensemble": "COD",
-                    "Corr(r,price)_ensemble": "Corr(r,price)",
-                }
+        candidates: List[Tuple[str, Path]] = [
+            (f"STACKING_OPTIMUM_AVG_{source_tag}", sdir / "fold_ensemble_metrics_average.csv"),
+            (f"STACKING_OPTIMUM_UTOPIA_{source_tag}", sdir / "fold_ensemble_metrics_utopia.csv"),
+            (f"SINGLE_OPTIMUM_REQUESTED_{source_tag}", sdir / "fold_ensemble_metrics_single_requested.csv"),
+            (f"SINGLE_OPTIMUM_UTOPIA_{source_tag}", sdir / "fold_ensemble_metrics_single_utopia.csv"),
+        ]
+        if not (sdir / "fold_ensemble_metrics_average.csv").exists():
+            candidates.append((f"STACKING_OPTIMUM_AVG_{source_tag}", sdir / "fold_ensemble_metrics.csv"))
+        for model_tag, fold_path in candidates:
+            if not fold_path.exists():
+                continue
+            fold_df = pd.read_csv(fold_path)
+            fold_df = _prepare_df(
+                fold_df.rename(
+                    columns={
+                        "OOS R2_ensemble": "OOS R2",
+                        "R2_ensemble": "R2",
+                        "PRD_ensemble": "PRD",
+                        "PRB_ensemble": "PRB",
+                        "VEI_ensemble": "VEI",
+                        "COD_ensemble": "COD",
+                        "Corr(r,price)_ensemble": "Corr(r,price)",
+                    }
+                )
             )
-        )
-        avg = fold_df.drop(columns=["fold_id"], errors="ignore").mean(numeric_only=True).to_frame().T
-        avg.columns = [f"{c}_mean" for c in avg.columns]  # match column names used in validation avg plots
-        avg["model_name"] = f"STACKING_OPTIMUM_AVG_{source_tag}"
-        avg_rows.append(avg)
-        single = fold_df.loc[fold_df["fold_id"] == int(fold_id)].copy()
-        if not single.empty:
-            single["model_name"] = f"STACKING_OPTIMUM_AVG_{source_tag}"
-            single_rows.append(single)
+            avg = fold_df.drop(columns=["fold_id"], errors="ignore").mean(numeric_only=True).to_frame().T
+            avg.columns = [f"{c}_mean" for c in avg.columns]  # match column names used in validation avg plots
+            avg["model_name"] = model_tag
+            avg_rows.append(avg)
+            single = fold_df.loc[fold_df["fold_id"] == int(fold_id)].copy()
+            if not single.empty:
+                single["model_name"] = model_tag
+                single_rows.append(single)
     return (
         pd.concat(avg_rows, ignore_index=True) if avg_rows else pd.DataFrame(),
         pd.concat(single_rows, ignore_index=True) if single_rows else pd.DataFrame(),
@@ -1080,53 +1139,80 @@ def _compute_test_stacking_overlay(
     avg_rows: List[pd.DataFrame] = []
     worst_rows: List[pd.DataFrame] = []
     for source_tag, sdir in sdirs:
-        weights_path = sdir / "weights_average.csv"
-        if not weights_path.exists():
-            weights_path = sdir / "weights.csv"
-        if not weights_path.exists():
-            continue
-
-        wdf = pd.read_csv(weights_path)
-        wdf = wdf[pd.to_numeric(wdf["weight"], errors="coerce").fillna(0.0) > 0.0].copy()
-        if wdf.empty:
+        weights_avg_path = sdir / "weights_average.csv"
+        if not weights_avg_path.exists():
+            weights_avg_path = sdir / "weights.csv"
+        if not weights_avg_path.exists():
             continue
 
         pdf = pd.read_parquet(preds_path)
-        pdf = pdf[pdf["config_id"].isin(wdf["config_id"])].copy()
         if pdf.empty:
             continue
-
-        # Wide matrix of log-preds
-        mat = pdf.pivot_table(index="row_id", columns="config_id", values="y_pred_log", aggfunc="first")
-        mat = mat.reindex(columns=wdf["config_id"].tolist())
-        if mat.isna().any().any():
-            mat = mat.dropna(axis=0)
-
-        w = wdf.set_index("config_id")["weight"].reindex(mat.columns).to_numpy(dtype=float)
-        w = np.maximum(w, 0.0)
-        w = w / w.sum()
-
-        y_pred_stack_log = mat.to_numpy(dtype=float) @ w
-        y_true_log = (
-            pdf.drop_duplicates("row_id")
-            .set_index("row_id")
-            .reindex(mat.index)["y_true_log"]
-            .to_numpy(dtype=float)
-        )
-        sale_date = (
-            pd.to_datetime(
-                pdf.drop_duplicates("row_id")
-                .set_index("row_id")
-                .reindex(mat.index)["sale_date"]
-            )
-        )
-
         y_train_log = np.array([float(y_train_log_mean)], dtype=float)
-        avg_metrics = _compute_extended_metrics(y_true_log=y_true_log, y_pred_log=y_pred_stack_log, y_train_log=y_train_log, ratio_mode="diff")
-        avg_row = pd.DataFrame([{**avg_metrics, "model_name": f"STACKING_OPTIMUM_AVG_{source_tag}"}])
-        avg_rows.append(_prepare_df(avg_row))
+
+        avg_like_specs: List[Tuple[str, Path]] = [(f"STACKING_OPTIMUM_AVG_{source_tag}", weights_avg_path)]
+        weights_utopia_path = sdir / "weights_utopia.csv"
+        if weights_utopia_path.exists():
+            avg_like_specs.append((f"STACKING_OPTIMUM_UTOPIA_{source_tag}", weights_utopia_path))
+        weights_single_requested_path = sdir / "weights_single_requested.csv"
+        if weights_single_requested_path.exists():
+            avg_like_specs.append((f"SINGLE_OPTIMUM_REQUESTED_{source_tag}", weights_single_requested_path))
+        weights_single_utopia_path = sdir / "weights_single_utopia.csv"
+        if weights_single_utopia_path.exists():
+            avg_like_specs.append((f"SINGLE_OPTIMUM_UTOPIA_{source_tag}", weights_single_utopia_path))
+
+        y_pred_stack_log = None
+        y_true_log = None
+        sale_date = None
+        for model_tag, wpath in avg_like_specs:
+            wdf = pd.read_csv(wpath)
+            wdf = wdf[pd.to_numeric(wdf["weight"], errors="coerce").fillna(0.0) > 0.0].copy()
+            if wdf.empty:
+                continue
+            pdf_w = pdf[pdf["config_id"].isin(wdf["config_id"])].copy()
+            if pdf_w.empty:
+                continue
+
+            mat = pdf_w.pivot_table(index="row_id", columns="config_id", values="y_pred_log", aggfunc="first")
+            mat = mat.reindex(columns=wdf["config_id"].tolist())
+            if mat.isna().any().any():
+                mat = mat.dropna(axis=0)
+            if mat.empty:
+                continue
+
+            w = wdf.set_index("config_id")["weight"].reindex(mat.columns).to_numpy(dtype=float)
+            w = np.maximum(w, 0.0)
+            if float(np.sum(w)) <= 0:
+                continue
+            w = w / np.sum(w)
+
+            y_pred_log_cur = mat.to_numpy(dtype=float) @ w
+            y_true_log_cur = (
+                pdf_w.drop_duplicates("row_id")
+                .set_index("row_id")
+                .reindex(mat.index)["y_true_log"]
+                .to_numpy(dtype=float)
+            )
+            sale_date_cur = (
+                pd.to_datetime(
+                    pdf_w.drop_duplicates("row_id")
+                    .set_index("row_id")
+                    .reindex(mat.index)["sale_date"]
+                )
+            )
+            avg_metrics = _compute_extended_metrics(
+                y_true_log=y_true_log_cur, y_pred_log=y_pred_log_cur, y_train_log=y_train_log, ratio_mode="diff"
+            )
+            avg_rows.append(_prepare_df(pd.DataFrame([{**avg_metrics, "model_name": model_tag}])))
+
+            if model_tag.startswith("STACKING_OPTIMUM_AVG_"):
+                y_pred_stack_log = y_pred_log_cur
+                y_true_log = y_true_log_cur
+                sale_date = sale_date_cur
 
         # Worst temporal block on test (by OOS R2 if present else R2)
+        if y_pred_stack_log is None or y_true_log is None or sale_date is None:
+            continue
         blocks = sale_date.dt.to_period(worst_block_freq).astype(str)
         acc_key = "OOS R2" if "OOS R2" in avg_metrics else "R2"
         worst_row = None
@@ -1246,6 +1332,323 @@ def _build_stacking_optima_summary(
     return pd.concat(rows, ignore_index=True)
 
 
+def _build_final_model_comparison_taxation_metrics(
+    *,
+    result_root: str,
+    analysis_dir: Path,
+    data_id: str,
+    split_id: str,
+    runs_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Build a compact table of all compute_taxation_metrics outputs for:
+      - Baselines: LinearRegression, LGBMRegressor
+      - Final stacking solutions available in stacking output dirs
+    across:
+      - validation_avg (pooled validation predictions across folds)
+      - test (held-out test predictions)
+    """
+    val_preds = _load_validation_predictions_df(result_root=result_root, data_id=data_id, split_id=split_id)
+    test_preds_path = analysis_dir / "test_predictions.parquet"
+    test_preds = pd.read_parquet(test_preds_path) if test_preds_path.exists() else pd.DataFrame()
+
+    if val_preds.empty and test_preds.empty:
+        return pd.DataFrame()
+
+    runs_meta = (
+        runs_df.loc[:, [c for c in ["run_id", "config_id", "model_name", "fold_id"] if c in runs_df.columns]]
+        .drop_duplicates(subset=["run_id"])
+        .copy()
+    )
+    if not val_preds.empty and "run_id" in val_preds.columns and not runs_meta.empty:
+        val_preds = val_preds.merge(runs_meta, on="run_id", how="left")
+    for dfx in [val_preds, test_preds]:
+        if not dfx.empty and "config_id" in dfx.columns:
+            dfx["config_id"] = dfx["config_id"].astype(str)
+
+    dfx_runs = _prepare_df(runs_df)
+    acc_col = "OOS R2" if "OOS R2" in dfx_runs.columns else "R2"
+    baseline_cfg: Dict[str, str] = {}
+    for m in ["LinearRegression", "LGBMRegressor"]:
+        sub = dfx_runs[dfx_runs["model_name"].astype(str) == m].copy()
+        if sub.empty:
+            continue
+        best = (
+            sub.groupby("config_id", as_index=False)[acc_col]
+            .mean()
+            .sort_values(acc_col, ascending=False, ignore_index=True)
+            .head(1)
+        )
+        if not best.empty:
+            baseline_cfg[m] = str(best["config_id"].iloc[0])
+
+    meta_path = analysis_dir / "test_eval_metadata.json"
+    y_train_test = None
+    if meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            y_train_log_mean = float(meta.get("y_train_log_mean", np.nan))
+            if np.isfinite(y_train_log_mean):
+                y_train_test = np.array([float(np.exp(y_train_log_mean))], dtype=float)
+        except Exception:
+            y_train_test = None
+
+    def _metrics_from_arrays(y_true: np.ndarray, y_pred: np.ndarray, y_train_ref: Optional[np.ndarray]) -> Dict[str, float]:
+        y_true = np.asarray(y_true, dtype=float).reshape(-1)
+        y_pred = np.asarray(y_pred, dtype=float).reshape(-1)
+        ok = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0.0) & (y_pred > 0.0)
+        y_true = y_true[ok]
+        y_pred = y_pred[ok]
+        if y_true.size < 2:
+            return {}
+        if y_train_ref is None:
+            y_train_ref = y_true
+        try:
+            out = compute_taxation_metrics(y_real=y_true, y_pred=y_pred, scale="price", y_train=np.asarray(y_train_ref, dtype=float))
+            return {str(k): float(v) for k, v in out.items() if np.isscalar(v) and np.isfinite(v)}
+        except Exception:
+            return {}
+
+    rows: List[Dict[str, Any]] = []
+
+    # Baseline rows
+    for model_name, cfg_id in baseline_cfg.items():
+        if not val_preds.empty and {"config_id", "y_true", "y_pred"}.issubset(set(val_preds.columns)):
+            v = val_preds[val_preds["config_id"] == str(cfg_id)].copy()
+            mv = _metrics_from_arrays(v["y_true"].to_numpy(), v["y_pred"].to_numpy(), None)
+            if mv:
+                rows.append({"split": "validation_avg", "solution": str(model_name), "family": "baseline", "config_id": str(cfg_id), **mv})
+        if not test_preds.empty and {"config_id", "y_true", "y_pred"}.issubset(set(test_preds.columns)):
+            t = test_preds[test_preds["config_id"] == str(cfg_id)].copy()
+            mt = _metrics_from_arrays(t["y_true"].to_numpy(), t["y_pred"].to_numpy(), y_train_test)
+            if mt:
+                rows.append({"split": "test", "solution": str(model_name), "family": "baseline", "config_id": str(cfg_id), **mt})
+
+    # Stacking rows from available weights files
+    for source_tag, sdir in _resolve_stacking_dirs(analysis_dir):
+        weight_specs: List[Tuple[str, Path]] = []
+        p_avg = sdir / "weights_average.csv"
+        if p_avg.exists():
+            weight_specs.append((f"STACKING_OPTIMUM_AVG_{source_tag}", p_avg))
+        elif (sdir / "weights.csv").exists():
+            weight_specs.append((f"STACKING_OPTIMUM_AVG_{source_tag}", sdir / "weights.csv"))
+        p_uto = sdir / "weights_utopia.csv"
+        if p_uto.exists():
+            weight_specs.append((f"STACKING_OPTIMUM_UTOPIA_{source_tag}", p_uto))
+        p_worst = sdir / "weights_worst.csv"
+        if p_worst.exists():
+            weight_specs.append((f"STACKING_OPTIMUM_WORST_{source_tag}", p_worst))
+        p_single_req = sdir / "weights_single_requested.csv"
+        if p_single_req.exists():
+            weight_specs.append((f"SINGLE_OPTIMUM_REQUESTED_{source_tag}", p_single_req))
+        p_single_uto = sdir / "weights_single_utopia.csv"
+        if p_single_uto.exists():
+            weight_specs.append((f"SINGLE_OPTIMUM_UTOPIA_{source_tag}", p_single_uto))
+        if source_tag == "LEGACY" and (sdir / "weights.csv").exists():
+            weight_specs.append((f"STACKING_OPTIMUM_LINEAR_{source_tag}", sdir / "weights.csv"))
+
+        for sol_name, wpath in weight_specs:
+            wdf = pd.read_csv(wpath)
+            if "config_id" not in wdf.columns or "weight" not in wdf.columns:
+                continue
+            wdf["config_id"] = wdf["config_id"].astype(str)
+            wdf["weight"] = pd.to_numeric(wdf["weight"], errors="coerce").fillna(0.0)
+            wdf = wdf[wdf["weight"] > 0.0].copy()
+            if wdf.empty:
+                continue
+
+            if not val_preds.empty and {"config_id", "run_id", "row_id", "y_true", "y_pred"}.issubset(set(val_preds.columns)):
+                pv = val_preds[val_preds["config_id"].isin(wdf["config_id"])].copy()
+                if not pv.empty:
+                    mat = pv.pivot_table(index=["run_id", "row_id"], columns="config_id", values="y_pred", aggfunc="first")
+                    mat = mat.reindex(columns=wdf["config_id"].tolist())
+                    mat = mat.dropna(axis=0, how="any")
+                    if not mat.empty:
+                        w = wdf.set_index("config_id")["weight"].reindex(mat.columns).to_numpy(dtype=float)
+                        w = np.maximum(w, 0.0)
+                        if float(np.sum(w)) > 0:
+                            w = w / np.sum(w)
+                            y_hat = mat.to_numpy(dtype=float) @ w
+                            y_true = (
+                                pv.drop_duplicates(subset=["run_id", "row_id"])
+                                .set_index(["run_id", "row_id"])
+                                .reindex(mat.index)["y_true"]
+                                .to_numpy(dtype=float)
+                            )
+                            mv = _metrics_from_arrays(y_true, y_hat, None)
+                            if mv:
+                                fam = "single" if str(sol_name).startswith("SINGLE_OPTIMUM") else "stacking"
+                                rows.append({"split": "validation_avg", "solution": sol_name, "family": fam, "config_id": "", **mv})
+
+            if not test_preds.empty and {"config_id", "row_id", "y_true", "y_pred"}.issubset(set(test_preds.columns)):
+                pt = test_preds[test_preds["config_id"].isin(wdf["config_id"])].copy()
+                if not pt.empty:
+                    mat = pt.pivot_table(index="row_id", columns="config_id", values="y_pred", aggfunc="first")
+                    mat = mat.reindex(columns=wdf["config_id"].tolist())
+                    mat = mat.dropna(axis=0, how="any")
+                    if not mat.empty:
+                        w = wdf.set_index("config_id")["weight"].reindex(mat.columns).to_numpy(dtype=float)
+                        w = np.maximum(w, 0.0)
+                        if float(np.sum(w)) > 0:
+                            w = w / np.sum(w)
+                            y_hat = mat.to_numpy(dtype=float) @ w
+                            y_true = (
+                                pt.drop_duplicates("row_id")
+                                .set_index("row_id")
+                                .reindex(mat.index)["y_true"]
+                                .to_numpy(dtype=float)
+                            )
+                            mt = _metrics_from_arrays(y_true, y_hat, y_train_test)
+                            if mt:
+                                fam = "single" if str(sol_name).startswith("SINGLE_OPTIMUM") else "stacking"
+                                rows.append({"split": "test", "solution": sol_name, "family": fam, "config_id": "", **mt})
+
+    if not rows:
+        return pd.DataFrame()
+    out = pd.DataFrame(rows)
+    pref = ["split", "family", "solution", "config_id"]
+    other = [c for c in out.columns if c not in pref]
+    return out.loc[:, pref + other].copy()
+
+
+def _collect_final_solution_predictions_for_vertical_equity(
+    *,
+    result_root: str,
+    analysis_dir: Path,
+    data_id: str,
+    split_id: str,
+    runs_df: pd.DataFrame,
+) -> Dict[str, Dict[str, Tuple[np.ndarray, np.ndarray]]]:
+    """
+    Collect (y_true, y_pred) arrays for:
+      - validation_avg
+      - test
+    for baselines and final stacking solutions.
+    """
+    out: Dict[str, Dict[str, Tuple[np.ndarray, np.ndarray]]] = {"validation_avg": {}, "test": {}}
+    val_preds = _load_validation_predictions_df(result_root=result_root, data_id=data_id, split_id=split_id)
+    test_preds_path = analysis_dir / "test_predictions.parquet"
+    test_preds = pd.read_parquet(test_preds_path) if test_preds_path.exists() else pd.DataFrame()
+    if val_preds.empty and test_preds.empty:
+        return out
+
+    runs_meta = (
+        runs_df.loc[:, [c for c in ["run_id", "config_id", "model_name", "fold_id"] if c in runs_df.columns]]
+        .drop_duplicates(subset=["run_id"])
+        .copy()
+    )
+    if not val_preds.empty and "run_id" in val_preds.columns and not runs_meta.empty:
+        val_preds = val_preds.merge(runs_meta, on="run_id", how="left")
+    for dfx in [val_preds, test_preds]:
+        if not dfx.empty and "config_id" in dfx.columns:
+            dfx["config_id"] = dfx["config_id"].astype(str)
+
+    dfx_runs = _prepare_df(runs_df)
+    acc_col = "OOS R2" if "OOS R2" in dfx_runs.columns else "R2"
+    baseline_cfg: Dict[str, str] = {}
+    for m in ["LinearRegression", "LGBMRegressor"]:
+        sub = dfx_runs[dfx_runs["model_name"].astype(str) == m].copy()
+        if sub.empty:
+            continue
+        best = (
+            sub.groupby("config_id", as_index=False)[acc_col]
+            .mean()
+            .sort_values(acc_col, ascending=False, ignore_index=True)
+            .head(1)
+        )
+        if not best.empty:
+            baseline_cfg[m] = str(best["config_id"].iloc[0])
+
+    for model_name, cfg_id in baseline_cfg.items():
+        if not val_preds.empty and {"config_id", "y_true", "y_pred"}.issubset(set(val_preds.columns)):
+            v = val_preds[val_preds["config_id"] == str(cfg_id)].copy()
+            if not v.empty:
+                out["validation_avg"][model_name] = (
+                    v["y_true"].to_numpy(dtype=float),
+                    v["y_pred"].to_numpy(dtype=float),
+                )
+        if not test_preds.empty and {"config_id", "y_true", "y_pred"}.issubset(set(test_preds.columns)):
+            t = test_preds[test_preds["config_id"] == str(cfg_id)].copy()
+            if not t.empty:
+                out["test"][model_name] = (
+                    t["y_true"].to_numpy(dtype=float),
+                    t["y_pred"].to_numpy(dtype=float),
+                )
+
+    for source_tag, sdir in _resolve_stacking_dirs(analysis_dir):
+        weight_specs: List[Tuple[str, Path]] = []
+        p_avg = sdir / "weights_average.csv"
+        if p_avg.exists():
+            weight_specs.append((f"STACKING_OPTIMUM_AVG_{source_tag}", p_avg))
+        elif (sdir / "weights.csv").exists():
+            weight_specs.append((f"STACKING_OPTIMUM_AVG_{source_tag}", sdir / "weights.csv"))
+        p_uto = sdir / "weights_utopia.csv"
+        if p_uto.exists():
+            weight_specs.append((f"STACKING_OPTIMUM_UTOPIA_{source_tag}", p_uto))
+        p_worst = sdir / "weights_worst.csv"
+        if p_worst.exists():
+            weight_specs.append((f"STACKING_OPTIMUM_WORST_{source_tag}", p_worst))
+        p_single_req = sdir / "weights_single_requested.csv"
+        if p_single_req.exists():
+            weight_specs.append((f"SINGLE_OPTIMUM_REQUESTED_{source_tag}", p_single_req))
+        p_single_uto = sdir / "weights_single_utopia.csv"
+        if p_single_uto.exists():
+            weight_specs.append((f"SINGLE_OPTIMUM_UTOPIA_{source_tag}", p_single_uto))
+        if source_tag == "LEGACY" and (sdir / "weights.csv").exists():
+            weight_specs.append((f"STACKING_OPTIMUM_LINEAR_{source_tag}", sdir / "weights.csv"))
+
+        for sol_name, wpath in weight_specs:
+            wdf = pd.read_csv(wpath)
+            if "config_id" not in wdf.columns or "weight" not in wdf.columns:
+                continue
+            wdf["config_id"] = wdf["config_id"].astype(str)
+            wdf["weight"] = pd.to_numeric(wdf["weight"], errors="coerce").fillna(0.0)
+            wdf = wdf[wdf["weight"] > 0.0].copy()
+            if wdf.empty:
+                continue
+
+            if not val_preds.empty and {"config_id", "run_id", "row_id", "y_true", "y_pred"}.issubset(set(val_preds.columns)):
+                pv = val_preds[val_preds["config_id"].isin(wdf["config_id"])].copy()
+                if not pv.empty:
+                    mat = pv.pivot_table(index=["run_id", "row_id"], columns="config_id", values="y_pred", aggfunc="first")
+                    mat = mat.reindex(columns=wdf["config_id"].tolist())
+                    mat = mat.dropna(axis=0, how="any")
+                    if not mat.empty:
+                        w = wdf.set_index("config_id")["weight"].reindex(mat.columns).to_numpy(dtype=float)
+                        w = np.maximum(w, 0.0)
+                        if float(np.sum(w)) > 0:
+                            w = w / np.sum(w)
+                            y_hat = mat.to_numpy(dtype=float) @ w
+                            y_true = (
+                                pv.drop_duplicates(subset=["run_id", "row_id"])
+                                .set_index(["run_id", "row_id"])
+                                .reindex(mat.index)["y_true"]
+                                .to_numpy(dtype=float)
+                            )
+                            out["validation_avg"][sol_name] = (y_true, y_hat)
+
+            if not test_preds.empty and {"config_id", "row_id", "y_true", "y_pred"}.issubset(set(test_preds.columns)):
+                pt = test_preds[test_preds["config_id"].isin(wdf["config_id"])].copy()
+                if not pt.empty:
+                    mat = pt.pivot_table(index="row_id", columns="config_id", values="y_pred", aggfunc="first")
+                    mat = mat.reindex(columns=wdf["config_id"].tolist())
+                    mat = mat.dropna(axis=0, how="any")
+                    if not mat.empty:
+                        w = wdf.set_index("config_id")["weight"].reindex(mat.columns).to_numpy(dtype=float)
+                        w = np.maximum(w, 0.0)
+                        if float(np.sum(w)) > 0:
+                            w = w / np.sum(w)
+                            y_hat = mat.to_numpy(dtype=float) @ w
+                            y_true = (
+                                pt.drop_duplicates("row_id")
+                                .set_index("row_id")
+                                .reindex(mat.index)["y_true"]
+                                .to_numpy(dtype=float)
+                            )
+                            out["test"][sol_name] = (y_true, y_hat)
+    return out
+
+
 def run_results_analysis(
     *,
     result_root: str,
@@ -1254,16 +1657,27 @@ def run_results_analysis(
     plot_top_k: Optional[int] = None,
     skip_first_folds: int = 0,
     skip_first_folds_for_stats: int = 0,
+    exclude_models_tradeoff: Optional[List[str]] = None,
 ) -> Dict[str, Any]:
+    t0 = time.time()
+    _progress_log(
+        f"starting analysis | data_id={data_id} split_id={split_id} "
+        f"plot_top_k={plot_top_k} skip_first_folds={skip_first_folds}",
+        t0=t0,
+    )
     analysis_dir = _analysis_dir(result_root, data_id, split_id)
     analysis_dir.mkdir(parents=True, exist_ok=True)
+    _progress_log(f"analysis directory ready: {analysis_dir}", t0=t0)
 
+    _progress_log("loading run artifacts (parquet) ...", t0=t0)
     runs_df = _load_runs_df(result_root=result_root, data_id=data_id, split_id=split_id)
     runs_df = _prepare_df(runs_df)
+    _progress_log(f"loaded runs: {runs_df.shape[0]} rows x {runs_df.shape[1]} cols", t0=t0)
 
     summary_df = _summary_by_config(runs_df)
     summary_path = analysis_dir / "summary_by_config.csv"
     summary_df.to_csv(summary_path, index=False)
+    _progress_log(f"saved summary_by_config.csv with {summary_df.shape[0]} configs", t0=t0)
 
     # Choose fold for single-run view
     fold_id = _pick_validation_single_run_fold_id(runs_df)
@@ -1273,10 +1687,22 @@ def run_results_analysis(
     test_metrics_path = analysis_dir / "test_metrics.csv"
     test_df = pd.DataFrame()
     if test_metrics_path.exists():
+        _progress_log("loading test_metrics.csv ...", t0=t0)
         test_df = _prepare_df(pd.read_csv(test_metrics_path))
+        _progress_log(f"loaded test metrics rows: {test_df.shape[0]}", t0=t0)
+
+    exclude_models_tradeoff = [str(m).strip() for m in (exclude_models_tradeoff or []) if str(m).strip()]
+    excluded_set = set(exclude_models_tradeoff)
 
     # Bootstrap protocol metadata (used for both validation and test summaries).
     bootstrap_protocol = _load_bootstrap_protocol(result_root=result_root, data_id=data_id, split_id=split_id)
+    _progress_log(
+        "bootstrap protocol: "
+        f"n_bootstrap={bootstrap_protocol.get('n_bootstrap', 0)} "
+        f"block_freq={bootstrap_protocol.get('block_freq', 'M')} "
+        f"seed={bootstrap_protocol.get('seed', 2025)}",
+        t0=t0,
+    )
 
     # Config metadata (rho/model) used in bootstrap summary tables.
     config_meta = (
@@ -1294,8 +1720,11 @@ def run_results_analysis(
     # ------------------------------------
     # Bootstrap statistics tables
     # ------------------------------------
+    _progress_log("loading validation bootstrap metrics ...", t0=t0)
     boots_df = _load_bootstrap_df(result_root=result_root, data_id=data_id, split_id=split_id)
+    _progress_log(f"validation bootstrap rows loaded: {boots_df.shape[0]}", t0=t0)
     if not boots_df.empty:
+        _progress_log("computing validation bootstrap statistics tables ...", t0=t0)
         val_boot = _prepare_df(boots_df)
         if "run_id" in val_boot.columns and "run_id" in config_meta.columns:
             val_boot = val_boot.merge(
@@ -1334,6 +1763,7 @@ def run_results_analysis(
         )
         if not val_stats_cfg.empty:
             val_stats_cfg.to_csv(analysis_dir / "validation_bootstrap_metric_stats_by_config_fold.csv", index=False)
+            _progress_log("saved validation stats by config/fold", t0=t0)
             val_stats_cfg_across = _average_stats_across_folds(
                 val_stats_cfg,
                 group_cols=["split", "model_name", "config_id", "rho", "metric"],
@@ -1344,6 +1774,7 @@ def run_results_analysis(
                     analysis_dir / "validation_bootstrap_metric_stats_by_config_across_folds.csv",
                     index=False,
                 )
+                _progress_log("saved validation stats by config/across-folds", t0=t0)
 
         val_stats_rho = _summarize_bootstrap_statistics(
             val_boot,
@@ -1353,6 +1784,7 @@ def run_results_analysis(
         )
         if not val_stats_rho.empty:
             val_stats_rho.to_csv(analysis_dir / "validation_bootstrap_metric_stats_by_rho_fold.csv", index=False)
+            _progress_log("saved validation stats by rho/fold", t0=t0)
             val_stats_rho_across = _average_stats_across_folds(
                 val_stats_rho,
                 group_cols=["split", "model_name", "rho", "metric"],
@@ -1363,13 +1795,16 @@ def run_results_analysis(
                     analysis_dir / "validation_bootstrap_metric_stats_by_rho_across_folds.csv",
                     index=False,
                 )
+                _progress_log("saved validation stats by rho/across-folds", t0=t0)
 
+    _progress_log("building test bootstrap metrics from test_predictions.parquet ...", t0=t0)
     test_boot = _build_test_bootstrap_metrics(
         analysis_dir=analysis_dir,
         protocol=bootstrap_protocol,
         config_meta=config_meta.loc[:, [c for c in ["config_id", "model_name", "rho"] if c in config_meta.columns]].drop_duplicates("config_id"),
     )
     if not test_boot.empty:
+        _progress_log(f"computing test bootstrap statistics tables ... rows={test_boot.shape[0]}", t0=t0)
         test_metric_cols = _bootstrap_metric_columns(test_boot)
         test_stats_cfg = _summarize_bootstrap_statistics(
             test_boot,
@@ -1379,6 +1814,7 @@ def run_results_analysis(
         )
         if not test_stats_cfg.empty:
             test_stats_cfg.to_csv(analysis_dir / "test_bootstrap_metric_stats_by_config_fold.csv", index=False)
+            _progress_log("saved test stats by config/fold", t0=t0)
             test_stats_cfg_across = _average_stats_across_folds(
                 test_stats_cfg,
                 group_cols=["split", "model_name", "config_id", "rho", "metric"],
@@ -1389,6 +1825,7 @@ def run_results_analysis(
                     analysis_dir / "test_bootstrap_metric_stats_by_config_across_folds.csv",
                     index=False,
                 )
+                _progress_log("saved test stats by config/across-folds", t0=t0)
 
         test_stats_rho = _summarize_bootstrap_statistics(
             test_boot,
@@ -1398,6 +1835,7 @@ def run_results_analysis(
         )
         if not test_stats_rho.empty:
             test_stats_rho.to_csv(analysis_dir / "test_bootstrap_metric_stats_by_rho_fold.csv", index=False)
+            _progress_log("saved test stats by rho/fold", t0=t0)
             test_stats_rho_across = _average_stats_across_folds(
                 test_stats_rho,
                 group_cols=["split", "model_name", "rho", "metric"],
@@ -1408,6 +1846,7 @@ def run_results_analysis(
                     analysis_dir / "test_bootstrap_metric_stats_by_rho_across_folds.csv",
                     index=False,
                 )
+                _progress_log("saved test stats by rho/across-folds", t0=t0)
 
     (analysis_dir / "bootstrap_statistics_metadata.json").write_text(
         json.dumps(
@@ -1423,10 +1862,16 @@ def run_results_analysis(
         ),
         encoding="utf-8",
     )
+    _progress_log("saved bootstrap_statistics_metadata.json", t0=t0)
 
     # Stacking overlays
     val_overlay_avg, val_overlay_single = _load_stacking_validation_overlay(analysis_dir=analysis_dir, fold_id=fold_id)
     val_overlay_worst_avg, val_overlay_worst_single = _load_stacking_validation_worst_overlay(analysis_dir=analysis_dir)
+    _progress_log(
+        "loaded stacking validation overlays "
+        f"(avg={val_overlay_avg.shape[0]}, worst={val_overlay_worst_avg.shape[0]})",
+        t0=t0,
+    )
 
     # Test stacking overlay needs y_train_log_mean metadata (written by run_temporal_cv.py)
     test_overlay_avg = pd.DataFrame()
@@ -1436,7 +1881,13 @@ def run_results_analysis(
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
         y_train_log_mean = float(meta.get("y_train_log_mean", np.nan))
         if np.isfinite(y_train_log_mean):
+            _progress_log("computing test stacking overlays ...", t0=t0)
             test_overlay_avg, test_overlay_worst = _compute_test_stacking_overlay(analysis_dir=analysis_dir, y_train_log_mean=y_train_log_mean, worst_block_freq="Q")
+            _progress_log(
+                "computed test stacking overlays "
+                f"(avg={test_overlay_avg.shape[0]}, worst={test_overlay_worst.shape[0]})",
+                t0=t0,
+            )
 
     # Save compact stacking summary table (if available)
     stacking_summary_df = _build_stacking_optima_summary(
@@ -1449,6 +1900,60 @@ def run_results_analysis(
     )
     if not stacking_summary_df.empty:
         stacking_summary_df.to_csv(analysis_dir / "stacking_optima_summary.csv", index=False)
+        _progress_log("saved stacking_optima_summary.csv", t0=t0)
+
+    _progress_log("building final_model_comparison_taxation_metrics.csv ...", t0=t0)
+    final_cmp_df = _build_final_model_comparison_taxation_metrics(
+        result_root=result_root,
+        analysis_dir=analysis_dir,
+        data_id=data_id,
+        split_id=split_id,
+        runs_df=runs_df,
+    )
+    final_results_dir = analysis_dir / "final_results"
+    final_results_dir.mkdir(parents=True, exist_ok=True)
+    if not final_cmp_df.empty:
+        cmp_path = analysis_dir / "final_model_comparison_taxation_metrics.csv"
+        final_cmp_df.to_csv(cmp_path, index=False)
+        shutil.copy2(cmp_path, final_results_dir / "final_model_comparison_taxation_metrics.csv")
+        _progress_log("saved and copied final_model_comparison_taxation_metrics.csv", t0=t0)
+
+    # Final vertical-equity plots for baselines and selected stacking solutions.
+    _progress_log("collecting predictions for final vertical-equity plots ...", t0=t0)
+    pred_sets = _collect_final_solution_predictions_for_vertical_equity(
+        result_root=result_root,
+        analysis_dir=analysis_dir,
+        data_id=data_id,
+        split_id=split_id,
+        runs_df=runs_df,
+    )
+    for split_name in ["validation_avg", "test"]:
+        split_map = pred_sets.get(split_name, {})
+        if not split_map:
+            continue
+        split_out = final_results_dir / "plots" / split_name
+        _progress_log(f"rendering final vertical-equity plots for {split_name}: {len(split_map)} solutions", t0=t0)
+        for sol_name, (y_true, y_pred) in split_map.items():
+            y_true = np.asarray(y_true, dtype=float).reshape(-1)
+            y_pred = np.asarray(y_pred, dtype=float).reshape(-1)
+            mask = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0.0) & (y_pred > 0.0)
+            if int(np.sum(mask)) < 2:
+                continue
+            ratios = y_pred[mask] / y_true[mask]
+            y_log = np.log(y_true[mask])
+            safe_name = "".join(ch if (ch.isalnum() or ch in {"_", "-", "."}) else "_" for ch in str(sol_name))
+            out_path = split_out / f"vertical_equity_{safe_name}.png"
+            plot_vertical_equity_lowess(
+                y_log=y_log,
+                ratios=ratios,
+                out_path=out_path,
+                model_label=f"{sol_name} [{split_name}]",
+                sample_size=3000,
+                random_seed=2025,
+                lowess_frac=0.4,
+                y_limits=(0.0, 4.0),
+            )
+        _progress_log(f"finished final vertical-equity plots for {split_name}", t0=t0)
 
     # Plot set (tradeoffs)
     plot_pairs = [
@@ -1478,6 +1983,17 @@ def run_results_analysis(
     val_plot_df = summary_df.copy()
     if not cfg_meta.empty:
         val_plot_df = val_plot_df.merge(cfg_meta, on="config_id", how="left")
+    if excluded_set and "model_name" in val_plot_df.columns:
+        val_plot_df = val_plot_df[~val_plot_df["model_name"].astype(str).isin(excluded_set)].copy()
+    if excluded_set and "model_name" in single_df.columns:
+        single_df = single_df[~single_df["model_name"].astype(str).isin(excluded_set)].copy()
+    if excluded_set and (not test_df.empty) and ("model_name" in test_df.columns):
+        test_df = test_df[~test_df["model_name"].astype(str).isin(excluded_set)].copy()
+    _progress_log(
+        "tradeoff inputs ready "
+        f"(validation={val_plot_df.shape[0]}, single_fold={single_df.shape[0]}, test={test_df.shape[0]})",
+        t0=t0,
+    )
     for x_col, y_col in plot_pairs:
         if x_col not in val_plot_df.columns or y_col not in val_plot_df.columns:
             continue
@@ -1494,6 +2010,7 @@ def run_results_analysis(
                 else None
             ),
         )
+    _progress_log("finished validation tradeoff plots", t0=t0)
 
     # Single-run validation: one fold
     for x_col, y_col in [
@@ -1521,6 +2038,7 @@ def run_results_analysis(
                 else None
             ),
         )
+    _progress_log("finished single-fold validation tradeoff plots", t0=t0)
 
     # Test plots
     if not test_df.empty:
@@ -1546,17 +2064,20 @@ def run_results_analysis(
                 show_top_k=None,
                 overlay_points=overlay,
             )
+        _progress_log("finished test tradeoff plots", t0=t0)
 
     # -----------------------
     # Evolution plots (bootstrap mean ± std across windows/folds)
     # -----------------------
     metrics_for_evolution = ["R2", "OOS R2", "VEI", "PRD", "PRB", "COD"]
     if not boots_df.empty:
+        _progress_log("building evolution plots (bootstrap summaries) ...", t0=t0)
         selected_config_ids = _select_configs_for_evolution(runs_df, top_k=plot_top_k)
         (analysis_dir / "evolution_models_selected.json").write_text(
             json.dumps({"selected_config_ids": selected_config_ids}, indent=2, sort_keys=True),
             encoding="utf-8",
         )
+        _progress_log(f"selected {len(selected_config_ids)} configs for evolution", t0=t0)
 
         evo_long = _bootstrap_summary_long(boots_df, runs_df, metrics=metrics_for_evolution)
         evo_long = evo_long[evo_long["config_id"].isin(selected_config_ids)].copy()
@@ -1591,6 +2112,7 @@ def run_results_analysis(
 
         # Save aggregated table used for plotting
         evo_long.to_csv(analysis_dir / "evolution_bootstrap_summary.csv", index=False)
+        _progress_log(f"saved evolution_bootstrap_summary.csv rows={evo_long.shape[0]}", t0=t0)
 
         # Color mapping by model family (model_name)
         model_color_map = _build_plot_color_map(evo_long["model_name"].tolist())
@@ -1615,6 +2137,18 @@ def run_results_analysis(
             model_color_map["STACKING_OPTIMUM_WORST_ROBUST"] = "firebrick"
         if "STACKING_OPTIMUM_WORST_LEGACY" in model_color_map:
             model_color_map["STACKING_OPTIMUM_WORST_LEGACY"] = "purple"
+        if "STACKING_OPTIMUM_UTOPIA_ROBUST" in model_color_map:
+            model_color_map["STACKING_OPTIMUM_UTOPIA_ROBUST"] = "darkcyan"
+        if "STACKING_OPTIMUM_UTOPIA_LEGACY" in model_color_map:
+            model_color_map["STACKING_OPTIMUM_UTOPIA_LEGACY"] = "slateblue"
+        if "SINGLE_OPTIMUM_REQUESTED_ROBUST" in model_color_map:
+            model_color_map["SINGLE_OPTIMUM_REQUESTED_ROBUST"] = "navy"
+        if "SINGLE_OPTIMUM_REQUESTED_LEGACY" in model_color_map:
+            model_color_map["SINGLE_OPTIMUM_REQUESTED_LEGACY"] = "cornflowerblue"
+        if "SINGLE_OPTIMUM_UTOPIA_ROBUST" in model_color_map:
+            model_color_map["SINGLE_OPTIMUM_UTOPIA_ROBUST"] = "darkviolet"
+        if "SINGLE_OPTIMUM_UTOPIA_LEGACY" in model_color_map:
+            model_color_map["SINGLE_OPTIMUM_UTOPIA_LEGACY"] = "mediumpurple"
 
         # Labels per config_id
         labels: Dict[str, str] = {}
@@ -1625,7 +2159,7 @@ def run_results_analysis(
                 labels[cfg_id] = _config_label_from_runs(runs_df, cfg_id)
 
         for m in metrics_for_evolution:
-            print(f"  [evolution] plotting {m} ...")
+            _progress_log(f"[evolution] plotting {m} ...", t0=t0)
             _plot_metric_evolution(
                 evo_long,
                 metric=m,
@@ -1635,6 +2169,9 @@ def run_results_analysis(
                 config_labels=labels,
                 skip_first_folds=skip_first_folds,
             )
+        _progress_log("finished evolution plots", t0=t0)
+
+    _progress_log("analysis completed", t0=t0)
 
     return {
         "data_id": data_id,
@@ -1659,11 +2196,18 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default=0,
         help="Exclude the first N numeric fold IDs when computing *across-folds* stats tables only.",
     )
+    p.add_argument(
+        "--exclude-models-tradeoff",
+        type=str,
+        default="",
+        help="Comma-separated model_name values to exclude from tradeoff plots only (e.g., 'LinearRegression').",
+    )
     return p
 
 
 if __name__ == "__main__":
     args = _build_arg_parser().parse_args()
+    exclude_models_tradeoff = [s.strip() for s in str(args.exclude_models_tradeoff).split(",") if s.strip()]
     out = run_results_analysis(
         result_root=str(args.result_root),
         data_id=str(args.data_id),
@@ -1671,6 +2215,7 @@ if __name__ == "__main__":
         plot_top_k=(None if args.plot_top_k is None else int(args.plot_top_k)),
         skip_first_folds=int(args.skip_first_folds),
         skip_first_folds_for_stats=int(args.skip_first_folds_for_stats),
+        exclude_models_tradeoff=exclude_models_tradeoff,
     )
     print("=" * 90)
     print("RESULTS ANALYSIS COMPLETED")

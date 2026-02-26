@@ -105,6 +105,471 @@ def _pivot_metric(df: pd.DataFrame, *, metric: str, folds: List[int], models: Li
     return p.to_numpy(dtype=float)
 
 
+def _build_utopia_solution(
+    *,
+    runs_df: pd.DataFrame,
+    folds: List[int],
+    models: List[str],
+    solver: Optional[str],
+    solver_verbose: bool,
+    aggregation: str,
+    cvar_alpha: float,
+    accuracy_weight: float,
+    fairness_weight: float,
+) -> Tuple[np.ndarray, pd.DataFrame, Dict[str, Any]]:
+    """
+    Solve simplex weights for closeness to fold-wise utopia after ideal/nadir normalization.
+
+    Accuracy objective (maximize): OOS R2 (fallback R2)
+      a_tilde = (a_star - a_cfg) / (a_star - a_nad)
+    Fairness objective (minimize): abs(PRD - 1)
+      u_tilde = (u_cfg - u_star) / (u_nad - u_star)
+
+    Aggregation options (all convex with pre-normalized constants):
+      - average   : mean_s [ wa * p_s(x) + wu * q_s(x) ]
+      - chebyshev : mean_s max(wa * p_s(x), wu * q_s(x))
+      - cvar      : CVaR_alpha over z_s(x) := wa * p_s(x) + wu * q_s(x)
+      - euclidean : mean_s || [sqrt(wa) p_s(x), sqrt(wu) q_s(x)] ||_2
+
+    Here p_s(x), q_s(x) are affine in x, where x lies on the simplex.
+    """
+    req = ["OOS R2", "R2", "PRD", "PRB", "VEI"]
+    aggregation = str(aggregation).lower().strip()
+    if aggregation not in {"average", "chebyshev", "cvar", "euclidean"}:
+        raise ValueError("aggregation must be one of: average, chebyshev, cvar, euclidean")
+    alpha = float(cvar_alpha)
+    if aggregation == "cvar" and not (0.0 < alpha < 1.0):
+        raise ValueError("utopia cvar_alpha must be in (0, 1) when aggregation=cvar.")
+    wa = float(accuracy_weight)
+    wu = float(fairness_weight)
+    if wa < 0.0 or wu < 0.0 or (wa + wu) <= 0.0:
+        raise ValueError("accuracy_weight and fairness_weight must be >=0 and not both zero.")
+    aligned_df, _, _ = _align_complete_grid(runs_df, required_metrics=req)
+    aligned_df = aligned_df.copy()
+    aligned_df["config_id"] = aligned_df["config_id"].astype(str)
+    keep_models = [str(m) for m in models]
+    keep_folds = [int(f) for f in folds]
+    aligned_df = aligned_df[
+        aligned_df["config_id"].isin(keep_models) & aligned_df["fold_id"].isin(keep_folds)
+    ].copy()
+    if aligned_df.empty:
+        raise RuntimeError("No aligned rows available to build utopia solution.")
+
+    acc_col = "OOS R2" if "OOS R2" in aligned_df.columns else "R2"
+    acc = _pivot_metric(aligned_df, metric=acc_col, folds=keep_folds, models=keep_models)
+    prd = _pivot_metric(aligned_df, metric="PRD", folds=keep_folds, models=keep_models)
+    # IMPORTANT: use per-config absolute deviation as constants before optimization
+    # so q_s(x) remains affine and DCP-safe.
+    unfair = np.abs(prd - 1.0)
+
+    eps = 1e-12
+    a_star = np.max(acc, axis=1, keepdims=True)
+    a_nad = np.min(acc, axis=1, keepdims=True)
+    u_star = np.min(unfair, axis=1, keepdims=True)
+    u_nad = np.max(unfair, axis=1, keepdims=True)
+    a_den = np.maximum(a_star - a_nad, eps)
+    u_den = np.maximum(u_nad - u_star, eps)
+    a_tilde = (a_star - acc) / a_den
+    u_tilde = (unfair - u_star) / u_den
+    n_models = len(keep_models)
+    n_folds = len(keep_folds)
+
+    w = cp.Variable(n_models, nonneg=True)
+    constraints = [cp.sum(w) == 1]
+
+    acc_ens = acc @ w
+    unfair_ens = unfair @ w
+
+    a_star_v = a_star.reshape(-1)
+    u_star_v = u_star.reshape(-1)
+    a_den_v = a_den.reshape(-1)
+    u_den_v = u_den.reshape(-1)
+    a_tilde_ens = cp.multiply(1.0 / a_den_v, a_star_v - acc_ens)
+    u_tilde_ens = cp.multiply(1.0 / u_den_v, unfair_ens - u_star_v)
+
+    z = wa * a_tilde_ens + wu * u_tilde_ens
+    if aggregation == "average":
+        objective_expr = cp.sum(z) / float(max(1, n_folds))
+    elif aggregation == "chebyshev":
+        d = cp.Variable(n_folds, nonneg=True)
+        constraints += [d >= wa * a_tilde_ens, d >= wu * u_tilde_ens]
+        objective_expr = cp.sum(d) / float(max(1, n_folds))
+    elif aggregation == "cvar":
+        eta = cp.Variable()
+        u = cp.Variable(n_folds, nonneg=True)
+        constraints += [u >= z - eta]
+        objective_expr = eta + (1.0 / ((1.0 - alpha) * float(max(1, n_folds)))) * cp.sum(u)
+    else:  # euclidean
+        terms: List[Any] = []
+        s_wa = float(np.sqrt(max(wa, 0.0)))
+        s_wu = float(np.sqrt(max(wu, 0.0)))
+        for i in range(n_folds):
+            terms.append(cp.norm(cp.hstack([s_wa * a_tilde_ens[i], s_wu * u_tilde_ens[i]]), 2))
+        objective_expr = cp.sum(cp.hstack(terms)) / float(max(1, n_folds))
+    prob = cp.Problem(cp.Minimize(objective_expr), constraints)
+
+    preferred = _choose_solver(solver)
+    installed = set(cp.installed_solvers())
+    fallback_chain = [s for s in ["ECOS", "SCS", "OSQP", "CLARABEL"] if s != preferred and s in installed]
+    solvers_to_try = [preferred] + fallback_chain
+    solved = False
+    last_exc: Optional[Exception] = None
+    solver_name = preferred
+    for candidate in solvers_to_try:
+        try:
+            prob.solve(solver=candidate, verbose=bool(solver_verbose))
+            if prob.status not in (None, "infeasible", "infeasible_inaccurate", "unbounded") and prob.value is not None:
+                solver_name = candidate
+                solved = True
+                last_exc = None
+                break
+        except Exception as exc:
+            last_exc = exc
+    if not solved:
+        if last_exc is not None:
+            raise RuntimeError(f"Utopia optimization failed across solvers {solvers_to_try}. Last error: {last_exc}") from last_exc
+        raise RuntimeError(f"Utopia optimization not solved. tried={solvers_to_try} status={prob.status} value={prob.value}")
+
+    weights = np.asarray(w.value, dtype=float).reshape(-1)
+    if not np.all(np.isfinite(weights)):
+        raise RuntimeError(f"Utopia optimization returned non-finite weights. status={prob.status}")
+    if float(np.sum(weights)) <= 0:
+        raise RuntimeError(f"Utopia optimization returned zero-sum weights. status={prob.status}")
+    weights = np.maximum(weights, 0.0)
+    weights = weights / np.sum(weights)
+
+    r2 = _pivot_metric(aligned_df, metric="R2", folds=keep_folds, models=keep_models)
+    prb = _pivot_metric(aligned_df, metric="PRB", folds=keep_folds, models=keep_models)
+    vei = _pivot_metric(aligned_df, metric="VEI", folds=keep_folds, models=keep_models)
+    cod = _pivot_metric(aligned_df, metric="COD", folds=keep_folds, models=keep_models) if "COD" in aligned_df.columns else None
+    corr = _pivot_metric(aligned_df, metric="Corr(r,price)", folds=keep_folds, models=keep_models) if "Corr(r,price)" in aligned_df.columns else None
+
+    oos_r2_ens = acc @ weights if acc_col == "OOS R2" else np.full(n_folds, np.nan, dtype=float)
+    r2_ens = r2 @ weights
+    prd_ens_np = prd @ weights
+    prb_ens = prb @ weights
+    vei_ens = vei @ weights
+    cod_ens = cod @ weights if cod is not None else np.full(n_folds, np.nan, dtype=float)
+    corr_ens = corr @ weights if corr is not None else np.full(n_folds, np.nan, dtype=float)
+
+    if acc_col != "OOS R2":
+        oos_r2_ens = r2_ens.copy()
+
+    fold_df = pd.DataFrame(
+        {
+            "fold_id": np.asarray(keep_folds, dtype=int),
+            "objective_mode": "utopia",
+            "OOS R2_ensemble": oos_r2_ens,
+            "R2_ensemble": r2_ens,
+            "PRD_ensemble": prd_ens_np,
+            "PRB_ensemble": prb_ens,
+            "VEI_ensemble": vei_ens,
+            "COD_ensemble": cod_ens,
+            "Corr(r,price)_ensemble": corr_ens,
+        }
+    )
+
+    # Report realized normalized distance under the optimized weights.
+    a_tilde_realized = (a_star_v - (acc @ weights)) / a_den_v
+    u_tilde_realized = ((unfair @ weights) - u_star_v) / u_den_v
+    mean_dist = float(np.mean(np.sqrt(np.maximum(0.0, a_tilde_realized) ** 2 + np.maximum(0.0, u_tilde_realized) ** 2)))
+
+    return weights, fold_df, {
+        "utopia_accuracy_metric": str(acc_col),
+        "utopia_fairness_metric": "abs(PRD-1)",
+        "utopia_aggregation": str(aggregation),
+        "utopia_distance_metric": "mean_l2(a_tilde, u_tilde) (diagnostic)",
+        "utopia_accuracy_weight": float(wa),
+        "utopia_fairness_weight": float(wu),
+        "utopia_cvar_alpha": float(alpha),
+        "objective_value": float(prob.value) if prob.value is not None else None,
+        "status": str(prob.status),
+        "solver": str(solver_name),
+        "selected_mean_distance": float(mean_dist),
+        "n_models_considered": int(len(keep_models)),
+        "n_folds_considered": int(len(keep_folds)),
+    }
+
+
+def _cvar_of_values(values: np.ndarray, alpha: float) -> float:
+    vals = np.asarray(values, dtype=float).reshape(-1)
+    vals = vals[np.isfinite(vals)]
+    if vals.size == 0:
+        return float("nan")
+    if not (0.0 < float(alpha) < 1.0):
+        raise ValueError("alpha must be in (0,1) for CVaR.")
+    k = int(np.ceil((1.0 - float(alpha)) * vals.size))
+    k = max(1, min(int(vals.size), k))
+    worst = np.sort(vals)[-k:]
+    return float(np.mean(worst))
+
+
+def _build_single_utopia_solution(
+    *,
+    runs_df: pd.DataFrame,
+    folds: List[int],
+    models: List[str],
+    aggregation: str,
+    cvar_alpha: float,
+    accuracy_weight: float,
+    fairness_weight: float,
+) -> Tuple[np.ndarray, pd.DataFrame, Dict[str, Any]]:
+    """
+    Integer/simplex-vertex counterpart of utopia:
+    pick one config_id that minimizes the chosen normalized utopia aggregation.
+    """
+    req = ["OOS R2", "R2", "PRD", "PRB", "VEI"]
+    aggregation = str(aggregation).lower().strip()
+    if aggregation not in {"average", "chebyshev", "cvar", "euclidean"}:
+        raise ValueError("aggregation must be one of: average, chebyshev, cvar, euclidean")
+    alpha = float(cvar_alpha)
+    wa = float(accuracy_weight)
+    wu = float(fairness_weight)
+    if wa < 0.0 or wu < 0.0 or (wa + wu) <= 0.0:
+        raise ValueError("accuracy_weight and fairness_weight must be >=0 and not both zero.")
+
+    aligned_df, _, _ = _align_complete_grid(runs_df, required_metrics=req)
+    aligned_df = aligned_df.copy()
+    aligned_df["config_id"] = aligned_df["config_id"].astype(str)
+    keep_models = [str(m) for m in models]
+    keep_folds = [int(f) for f in folds]
+    aligned_df = aligned_df[
+        aligned_df["config_id"].isin(keep_models) & aligned_df["fold_id"].isin(keep_folds)
+    ].copy()
+    if aligned_df.empty:
+        raise RuntimeError("No aligned rows available to build single utopia solution.")
+
+    acc_col = "OOS R2" if "OOS R2" in aligned_df.columns else "R2"
+    acc = _pivot_metric(aligned_df, metric=acc_col, folds=keep_folds, models=keep_models)
+    prd = _pivot_metric(aligned_df, metric="PRD", folds=keep_folds, models=keep_models)
+    unfair = np.abs(prd - 1.0)
+    eps = 1e-12
+    a_star = np.max(acc, axis=1, keepdims=True)
+    a_nad = np.min(acc, axis=1, keepdims=True)
+    u_star = np.min(unfair, axis=1, keepdims=True)
+    u_nad = np.max(unfair, axis=1, keepdims=True)
+    a_den = np.maximum(a_star - a_nad, eps)
+    u_den = np.maximum(u_nad - u_star, eps)
+    p = (a_star - acc) / a_den
+    q = (unfair - u_star) / u_den
+    z = wa * p + wu * q
+
+    n_models = len(keep_models)
+    best_idx = -1
+    best_obj = None
+    for j in range(n_models):
+        if aggregation == "average":
+            obj_j = float(np.mean(z[:, j]))
+        elif aggregation == "chebyshev":
+            d = np.maximum(wa * p[:, j], wu * q[:, j])
+            obj_j = float(np.mean(d))
+        elif aggregation == "cvar":
+            obj_j = _cvar_of_values(z[:, j], alpha)
+        else:
+            dist = np.sqrt(np.maximum(0.0, wa * (p[:, j] ** 2) + wu * (q[:, j] ** 2)))
+            obj_j = float(np.mean(dist))
+        if best_obj is None or (np.isfinite(obj_j) and obj_j < float(best_obj)):
+            best_obj = obj_j
+            best_idx = int(j)
+    if best_idx < 0:
+        raise RuntimeError("Could not select a single utopia model.")
+
+    w = np.zeros(n_models, dtype=float)
+    w[best_idx] = 1.0
+    r2 = _pivot_metric(aligned_df, metric="R2", folds=keep_folds, models=keep_models)
+    prb = _pivot_metric(aligned_df, metric="PRB", folds=keep_folds, models=keep_models)
+    vei = _pivot_metric(aligned_df, metric="VEI", folds=keep_folds, models=keep_models)
+    cod = _pivot_metric(aligned_df, metric="COD", folds=keep_folds, models=keep_models) if "COD" in aligned_df.columns else None
+    corr = _pivot_metric(aligned_df, metric="Corr(r,price)", folds=keep_folds, models=keep_models) if "Corr(r,price)" in aligned_df.columns else None
+    oos_r2_ens = acc @ w if acc_col == "OOS R2" else np.full(len(keep_folds), np.nan, dtype=float)
+    r2_ens = r2 @ w
+    prd_ens = prd @ w
+    prb_ens = prb @ w
+    vei_ens = vei @ w
+    cod_ens = cod @ w if cod is not None else np.full(len(keep_folds), np.nan, dtype=float)
+    corr_ens = corr @ w if corr is not None else np.full(len(keep_folds), np.nan, dtype=float)
+    if acc_col != "OOS R2":
+        oos_r2_ens = r2_ens.copy()
+    fold_df = pd.DataFrame(
+        {
+            "fold_id": np.asarray(keep_folds, dtype=int),
+            "objective_mode": "single_utopia",
+            "OOS R2_ensemble": oos_r2_ens,
+            "R2_ensemble": r2_ens,
+            "PRD_ensemble": prd_ens,
+            "PRB_ensemble": prb_ens,
+            "VEI_ensemble": vei_ens,
+            "COD_ensemble": cod_ens,
+            "Corr(r,price)_ensemble": corr_ens,
+        }
+    )
+    return w, fold_df, {
+        "utopia_aggregation": str(aggregation),
+        "utopia_cvar_alpha": float(alpha),
+        "utopia_accuracy_weight": float(wa),
+        "utopia_fairness_weight": float(wu),
+        "selected_config_id": str(keep_models[best_idx]),
+        "objective_value": float(best_obj) if best_obj is not None else None,
+    }
+
+
+def _build_single_requested_solution(
+    *,
+    mode: str,
+    folds: List[int],
+    models: List[str],
+    fold_panels: Dict[int, Tuple[np.ndarray, np.ndarray]],
+    time_decay_gamma: float,
+    cvar_alpha: float,
+    prd_constraint_aggregation: str,
+    prd_constraint_cvar_alpha: float,
+    prd_feasibility_mode: str,
+    prd_gap_penalty: float,
+    use_bootstrap_scenarios: bool,
+    n_bootstrap_scenarios: int,
+    bootstrap_seed: int,
+) -> Tuple[np.ndarray, Dict[str, Any]]:
+    """
+    Integer/simplex-vertex counterpart of PRD-SOCP:
+    evaluate all one-hot selections and keep the best objective under the same
+    PRD aggregation + feasibility mode semantics.
+    """
+    if mode not in {"average", "worst", "time_decay", "cvar"}:
+        raise ValueError("mode must be one of: average, worst, time_decay, cvar")
+    prd_constraint_aggregation = str(prd_constraint_aggregation)
+    if prd_constraint_aggregation not in {"worst", "average", "cvar"}:
+        raise ValueError("prd_constraint_aggregation must be one of: worst, average, cvar")
+    prd_feasibility_mode = str(prd_feasibility_mode)
+    if prd_feasibility_mode not in {"priced_gap", "hard"}:
+        raise ValueError("prd_feasibility_mode must be one of: priced_gap, hard")
+
+    rng = np.random.default_rng(int(bootstrap_seed))
+    n_models = len(models)
+    n_folds = len(folds)
+    loss_vals = np.full((n_folds, n_models), np.nan, dtype=float)
+    low_vals = np.full((n_folds, n_models), np.nan, dtype=float)
+    high_vals = np.full((n_folds, n_models), np.nan, dtype=float)
+    bootstrap_losses: List[np.ndarray] = []
+    bootstrap_lows: List[np.ndarray] = []
+    bootstrap_highs: List[np.ndarray] = []
+    bootstrap_fold_idx: List[int] = []
+    prd_lo, prd_hi = float(IAAO_PRD_RANGE[0]), float(IAAO_PRD_RANGE[1])
+
+    for fi, f in enumerate(folds):
+        P, y = fold_panels[int(f)]
+        y_pos = np.maximum(y, 1e-9)
+        fold_scale = max(float(np.median(y_pos)), 1.0)
+        Pn = P / fold_scale
+        y_norm = y_pos / fold_scale
+        a = np.sum(Pn / y_norm[:, None], axis=0)
+        b = np.sum(Pn, axis=0)
+        sy = float(np.sum(y_norm))
+        low_vals[fi, :] = prd_lo * b - sy * a
+        high_vals[fi, :] = sy * a - prd_hi * b
+        ratio_res = (Pn / y_norm[:, None]) - 1.0
+        loss_vals[fi, :] = np.mean(ratio_res ** 2, axis=0)
+
+        if use_bootstrap_scenarios and int(n_bootstrap_scenarios) > 0:
+            n = int(y_norm.shape[0])
+            for _ in range(int(n_bootstrap_scenarios)):
+                idx = rng.integers(0, n, size=n)
+                Pb = Pn[idx, :]
+                yb = np.maximum(y_norm[idx], 1e-9)
+                ab = np.sum(Pb / yb[:, None], axis=0)
+                bb = np.sum(Pb, axis=0)
+                syb = float(np.sum(yb))
+                bootstrap_lows.append(prd_lo * bb - syb * ab)
+                bootstrap_highs.append(syb * ab - prd_hi * bb)
+                bootstrap_losses.append(np.mean(((Pb / yb[:, None]) - 1.0) ** 2, axis=0))
+                bootstrap_fold_idx.append(fi)
+
+    gamma = float(time_decay_gamma)
+    if mode == "time_decay" and not (0.0 < gamma <= 1.0):
+        raise ValueError("time_decay_gamma must be in (0, 1].")
+    obj_alpha = float(cvar_alpha)
+    prd_alpha = float(prd_constraint_cvar_alpha)
+
+    best_idx = -1
+    best_obj = None
+    best_gap = 0.0
+    best_prd_mode = "hard"
+    for j in range(n_models):
+        scen_losses = [float(v) for v in loss_vals[:, j].tolist() if np.isfinite(v)]
+        scen_low = [float(v) for v in low_vals[:, j].tolist() if np.isfinite(v)]
+        scen_high = [float(v) for v in high_vals[:, j].tolist() if np.isfinite(v)]
+        if bootstrap_losses:
+            for k in range(len(bootstrap_losses)):
+                lv = float(bootstrap_losses[k][j])
+                lo = float(bootstrap_lows[k][j])
+                hi = float(bootstrap_highs[k][j])
+                if np.isfinite(lv):
+                    scen_losses.append(lv)
+                if np.isfinite(lo):
+                    scen_low.append(lo)
+                if np.isfinite(hi):
+                    scen_high.append(hi)
+        if not scen_losses or not scen_low or not scen_high:
+            continue
+
+        if mode == "average":
+            obj_core = float(np.mean(scen_losses))
+        elif mode == "worst":
+            obj_core = float(np.max(scen_losses))
+        elif mode == "time_decay":
+            fw = np.asarray([gamma ** (n_folds - 1 - i) for i in range(n_folds)], dtype=float)
+            fw = fw / np.sum(fw)
+            weighted_losses = [float(fw[i] * loss_vals[i, j]) for i in range(n_folds)]
+            if bootstrap_losses:
+                reps = int(n_bootstrap_scenarios) if use_bootstrap_scenarios else 0
+                for k, fi in enumerate(bootstrap_fold_idx):
+                    weighted_losses.append(float(fw[int(fi)] * bootstrap_losses[k][j] / float(max(1, reps))))
+            obj_core = float(np.sum(weighted_losses))
+        else:
+            obj_core = _cvar_of_values(np.asarray(scen_losses, dtype=float), obj_alpha)
+
+        if prd_constraint_aggregation == "worst":
+            low_agg = float(np.max(scen_low))
+            high_agg = float(np.max(scen_high))
+        elif prd_constraint_aggregation == "average":
+            low_agg = float(np.mean(scen_low))
+            high_agg = float(np.mean(scen_high))
+        else:
+            low_agg = _cvar_of_values(np.asarray(scen_low, dtype=float), prd_alpha)
+            high_agg = _cvar_of_values(np.asarray(scen_high, dtype=float), prd_alpha)
+
+        gap_needed = float(max(0.0, low_agg, high_agg))
+        if prd_feasibility_mode == "hard":
+            if gap_needed > 0.0:
+                continue
+            obj_total = obj_core
+            prd_mode_j = "hard"
+        else:
+            obj_total = float(obj_core + float(prd_gap_penalty) * gap_needed)
+            prd_mode_j = "priced_gap"
+
+        if best_obj is None or (np.isfinite(obj_total) and obj_total < float(best_obj)):
+            best_obj = obj_total
+            best_idx = int(j)
+            best_gap = float(gap_needed)
+            best_prd_mode = str(prd_mode_j)
+
+    if best_idx < 0:
+        raise RuntimeError("No feasible single-model solution found under requested constraints/objective.")
+    w = np.zeros(n_models, dtype=float)
+    w[best_idx] = 1.0
+    return w, {
+        "objective_mode": str(mode),
+        "prd_constraint_mode": str(best_prd_mode),
+        "prd_feasibility_mode": str(prd_feasibility_mode),
+        "prd_gap_penalty": float(prd_gap_penalty),
+        "prd_gap_value": float(best_gap),
+        "prd_constraint_aggregation": str(prd_constraint_aggregation),
+        "prd_constraint_cvar_alpha": float(prd_alpha),
+        "objective_value": float(best_obj) if best_obj is not None else None,
+        "selected_config_id": str(models[best_idx]),
+    }
+
+
 def _choose_solver(preferred: str | None = None) -> str:
     installed = set(cp.installed_solvers())
     if preferred is not None and preferred.upper() in installed:
@@ -635,6 +1100,10 @@ def run_stacking_prd_socp_optimization(
     solve_all_modes: bool = False,
     prd_feasibility_mode: str = "priced_gap",
     prd_gap_penalty: float = 1000.0,
+    utopia_aggregation: str = "euclidean",
+    utopia_cvar_alpha: float = 0.8,
+    utopia_accuracy_weight: float = 1.0,
+    utopia_fairness_weight: float = 1.0,
 ) -> Dict[str, str]:
     """
     PRD-constrained exact convex stacking using row-level fold predictions.
@@ -664,6 +1133,71 @@ def run_stacking_prd_socp_optimization(
     out_dir = Path(result_root) / "analysis" / f"data_id={data_id}" / f"split_id={split_id}" / "stacking_prd_socp_opt"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    def _build_fold_metrics_from_weights(weights: np.ndarray, mode_tag: str) -> pd.DataFrame:
+        fold_rows: List[Dict[str, Any]] = []
+        for f in folds:
+            P, y = fold_panels[int(f)]
+            y_hat = np.maximum(P @ weights, 1e-9)
+            y_true = np.maximum(y, 1e-9)
+            met = _compute_extended_metrics(
+                y_true_log=np.log(y_true),
+                y_pred_log=np.log(y_hat),
+                y_train_log=np.log(y_true),
+                ratio_mode="diff",
+            )
+            fold_rows.append(
+                {
+                    "fold_id": int(f),
+                    "objective_mode": str(mode_tag),
+                    "OOS R2_ensemble": float(met.get("OOS R2", np.nan)),
+                    "R2_ensemble": float(met.get("R2", np.nan)),
+                    "PRD_ensemble": float(met.get("PRD", np.nan)),
+                    "PRB_ensemble": float(met.get("PRB", np.nan)),
+                    "VEI_ensemble": float(met.get("VEI", np.nan)),
+                    "COD_ensemble": float(met.get("COD", np.nan)),
+                    "Corr(r,price)_ensemble": float(met.get("Corr(r,price)", np.nan)),
+                }
+            )
+        return pd.DataFrame(fold_rows)
+
+    utopia_w, utopia_fold_df, utopia_meta = _build_utopia_solution(
+        runs_df=runs_df,
+        folds=folds,
+        models=models,
+        solver=solver,
+        solver_verbose=solver_verbose,
+        aggregation=utopia_aggregation,
+        cvar_alpha=utopia_cvar_alpha,
+        accuracy_weight=utopia_accuracy_weight,
+        fairness_weight=utopia_fairness_weight,
+    )
+    utopia_weights_df = pd.DataFrame({"config_id": models, "weight": utopia_w})
+    utopia_weights_df = utopia_weights_df.merge(meta_df, on="config_id", how="left").sort_values(
+        "weight", ascending=False, ignore_index=True
+    )
+    utopia_weights_path = out_dir / "weights_utopia.csv"
+    utopia_fold_path = out_dir / "fold_ensemble_metrics_utopia.csv"
+    utopia_weights_df.to_csv(utopia_weights_path, index=False)
+    utopia_fold_df.to_csv(utopia_fold_path, index=False)
+
+    single_utopia_w, single_utopia_fold_df, single_utopia_meta = _build_single_utopia_solution(
+        runs_df=runs_df,
+        folds=folds,
+        models=models,
+        aggregation=utopia_aggregation,
+        cvar_alpha=utopia_cvar_alpha,
+        accuracy_weight=utopia_accuracy_weight,
+        fairness_weight=utopia_fairness_weight,
+    )
+    single_utopia_weights_df = pd.DataFrame({"config_id": models, "weight": single_utopia_w})
+    single_utopia_weights_df = single_utopia_weights_df.merge(meta_df, on="config_id", how="left").sort_values(
+        "weight", ascending=False, ignore_index=True
+    )
+    single_utopia_weights_path = out_dir / "weights_single_utopia.csv"
+    single_utopia_fold_path = out_dir / "fold_ensemble_metrics_single_utopia.csv"
+    single_utopia_weights_df.to_csv(single_utopia_weights_path, index=False)
+    single_utopia_fold_df.to_csv(single_utopia_fold_path, index=False)
+
     all_summaries: Dict[str, Any] = {}
     for mode in modes_to_run:
         w_opt, summ = _solve_prd_socp_for_mode(
@@ -687,31 +1221,7 @@ def run_stacking_prd_socp_optimization(
         weights_df = pd.DataFrame({"config_id": models, "weight": w_opt})
         weights_df = weights_df.merge(meta_df, on="config_id", how="left").sort_values("weight", ascending=False, ignore_index=True)
 
-        fold_rows: List[Dict[str, Any]] = []
-        for f in folds:
-            P, y = fold_panels[int(f)]
-            y_hat = np.maximum(P @ w_opt, 1e-9)
-            y_true = np.maximum(y, 1e-9)
-            met = _compute_extended_metrics(
-                y_true_log=np.log(y_true),
-                y_pred_log=np.log(y_hat),
-                y_train_log=np.log(y_true),
-                ratio_mode="diff",
-            )
-            fold_rows.append(
-                {
-                    "fold_id": int(f),
-                    "objective_mode": str(mode),
-                    "OOS R2_ensemble": float(met.get("OOS R2", np.nan)),
-                    "R2_ensemble": float(met.get("R2", np.nan)),
-                    "PRD_ensemble": float(met.get("PRD", np.nan)),
-                    "PRB_ensemble": float(met.get("PRB", np.nan)),
-                    "VEI_ensemble": float(met.get("VEI", np.nan)),
-                    "COD_ensemble": float(met.get("COD", np.nan)),
-                    "Corr(r,price)_ensemble": float(met.get("Corr(r,price)", np.nan)),
-                }
-            )
-        fold_df = pd.DataFrame(fold_rows)
+        fold_df = _build_fold_metrics_from_weights(w_opt, str(mode))
 
         w_path = out_dir / f"weights_{mode}.csv"
         f_path = out_dir / f"fold_ensemble_metrics_{mode}.csv"
@@ -728,6 +1238,37 @@ def run_stacking_prd_socp_optimization(
         }
         s_path.write_text(json.dumps(mode_summary, indent=2, sort_keys=True), encoding="utf-8")
         all_summaries[mode] = mode_summary
+
+    # Single-model alternative for the requested PRD-SOCP objective.
+    single_w, single_meta = _build_single_requested_solution(
+        mode=objective_mode,
+        folds=folds,
+        models=models,
+        fold_panels=fold_panels,
+        time_decay_gamma=time_decay_gamma,
+        cvar_alpha=cvar_alpha,
+        prd_constraint_aggregation=prd_constraint_aggregation,
+        prd_constraint_cvar_alpha=prd_constraint_cvar_alpha,
+        prd_feasibility_mode=prd_feasibility_mode,
+        prd_gap_penalty=prd_gap_penalty,
+        use_bootstrap_scenarios=bool(use_bootstrap_scenarios),
+        n_bootstrap_scenarios=int(n_bootstrap_scenarios),
+        bootstrap_seed=int(bootstrap_seed),
+    )
+    single_weights_df = pd.DataFrame({"config_id": models, "weight": single_w})
+    single_weights_df = single_weights_df.merge(meta_df, on="config_id", how="left").sort_values(
+        "weight", ascending=False, ignore_index=True
+    )
+    single_fold_df = _build_fold_metrics_from_weights(single_w, f"single_{objective_mode}")
+    single_weights_path = out_dir / f"weights_single_{objective_mode}.csv"
+    single_fold_path = out_dir / f"fold_ensemble_metrics_single_{objective_mode}.csv"
+    single_weights_df.to_csv(single_weights_path, index=False)
+    single_fold_df.to_csv(single_fold_path, index=False)
+    # Stable aliases for downstream readers.
+    (out_dir / "weights_single_requested.csv").write_text(single_weights_path.read_text(encoding="utf-8"), encoding="utf-8")
+    (out_dir / "fold_ensemble_metrics_single_requested.csv").write_text(
+        single_fold_path.read_text(encoding="utf-8"), encoding="utf-8"
+    )
 
     # Compatibility aliases for downstream readers: use requested default objective.
     default_weights = out_dir / f"weights_{objective_mode}.csv"
@@ -751,6 +1292,25 @@ def run_stacking_prd_socp_optimization(
                 "solve_all_modes": bool(solve_all_modes),
                 "prd_feasibility_mode": str(prd_feasibility_mode),
                 "prd_gap_penalty": float(prd_gap_penalty),
+                "utopia_aggregation": str(utopia_aggregation),
+                "utopia_cvar_alpha": float(utopia_cvar_alpha),
+                "utopia_accuracy_weight": float(utopia_accuracy_weight),
+                "utopia_fairness_weight": float(utopia_fairness_weight),
+                "utopia": {
+                    **utopia_meta,
+                    "weights_csv": str(utopia_weights_path),
+                    "fold_metrics_csv": str(utopia_fold_path),
+                },
+                "single_requested": {
+                    **single_meta,
+                    "weights_csv": str(single_weights_path),
+                    "fold_metrics_csv": str(single_fold_path),
+                },
+                "single_utopia": {
+                    **single_utopia_meta,
+                    "weights_csv": str(single_utopia_weights_path),
+                    "fold_metrics_csv": str(single_utopia_fold_path),
+                },
                 "modes": all_summaries,
             },
             indent=2,
@@ -824,6 +1384,31 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default=1000.0,
         help="Penalty xi for PRD gap when --prd-feasibility-mode=priced_gap (>=0).",
     )
+    p.add_argument(
+        "--utopia-aggregation",
+        type=str,
+        default="euclidean",
+        choices=["average", "chebyshev", "cvar", "euclidean"],
+        help="Aggregation used by utopia stacking optimization.",
+    )
+    p.add_argument(
+        "--utopia-cvar-alpha",
+        type=float,
+        default=0.8,
+        help="CVaR alpha in (0,1) when --utopia-aggregation=cvar.",
+    )
+    p.add_argument(
+        "--utopia-accuracy-weight",
+        type=float,
+        default=1.0,
+        help="Weight for normalized accuracy-gap term in utopia optimization.",
+    )
+    p.add_argument(
+        "--utopia-fairness-weight",
+        type=float,
+        default=1.0,
+        help="Weight for normalized unfairness term in utopia optimization.",
+    )
     p.add_argument("--accuracy-metric", type=str, default="OOS R2", help="Metric column name to maximize (e.g., 'OOS R2' or 'R2').")
     p.add_argument("--legacy-objective-mode", type=str, default="worst_fold", choices=["worst_fold", "mean_fold"])
     p.add_argument("--max-models", type=int, default=100, help="Optional pruning: keep top-K models by mean accuracy.")
@@ -865,6 +1450,10 @@ if __name__ == "__main__":
             solve_all_modes=not bool(args.only_requested_objective),
             prd_feasibility_mode=str(args.prd_feasibility_mode),
             prd_gap_penalty=float(args.prd_gap_penalty),
+            utopia_aggregation=str(args.utopia_aggregation),
+            utopia_cvar_alpha=float(args.utopia_cvar_alpha),
+            utopia_accuracy_weight=float(args.utopia_accuracy_weight),
+            utopia_fairness_weight=float(args.utopia_fairness_weight),
         )
     print("=" * 90)
     print("STACKING WEIGHTS OPTIMIZATION COMPLETED")

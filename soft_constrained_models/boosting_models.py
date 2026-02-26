@@ -169,6 +169,171 @@ class LGBCovPenalty:
         return f"LGBCovPenalty(rho={self.rho}, ratio_mode={self.ratio_mode})" #, anchor_mode={self.anchor_mode})"
 
 
+# 1.1) CVaR for the MSE:CVaR_keep(MSE) + rho * Cov-surrogate
+# Assumes: import numpy as np, import lightgbm as lgb
+# Reuses your helper _cvar_topk_weights(values, keep)
+
+class LGBCovPenaltyCVaR:
+    """LightGBM objective: CVaR_keep(MSE) + rho * (Cov(r, y))^2
+
+    This is the CVaR-robust version of LGBCovPenalty where:
+      - The MSE term is replaced by a top-k (CVaR-like) average over per-sample MSE.
+      - The covariance penalty remains exactly the same structure as LGBCovPenalty
+        (non-separable, with diagonal Hessian approximation).
+
+    Objective used (for reporting / gradient logic):
+      J ~= CVaR_keep( (y_true - y_pred)^2 ) + 0.5 * rho * n * cov^2
+
+    where:
+      cov = mean( r_eff * (y_true - y_mean_) ),
+      r depends on ratio_mode:
+        - "div":  r = y_pred / max(|y_true|, eps_y)
+        - "diff": r = y_pred - y_true
+
+    Notes:
+      - CVaR weights are recomputed from current mse_vec and treated as fixed inside
+        this fobj call (same approximation style as your LGBSmoothPenaltyCVaR).
+      - anchor_mode/target_value remain effectively no-ops for this centered covariance,
+        kept only for API symmetry with LGBCovPenalty.
+    """
+
+    def __init__(
+        self,
+        rho=1e-3,
+        mse_keep=1.0,             # same input name as in LGBSmoothPenaltyCVaR
+        ratio_mode="div",         # "div" or "diff"
+        anchor_mode="target",     # "none" | "target" | "iter_mean" (no-op here; API symmetry)
+        target_value=None,        # if anchor_mode="target": default 1.0 (div) or 0.0 (diff)
+        zero_grad_tol=1e-6,
+        eps_y=1e-12,
+        lgbm_params=None,
+        verbose=True,
+    ):
+        self.rho = float(rho)
+        self.mse_keep = float(mse_keep)
+        self.ratio_mode = ratio_mode
+        self.anchor_mode = anchor_mode
+        self.target_value = target_value
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.eps_y = float(eps_y)
+        self.verbose = bool(verbose)
+
+        if not (0.0 < self.mse_keep <= 1.0):
+            raise ValueError("mse_keep must be in (0, 1].")
+
+        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+    def fit(self, X, y):
+        self.y_mean_ = float(np.mean(y))
+        self.model.set_params(objective=self.fobj)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true, dtype=float)
+        y_pred = np.asarray(y_pred, dtype=float)
+        n = y_pred.size
+        n_float = float(n)
+
+        yc = (y_true - self.y_mean_)  # centered y
+
+        # ---- choose r and dr/dy_pred ----
+        if self.ratio_mode == "div":
+            denom = np.maximum(np.abs(y_true), self.eps_y)
+            r = y_pred / denom
+            dr = 1.0 / denom
+        elif self.ratio_mode == "diff":
+            r = y_pred - y_true
+            dr = np.ones_like(y_pred)
+        else:
+            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+
+        # ---- optional anchor (no-op for centered yc; kept for API symmetry) ----
+        if self.anchor_mode == "none":
+            anchor = 0.0
+        elif self.anchor_mode == "iter_mean":
+            anchor = float(np.mean(r))
+        elif self.anchor_mode == "target":
+            if self.target_value is None:
+                anchor = 1.0 if self.ratio_mode == "div" else 0.0
+            else:
+                anchor = float(self.target_value)
+        else:
+            raise ValueError("anchor_mode must be 'none', 'iter_mean', or 'target'.")
+
+        r_eff = r - anchor  # effectively no change to cov because mean(yc)≈0 on training data
+
+        # ---- covariance + penalty (same as LGBCovPenalty) ----
+        cov = float(np.mean(r_eff * yc))
+        pen_value = 0.5 * self.rho * n_float * (cov ** 2)
+
+        # ---- MSE pieces + CVaR weights on MSE ----
+        mse_vec = (y_true - y_pred) ** 2
+        mse_mean = float(np.mean(mse_vec))
+        cvar_w = _cvar_topk_weights(mse_vec, self.mse_keep)      # sums to 1
+        mse_cvar = float(np.sum(cvar_w * mse_vec))               # average over worst keep-fraction
+        tail_scale = n_float * cvar_w                            # converts mean-form grad to CVaR-form
+
+        # ---- prints ----
+        try:
+            corr = float(np.corrcoef(r, y_true)[0, 1])
+        except Exception:
+            corr = float("nan")
+
+        if self.verbose:
+            model_name = self.__str__().split("(")[0]
+            print(
+                f"[{model_name}] "
+                f"Loss: {(mse_cvar + pen_value):.6f} | "
+                f"MSE(mean): {mse_mean:.6f} | MSE CVaR: {mse_cvar:.6f} | "
+                f"Cov: {cov:.6e} | Pen: {pen_value:.6f} | Corr(r,y): {corr:.6f} | "
+                f"mode: {self.ratio_mode} | keep: {self.mse_keep:.3f}"
+            )
+
+        # ==========================================================
+        # Base term gradients/hessians: CVaR_keep(MSE)
+        # Original per-sample MSE grad/hess:
+        #   grad_i = 2*(pred_i - y_i)
+        #   hess_i = 2
+        # Replace mean MSE with sum_i cvar_w_i * mse_i
+        # => per-sample scaling by n * cvar_w_i in LightGBM's mean-style convention
+        # ==========================================================
+        grad_base = (2.0 * (y_pred - y_true)) * tail_scale
+        hess_base = (2.0 * np.ones_like(y_pred)) * tail_scale
+
+        # ==========================================================
+        # Cov penalty grads/hess (same diagonal approx as LGBCovPenalty)
+        # cov = (1/n) sum_i r_i * yc_i   (anchor dropped due centering)
+        # dc/dpred_i = (1/n) * yc_i * dr_i
+        # penalty = 0.5 * rho * n * cov^2
+        # grad_pen_i = rho * n * cov * dc/dpred_i
+        # hess_pen_i = rho * n * (dc/dpred_i)^2
+        # ==========================================================
+        a = (yc * dr) / n_float  # dc/dpred_i
+
+        grad_pen = self.rho * n_float * cov * a
+        hess_pen = self.rho * n_float * (a ** 2)
+
+        grad = grad_base + grad_pen
+        hess = hess_base + hess_pen
+
+        # same tolerance behavior as your original code
+        grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        return grad, hess
+
+    def __str__(self):
+        return (
+            f"LGBCovPenaltyCVaR(rho={self.rho}, ratio_mode={self.ratio_mode}, "
+            f"mse_keep={self.mse_keep})"
+        )
+
+
+
 # ==========================================================
 # 2) Plain (no dual/adversary): minimize MSE + rho * Cov-surrogate (separable)
 # ==========================================================

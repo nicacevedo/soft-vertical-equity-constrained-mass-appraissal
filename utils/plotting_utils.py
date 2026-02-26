@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import copy
 import re
+from pathlib import Path
 
 # Multiprocessing
 import os
@@ -169,6 +170,93 @@ def _format_metric(value):
     if value is None or not np.isfinite(value):
         return "nan"
     return f"{value:.4f}"
+
+
+def plot_vertical_equity_lowess(
+    y_log,
+    ratios,
+    *,
+    out_path,
+    model_label=None,
+    sample_size=None,
+    random_seed=2025,
+    lowess_frac=0.4,
+    y_limits=(0.0, 4.0),
+):
+    """
+    Vertical equity diagnostic plot:
+      - scatter of assessment ratios vs log market value
+      - horizontal perfect-equity reference at 1.0
+      - LOWESS trend
+      - linear trend with slope label
+    """
+    y_log = _as_float_array(y_log)
+    ratios = _as_float_array(ratios)
+    mask = np.isfinite(y_log) & np.isfinite(ratios)
+    y_log = y_log[mask]
+    ratios = ratios[mask]
+    if y_log.size < 2:
+        return {"n_points": int(y_log.size), "slope": np.nan, "lowess_used": False}
+
+    if sample_size is not None and int(sample_size) > 0 and y_log.size > int(sample_size):
+        rng = np.random.default_rng(int(random_seed))
+        idx = rng.choice(y_log.size, size=int(sample_size), replace=False)
+        y_log_sample = y_log[idx]
+        ratios_sample = ratios[idx]
+    else:
+        y_log_sample = y_log
+        ratios_sample = ratios
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(
+        y_log_sample,
+        ratios_sample,
+        facecolors="none",
+        edgecolors="black",
+        s=50,
+        alpha=0.4,
+        label="Properties",
+    )
+
+    # Gray grid lines (major + minor)
+    ax.grid(True, which="major", axis="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.minorticks_on()
+    ax.grid(True, which="minor", axis="both", color="lightgray", linestyle=":", linewidth=0.5, alpha=0.5)
+
+    # Perfect equity line
+    ax.axhline(y=1.0, color="red", linestyle="--", linewidth=2, label="Perfect Equity (1.0)")
+
+    # LOWESS trend line (if statsmodels available)
+    lowess_used = False
+    try:
+        import statsmodels.api as sm  # local import to avoid hard dependency
+
+        lowess = sm.nonparametric.lowess(ratios, y_log, frac=float(lowess_frac))
+        ax.plot(lowess[:, 0], lowess[:, 1], color="blue", linewidth=3, label="Trend (Lowess)")
+        lowess_used = True
+    except Exception:
+        pass
+
+    # Linear trend + slope
+    z = np.polyfit(y_log, ratios, 1)
+    p = np.poly1d(z)
+    order = np.argsort(y_log)
+    ax.plot(y_log[order], p(y_log[order]), "g-", alpha=0.6, linewidth=3, label=f"Linear Slope={z[0]:.4f}")
+
+    ax.set_ylabel("Assessment Ratio (AV / MV)")
+    ax.set_xlabel("Log Market Value")
+    if model_label:
+        ax.set_title(str(model_label))
+    ax.legend(loc="upper right")
+    if y_limits is not None:
+        ax.set_ylim(y_limits)
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300)
+    plt.close(fig)
+    return {"n_points": int(y_log.size), "slope": float(z[0]), "lowess_used": bool(lowess_used)}
 
 
 def _metrics_title_line(metrics):
