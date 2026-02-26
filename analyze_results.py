@@ -378,7 +378,7 @@ def _config_label_from_runs(runs_df: pd.DataFrame, config_id: str) -> str:
     row = runs_df.loc[runs_df["config_id"] == config_id, ["model_name", "model_config_json"]].drop_duplicates().head(1)
     if row.empty:
         return str(config_id)
-    model_name = str(row["model_name"].iloc[0])
+    model_name = _short_model_alias(str(row["model_name"].iloc[0]))
     cfg_raw = row["model_config_json"].iloc[0] if "model_config_json" in row.columns else None
     tag = ""
     if isinstance(cfg_raw, str) and cfg_raw.strip():
@@ -389,9 +389,9 @@ def _config_label_from_runs(runs_df: pd.DataFrame, config_id: str) -> str:
         if isinstance(cfg, dict):
             parts = []
             if "rho" in cfg:
-                parts.append(f"rho={cfg['rho']}")
+                parts.append(f"r={cfg['rho']}")
             if "keep" in cfg:
-                parts.append(f"keep={cfg['keep']}")
+                parts.append(f"k={cfg['keep']}")
             if parts:
                 tag = " (" + ", ".join(parts) + ")"
     return f"{model_name}{tag}"
@@ -419,6 +419,74 @@ def _extract_rho_from_config_json(cfg_raw: Any) -> float:
     except Exception:
         return np.nan
     return val if np.isfinite(val) else np.nan
+
+
+def _extract_keep_from_config_json(cfg_raw: Any) -> float:
+    if not isinstance(cfg_raw, str) or not cfg_raw.strip():
+        return np.nan
+    try:
+        cfg = json.loads(cfg_raw)
+    except Exception:
+        return np.nan
+    if not isinstance(cfg, dict):
+        return np.nan
+    try:
+        val = float(cfg.get("keep", np.nan))
+    except Exception:
+        return np.nan
+    return val if np.isfinite(val) else np.nan
+
+
+def _short_model_alias(model_name: str) -> str:
+    aliases = {
+        "LinearRegression": "LR",
+        "LGBMRegressor": "LGBM",
+        "LGBSmoothPenalty": "LGBSmooth",
+        "LGBCovPenalty": "LGBCov",
+        "LGBSmoothPenaltyCVaR": "LGBCVaR",
+        "LGBSmoothPenaltyCVaRTotal": "LGBCVaRTotal",
+        "LGBPrimalDual": "LGBPD",
+    }
+    return aliases.get(str(model_name), str(model_name))
+
+
+def _plot_model_name(model_name: Any, cfg_raw: Any) -> str:
+    """Keep-aware display key used only for plotting."""
+    base = _short_model_alias(str(model_name))
+    if base in {"LGBCVaR", "LGBCVaRTotal"}:
+        keep = _extract_keep_from_config_json(cfg_raw)
+        if np.isfinite(keep):
+            return f"{base} k={keep:g}"
+    return base
+
+
+def _build_plot_color_map(model_names: List[str]) -> Dict[str, Any]:
+    """
+    Distinct plotting colors by displayed model key.
+    CVaR keep-level variants get deterministic colors per keep.
+    """
+    cmap = _make_model_color_map(model_names)
+    cmap.update(
+        {
+            "LR": "royalblue",
+            "LGBM": "darkorange",
+            "LGBSmooth": "mediumorchid",
+            "LGBCov": "sienna",
+            "LGBCVaR": "firebrick",
+            "LGBCVaRTotal": "teal",
+            "LGBPD": "slategray",
+        }
+    )
+
+    cvar_palette = ["crimson", "tomato", "indianred", "salmon", "darkred"]
+    total_palette = ["teal", "cadetblue", "steelblue", "darkcyan", "deepskyblue"]
+    cvar_keys = sorted([k for k in cmap if k.startswith("LGBCVaR k=")])
+    total_keys = sorted([k for k in cmap if k.startswith("LGBCVaRTotal k=")])
+    for i, k in enumerate(cvar_keys):
+        cmap[k] = cvar_palette[i % len(cvar_palette)]
+    for i, k in enumerate(total_keys):
+        cmap[k] = total_palette[i % len(total_palette)]
+    return cmap
 
 
 def _blend_with_white(color: Any, intensity: float) -> Tuple[float, float, float]:
@@ -782,24 +850,18 @@ def _plot_tradeoff(
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.grid(True, alpha=0.35)
 
-    model_color_map = _make_model_color_map(dfx["model_name"].astype(str).tolist())
-    # Stabilize/force distinct family colors for readability.
-    model_color_map.update(
-        {
-            "LinearRegression": "royalblue",
-            "LGBMRegressor": "darkorange",
-            "LGBSmoothPenalty": "seagreen",
-            "LGBSmoothPenaltyCVaR": "mediumseagreen",
-            "LGBSmoothPenaltyCVaRTotal": "forestgreen",
-            "LGBCovPenalty": "mediumpurple",
-            "LGBPrimalDual": "teal",
-        }
-    )
+    if "model_config_json" in dfx.columns:
+        dfx["_plot_model_name"] = [
+            _plot_model_name(m, cfg) for m, cfg in zip(dfx["model_name"], dfx["model_config_json"])
+        ]
+    else:
+        dfx["_plot_model_name"] = dfx["model_name"].astype(str)
+    model_color_map = _build_plot_color_map(dfx["_plot_model_name"].astype(str).tolist())
     dfx["_rho"] = dfx["model_config_json"].apply(_extract_rho_from_config_json) if "model_config_json" in dfx.columns else np.nan
-    dfx["_model_name"] = dfx["model_name"].astype(str)
+    dfx["_model_name"] = dfx["_plot_model_name"].astype(str)
 
     for model_name, g in dfx.groupby("_model_name", sort=True):
-        is_baseline = model_name in {"LinearRegression", "LGBMRegressor"}
+        is_baseline = str(model_name) in {"LR", "LGBM"}
         marker = "*" if is_baseline else "o"
         size = 120 if is_baseline else 30
         base_color = model_color_map.get(model_name, "C0")
@@ -1507,11 +1569,31 @@ def run_results_analysis(
         if not evo_stack_lin.empty:
             evo_long = pd.concat([evo_long, evo_stack_lin], ignore_index=True)
 
+        # Keep-aware model names for CVaR families so each keep level is visualized
+        # as a distinct model line/color without altering stored run schemas.
+        cfg_plot_name_map: Dict[str, str] = {}
+        cfg_meta_for_plot = (
+            runs_df.loc[:, [c for c in ["config_id", "model_name", "model_config_json"] if c in runs_df.columns]]
+            .drop_duplicates(subset=["config_id"])
+            .copy()
+        )
+        if not cfg_meta_for_plot.empty:
+            cfg_meta_for_plot["config_id"] = cfg_meta_for_plot["config_id"].astype(str)
+            cfg_meta_for_plot["_plot_model_name"] = [
+                _plot_model_name(m, cfg) for m, cfg in zip(cfg_meta_for_plot["model_name"], cfg_meta_for_plot["model_config_json"])
+            ]
+            cfg_plot_name_map = dict(zip(cfg_meta_for_plot["config_id"], cfg_meta_for_plot["_plot_model_name"]))
+        evo_long["config_id"] = evo_long["config_id"].astype(str)
+        evo_long["model_name"] = [
+            cfg_plot_name_map.get(str(cfg_id), str(mname))
+            for cfg_id, mname in zip(evo_long["config_id"], evo_long["model_name"])
+        ]
+
         # Save aggregated table used for plotting
         evo_long.to_csv(analysis_dir / "evolution_bootstrap_summary.csv", index=False)
 
         # Color mapping by model family (model_name)
-        model_color_map = _make_model_color_map(evo_long["model_name"].tolist())
+        model_color_map = _build_plot_color_map(evo_long["model_name"].tolist())
         # Force stacking colors to be distinct and consistent
         if "STACKING_OPTIMUM_BOOTSTRAP" in model_color_map:
             model_color_map["STACKING_OPTIMUM_BOOTSTRAP"] = "crimson"
