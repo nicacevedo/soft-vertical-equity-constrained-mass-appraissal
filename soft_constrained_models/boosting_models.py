@@ -332,6 +332,202 @@ class LGBCovPenaltyCVaR:
             f"mse_keep={self.mse_keep})"
         )
 
+# 1.2) CVaR for the whole objective: minimize CVaR_keep(MSE + rho * Cov-surrogate))
+	# Assumes: that _cvar_topk_weights(values, keep) is already defined (same as in your code).
+class LGBCovPenaltyCVaRTotal:
+    """LightGBM objective: CVaR-tail selection based on a proxy of the TOTAL objective,
+    while keeping the direct covariance penalty gradient/hessian from LGBCovPenalty.
+
+    Core idea:
+      - The direct covariance penalty in LGBCovPenalty is non-separable:
+            0.5 * rho * n * cov^2
+        so there is no exact per-sample "CVaR of total objective" decomposition.
+      - We therefore build a per-sample proxy of the total objective:
+            total_proxy_i = mse_i + rho * smooth_proxy_i
+        where
+            smooth_proxy_i = (r_i - t)^2 * (y_i - y_mean)^2
+      - We compute CVaR top-k weights from total_proxy_i and apply them to the MSE term.
+      - The direct covariance penalty term is kept exactly as in LGBCovPenalty
+        (same diagonal Hessian approximation).
+
+    This means:
+      - Tail selection depends on BOTH accuracy and fairness-proxy ("Total/proxy" behavior).
+      - The fairness gradient still comes from the direct covariance penalty (not the surrogate).
+
+    Objective used for updates (practical approximation):
+      J ~= sum_i w_i * mse_i + 0.5 * rho * n * cov^2
+      where w comes from top-k(total_proxy).
+
+    Parameters
+    ----------
+    rho : float
+        Penalty strength for covariance term.
+    mse_keep : float in (0,1]
+        CVaR keep-fraction (same input name as your other CVaR class).
+        keep=1.0 recovers mean-MSE weighting.
+    ratio_mode : {"div","diff"}
+        Same as LGBCovPenalty.
+    anchor_mode : {"none","target","iter_mean"}
+        Same as LGBCovPenalty (effectively no-op for centered covariance; kept for API symmetry).
+    target_value : float or None
+        Anchor target for direct covariance class (same semantics as LGBCovPenalty; effectively no-op).
+    proxy_target_value : float or None
+        Target used ONLY in the smooth proxy for tail selection:
+          - default 1.0 if ratio_mode="div"
+          - default 0.0 if ratio_mode="diff"
+    zero_grad_tol : float
+        Numerical floor.
+    eps_y : float
+        Denominator protection for ratio_mode="div".
+    lgbm_params : dict or None
+        LightGBM regressor params.
+    verbose : bool
+        Print diagnostics each boosting call.
+    """
+
+    def __init__(
+        self,
+        rho=1e-3,
+        mse_keep=1.0,
+        ratio_mode="div",          # "div" or "diff"
+        anchor_mode="target",      # "none" | "target" | "iter_mean" (no-op for centered cov)
+        target_value=None,         # direct-cov anchor target (API symmetry)
+        proxy_target_value=None,   # target ONLY for total proxy tail selection
+        zero_grad_tol=1e-6,
+        eps_y=1e-12,
+        lgbm_params=None,
+        verbose=True,
+    ):
+        self.rho = float(rho)
+        self.mse_keep = float(mse_keep)
+        self.ratio_mode = ratio_mode
+        self.anchor_mode = anchor_mode
+        self.target_value = target_value
+        self.proxy_target_value = proxy_target_value
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.eps_y = float(eps_y)
+        self.verbose = bool(verbose)
+
+        if not (0.0 < self.mse_keep <= 1.0):
+            raise ValueError("mse_keep must be in (0, 1].")
+
+        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+    def fit(self, X, y):
+        self.y_mean_ = float(np.mean(y))
+        self.model.set_params(objective=self.fobj)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true, dtype=float)
+        y_pred = np.asarray(y_pred, dtype=float)
+        n = y_pred.size
+        n_float = float(n)
+
+        yc = (y_true - self.y_mean_)  # centered y
+
+        # ---- choose r and dr/dy_pred ----
+        if self.ratio_mode == "div":
+            denom = np.maximum(np.abs(y_true), self.eps_y)
+            r = y_pred / denom
+            dr = 1.0 / denom
+            t_proxy = 1.0 if self.proxy_target_value is None else float(self.proxy_target_value)
+        elif self.ratio_mode == "diff":
+            r = y_pred - y_true
+            dr = np.ones_like(y_pred)
+            t_proxy = 0.0 if self.proxy_target_value is None else float(self.proxy_target_value)
+        else:
+            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+
+        # ---- optional anchor for direct covariance (effectively no-op due centered yc) ----
+        if self.anchor_mode == "none":
+            anchor = 0.0
+        elif self.anchor_mode == "iter_mean":
+            anchor = float(np.mean(r))
+        elif self.anchor_mode == "target":
+            if self.target_value is None:
+                anchor = 1.0 if self.ratio_mode == "div" else 0.0
+            else:
+                anchor = float(self.target_value)
+        else:
+            raise ValueError("anchor_mode must be 'none', 'iter_mean', or 'target'.")
+
+        r_eff = r - anchor  # no change to cov in exact arithmetic because mean(yc)=0
+
+        # ---- direct covariance penalty (same as LGBCovPenalty) ----
+        cov = float(np.mean(r_eff * yc))
+        pen_value = 0.5 * self.rho * n_float * (cov ** 2)
+
+        # ---- separable pieces for CVaR tail selection proxy ----
+        mse_vec = (y_true - y_pred) ** 2
+        smooth_proxy_vec = (r - t_proxy) ** 2 * (yc ** 2)   # same shape/idea as LGBSmoothPenalty surrogate
+        total_proxy_vec = mse_vec + self.rho * smooth_proxy_vec
+
+        # CVaR weights based on "total proxy"
+        cvar_w = _cvar_topk_weights(total_proxy_vec, self.mse_keep)  # sums to 1
+        tail_scale = n_float * cvar_w
+
+        # Useful diagnostics
+        mse_mean = float(np.mean(mse_vec))
+        mse_cvar = float(np.sum(cvar_w * mse_vec))
+        proxy_cvar = float(np.sum(cvar_w * total_proxy_vec))
+        smooth_proxy_cvar = float(np.sum(cvar_w * smooth_proxy_vec))
+
+        try:
+            corr = float(np.corrcoef(r, y_true)[0, 1])
+        except Exception:
+            corr = float("nan")
+
+        if self.verbose:
+            model_name = self.__str__().split("(")[0]
+            print(
+                f"[{model_name}] "
+                f"Loss(proxy-tail): {(mse_cvar + pen_value):.6f} | "
+                f"MSE(mean): {mse_mean:.6f} | MSE CVaR: {mse_cvar:.6f} | "
+                f"TotalProxy CVaR: {proxy_cvar:.6f} | SmoothProxy CVaR: {smooth_proxy_cvar:.6f} | "
+                f"Cov: {cov:.6e} | Pen: {pen_value:.6f} | Corr(r,y): {corr:.6f} | "
+                f"mode: {self.ratio_mode} | keep: {self.mse_keep:.3f} | proxy_t: {t_proxy:.6f}"
+            )
+
+        # ==========================================================
+        # Base term gradients/hessians: CVaR-weighted MSE
+        # ==========================================================
+        grad_base = 2.0 * (y_pred - y_true) * tail_scale
+        hess_base = 2.0 * np.ones_like(y_pred) * tail_scale
+
+        # ==========================================================
+        # Direct covariance penalty grads/hess (same diagonal approx as LGBCovPenalty)
+        # cov = (1/n) sum_i r_i * yc_i
+        # dc/dpred_i = (1/n) * yc_i * dr_i
+        # penalty = 0.5 * rho * n * cov^2
+        # ==========================================================
+        a = (yc * dr) / n_float  # dc/dpred_i
+
+        grad_pen = self.rho * n_float * cov * a
+        hess_pen = self.rho * n_float * (a ** 2)
+
+        # NOTE:
+        # We do NOT CVaR-weight grad_pen/hess_pen here, because they come from the
+        # direct non-separable covariance objective. Weighting them would be a heuristic
+        # that does not correspond to this direct cov penalty derivative.
+        grad = grad_base + grad_pen
+        hess = hess_base + hess_pen
+
+        # Numerical floors (mimic original behavior)
+        grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        return grad, hess
+
+    def __str__(self):
+        return (
+            f"LGBCovPenaltyCVaRTotal(rho={self.rho}, ratio_mode={self.ratio_mode}, "
+            f"mse_keep={self.mse_keep})"
+        )
 
 
 # ==========================================================
