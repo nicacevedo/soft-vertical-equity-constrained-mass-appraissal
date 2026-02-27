@@ -28,7 +28,14 @@ except ImportError as e:  # pragma: no cover
     raise ImportError("`run_temporal_cv.py` requires lightgbm. Install via `pip install lightgbm`.") from e
 
 from preprocessing.recipes_pipelined import build_model_pipeline
-from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty, LGBSmoothPenaltyCVaR, LGBSmoothPenaltyCVaRTotal
+from soft_constrained_models.boosting_models import (
+    LGBCovPenalty,
+    LGBCovPenaltyCVaR,
+    LGBCovPenaltyCVaRTotal,
+    LGBSmoothPenalty,
+    LGBSmoothPenaltyCVaR,
+    LGBSmoothPenaltyCVaRTotal,
+)
 from utils.motivation_utils import _compute_extended_metrics, _stable_hash, run_robust_rolling_origin_cv
 
 
@@ -253,6 +260,40 @@ def _build_model_specs(
                     "requires_linear_pipeline": False,
                     "factory": (
                         lambda rho=r, keep=k: LGBSmoothPenaltyCVaR(
+                            rho=rho,
+                            mse_keep=keep,
+                            ratio_mode=fairness_ratio_mode,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=dict(lgbm_params),
+                            verbose=False,
+                        )
+                    ),
+                }
+            )
+            specs.append(
+                {
+                    "name": "LGBCovPenaltyCVaR",
+                    "config": {"rho": r, "keep": k},
+                    "requires_linear_pipeline": False,
+                    "factory": (
+                        lambda rho=r, keep=k: LGBCovPenaltyCVaR(
+                            rho=rho,
+                            mse_keep=keep,
+                            ratio_mode=fairness_ratio_mode,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=dict(lgbm_params),
+                            verbose=False,
+                        )
+                    ),
+                }
+            )
+            specs.append(
+                {
+                    "name": "LGBCovPenaltyCVaRTotal",
+                    "config": {"rho": r, "keep": k},
+                    "requires_linear_pipeline": False,
+                    "factory": (
+                        lambda rho=r, keep=k: LGBCovPenaltyCVaRTotal(
                             rho=rho,
                             mse_keep=keep,
                             ratio_mode=fairness_ratio_mode,

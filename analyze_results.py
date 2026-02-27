@@ -465,6 +465,8 @@ def _short_model_alias(model_name: str) -> str:
         "LGBCovPenalty": "LGBCov",
         "LGBSmoothPenaltyCVaR": "LGBCVaR",
         "LGBSmoothPenaltyCVaRTotal": "LGBCVaRTotal",
+        "LGBCovPenaltyCVaR": "LGBCovCVaR",
+        "LGBCovPenaltyCVaRTotal": "LGBCovCVaRTotal",
         "LGBPrimalDual": "LGBPD",
     }
     return aliases.get(str(model_name), str(model_name))
@@ -473,7 +475,7 @@ def _short_model_alias(model_name: str) -> str:
 def _plot_model_name(model_name: Any, cfg_raw: Any) -> str:
     """Keep-aware display key used only for plotting."""
     base = _short_model_alias(str(model_name))
-    if base in {"LGBCVaR", "LGBCVaRTotal"}:
+    if base in {"LGBCVaR", "LGBCVaRTotal", "LGBCovCVaR", "LGBCovCVaRTotal"}:
         keep = _extract_keep_from_config_json(cfg_raw)
         if np.isfinite(keep):
             return f"{base} k={keep:g}"
@@ -494,18 +496,28 @@ def _build_plot_color_map(model_names: List[str]) -> Dict[str, Any]:
             "LGBCov": "sienna",
             "LGBCVaR": "firebrick",
             "LGBCVaRTotal": "teal",
+            "LGBCovCVaR": "maroon",
+            "LGBCovCVaRTotal": "midnightblue",
             "LGBPD": "slategray",
         }
     )
 
     cvar_palette = ["crimson", "tomato", "indianred", "salmon", "darkred"]
     total_palette = ["teal", "cadetblue", "steelblue", "darkcyan", "deepskyblue"]
+    cov_cvar_palette = ["maroon", "brown", "chocolate", "peru", "rosybrown"]
+    cov_total_palette = ["midnightblue", "royalblue", "slateblue", "rebeccapurple", "mediumpurple"]
     cvar_keys = sorted([k for k in cmap if k.startswith("LGBCVaR k=")])
     total_keys = sorted([k for k in cmap if k.startswith("LGBCVaRTotal k=")])
+    cov_cvar_keys = sorted([k for k in cmap if k.startswith("LGBCovCVaR k=")])
+    cov_total_keys = sorted([k for k in cmap if k.startswith("LGBCovCVaRTotal k=")])
     for i, k in enumerate(cvar_keys):
         cmap[k] = cvar_palette[i % len(cvar_palette)]
     for i, k in enumerate(total_keys):
         cmap[k] = total_palette[i % len(total_palette)]
+    for i, k in enumerate(cov_cvar_keys):
+        cmap[k] = cov_cvar_palette[i % len(cov_cvar_palette)]
+    for i, k in enumerate(cov_total_keys):
+        cmap[k] = cov_total_palette[i % len(cov_total_palette)]
     return cmap
 
 
