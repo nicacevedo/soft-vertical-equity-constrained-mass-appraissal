@@ -1,0 +1,119 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            q0d1f6qgzfb6d0l1szjxrnss2r0cfxoa:
+                args:
+                    - --rho
+                    - "1.0"
+                    - --wandb
+                    - --wandb-project
+                    - quick-test-models
+                    - --wandb-run-name
+                    - smoke-rho1
+                codePath: quick_test_models.py
+                codePathLocal: quick_test_models.py
+                cpu_count: 192
+                cpu_count_logical: 384
+                disk:
+                    /:
+                        total: "474165116928"
+                        used: "50482884608"
+                email: ni.acevedo.villena@gmail.com
+                executable: /home/nacevedo/.conda/envs/fairness_env/bin/python
+                git:
+                    commit: 1f777127826add60f8bb5b095f1792408a4eff44
+                    remote: https://github.com/nicacevedo/soft-vertical-equity-constrained-mass-appraissal.git
+                host: node1623
+                memory:
+                    total: "1622196088832"
+                os: Linux-4.18.0-553.83.1.el8_10.x86_64-x86_64-with-glibc2.28
+                program: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/quick_test_models.py
+                python: CPython 3.9.19
+                root: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal
+                slurm:
+                    cluster_name: eofe7
+                    conf: /etc/slurm/slurm.conf
+                    cpu_bind: quiet,mask_cpu:0x200000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000
+                    cpu_bind_list: 0x200000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000
+                    cpu_bind_type: 'mask_cpu:'
+                    cpu_bind_verbose: quiet
+                    cpus_on_node: "1"
+                    distribution: cyclic
+                    gtids: "0"
+                    job_account: mit_general
+                    job_cpus_per_node: "1"
+                    job_end_time: "1772428823"
+                    job_gid: "256931"
+                    job_group: nacevedo
+                    job_id: "9882236"
+                    job_name: bash
+                    job_nodelist: node1623
+                    job_num_nodes: "1"
+                    job_partition: mit_normal
+                    job_qos: normal
+                    job_start_time: "1772400023"
+                    job_uid: "256931"
+                    job_user: nacevedo
+                    jobid: "9882236"
+                    launch_node_ipaddr: 10.1.10.130
+                    localid: "0"
+                    mem_per_node: "131072"
+                    nnodes: "1"
+                    nodeid: "0"
+                    nodelist: node1623
+                    nprocs: "1"
+                    ntasks: "1"
+                    oom_kill_step: "0"
+                    prio_process: "0"
+                    procid: "0"
+                    pty_port: "60622"
+                    pty_win_col: "231"
+                    pty_win_row: "56"
+                    script_context: prolog_task
+                    srun_comm_host: 10.1.10.130
+                    srun_comm_port: "58092"
+                    step_id: "0"
+                    step_launcher_port: "58092"
+                    step_nodelist: node1623
+                    step_num_nodes: "1"
+                    step_num_tasks: "1"
+                    step_tasks_per_node: "1"
+                    stepid: "0"
+                    submit_dir: /orcd/home/002/nacevedo/RA/fairness-for-regressivity-taxation/2025_assessment_python
+                    submit_host: eosloan
+                    task_pid: "2902906"
+                    tasks_per_node: "1"
+                    topology_addr: node1623
+                    topology_addr_pattern: node
+                    umask: "0002"
+                startedAt: "2026-03-01T21:28:45.963674Z"
+                writerId: q0d1f6qgzfb6d0l1szjxrnss2r0cfxoa
+        m: []
+        python_version: 3.9.19
+        t:
+            "1":
+                - 5
+                - 8
+                - 53
+            "2":
+                - 5
+                - 8
+                - 53
+            "3":
+                - 13
+                - 16
+            "4": 3.9.19
+            "5": 0.25.0
+            "10":
+                - 20
+            "12": 0.25.0
+            "13": linux-x86_64
+data_path:
+    value: ./data/CCAO/2025/training_data.parquet
+rho:
+    value: 1
+sample_frac:
+    value: null
+seed:
+    value: 4050

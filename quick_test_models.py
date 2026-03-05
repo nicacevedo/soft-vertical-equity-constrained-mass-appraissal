@@ -22,6 +22,7 @@ Outputs
 Writes 2 CSV tables under `--out-dir`:
   - quick_test_metrics_test.csv
   - quick_test_metrics_assess.csv
+  - quick_test_metrics_validation_bootstrap_avg.csv
 
 Each table contains accuracy + vertical equity metrics computed with the same
 metric routine used elsewhere in this repo (`_compute_extended_metrics`).
@@ -46,8 +47,8 @@ from sklearn.linear_model import LinearRegression
 import lightgbm as lgb
 
 from preprocessing.recipes_pipelined import build_model_pipeline
-from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty
-from utils.motivation_utils import _compute_extended_metrics
+from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty, LGBCovPenaltyCVaR, LGBSmoothPenaltyCVaR, LGBCovPenaltyCVaRTotal, LGBSmoothPenaltyCVaRTotal
+from utils.motivation_utils import _build_time_block_bootstrap_indices, _compute_extended_metrics
 
 
 def _build_lgbm_params_from_files(model_params: dict, ccao_params: dict, seed: int) -> dict:
@@ -148,6 +149,7 @@ def _fit_predict_and_score(
     X_eval: pd.DataFrame,
     y_eval_log: np.ndarray,
     fairness_ratio_mode: str,
+    return_prediction_log: bool = False,
 ) -> Dict[str, Any]:
     if requires_linear_pipeline:
         pipe = linear_pipeline_builder()
@@ -165,7 +167,10 @@ def _fit_predict_and_score(
         y_train_log=y_train_log,
         ratio_mode=fairness_ratio_mode,
     )
-    return {"model_name": model_name, **metrics}
+    out = {"model_name": model_name, **metrics}
+    if bool(return_prediction_log):
+        out["_y_pred_eval_log"] = y_pred_eval_log
+    return out
 
 
 def run_quick_test(
@@ -175,6 +180,8 @@ def run_quick_test(
     data_path: str,
     sample_frac: float | None,
     seed: int,
+    n_bootstrap_validation: int = 5,
+    bootstrap_block_freq: str = "M",
 ) -> Dict[str, str]:
     """
     Runs the 4-model quick test and writes the output CSV tables.
@@ -230,7 +237,8 @@ def run_quick_test(
         (
             f"LGBSmoothPenalty_rho_{rho}",
             LGBSmoothPenalty(
-                rho=float(rho),
+                # rho=float(rho),
+                rho=2.043,
                 ratio_mode="diff",
                 zero_grad_tol=1e-12,
                 lgbm_params=lgbm_params,
@@ -241,7 +249,8 @@ def run_quick_test(
         (
             f"LGBCovPenalty_rho_{rho}",
             LGBCovPenalty(
-                rho=float(rho),
+                # rho=float(rho),
+                rho=6.58,
                 ratio_mode="diff",
                 zero_grad_tol=1e-12,
                 lgbm_params=lgbm_params,
@@ -249,26 +258,67 @@ def run_quick_test(
             ),
             False,
         ),
+        (
+            f"LGBCovPenaltyCVaRTotal_rho_{rho}_keep_0.9",
+            LGBCovPenaltyCVaRTotal(
+                # rho=float(rho),
+                rho=6.58,
+                mse_keep=0.9,
+                ratio_mode="diff",
+                zero_grad_tol=1e-12,
+                lgbm_params=lgbm_params,
+                verbose=True,
+            ),
+            False,
+        ),
+        (
+            f"LGBCovPenaltyCVaRTotal_rho_{rho}_keep_0.7",
+            LGBCovPenaltyCVaRTotal(
+                # rho=float(rho),
+                rho=6.58,
+                mse_keep=0.7,
+                ratio_mode="diff",
+                zero_grad_tol=1e-12,
+                lgbm_params=lgbm_params,
+                verbose=True,
+            ),
+            False,
+        ),
+        (
+            f"LGBCovPenaltyCVaRTotal_rho_{rho}_keep_0.5",
+            LGBCovPenaltyCVaRTotal(
+                # rho=float(rho),
+                rho=6.58,
+                mse_keep=0.5,
+                ratio_mode="diff",
+                zero_grad_tol=1e-12,
+                lgbm_params=lgbm_params,
+                verbose=True,
+            ),
+            False,
+        )
     ]
 
     fairness_ratio_mode = "diff"
 
     # --- Evaluate on TEST (train on df_train_validate only; strict out-of-time).
     test_rows = []
+    test_pred_logs: Dict[str, np.ndarray] = {}
     for name, est, needs_pipe in models:
-        test_rows.append(
-            _fit_predict_and_score(
-                model_name=name,
-                estimator=est,
-                requires_linear_pipeline=needs_pipe,
-                linear_pipeline_builder=linear_pipeline_builder,
-                X_train=X_tv,
-                y_train_log=y_tv_log,
-                X_eval=X_test,
-                y_eval_log=y_test_log,
-                fairness_ratio_mode=fairness_ratio_mode,
-            )
+        row = _fit_predict_and_score(
+            model_name=name,
+            estimator=est,
+            requires_linear_pipeline=needs_pipe,
+            linear_pipeline_builder=linear_pipeline_builder,
+            X_train=X_tv,
+            y_train_log=y_tv_log,
+            X_eval=X_test,
+            y_eval_log=y_test_log,
+            fairness_ratio_mode=fairness_ratio_mode,
+            return_prediction_log=True,
         )
+        test_pred_logs[str(name)] = np.asarray(row.pop("_y_pred_eval_log"), dtype=float).reshape(-1)
+        test_rows.append(row)
     test_df = pd.DataFrame(test_rows)
 
     # --- Evaluate on ASSESS (train on ALL pre-2024 sales, i.e., train_validate + test).
@@ -282,30 +332,73 @@ def run_quick_test(
 
         assess_rows = []
         for name, est, needs_pipe in models:
-            assess_rows.append(
-                _fit_predict_and_score(
-                    model_name=name,
-                    estimator=est,
-                    requires_linear_pipeline=needs_pipe,
-                    linear_pipeline_builder=linear_pipeline_builder,
-                    X_train=X_pre,
-                    y_train_log=y_pre_log,
-                    X_eval=X_assess,
-                    y_eval_log=y_assess_log,
-                    fairness_ratio_mode=fairness_ratio_mode,
-                )
+            row = _fit_predict_and_score(
+                model_name=name,
+                estimator=est,
+                requires_linear_pipeline=needs_pipe,
+                linear_pipeline_builder=linear_pipeline_builder,
+                X_train=X_pre,
+                y_train_log=y_pre_log,
+                X_eval=X_assess,
+                y_eval_log=y_assess_log,
+                fairness_ratio_mode=fairness_ratio_mode,
             )
+            assess_rows.append(row)
         assess_df = pd.DataFrame(assess_rows)
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     test_path = out / "quick_test_metrics_test.csv"
     assess_path = out / "quick_test_metrics_assess.csv"
+    bootstrap_val_path = out / "quick_test_metrics_validation_bootstrap_avg.csv"
     test_df.to_csv(test_path, index=False)
     if not assess_df.empty:
         assess_df.to_csv(assess_path, index=False)
 
-    return {"test_csv": str(test_path), "assess_csv": str(assess_path)}
+    # --- Small bootstrap summary over the quick-test split (validation-like diagnostic).
+    bootstrap_rows: List[Dict[str, Any]] = []
+    n_bs = max(0, int(n_bootstrap_validation))
+    if n_bs > 0 and y_test_log.size > 1 and test_pred_logs:
+        bs_indices = _build_time_block_bootstrap_indices(
+            val_dates=pd.to_datetime(df_test[date_column]),
+            n_bootstrap=n_bs,
+            block_freq=str(bootstrap_block_freq),
+            rng_seed=int(seed),
+        )
+        for model_name, y_pred_log in test_pred_logs.items():
+            per_bs: List[Dict[str, Any]] = []
+            for sample_idx in bs_indices:
+                idx = np.asarray(sample_idx, dtype=int)
+                if idx.size < 2:
+                    continue
+                m = _compute_extended_metrics(
+                    y_true_log=y_test_log[idx],
+                    y_pred_log=y_pred_log[idx],
+                    y_train_log=y_tv_log,
+                    ratio_mode=fairness_ratio_mode,
+                )
+                per_bs.append(m)
+            if not per_bs:
+                continue
+            bs_df = pd.DataFrame(per_bs)
+            row: Dict[str, Any] = {
+                "model_name": str(model_name),
+                "n_bootstrap": int(len(per_bs)),
+                "bootstrap_block_freq": str(bootstrap_block_freq),
+            }
+            for c in bs_df.columns:
+                s = pd.to_numeric(bs_df[c], errors="coerce")
+                v = s.to_numpy(dtype=float)
+                if np.isfinite(v).any():
+                    row[c] = float(np.nanmean(v))
+            bootstrap_rows.append(row)
+    pd.DataFrame(bootstrap_rows).to_csv(bootstrap_val_path, index=False)
+
+    return {
+        "test_csv": str(test_path),
+        "assess_csv": str(assess_path),
+        "bootstrap_validation_avg_csv": str(bootstrap_val_path),
+    }
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -320,6 +413,8 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--sample-frac", type=float, default=None, help="Optional down-sampling fraction in (0,1].")
     p.add_argument("--seed", type=int, default=4050, help="Random seed (mirrors main.py default).")
+    p.add_argument("--n-bootstrap-validation", type=int, default=5, help="Small number of bootstrap resamples for quick validation-like summary.")
+    p.add_argument("--bootstrap-block-freq", type=str, default="M", help="Time block frequency for bootstrap resampling (e.g., M, W, Q).")
     return p
 
 
@@ -331,10 +426,13 @@ if __name__ == "__main__":
         data_path=str(args.data_path),
         sample_frac=(None if args.sample_frac is None else float(args.sample_frac)),
         seed=int(args.seed),
+        n_bootstrap_validation=int(args.n_bootstrap_validation),
+        bootstrap_block_freq=str(args.bootstrap_block_freq),
     )
     print("=" * 90)
     print("QUICK TEST COMPLETED")
     print("=" * 90)
     print(f"test_csv={out['test_csv']}")
     print(f"assess_csv={out['assess_csv']}")
+    print(f"bootstrap_validation_avg_csv={out['bootstrap_validation_avg_csv']}")
 

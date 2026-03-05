@@ -1010,6 +1010,28 @@ def _plot_tradeoff(
     return int(dfx.shape[0])
 
 
+def _filter_tradeoff_by_lr_baseline(df: pd.DataFrame, *, y_col: str) -> pd.DataFrame:
+    """
+    Keep only rows with y_col >= LinearRegression baseline in this same table.
+    Baseline rows are always kept.
+    """
+    if df is None or df.empty or "model_name" not in df.columns or y_col not in df.columns:
+        return df
+    dfx = df.copy()
+    dfx[y_col] = pd.to_numeric(dfx[y_col], errors="coerce")
+    dfx = dfx[np.isfinite(dfx[y_col])].copy()
+    if dfx.empty:
+        return dfx
+    lr = dfx[dfx["model_name"].astype(str) == "LinearRegression"].copy()
+    if lr.empty:
+        return dfx
+    thr = float(np.nanmean(pd.to_numeric(lr[y_col], errors="coerce").to_numpy(dtype=float)))
+    if not np.isfinite(thr):
+        return dfx
+    keep_mask = (dfx["model_name"].astype(str) == "LinearRegression") | (dfx[y_col] >= thr)
+    return dfx[keep_mask].copy()
+
+
 def _pick_validation_single_run_fold_id(runs_df: pd.DataFrame) -> int:
     dfx = _prepare_df(runs_df)
     acc_col = "OOS R2" if "OOS R2" in dfx.columns else "R2"
@@ -1670,6 +1692,7 @@ def run_results_analysis(
     skip_first_folds: int = 0,
     skip_first_folds_for_stats: int = 0,
     exclude_models_tradeoff: Optional[List[str]] = None,
+    filter_below_lr_tradeoff: bool = False,
 ) -> Dict[str, Any]:
     t0 = time.time()
     _progress_log(
@@ -2009,8 +2032,9 @@ def run_results_analysis(
     for x_col, y_col in plot_pairs:
         if x_col not in val_plot_df.columns or y_col not in val_plot_df.columns:
             continue
+        dplot = _filter_tradeoff_by_lr_baseline(val_plot_df, y_col=y_col) if bool(filter_below_lr_tradeoff) else val_plot_df
         _plot_tradeoff(
-            val_plot_df,
+            dplot,
             x_col=x_col,
             y_col=y_col,
             title=f"Validation (avg folds): {x_col} vs {y_col}",
@@ -2037,8 +2061,9 @@ def run_results_analysis(
     ]:
         if x_col not in single_df.columns or y_col not in single_df.columns:
             continue
+        dplot = _filter_tradeoff_by_lr_baseline(single_df, y_col=y_col) if bool(filter_below_lr_tradeoff) else single_df
         _plot_tradeoff(
-            single_df,
+            dplot,
             x_col=x_col,
             y_col=y_col,
             title=f"Validation (fold {fold_id}): {x_col} vs {y_col}",
@@ -2066,9 +2091,10 @@ def run_results_analysis(
         ]:
             if x_col not in test_df.columns or y_col not in test_df.columns:
                 continue
+            dplot = _filter_tradeoff_by_lr_baseline(test_df, y_col=y_col) if bool(filter_below_lr_tradeoff) else test_df
             overlay = pd.concat([test_overlay_avg, test_overlay_worst], ignore_index=True) if (not test_overlay_avg.empty or not test_overlay_worst.empty) else None
             _plot_tradeoff(
-                test_df,
+                dplot,
                 x_col=x_col,
                 y_col=y_col,
                 title=f"Test (held-out): {x_col} vs {y_col}",
@@ -2214,6 +2240,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default="",
         help="Comma-separated model_name values to exclude from tradeoff plots only (e.g., 'LinearRegression').",
     )
+    p.add_argument(
+        "--filter-below-lr-tradeoff",
+        action="store_true",
+        help="If set, remove tradeoff points whose y-metric is below the LinearRegression baseline for that plot.",
+    )
     return p
 
 
@@ -2228,6 +2259,7 @@ if __name__ == "__main__":
         skip_first_folds=int(args.skip_first_folds),
         skip_first_folds_for_stats=int(args.skip_first_folds_for_stats),
         exclude_models_tradeoff=exclude_models_tradeoff,
+        filter_below_lr_tradeoff=bool(args.filter_below_lr_tradeoff),
     )
     print("=" * 90)
     print("RESULTS ANALYSIS COMPLETED")

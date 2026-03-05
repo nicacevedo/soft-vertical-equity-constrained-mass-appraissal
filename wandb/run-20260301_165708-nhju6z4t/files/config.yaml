@@ -1,0 +1,2103 @@
+_wandb:
+    value:
+        cli_version: 0.25.0
+        e:
+            qgz57kuun9nbiq7smhjnjom30d46banr:
+                args:
+                    - --rho
+                    - "1.0"
+                    - --wandb
+                    - --wandb-project
+                    - quick-test-models
+                    - --wandb-run-name
+                    - smoke-rho1
+                codePath: quick_test_models.py
+                codePathLocal: quick_test_models.py
+                cpu_count: 192
+                cpu_count_logical: 384
+                disk:
+                    /:
+                        total: "474165116928"
+                        used: "50482995200"
+                email: ni.acevedo.villena@gmail.com
+                executable: /home/nacevedo/.conda/envs/fairness_env/bin/python
+                git:
+                    commit: 1f777127826add60f8bb5b095f1792408a4eff44
+                    remote: https://github.com/nicacevedo/soft-vertical-equity-constrained-mass-appraissal.git
+                host: node1623
+                memory:
+                    total: "1622196088832"
+                os: Linux-4.18.0-553.83.1.el8_10.x86_64-x86_64-with-glibc2.28
+                program: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/quick_test_models.py
+                python: CPython 3.9.19
+                root: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal
+                slurm:
+                    cluster_name: eofe7
+                    conf: /etc/slurm/slurm.conf
+                    cpu_bind: quiet,mask_cpu:0x200000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000
+                    cpu_bind_list: 0x200000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000
+                    cpu_bind_type: 'mask_cpu:'
+                    cpu_bind_verbose: quiet
+                    cpus_on_node: "1"
+                    distribution: cyclic
+                    gtids: "0"
+                    job_account: mit_general
+                    job_cpus_per_node: "1"
+                    job_end_time: "1772428823"
+                    job_gid: "256931"
+                    job_group: nacevedo
+                    job_id: "9882236"
+                    job_name: bash
+                    job_nodelist: node1623
+                    job_num_nodes: "1"
+                    job_partition: mit_normal
+                    job_qos: normal
+                    job_start_time: "1772400023"
+                    job_uid: "256931"
+                    job_user: nacevedo
+                    jobid: "9882236"
+                    launch_node_ipaddr: 10.1.10.130
+                    localid: "0"
+                    mem_per_node: "131072"
+                    nnodes: "1"
+                    nodeid: "0"
+                    nodelist: node1623
+                    nprocs: "1"
+                    ntasks: "1"
+                    oom_kill_step: "0"
+                    prio_process: "0"
+                    procid: "0"
+                    pty_port: "60622"
+                    pty_win_col: "231"
+                    pty_win_row: "56"
+                    script_context: prolog_task
+                    srun_comm_host: 10.1.10.130
+                    srun_comm_port: "58092"
+                    step_id: "0"
+                    step_launcher_port: "58092"
+                    step_nodelist: node1623
+                    step_num_nodes: "1"
+                    step_num_tasks: "1"
+                    step_tasks_per_node: "1"
+                    stepid: "0"
+                    submit_dir: /orcd/home/002/nacevedo/RA/fairness-for-regressivity-taxation/2025_assessment_python
+                    submit_host: eosloan
+                    task_pid: "2902906"
+                    tasks_per_node: "1"
+                    topology_addr: node1623
+                    topology_addr_pattern: node
+                    umask: "0002"
+                startedAt: "2026-03-01T21:57:08.184277Z"
+                writerId: qgz57kuun9nbiq7smhjnjom30d46banr
+        m: []
+        python_version: 3.9.19
+        t:
+            "1":
+                - 5
+                - 8
+                - 53
+            "2":
+                - 5
+                - 8
+                - 53
+            "3":
+                - 2
+                - 13
+                - 16
+                - 61
+                - 62
+            "4": 3.9.19
+            "5": 0.25.0
+            "10":
+                - 20
+            "12": 0.25.0
+            "13": linux-x86_64
+        visualize:
+            assess/evolution/COD:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: COD'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/COD_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/COV_IAAO:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: COV_IAAO'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/COV_IAAO_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Corr(r,logprice):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Corr(r,logprice)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Corr(r,logprice)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Corr(r,price):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Corr(r,price)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Corr(r,price)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Corr(r,y)_price:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Corr(r,y)_price'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Corr(r,y)_price_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/FisherZ(r,y)_price:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: FisherZ(r,y)_price'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/FisherZ(r,y)_price_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/MAE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: MAE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/MAE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/MAPE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: MAPE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/MAPE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/MKI:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: MKI'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/MKI_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/MdAPE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: MdAPE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/MdAPE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Mean ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Mean ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Mean ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Median ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Median ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Median ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/OOS R2:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: OOS R2'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/OOS R2_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/PRB:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: PRB'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/PRB_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/PRD:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: PRD'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/PRD_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/R2:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: R2'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/R2_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/R2 (log):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: R2 (log)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/R2 (log)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/RMSE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: RMSE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/RMSE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Slope(r~logy):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Slope(r~logy)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Slope(r~logy)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Slope(r~y)_price:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Slope(r~y)_price'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Slope(r~y)_price_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/VEI:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: VEI'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/VEI_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Var ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Var ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Var ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Var(r):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Var(r)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Var(r)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/Var(y):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: Var(y)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/Var(y)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/W. Mean ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: W. Mean ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/W. Mean ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/r_q05:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: r_q05'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/r_q05_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/r_q50:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: r_q50'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/r_q50_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/r_q95:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: r_q95'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/r_q95_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/small_abs_y_share:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: small_abs_y_share'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/small_abs_y_share_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/val_rows:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: val_rows'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/val_rows_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/y_q05:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: y_q05'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/y_q05_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/y_q50:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: y_q50'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/y_q50_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            assess/evolution/y_q95:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'assess metric evolution: y_q95'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: assess/evolution/y_q95_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/COD:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: COD'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/COD_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/COV_IAAO:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: COV_IAAO'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/COV_IAAO_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Corr(r,logprice):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Corr(r,logprice)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Corr(r,logprice)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Corr(r,price):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Corr(r,price)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Corr(r,price)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Corr(r,y)_price:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Corr(r,y)_price'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Corr(r,y)_price_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/FisherZ(r,y)_price:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: FisherZ(r,y)_price'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/FisherZ(r,y)_price_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/MAE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: MAE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/MAE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/MAPE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: MAPE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/MAPE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/MKI:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: MKI'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/MKI_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/MdAPE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: MdAPE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/MdAPE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Mean ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Mean ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Mean ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Median ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Median ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Median ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/OOS R2:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: OOS R2'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/OOS R2_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/PRB:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: PRB'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/PRB_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/PRD:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: PRD'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/PRD_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/R2:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: R2'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/R2_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/R2 (log):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: R2 (log)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/R2 (log)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/RMSE:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: RMSE'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/RMSE_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Slope(r~logy):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Slope(r~logy)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Slope(r~logy)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Slope(r~y)_price:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Slope(r~y)_price'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Slope(r~y)_price_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/VEI:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: VEI'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/VEI_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Var ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Var ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Var ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Var(r):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Var(r)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Var(r)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/Var(y):
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: Var(y)'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/Var(y)_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/W. Mean ratio:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: W. Mean ratio'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/W. Mean ratio_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/r_q05:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: r_q05'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/r_q05_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/r_q50:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: r_q50'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/r_q50_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/r_q95:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: r_q95'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/r_q95_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/small_abs_y_share:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: small_abs_y_share'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/small_abs_y_share_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/val_rows:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: val_rows'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/val_rows_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/y_q05:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: y_q05'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/y_q05_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/y_q50:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: y_q50'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/y_q50_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+            test/evolution/y_q95:
+                panel_config:
+                    fieldSettings:
+                        stroke: null
+                        x: model_step
+                        "y": value
+                    panelDefId: wandb/line/v0
+                    stringSettings:
+                        title: 'test metric evolution: y_q95'
+                    transform:
+                        name: tableWithLeafColNames
+                    userQuery:
+                        queryFields:
+                            - args:
+                                - name: runSets
+                                  value: ${runSets}
+                              fields:
+                                - fields: []
+                                  name: id
+                                - fields: []
+                                  name: name
+                                - fields: []
+                                  name: _defaultColorIndex
+                                - args:
+                                    - name: tableKey
+                                      value: test/evolution/y_q95_table
+                                  fields: []
+                                  name: summaryTable
+                              name: runSets
+                panel_type: Vega2
+data_path:
+    value: ./data/CCAO/2025/training_data.parquet
+rho:
+    value: 1
+sample_frac:
+    value: null
+seed:
+    value: 4050

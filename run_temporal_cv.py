@@ -207,7 +207,8 @@ def _load_and_split_data(
 def _build_model_specs(
     *,
     lgbm_params: dict,
-    rho_values: List[float],
+    rho_values_smooth: List[float],
+    rho_values_cov: List[float],
     keep_values: List[float],
     fairness_ratio_mode: str,
 ) -> List[Dict[str, Any]]:
@@ -233,7 +234,7 @@ def _build_model_specs(
 
     # Soft penalty variants (rho sweep)
     keep_sweep = [float(k) for k in keep_values] if keep_values else [1.0]
-    for rho in rho_values:
+    for rho in rho_values_smooth:
         r = float(rho)
         specs.append(
             {
@@ -241,14 +242,6 @@ def _build_model_specs(
                 "config": {"rho": r},
                 "requires_linear_pipeline": False,
                 "factory": (lambda rho=r: LGBSmoothPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
-            }
-        )
-        specs.append(
-            {
-                "name": "LGBCovPenalty",
-                "config": {"rho": r},
-                "requires_linear_pipeline": False,
-                "factory": (lambda rho=r: LGBCovPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
             }
         )
         for keep in keep_sweep:
@@ -272,13 +265,13 @@ def _build_model_specs(
             )
             specs.append(
                 {
-                    "name": "LGBCovPenaltyCVaR",
+                    "name": "LGBSmoothPenaltyCVaRTotal",
                     "config": {"rho": r, "keep": k},
                     "requires_linear_pipeline": False,
                     "factory": (
-                        lambda rho=r, keep=k: LGBCovPenaltyCVaR(
+                        lambda rho=r, keep=k: LGBSmoothPenaltyCVaRTotal(
                             rho=rho,
-                            mse_keep=keep,
+                            keep=keep,
                             ratio_mode=fairness_ratio_mode,
                             zero_grad_tol=1e-12,
                             lgbm_params=dict(lgbm_params),
@@ -287,6 +280,36 @@ def _build_model_specs(
                     ),
                 }
             )
+
+    for rho in rho_values_cov:
+        r = float(rho)
+        specs.append(
+            {
+                "name": "LGBCovPenalty",
+                "config": {"rho": r},
+                "requires_linear_pipeline": False,
+                "factory": (lambda rho=r: LGBCovPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
+            }
+        )
+        for keep in keep_sweep:
+            k = float(keep)
+            # specs.append( # NOTE: This variant is not stable, since its just one side of the loss. It has overflow issues.
+            #     {
+            #         "name": "LGBCovPenaltyCVaR",
+            #         "config": {"rho": r, "keep": k},
+            #         "requires_linear_pipeline": False,
+            #         "factory": (
+            #             lambda rho=r, keep=k: LGBCovPenaltyCVaR(
+            #                 rho=rho,
+            #                 mse_keep=keep,
+            #                 ratio_mode=fairness_ratio_mode,
+            #                 zero_grad_tol=1e-12,
+            #                 lgbm_params=dict(lgbm_params),
+            #                 verbose=False,
+            #             )
+            #         ),
+            #     }
+            # )
             specs.append(
                 {
                     "name": "LGBCovPenaltyCVaRTotal",
@@ -296,23 +319,6 @@ def _build_model_specs(
                         lambda rho=r, keep=k: LGBCovPenaltyCVaRTotal(
                             rho=rho,
                             mse_keep=keep,
-                            ratio_mode=fairness_ratio_mode,
-                            zero_grad_tol=1e-12,
-                            lgbm_params=dict(lgbm_params),
-                            verbose=False,
-                        )
-                    ),
-                }
-            )
-            specs.append(
-                {
-                    "name": "LGBSmoothPenaltyCVaRTotal",
-                    "config": {"rho": r, "keep": k},
-                    "requires_linear_pipeline": False,
-                    "factory": (
-                        lambda rho=r, keep=k: LGBSmoothPenaltyCVaRTotal(
-                            rho=rho,
-                            keep=keep,
                             ratio_mode=fairness_ratio_mode,
                             zero_grad_tol=1e-12,
                             lgbm_params=dict(lgbm_params),
@@ -451,6 +457,8 @@ def run_full_pipeline(
     sample_frac: float | None,
     seed: int,
     rho_values: List[float],
+    rho_values_smooth: Optional[List[float]],
+    rho_values_cov: Optional[List[float]],
     keep_values: List[float],
     split_protocol: Dict[str, Any],
     bootstrap_protocol: Dict[str, Any],
@@ -494,9 +502,12 @@ def run_full_pipeline(
     )
 
     lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed, use_ccao_fallback=use_ccao_fallback)
+    smooth_rhos = [float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)]
+    cov_rhos = [float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)]
     model_specs = _build_model_specs(
         lgbm_params=lgbm_params,
-        rho_values=rho_values,
+        rho_values_smooth=smooth_rhos,
+        rho_values_cov=cov_rhos,
         keep_values=keep_values,
         fairness_ratio_mode=fairness_ratio_mode,
     )
@@ -614,6 +625,47 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
     p.add_argument("--rho-scale", type=str, default=str(cfg.get("rho_scale", "linear")),
                    choices=["linear", "log", "geom"],
                    help="Spacing scale used when --rho-values provides two bounds.")
+    # Optional family-specific rho sweeps (fallback to common rho sweep when omitted).
+    default_rho_smooth = cfg.get("rho_values_smooth", None)
+    default_rho_cov = cfg.get("rho_values_cov", None)
+    p.add_argument(
+        "--rho-values-smooth",
+        type=str,
+        default=(None if default_rho_smooth is None else ",".join(str(v) for v in default_rho_smooth)),
+        help="Optional smooth-family rho sweep override (LGBSmooth*). Same format as --rho-values.",
+    )
+    p.add_argument(
+        "--rho-values-cov",
+        type=str,
+        default=(None if default_rho_cov is None else ",".join(str(v) for v in default_rho_cov)),
+        help="Optional cov-family rho sweep override (LGBCov*). Same format as --rho-values.",
+    )
+    p.add_argument(
+        "--rho-count-smooth",
+        type=int,
+        default=(None if cfg.get("rho_count_smooth", None) is None else int(cfg.get("rho_count_smooth"))),
+        help="Optional rho_count override for --rho-values-smooth.",
+    )
+    p.add_argument(
+        "--rho-count-cov",
+        type=int,
+        default=(None if cfg.get("rho_count_cov", None) is None else int(cfg.get("rho_count_cov"))),
+        help="Optional rho_count override for --rho-values-cov.",
+    )
+    p.add_argument(
+        "--rho-scale-smooth",
+        type=str,
+        default=cfg.get("rho_scale_smooth", None),
+        choices=["linear", "log", "geom"],
+        help="Optional rho_scale override for --rho-values-smooth.",
+    )
+    p.add_argument(
+        "--rho-scale-cov",
+        type=str,
+        default=cfg.get("rho_scale_cov", None),
+        choices=["linear", "log", "geom"],
+        help="Optional rho_scale override for --rho-values-cov.",
+    )
     p.add_argument("--keep-values", type=str, default=default_keep, help="Comma-separated keep values for primal-dual models.")
 
     # --- Split protocol ---
@@ -682,6 +734,20 @@ if __name__ == "__main__":
         rho_count=int(args.rho_count),
         rho_scale=str(args.rho_scale),
     )
+    rho_values_smooth: Optional[List[float]] = None
+    rho_values_cov: Optional[List[float]] = None
+    if args.rho_values_smooth is not None and str(args.rho_values_smooth).strip() != "":
+        rho_values_smooth = _build_rho_values(
+            _parse_float_list(str(args.rho_values_smooth)),
+            rho_count=int(args.rho_count if args.rho_count_smooth is None else args.rho_count_smooth),
+            rho_scale=str(args.rho_scale if args.rho_scale_smooth is None else args.rho_scale_smooth),
+        )
+    if args.rho_values_cov is not None and str(args.rho_values_cov).strip() != "":
+        rho_values_cov = _build_rho_values(
+            _parse_float_list(str(args.rho_values_cov)),
+            rho_count=int(args.rho_count if args.rho_count_cov is None else args.rho_count_cov),
+            rho_scale=str(args.rho_scale if args.rho_scale_cov is None else args.rho_scale_cov),
+        )
 
     out = run_full_pipeline(
         result_root=str(args.result_root),
@@ -689,6 +755,8 @@ if __name__ == "__main__":
         sample_frac=(None if args.sample_frac is None else float(args.sample_frac)),
         seed=int(args.seed),
         rho_values=rho_values,
+        rho_values_smooth=rho_values_smooth,
+        rho_values_cov=rho_values_cov,
         keep_values=[float(x) for x in _parse_float_list(str(args.keep_values))],
         split_protocol={
             "train_mode": str(args.train_mode),
