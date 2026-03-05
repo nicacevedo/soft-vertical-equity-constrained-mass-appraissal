@@ -15,6 +15,7 @@ slurm-*.out
 runs/
 outputs/
 tmp/
+wandb/
 
 # OS/editor
 .DS_Store

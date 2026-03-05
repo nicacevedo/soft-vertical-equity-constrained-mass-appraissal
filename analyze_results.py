@@ -19,7 +19,9 @@ from __future__ import annotations
 import argparse
 import json
 import shutil
+import subprocess
 import time
+import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -272,6 +274,7 @@ def _build_test_bootstrap_metrics(
     analysis_dir: Path,
     protocol: Dict[str, Any],
     config_meta: pd.DataFrame,
+    bootstrap_limit: Optional[int] = None,
 ) -> pd.DataFrame:
     preds_path = analysis_dir / "test_predictions.parquet"
     meta_path = analysis_dir / "test_eval_metadata.json"
@@ -287,7 +290,6 @@ def _build_test_bootstrap_metrics(
         return pd.DataFrame()
 
     test_meta = json.loads(meta_path.read_text(encoding="utf-8"))
-    ratio_mode = str(test_meta.get("fairness_ratio_mode", "diff"))
     y_train_log_mean = float(test_meta.get("y_train_log_mean", np.nan))
     if not np.isfinite(y_train_log_mean):
         return pd.DataFrame()
@@ -323,6 +325,10 @@ def _build_test_bootstrap_metrics(
     )
     if not bs_indices:
         return pd.DataFrame()
+    if bootstrap_limit is not None and int(bootstrap_limit) > 0:
+        bs_indices = bs_indices[: int(bootstrap_limit)]
+    if not bs_indices:
+        return pd.DataFrame()
 
     pred_wide = pred_df.pivot_table(index="row_id", columns="config_id", values="y_pred_log", aggfunc="first")
     pred_wide = pred_wide.reindex(index=row_order)
@@ -330,22 +336,29 @@ def _build_test_bootstrap_metrics(
 
     meta = config_meta.copy()
     meta["config_id"] = meta["config_id"].astype(str)
+    meta_lookup: Dict[str, Tuple[str, float]] = {}
+    for _, r in meta.iterrows():
+        cfg = str(r.get("config_id", ""))
+        if not cfg:
+            continue
+        mname = str(r.get("model_name", cfg))
+        rho = float(r["rho"]) if ("rho" in r and np.isfinite(pd.to_numeric(r["rho"], errors="coerce"))) else np.nan
+        meta_lookup[cfg] = (mname, rho)
     rows: List[Dict[str, Any]] = []
     for cfg in pred_wide.columns.tolist():
         y_pred_log = pd.to_numeric(pred_wide[cfg], errors="coerce").to_numpy(dtype=float)
         if not np.all(np.isfinite(y_pred_log)):
             continue
-        mrow = meta.loc[meta["config_id"] == str(cfg)].head(1)
-        model_name = str(mrow["model_name"].iloc[0]) if not mrow.empty and "model_name" in mrow.columns else str(cfg)
-        rho = float(mrow["rho"].iloc[0]) if (not mrow.empty and "rho" in mrow.columns and np.isfinite(mrow["rho"].iloc[0])) else np.nan
+        model_name, rho = meta_lookup.get(str(cfg), (str(cfg), np.nan))
         for b_idx, sample_idx in enumerate(bs_indices):
             y_true_bs = y_true_log[sample_idx]
             y_pred_bs = y_pred_log[sample_idx]
-            met = _compute_extended_metrics(
-                y_true_log=y_true_bs,
-                y_pred_log=y_pred_bs,
-                y_train_log=y_train_log,
-                ratio_mode=ratio_mode,
+            # Fast path: keep only core taxation metrics used by downstream summaries.
+            met = compute_taxation_metrics(
+                y_real=y_true_bs,
+                y_pred=y_pred_bs,
+                scale="log",
+                y_train=y_train_log,
             )
             rows.append(
                 {
@@ -1032,6 +1045,393 @@ def _filter_tradeoff_by_lr_baseline(df: pd.DataFrame, *, y_col: str) -> pd.DataF
     return dfx[keep_mask].copy()
 
 
+def _code_version_short() -> Optional[str]:
+    try:
+        out = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL)
+        txt = out.decode("utf-8", errors="ignore").strip()
+        return txt or None
+    except Exception:
+        return None
+
+
+def _load_split_protocol_meta(*, result_root: str, data_id: str, split_id: str) -> Dict[str, Any]:
+    out: Dict[str, Any] = {"cv_scheme": "rolling_origin", "bootstrap_spec": ""}
+    p = Path(result_root) / "protocol" / f"data_id={data_id}" / f"split_id={split_id}" / "folds.json"
+    if not p.exists():
+        return out
+    try:
+        payload = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return out
+    sp = payload.get("split_protocol", {}) if isinstance(payload, dict) else {}
+    bp = payload.get("bootstrap_protocol", {}) if isinstance(payload, dict) else {}
+    if isinstance(sp, dict):
+        train_mode = sp.get("train_mode", "expanding")
+        itm = sp.get("initial_train_months", "")
+        vf = sp.get("val_fraction", None)
+        if vf is None:
+            vw = sp.get("val_window_months", "")
+            sm = sp.get("step_months", "")
+            out["cv_scheme"] = f"rolling_origin:{train_mode}:init={itm}:valm={vw}:step={sm}"
+        else:
+            out["cv_scheme"] = f"rolling_origin:{train_mode}:init={itm}:val_fraction={vf}"
+    if isinstance(bp, dict):
+        out["bootstrap_spec"] = f"n={bp.get('n_bootstrap', 0)}|freq={bp.get('block_freq', 'M')}|seed={bp.get('seed', 2025)}"
+    return out
+
+
+def _normalize_tidy_dtypes(df: pd.DataFrame) -> pd.DataFrame:
+    dfx = df.copy()
+    required_cols = [
+        "data_id",
+        "split_id",
+        "analysis_run_id",
+        "split",
+        "grain",
+        "artifact",
+        "model_name",
+        "config_id",
+        "rho",
+        "cvar_keep",
+        "metric",
+        "stat",
+        "value",
+        "fold_id",
+        "bootstrap_id",
+        "cv_scheme",
+        "bootstrap_spec",
+        "code_version",
+    ]
+    for c in required_cols:
+        if c not in dfx.columns:
+            dfx[c] = pd.NA
+    for c in ["data_id", "split_id", "analysis_run_id", "split", "grain", "artifact", "model_name", "config_id", "metric", "stat", "cv_scheme", "bootstrap_spec", "code_version"]:
+        dfx[c] = dfx[c].astype("string")
+    dfx["rho"] = pd.to_numeric(dfx["rho"], errors="coerce")
+    dfx["cvar_keep"] = pd.to_numeric(dfx["cvar_keep"], errors="coerce")
+    dfx["value"] = pd.to_numeric(dfx["value"], errors="coerce")
+    dfx["fold_id"] = pd.to_numeric(dfx["fold_id"], errors="coerce").astype("Int64")
+    dfx["bootstrap_id"] = pd.to_numeric(dfx["bootstrap_id"], errors="coerce").astype("Int64")
+    dfx["stat"] = dfx["stat"].str.lower()
+    dfx = dfx[np.isfinite(dfx["value"])].copy()
+    return dfx.loc[:, required_cols].copy()
+
+
+def _assert_tidy_unique_key(df: pd.DataFrame) -> None:
+    key_cols = [
+        "data_id",
+        "split_id",
+        "split",
+        "grain",
+        "model_name",
+        "config_id",
+        "rho",
+        "cvar_keep",
+        "metric",
+        "stat",
+        "fold_id",
+        "bootstrap_id",
+    ]
+    key = df.loc[:, key_cols].copy()
+    for c in key.columns:
+        key[c] = key[c].astype("string").fillna("<NA>")
+    dup = key.duplicated(keep=False)
+    if bool(dup.any()):
+        sample = df.loc[dup, key_cols].head(12).to_dict(orient="records")
+        raise ValueError(f"Duplicate rows detected in analysis_tidy key. sample={sample}")
+
+
+def _build_analysis_tables(
+    *,
+    result_root: str,
+    analysis_dir: Path,
+    data_id: str,
+    split_id: str,
+    analysis_run_id: str,
+    runs_df: pd.DataFrame,
+    summary_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    evo_long: pd.DataFrame,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    meta_cfg = (
+        runs_df.loc[:, [c for c in ["config_id", "model_name", "model_config_json"] if c in runs_df.columns]]
+        .drop_duplicates(subset=["config_id"])
+        .copy()
+    )
+    if not meta_cfg.empty:
+        meta_cfg["config_id"] = meta_cfg["config_id"].astype(str)
+        meta_cfg["rho"] = meta_cfg["model_config_json"].apply(_extract_rho_from_config_json)
+        meta_cfg["cvar_keep"] = meta_cfg["model_config_json"].apply(_extract_keep_from_config_json)
+    proto = _load_split_protocol_meta(result_root=result_root, data_id=data_id, split_id=split_id)
+    code_ver = _code_version_short()
+
+    rows: List[pd.DataFrame] = []
+
+    # A) Validation fold-level raw metrics from runs table.
+    fold_metrics = [c for c in ["R2", "OOS R2", "PRD", "PRB", "VEI", "COD", "Corr(r,price)", "RMSE", "MAE", "MAPE", "MdAPE", "abs_PRD_dev", "abs_PRB_dev", "abs_VEI_dev", "abs_Corr_r_price"] if c in runs_df.columns]
+    if fold_metrics:
+        base = runs_df.loc[:, [c for c in ["model_name", "config_id", "fold_id", "model_config_json"] if c in runs_df.columns] + fold_metrics].copy()
+        base["rho"] = base["model_config_json"].apply(_extract_rho_from_config_json) if "model_config_json" in base.columns else np.nan
+        base["cvar_keep"] = base["model_config_json"].apply(_extract_keep_from_config_json) if "model_config_json" in base.columns else np.nan
+        long = base.melt(
+            id_vars=[c for c in ["model_name", "config_id", "fold_id", "rho", "cvar_keep"] if c in base.columns],
+            value_vars=fold_metrics,
+            var_name="metric",
+            value_name="value",
+        )
+        long["split"] = "validation"
+        long["grain"] = "fold"
+        long["artifact"] = "runs.parquet"
+        long["stat"] = "raw"
+        long["bootstrap_id"] = pd.NA
+        rows.append(long)
+
+    # B) Validation config-level aggregates from summary_by_config.
+    if not summary_df.empty:
+        sbase = summary_df.copy()
+        if "config_id" in sbase.columns:
+            sbase["config_id"] = sbase["config_id"].astype(str)
+        if (not meta_cfg.empty) and "config_id" in sbase.columns:
+            sbase = sbase.merge(meta_cfg.loc[:, ["config_id", "rho", "cvar_keep"]], on="config_id", how="left")
+        for suffix, stat_name in [("_mean", "mean"), ("_std", "std")]:
+            val_cols = [c for c in sbase.columns if c.endswith(suffix)]
+            if not val_cols:
+                continue
+            idv = [c for c in ["model_name", "config_id", "rho", "cvar_keep"] if c in sbase.columns]
+            tmp = sbase.melt(id_vars=idv, value_vars=val_cols, var_name="metric_raw", value_name="value")
+            tmp["metric"] = tmp["metric_raw"].str.replace(suffix, "", regex=False)
+            tmp = tmp.drop(columns=["metric_raw"])
+            tmp["split"] = "validation"
+            tmp["grain"] = "config_agg"
+            tmp["artifact"] = "summary_by_config.csv"
+            tmp["stat"] = stat_name
+            tmp["fold_id"] = pd.NA
+            tmp["bootstrap_id"] = pd.NA
+            rows.append(tmp)
+
+    # C) Test config-level raw metrics.
+    if not test_df.empty:
+        tmetrics = [c for c in ["R2", "OOS R2", "PRD", "PRB", "VEI", "COD", "Corr(r,price)", "RMSE", "MAE", "MAPE", "MdAPE", "abs_PRD_dev", "abs_PRB_dev", "abs_VEI_dev", "abs_Corr_r_price"] if c in test_df.columns]
+        if tmetrics:
+            tbase = test_df.copy()
+            if "config_id" in tbase.columns:
+                tbase["config_id"] = tbase["config_id"].astype(str)
+            if (not meta_cfg.empty) and "config_id" in tbase.columns:
+                tbase = tbase.merge(meta_cfg.loc[:, ["config_id", "rho", "cvar_keep"]], on="config_id", how="left")
+            idv = [c for c in ["model_name", "config_id", "rho", "cvar_keep"] if c in tbase.columns]
+            tmp = tbase.melt(id_vars=idv, value_vars=tmetrics, var_name="metric", value_name="value")
+            tmp["split"] = "test"
+            tmp["grain"] = "config_agg"
+            tmp["artifact"] = "test_metrics.csv"
+            tmp["stat"] = "raw"
+            tmp["fold_id"] = pd.NA
+            tmp["bootstrap_id"] = pd.NA
+            rows.append(tmp)
+
+    # D) Evolution summaries (mean/std by fold).
+    if evo_long is not None and not evo_long.empty:
+        eb = evo_long.copy()
+        if "config_id" in eb.columns:
+            eb["config_id"] = eb["config_id"].astype(str)
+        if (not meta_cfg.empty) and "config_id" in eb.columns:
+            eb = eb.merge(meta_cfg.loc[:, ["config_id", "rho", "cvar_keep"]], on="config_id", how="left")
+        for stat_col, stat_name in [("mean", "mean"), ("std", "std")]:
+            if stat_col not in eb.columns:
+                continue
+            tmp = eb.loc[:, [c for c in ["model_name", "config_id", "rho", "cvar_keep", "fold_id", "metric", stat_col] if c in eb.columns]].copy()
+            tmp = tmp.rename(columns={stat_col: "value"})
+            tmp["split"] = "validation"
+            tmp["grain"] = "evolution"
+            tmp["artifact"] = "evolution_bootstrap_summary.csv"
+            tmp["stat"] = stat_name
+            tmp["bootstrap_id"] = pd.NA
+            rows.append(tmp)
+
+    # E) Bootstrap stats tables already emitted by analyze_results.
+    bootstrap_files = [
+        ("validation_bootstrap_metric_stats_by_config_fold.csv", "bootstrap_config_fold"),
+        ("validation_bootstrap_metric_stats_by_config_across_folds.csv", "bootstrap_config_across"),
+        ("validation_bootstrap_metric_stats_by_rho_fold.csv", "bootstrap_rho_fold"),
+        ("validation_bootstrap_metric_stats_by_rho_across_folds.csv", "bootstrap_rho_across"),
+        ("test_bootstrap_metric_stats_by_config_fold.csv", "bootstrap_config_fold"),
+        ("test_bootstrap_metric_stats_by_config_across_folds.csv", "bootstrap_config_across"),
+        ("test_bootstrap_metric_stats_by_rho_fold.csv", "bootstrap_rho_fold"),
+        ("test_bootstrap_metric_stats_by_rho_across_folds.csv", "bootstrap_rho_across"),
+    ]
+    stat_cols = ["mean", "std", "min", "max", "q05", "q25", "q50", "q75", "q95", "mean_avg_over_folds", "std_avg_over_folds", "min_avg_over_folds", "max_avg_over_folds", "q05_avg_over_folds", "q25_avg_over_folds", "q50_avg_over_folds", "q75_avg_over_folds", "q95_avg_over_folds"]
+    for fname, grain_name in bootstrap_files:
+        p = analysis_dir / fname
+        if not p.exists():
+            continue
+        try:
+            bdf = pd.read_csv(p)
+        except Exception:
+            continue
+        if bdf.empty or "metric" not in bdf.columns:
+            continue
+        if "config_id" in bdf.columns:
+            bdf["config_id"] = bdf["config_id"].astype(str)
+        if (not meta_cfg.empty) and ("config_id" in bdf.columns):
+            bdf = bdf.merge(meta_cfg.loc[:, ["config_id", "rho", "cvar_keep"]], on="config_id", how="left", suffixes=("", "_meta"))
+            if "rho_meta" in bdf.columns:
+                bdf["rho"] = pd.to_numeric(bdf.get("rho", np.nan), errors="coerce").where(pd.to_numeric(bdf.get("rho", np.nan), errors="coerce").notna(), pd.to_numeric(bdf["rho_meta"], errors="coerce"))
+                bdf = bdf.drop(columns=["rho_meta"], errors="ignore")
+        use_stat_cols = [c for c in stat_cols if c in bdf.columns]
+        if not use_stat_cols:
+            continue
+        idv = [c for c in ["split", "model_name", "config_id", "rho", "cvar_keep", "metric", "fold_id", "bootstrap_id"] if c in bdf.columns]
+        long = bdf.melt(id_vars=idv, value_vars=use_stat_cols, var_name="stat", value_name="value")
+        if "split" not in long.columns:
+            long["split"] = "validation" if fname.startswith("validation_") else "test"
+        long["grain"] = grain_name
+        long["artifact"] = fname
+        if "fold_id" not in long.columns:
+            long["fold_id"] = pd.NA
+        if "bootstrap_id" not in long.columns:
+            long["bootstrap_id"] = pd.NA
+        rows.append(long)
+
+    tidy = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame()
+    if tidy.empty:
+        return pd.DataFrame(), pd.DataFrame()
+    tidy["data_id"] = str(data_id)
+    tidy["split_id"] = str(split_id)
+    tidy["analysis_run_id"] = str(analysis_run_id)
+    tidy["cv_scheme"] = str(proto.get("cv_scheme", "rolling_origin"))
+    tidy["bootstrap_spec"] = str(proto.get("bootstrap_spec", ""))
+    tidy["code_version"] = (pd.NA if code_ver is None else str(code_ver))
+    tidy = _normalize_tidy_dtypes(tidy)
+    _assert_tidy_unique_key(tidy)
+
+    # Build points table for fast interactive scatter filtering.
+    idx_cols = ["data_id", "split_id", "analysis_run_id", "split", "grain", "artifact", "model_name", "config_id", "rho", "cvar_keep", "stat", "fold_id", "bootstrap_id", "cv_scheme", "bootstrap_spec", "code_version"]
+    # NOTE: use set_index/unstack instead of pivot_table(dropna=False), which can
+    # create a cartesian explosion on nullable index levels.
+    pts = (
+        tidy.set_index(idx_cols + ["metric"])["value"]
+        .unstack("metric")
+        .reset_index()
+    )
+    pts.columns = [str(c) for c in pts.columns]
+
+    # Optional offline global Pareto labels for common 2D tradeoffs.
+    for xcol, ycol in [("abs_PRD_dev", "R2"), ("abs_PRD_dev", "OOS R2"), ("abs_PRB_dev", "R2"), ("abs_PRB_dev", "OOS R2"), ("abs_VEI_dev", "R2"), ("abs_VEI_dev", "OOS R2"), ("abs_Corr_r_price", "R2"), ("abs_Corr_r_price", "OOS R2")]:
+        if xcol not in pts.columns or ycol not in pts.columns:
+            continue
+        label_col = f"pareto_2d_global__{xcol}__{ycol}"
+        pts[label_col] = False
+        gcols = [c for c in ["split", "grain", "artifact", "stat", "fold_id"] if c in pts.columns]
+        for _, g in pts.groupby(gcols, dropna=False):
+            xv = pd.to_numeric(g[xcol], errors="coerce").to_numpy(dtype=float)
+            yv = pd.to_numeric(g[ycol], errors="coerce").to_numpy(dtype=float)
+            ok = np.isfinite(xv) & np.isfinite(yv)
+            if int(np.sum(ok)) < 2:
+                continue
+            m = _compute_2d_pareto_mask(xv[ok], yv[ok], maximize_x=False, minimize_y=False)
+            sel_idx = g.index.to_numpy()[ok]
+            pts.loc[sel_idx, label_col] = m
+    return tidy, pts
+
+
+def _export_interactive_plot_html(points_df: pd.DataFrame, *, analysis_dir: Path) -> None:
+    try:
+        import plotly.express as px  # type: ignore
+    except Exception:
+        return
+    if points_df is None or points_df.empty:
+        return
+    out_root = analysis_dir / "plots" / "interactive"
+    pairs = [("abs_PRD_dev", "R2"), ("abs_PRB_dev", "R2"), ("abs_VEI_dev", "R2"), ("abs_Corr_r_price", "R2"), ("abs_PRD_dev", "OOS R2"), ("abs_PRB_dev", "OOS R2"), ("abs_VEI_dev", "OOS R2"), ("abs_Corr_r_price", "OOS R2")]
+    base = points_df.copy()
+    for split_name in ["validation", "test"]:
+        ds = base[base["split"].astype(str) == split_name].copy()
+        if ds.empty:
+            continue
+        dplot = ds[(ds["grain"].astype(str) == "config_agg") & (ds["stat"].astype(str).isin(["mean", "raw"]))].copy()
+        if dplot.empty:
+            dplot = ds.copy()
+        for xcol, ycol in pairs:
+            if xcol not in dplot.columns or ycol not in dplot.columns:
+                continue
+            dd = dplot[np.isfinite(pd.to_numeric(dplot[xcol], errors="coerce")) & np.isfinite(pd.to_numeric(dplot[ycol], errors="coerce"))].copy()
+            if dd.empty:
+                continue
+            fig = px.scatter(
+                dd,
+                x=xcol,
+                y=ycol,
+                color="model_name",
+                hover_data=[c for c in ["config_id", "rho", "cvar_keep", "grain", "artifact", "fold_id"] if c in dd.columns],
+                title=f"Interactive {split_name}: {xcol} vs {ycol}",
+            )
+            out_path = out_root / split_name / f"tradeoff_{xcol}__{ycol}.html"
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            fig.write_html(str(out_path), include_plotlyjs="cdn", full_html=True)
+
+
+def _write_analysis_datastore(
+    *,
+    analysis_dir: Path,
+    tidy_df: pd.DataFrame,
+    points_df: pd.DataFrame,
+    write_interactive_html: bool = True,
+) -> Tuple[Path, Path, int, int]:
+    tidy_path = analysis_dir / "analysis_tidy.parquet"
+    points_path = analysis_dir / "analysis_points.parquet"
+
+    if tidy_df is None or tidy_df.empty:
+        tidy_df = pd.DataFrame(
+            columns=[
+                "data_id",
+                "split_id",
+                "analysis_run_id",
+                "split",
+                "grain",
+                "artifact",
+                "model_name",
+                "config_id",
+                "rho",
+                "cvar_keep",
+                "metric",
+                "stat",
+                "value",
+                "fold_id",
+                "bootstrap_id",
+                "cv_scheme",
+                "bootstrap_spec",
+                "code_version",
+            ]
+        )
+
+    if points_df is None or points_df.empty:
+        points_df = pd.DataFrame(
+            columns=[
+                "data_id",
+                "split_id",
+                "analysis_run_id",
+                "split",
+                "grain",
+                "artifact",
+                "model_name",
+                "config_id",
+                "rho",
+                "cvar_keep",
+                "stat",
+                "fold_id",
+                "bootstrap_id",
+                "cv_scheme",
+                "bootstrap_spec",
+                "code_version",
+            ]
+        )
+
+    tidy_df.to_parquet(tidy_path, index=False)
+    points_df.to_parquet(points_path, index=False)
+    if bool(write_interactive_html) and (points_df is not None) and (not points_df.empty):
+        _export_interactive_plot_html(points_df, analysis_dir=analysis_dir)
+    return tidy_path, points_path, int(tidy_df.shape[0]), int(points_df.shape[0])
+
+
 def _pick_validation_single_run_fold_id(runs_df: pd.DataFrame) -> int:
     dfx = _prepare_df(runs_df)
     acc_col = "OOS R2" if "OOS R2" in dfx.columns else "R2"
@@ -1693,11 +2093,15 @@ def run_results_analysis(
     skip_first_folds_for_stats: int = 0,
     exclude_models_tradeoff: Optional[List[str]] = None,
     filter_below_lr_tradeoff: bool = False,
+    skip_test_bootstrap: bool = False,
+    test_bootstrap_limit: Optional[int] = None,
+    skip_final_vertical_equity: bool = False,
 ) -> Dict[str, Any]:
     t0 = time.time()
+    analysis_run_id = uuid.uuid4().hex
     _progress_log(
         f"starting analysis | data_id={data_id} split_id={split_id} "
-        f"plot_top_k={plot_top_k} skip_first_folds={skip_first_folds}",
+        f"plot_top_k={plot_top_k} skip_first_folds={skip_first_folds} analysis_run_id={analysis_run_id}",
         t0=t0,
     )
     analysis_dir = _analysis_dir(result_root, data_id, split_id)
@@ -1832,12 +2236,17 @@ def run_results_analysis(
                 )
                 _progress_log("saved validation stats by rho/across-folds", t0=t0)
 
-    _progress_log("building test bootstrap metrics from test_predictions.parquet ...", t0=t0)
-    test_boot = _build_test_bootstrap_metrics(
-        analysis_dir=analysis_dir,
-        protocol=bootstrap_protocol,
-        config_meta=config_meta.loc[:, [c for c in ["config_id", "model_name", "rho"] if c in config_meta.columns]].drop_duplicates("config_id"),
-    )
+    test_boot = pd.DataFrame()
+    if bool(skip_test_bootstrap):
+        _progress_log("skipping test bootstrap metrics stage (--skip-test-bootstrap)", t0=t0)
+    else:
+        _progress_log("building test bootstrap metrics from test_predictions.parquet ...", t0=t0)
+        test_boot = _build_test_bootstrap_metrics(
+            analysis_dir=analysis_dir,
+            protocol=bootstrap_protocol,
+            config_meta=config_meta.loc[:, [c for c in ["config_id", "model_name", "rho"] if c in config_meta.columns]].drop_duplicates("config_id"),
+            bootstrap_limit=test_bootstrap_limit,
+        )
     if not test_boot.empty:
         _progress_log(f"computing test bootstrap statistics tables ... rows={test_boot.shape[0]}", t0=t0)
         test_metric_cols = _bootstrap_metric_columns(test_boot)
@@ -1899,6 +2308,31 @@ def run_results_analysis(
     )
     _progress_log("saved bootstrap_statistics_metadata.json", t0=t0)
 
+    # Early checkpoint: write datastore before heavier downstream plotting/aggregation.
+    _progress_log("checkpoint: writing early queryable datastore (parquet) ...", t0=t0)
+    tidy_ckpt, points_ckpt = _build_analysis_tables(
+        result_root=result_root,
+        analysis_dir=analysis_dir,
+        data_id=data_id,
+        split_id=split_id,
+        analysis_run_id=analysis_run_id,
+        runs_df=runs_df,
+        summary_df=summary_df,
+        test_df=test_df,
+        evo_long=pd.DataFrame(),
+    )
+    tidy_path_ckpt, points_path_ckpt, n_tidy_ckpt, n_points_ckpt = _write_analysis_datastore(
+        analysis_dir=analysis_dir,
+        tidy_df=tidy_ckpt,
+        points_df=points_ckpt,
+        write_interactive_html=False,
+    )
+    _progress_log(
+        f"checkpoint saved {tidy_path_ckpt.name} rows={n_tidy_ckpt} "
+        f"and {points_path_ckpt.name} rows={n_points_ckpt}",
+        t0=t0,
+    )
+
     # Stacking overlays
     val_overlay_avg, val_overlay_single = _load_stacking_validation_overlay(analysis_dir=analysis_dir, fold_id=fold_id)
     val_overlay_worst_avg, val_overlay_worst_single = _load_stacking_validation_worst_overlay(analysis_dir=analysis_dir)
@@ -1954,41 +2388,44 @@ def run_results_analysis(
         _progress_log("saved and copied final_model_comparison_taxation_metrics.csv", t0=t0)
 
     # Final vertical-equity plots for baselines and selected stacking solutions.
-    _progress_log("collecting predictions for final vertical-equity plots ...", t0=t0)
-    pred_sets = _collect_final_solution_predictions_for_vertical_equity(
-        result_root=result_root,
-        analysis_dir=analysis_dir,
-        data_id=data_id,
-        split_id=split_id,
-        runs_df=runs_df,
-    )
-    for split_name in ["validation_avg", "test"]:
-        split_map = pred_sets.get(split_name, {})
-        if not split_map:
-            continue
-        split_out = final_results_dir / "plots" / split_name
-        _progress_log(f"rendering final vertical-equity plots for {split_name}: {len(split_map)} solutions", t0=t0)
-        for sol_name, (y_true, y_pred) in split_map.items():
-            y_true = np.asarray(y_true, dtype=float).reshape(-1)
-            y_pred = np.asarray(y_pred, dtype=float).reshape(-1)
-            mask = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0.0) & (y_pred > 0.0)
-            if int(np.sum(mask)) < 2:
+    if bool(skip_final_vertical_equity):
+        _progress_log("skipping final vertical-equity plots (--skip-final-vertical-equity)", t0=t0)
+    else:
+        _progress_log("collecting predictions for final vertical-equity plots ...", t0=t0)
+        pred_sets = _collect_final_solution_predictions_for_vertical_equity(
+            result_root=result_root,
+            analysis_dir=analysis_dir,
+            data_id=data_id,
+            split_id=split_id,
+            runs_df=runs_df,
+        )
+        for split_name in ["validation_avg", "test"]:
+            split_map = pred_sets.get(split_name, {})
+            if not split_map:
                 continue
-            ratios = y_pred[mask] / y_true[mask]
-            y_log = np.log(y_true[mask])
-            safe_name = "".join(ch if (ch.isalnum() or ch in {"_", "-", "."}) else "_" for ch in str(sol_name))
-            out_path = split_out / f"vertical_equity_{safe_name}.png"
-            plot_vertical_equity_lowess(
-                y_log=y_log,
-                ratios=ratios,
-                out_path=out_path,
-                model_label=f"{sol_name} [{split_name}]",
-                sample_size=3000,
-                random_seed=2025,
-                lowess_frac=0.4,
-                y_limits=(0.0, 4.0),
-            )
-        _progress_log(f"finished final vertical-equity plots for {split_name}", t0=t0)
+            split_out = final_results_dir / "plots" / split_name
+            _progress_log(f"rendering final vertical-equity plots for {split_name}: {len(split_map)} solutions", t0=t0)
+            for sol_name, (y_true, y_pred) in split_map.items():
+                y_true = np.asarray(y_true, dtype=float).reshape(-1)
+                y_pred = np.asarray(y_pred, dtype=float).reshape(-1)
+                mask = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0.0) & (y_pred > 0.0)
+                if int(np.sum(mask)) < 2:
+                    continue
+                ratios = y_pred[mask] / y_true[mask]
+                y_log = np.log(y_true[mask])
+                safe_name = "".join(ch if (ch.isalnum() or ch in {"_", "-", "."}) else "_" for ch in str(sol_name))
+                out_path = split_out / f"vertical_equity_{safe_name}.png"
+                plot_vertical_equity_lowess(
+                    y_log=y_log,
+                    ratios=ratios,
+                    out_path=out_path,
+                    model_label=f"{sol_name} [{split_name}]",
+                    sample_size=3000,
+                    random_seed=2025,
+                    lowess_frac=0.4,
+                    y_limits=(0.0, 4.0),
+                )
+            _progress_log(f"finished final vertical-equity plots for {split_name}", t0=t0)
 
     # Plot set (tradeoffs)
     plot_pairs = [
@@ -2108,6 +2545,7 @@ def run_results_analysis(
     # Evolution plots (bootstrap mean ± std across windows/folds)
     # -----------------------
     metrics_for_evolution = ["R2", "OOS R2", "VEI", "PRD", "PRB", "COD"]
+    evo_long = pd.DataFrame()
     if not boots_df.empty:
         _progress_log("building evolution plots (bootstrap summaries) ...", t0=t0)
         selected_config_ids = _select_configs_for_evolution(runs_df, top_k=plot_top_k)
@@ -2209,11 +2647,38 @@ def run_results_analysis(
             )
         _progress_log("finished evolution plots", t0=t0)
 
+    # -----------------------
+    # Queryable analysis datastore (tidy + points) and interactive HTML exports
+    # -----------------------
+    _progress_log("building queryable analysis datastore (parquet) ...", t0=t0)
+    tidy_df, points_df = _build_analysis_tables(
+        result_root=result_root,
+        analysis_dir=analysis_dir,
+        data_id=data_id,
+        split_id=split_id,
+        analysis_run_id=analysis_run_id,
+        runs_df=runs_df,
+        summary_df=summary_df,
+        test_df=test_df,
+        evo_long=evo_long,
+    )
+    tidy_path, points_path, n_tidy, n_points = _write_analysis_datastore(
+        analysis_dir=analysis_dir,
+        tidy_df=tidy_df,
+        points_df=points_df,
+        write_interactive_html=True,
+    )
+    _progress_log(f"saved {tidy_path.name} rows={n_tidy}", t0=t0)
+    _progress_log(f"saved {points_path.name} rows={n_points}", t0=t0)
+    if n_points > 0:
+        _progress_log("saved interactive plotly HTML artifacts (when plotly available)", t0=t0)
+
     _progress_log("analysis completed", t0=t0)
 
     return {
         "data_id": data_id,
         "split_id": split_id,
+        "analysis_run_id": analysis_run_id,
         "analysis_dir": str(analysis_dir),
         "n_completed_runs": int(runs_df.shape[0]),
         "n_summary_configs": int(summary_df.shape[0]),
@@ -2245,6 +2710,22 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="If set, remove tradeoff points whose y-metric is below the LinearRegression baseline for that plot.",
     )
+    p.add_argument(
+        "--skip-test-bootstrap",
+        action="store_true",
+        help="If set, skip building test bootstrap metrics/statistics tables (fast mode).",
+    )
+    p.add_argument(
+        "--test-bootstrap-limit",
+        type=int,
+        default=0,
+        help="Optional cap on number of bootstrap draws to use for test-bootstrap summaries (0 means all).",
+    )
+    p.add_argument(
+        "--skip-final-vertical-equity",
+        action="store_true",
+        help="If set, skip final vertical-equity plots in final_results/plots (fast mode).",
+    )
     return p
 
 
@@ -2260,6 +2741,9 @@ if __name__ == "__main__":
         skip_first_folds_for_stats=int(args.skip_first_folds_for_stats),
         exclude_models_tradeoff=exclude_models_tradeoff,
         filter_below_lr_tradeoff=bool(args.filter_below_lr_tradeoff),
+        skip_test_bootstrap=bool(args.skip_test_bootstrap),
+        test_bootstrap_limit=(None if int(args.test_bootstrap_limit) <= 0 else int(args.test_bootstrap_limit)),
+        skip_final_vertical_equity=bool(args.skip_final_vertical_equity),
     )
     print("=" * 90)
     print("RESULTS ANALYSIS COMPLETED")

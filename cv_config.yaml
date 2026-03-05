@@ -15,13 +15,18 @@ data_path:   "./data/CCAO/2025/training_data.parquet"
 # Random seed used for both data sampling and bootstrap resampling.
 seed: 2025
 
+# Numeric sanity guard used in CV/test evaluation:
+# if any numeric metric is non-finite or abs(value) > this cap,
+# the corresponding model configuration is pruned from artifacts.
+numeric_sanity_abs_cap: 1.0e6
+
 
 # ---------------------------------------------------------------------------
 # Data sampling (optional speed-up)
 #   Set sample_frac to a float in (0, 1) to randomly downsample the training
 #   universe before the CV.  Use null to disable (full dataset).
 # ---------------------------------------------------------------------------
-sample_frac: 0.85 #null          # e.g. 0.40  or  null for full data
+sample_frac: 0.99 #null          # e.g. 0.40  or  null for full data
 
 
 # ---------------------------------------------------------------------------
@@ -33,19 +38,19 @@ sample_frac: 0.85 #null          # e.g. 0.40  or  null for full data
 #   rho_scale   : spacing ("linear", "log", "geom")
 #   keep_values : list of CVaR keep fractions tried for LGBPrimalDual
 # ---------------------------------------------------------------------------
-# rho_values:  [2.043, 6.58] #[1e-3, 10.0]
-# rho_count:   2 #10
-# rho_scale:   "log"
+rho_values:   [1e-1, 10.0]
+rho_count:   10
+rho_scale:   "log"
 
-rho_values_smooth: [2.043]
-rho_count_smooth: 1
-rho_scale_smooth: "log"
+# rho_values_smooth: [2.043]
+# rho_count_smooth: 1
+# rho_scale_smooth: "log"
 
-rho_values_cov: [6.58]
-rho_count_cov: 1
-rho_scale_cov: "log"
+# rho_values_cov: [6.58]
+# rho_count_cov: 1
+# rho_scale_cov: "log"
 
-keep_values: [0.5, 0.7, 0.9]
+keep_values: [0.8, 0.9, 0.95]
 # ---------------------------------------------------------------------------
 # Rolling-origin split protocol
 #
@@ -96,7 +101,7 @@ split_protocol:
 #                           "Q"  (quarterly)— use only for long val windows
 # ---------------------------------------------------------------------------
 bootstrap_protocol:
-  n_bootstrap:           100
+  n_bootstrap:           10
   bootstrap_block_freq:  "M"
 
 

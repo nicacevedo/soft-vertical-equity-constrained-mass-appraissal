@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -40,6 +41,31 @@ from utils.motivation_utils import _compute_extended_metrics, _stable_hash, run_
 
 
 _ASSESSMENT_YEAR: int = 2024  # Calendar year used as the held-out assessment block.
+_LOG_T0 = time.perf_counter()
+
+
+def _log(message: str, **fields: Any) -> None:
+    dt = time.perf_counter() - _LOG_T0
+    suffix = ""
+    if fields:
+        suffix = " | " + " | ".join(f"{k}={v}" for k, v in fields.items())
+    print(f"[run_temporal_cv +{dt:8.1f}s] {message}{suffix}", flush=True)
+
+
+def _first_bad_numeric_value(payload: Dict[str, Any], *, abs_cap: float) -> Optional[Dict[str, Any]]:
+    cap = float(abs_cap)
+    if not np.isfinite(cap) or cap <= 0.0:
+        return None
+    for k, v in dict(payload).items():
+        if isinstance(v, (bool, np.bool_)):
+            continue
+        if isinstance(v, (int, float, np.integer, np.floating)):
+            fv = float(v)
+            if not np.isfinite(fv):
+                return {"field": str(k), "value": fv, "reason": "non_finite"}
+            if abs(fv) > cap:
+                return {"field": str(k), "value": fv, "reason": "abs_gt_cap"}
+    return None
 
 
 def _parse_float_list(values: str) -> List[float]:
@@ -176,30 +202,120 @@ def _load_and_split_data(
       - assessment: year == 2024
       - pre-2024: split by time into train/validate universe vs held-out test block
     """
-    df = pd.read_parquet(data_path, engine="fastparquet")
-    df = df[(~df["ind_pin_is_multicard"].astype("bool").fillna(True)) & (~df["sv_is_outlier"].astype("bool").fillna(True))].copy()
-
     predictor_cols = list(params["model"]["predictor"]["all"])
     categorical_cols = list(params["model"]["predictor"]["categorical"])
+    filter_cols = ["ind_pin_is_multicard", "sv_is_outlier"]
+    required_cols = list(dict.fromkeys(predictor_cols + [target_column, date_column] + filter_cols))
+    row_filters = [
+        ("ind_pin_is_multicard", "==", False),
+        ("sv_is_outlier", "==", False),
+    ]
+
+    load_start = time.perf_counter()
+    _log("loading parquet", data_path=data_path, selected_cols=int(len(required_cols)))
+    read_engine = "fastparquet"
+    pushdown_enabled = False
+    pushdown_reason = "pyarrow_unavailable"
+    try:
+        import pyarrow.dataset as ds
+        import pyarrow.types as patypes
+
+        schema = ds.dataset(data_path, format="parquet").schema
+        if all(name in schema.names and patypes.is_boolean(schema.field(name).type) for name in filter_cols):
+            read_engine = "pyarrow"
+            pushdown_enabled = True
+            pushdown_reason = "bool_filter_schema"
+        else:
+            pushdown_reason = "non_boolean_filter_schema"
+    except Exception as exc:
+        pushdown_reason = f"pushdown_probe_failed:{type(exc).__name__}"
+
+    if pushdown_enabled:
+        df = pd.read_parquet(
+            data_path,
+            engine=read_engine,
+            columns=required_cols,
+            filters=row_filters,
+        )
+    else:
+        df = pd.read_parquet(data_path, engine=read_engine, columns=required_cols)
+    _log(
+        "parquet loaded",
+        rows=int(df.shape[0]),
+        cols=int(df.shape[1]),
+        engine=read_engine,
+        row_pushdown=pushdown_enabled,
+        pushdown_reason=pushdown_reason,
+        elapsed_sec=f"{time.perf_counter() - load_start:.2f}",
+    )
+
+    filter_start = time.perf_counter()
+    df = df[(~df["ind_pin_is_multicard"].astype("bool").fillna(True)) & (~df["sv_is_outlier"].astype("bool").fillna(True))].copy()
+    _log(
+        "row filters applied",
+        rows=int(df.shape[0]),
+        elapsed_sec=f"{time.perf_counter() - filter_start:.2f}",
+    )
+
     keep_cols = predictor_cols + [target_column, date_column]
-    df = df.loc[:, keep_cols].copy()
+    keep_start = time.perf_counter()
+    drop_cols = [c for c in filter_cols if c not in keep_cols and c in df.columns]
+    if drop_cols:
+        df.drop(columns=drop_cols, inplace=True)
+    _log(
+        "columns projected",
+        kept_cols=int(len(keep_cols)),
+        dropped_cols=int(len(drop_cols)),
+        elapsed_sec=f"{time.perf_counter() - keep_start:.2f}",
+    )
 
     if sample_frac is not None:
         if not (0.0 < float(sample_frac) <= 1.0):
             raise ValueError("sample_frac must be in (0, 1]. Use None to disable sampling.")
         if float(sample_frac) < 1.0:
-            df = df.sample(frac=float(sample_frac), random_state=int(sample_seed)).copy()
+            sample_start = time.perf_counter()
+            df = df.sample(frac=float(sample_frac), random_state=int(sample_seed))
+            _log(
+                "sampling applied",
+                sample_frac=float(sample_frac),
+                rows=int(df.shape[0]),
+                elapsed_sec=f"{time.perf_counter() - sample_start:.2f}",
+            )
 
-    df[date_column] = pd.to_datetime(df[date_column])
-    df = df.sort_values(date_column).reset_index(drop=True)
+    split_start = time.perf_counter()
+    date_parse_start = time.perf_counter()
+    date_values = pd.to_datetime(df[date_column])
+    df[date_column] = date_values
+    date_years = date_values.dt.year.to_numpy(copy=False)
+    _log(
+        "date column normalized",
+        elapsed_sec=f"{time.perf_counter() - date_parse_start:.2f}",
+    )
 
-    df_assess = df.loc[df[date_column].dt.year == _ASSESSMENT_YEAR, :].copy()
-    df_pre2024 = df.loc[df[date_column].dt.year < _ASSESSMENT_YEAR, :].copy()
+    order_start = time.perf_counter()
+    sorted_idx = np.argsort(date_values.to_numpy(copy=False), kind="quicksort")
+    sorted_years = date_years[sorted_idx]
+    pre2024_sorted_idx = sorted_idx[sorted_years < _ASSESSMENT_YEAR]
+    assess_sorted_idx = sorted_idx[sorted_years == _ASSESSMENT_YEAR]
+    _log(
+        "date ordering prepared",
+        pre2024_rows=int(pre2024_sorted_idx.size),
+        assess_rows=int(assess_sorted_idx.size),
+        elapsed_sec=f"{time.perf_counter() - order_start:.2f}",
+    )
 
     train_prop = float(params["cv"]["split_prop"])
-    split_idx = int(train_prop * df_pre2024.shape[0])
-    df_test = df_pre2024.iloc[split_idx:, :].copy()
-    df_train_validate = df_pre2024.iloc[:split_idx, :].copy()
+    split_idx = int(train_prop * pre2024_sorted_idx.size)
+    df_train_validate = df.iloc[pre2024_sorted_idx[:split_idx], :].copy().reset_index(drop=True)
+    df_test = df.iloc[pre2024_sorted_idx[split_idx:], :].copy().reset_index(drop=True)
+    df_assess = df.iloc[assess_sorted_idx, :].copy().reset_index(drop=True)
+    _log(
+        "data split completed",
+        train_validate_rows=int(df_train_validate.shape[0]),
+        test_rows=int(df_test.shape[0]),
+        assess_rows=int(df_assess.shape[0]),
+        elapsed_sec=f"{time.perf_counter() - split_start:.2f}",
+    )
 
     return df_train_validate, df_test, df_assess, predictor_cols, categorical_cols
 
@@ -244,42 +360,42 @@ def _build_model_specs(
                 "factory": (lambda rho=r: LGBSmoothPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
             }
         )
-        for keep in keep_sweep:
-            k = float(keep)
-            specs.append(
-                {
-                    "name": "LGBSmoothPenaltyCVaR",
-                    "config": {"rho": r, "keep": k},
-                    "requires_linear_pipeline": False,
-                    "factory": (
-                        lambda rho=r, keep=k: LGBSmoothPenaltyCVaR(
-                            rho=rho,
-                            mse_keep=keep,
-                            ratio_mode=fairness_ratio_mode,
-                            zero_grad_tol=1e-12,
-                            lgbm_params=dict(lgbm_params),
-                            verbose=False,
-                        )
-                    ),
-                }
-            )
-            specs.append(
-                {
-                    "name": "LGBSmoothPenaltyCVaRTotal",
-                    "config": {"rho": r, "keep": k},
-                    "requires_linear_pipeline": False,
-                    "factory": (
-                        lambda rho=r, keep=k: LGBSmoothPenaltyCVaRTotal(
-                            rho=rho,
-                            keep=keep,
-                            ratio_mode=fairness_ratio_mode,
-                            zero_grad_tol=1e-12,
-                            lgbm_params=dict(lgbm_params),
-                            verbose=False,
-                        )
-                    ),
-                }
-            )
+        # for keep in keep_sweep:
+        #     k = float(keep)
+        #     specs.append(
+        #         {
+        #             "name": "LGBSmoothPenaltyCVaR",
+        #             "config": {"rho": r, "keep": k},
+        #             "requires_linear_pipeline": False,
+        #             "factory": (
+        #                 lambda rho=r, keep=k: LGBSmoothPenaltyCVaR(
+        #                     rho=rho,
+        #                     mse_keep=keep,
+        #                     ratio_mode=fairness_ratio_mode,
+        #                     zero_grad_tol=1e-12,
+        #                     lgbm_params=dict(lgbm_params),
+        #                     verbose=False,
+        #                 )
+        #             ),
+        #         }
+        #     )
+        #     specs.append(
+        #         {
+        #             "name": "LGBSmoothPenaltyCVaRTotal",
+        #             "config": {"rho": r, "keep": k},
+        #             "requires_linear_pipeline": False,
+        #             "factory": (
+        #                 lambda rho=r, keep=k: LGBSmoothPenaltyCVaRTotal(
+        #                     rho=rho,
+        #                     keep=keep,
+        #                     ratio_mode=fairness_ratio_mode,
+        #                     zero_grad_tol=1e-12,
+        #                     lgbm_params=dict(lgbm_params),
+        #                     verbose=False,
+        #                 )
+        #             ),
+        #         }
+        #     )
 
     for rho in rho_values_cov:
         r = float(rho)
@@ -291,42 +407,42 @@ def _build_model_specs(
                 "factory": (lambda rho=r: LGBCovPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
             }
         )
-        for keep in keep_sweep:
-            k = float(keep)
-            # specs.append( # NOTE: This variant is not stable, since its just one side of the loss. It has overflow issues.
-            #     {
-            #         "name": "LGBCovPenaltyCVaR",
-            #         "config": {"rho": r, "keep": k},
-            #         "requires_linear_pipeline": False,
-            #         "factory": (
-            #             lambda rho=r, keep=k: LGBCovPenaltyCVaR(
-            #                 rho=rho,
-            #                 mse_keep=keep,
-            #                 ratio_mode=fairness_ratio_mode,
-            #                 zero_grad_tol=1e-12,
-            #                 lgbm_params=dict(lgbm_params),
-            #                 verbose=False,
-            #             )
-            #         ),
-            #     }
-            # )
-            specs.append(
-                {
-                    "name": "LGBCovPenaltyCVaRTotal",
-                    "config": {"rho": r, "keep": k},
-                    "requires_linear_pipeline": False,
-                    "factory": (
-                        lambda rho=r, keep=k: LGBCovPenaltyCVaRTotal(
-                            rho=rho,
-                            mse_keep=keep,
-                            ratio_mode=fairness_ratio_mode,
-                            zero_grad_tol=1e-12,
-                            lgbm_params=dict(lgbm_params),
-                            verbose=False,
-                        )
-                    ),
-                }
-            )
+        # for keep in keep_sweep:
+        #     k = float(keep)
+        #     # specs.append( # NOTE: This variant is not stable, since its just one side of the loss. It has overflow issues.
+        #     #     {
+        #     #         "name": "LGBCovPenaltyCVaR",
+        #     #         "config": {"rho": r, "keep": k},
+        #     #         "requires_linear_pipeline": False,
+        #     #         "factory": (
+        #     #             lambda rho=r, keep=k: LGBCovPenaltyCVaR(
+        #     #                 rho=rho,
+        #     #                 mse_keep=keep,
+        #     #                 ratio_mode=fairness_ratio_mode,
+        #     #                 zero_grad_tol=1e-12,
+        #     #                 lgbm_params=dict(lgbm_params),
+        #     #                 verbose=False,
+        #     #             )
+        #     #         ),
+        #     #     }
+        #     # )
+        #     specs.append(
+        #         {
+        #             "name": "LGBCovPenaltyCVaRTotal",
+        #             "config": {"rho": r, "keep": k},
+        #             "requires_linear_pipeline": False,
+        #             "factory": (
+        #                 lambda rho=r, keep=k: LGBCovPenaltyCVaRTotal(
+        #                     rho=rho,
+        #                     mse_keep=keep,
+        #                     ratio_mode=fairness_ratio_mode,
+        #                     zero_grad_tol=1e-12,
+        #                     lgbm_params=dict(lgbm_params),
+        #                     verbose=False,
+        #                 )
+        #             ),
+        #         }
+        #     )
 
     # # Primal-dual (CVaR-like) variants (rho × keep sweep)
     # for rho in rho_values:
@@ -358,11 +474,21 @@ def _evaluate_models_on_test_set(
     fairness_ratio_mode: str,
     analysis_dir: Path,
     parquet_engine: str,
+    numeric_sanity_abs_cap: float,
+    invalid_config_ids: Optional[List[str]] = None,
 ) -> Dict[str, str]:
     """
     Fit each config on the full train/validate universe and evaluate once on held-out test.
     """
     analysis_dir.mkdir(parents=True, exist_ok=True)
+    eval_start = time.perf_counter()
+    _log(
+        "starting held-out test evaluation",
+        analysis_dir=str(analysis_dir),
+        n_models=int(len(model_specs)),
+        n_train_validate=int(df_train_validate.shape[0]),
+        n_test=int(df_test.shape[0]),
+    )
 
     X_tv = df_train_validate[predictor_cols].copy()
     y_tv_log = np.log(df_train_validate[target_col].to_numpy())
@@ -376,30 +502,87 @@ def _evaluate_models_on_test_set(
 
     test_rows: List[Dict[str, Any]] = []
     pred_rows: List[pd.DataFrame] = []
+    rejected_rows: List[Dict[str, Any]] = []
+    invalid_set = {str(x) for x in (invalid_config_ids or [])}
 
     for spec in model_specs:
+        model_start = time.perf_counter()
         model_name = str(spec["name"])
         model_config = dict(spec.get("config", {}))
         config_id = _stable_hash({"model_name": model_name, "config": model_config})
+        if config_id in invalid_set:
+            _log(
+                "skipping held-out test evaluation for invalid CV config",
+                model_name=model_name,
+                config_id=config_id,
+            )
+            rejected_rows.append(
+                {
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "model_config_json": json.dumps(model_config, sort_keys=True),
+                    "reason": "pruned_from_cv_invalid_numeric",
+                    "offending_field": "",
+                    "offending_value": np.nan,
+                }
+            )
+            continue
 
+        _log("held-out test model start", model_name=model_name, config_id=config_id)
         estimator = spec["factory"]()
+        prep_elapsed = 0.0
         if bool(spec.get("requires_linear_pipeline", False)):
+            prep_start = time.perf_counter()
             pipe = linear_pipeline_builder()
             X_train_m = pipe.fit_transform(X_tv, y_tv_log)
             X_test_m = pipe.transform(X_test)
+            prep_elapsed = time.perf_counter() - prep_start
         else:
             X_train_m = X_tv
             X_test_m = X_test
 
+        fit_start = time.perf_counter()
         estimator.fit(X_train_m, y_tv_log)
         y_pred_test_log = np.asarray(estimator.predict(X_test_m), dtype=float).reshape(-1)
+        fit_elapsed = time.perf_counter() - fit_start
 
+        metric_start = time.perf_counter()
         metrics = _compute_extended_metrics(
             y_true_log=y_test_log,
             y_pred_log=y_pred_test_log,
             y_train_log=y_tv_log,
             ratio_mode=fairness_ratio_mode,
         )
+        metric_elapsed = time.perf_counter() - metric_start
+        bad_metric = _first_bad_numeric_value(metrics, abs_cap=float(numeric_sanity_abs_cap))
+        bad_pred = _first_bad_numeric_value(
+            {
+                "y_pred_log_min": float(np.nanmin(y_pred_test_log)),
+                "y_pred_log_max": float(np.nanmax(y_pred_test_log)),
+            },
+            abs_cap=float(numeric_sanity_abs_cap),
+        )
+        if (bad_metric is not None) or (bad_pred is not None):
+            bad = bad_metric if bad_metric is not None else bad_pred
+            _log(
+                "held-out test model rejected for invalid numeric output",
+                model_name=model_name,
+                config_id=config_id,
+                offending_field=str(bad.get("field", bad.get("metric", ""))),
+                offending_reason=str(bad.get("reason", "")),
+                total_elapsed_sec=f"{time.perf_counter() - model_start:.2f}",
+            )
+            rejected_rows.append(
+                {
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "model_config_json": json.dumps(model_config, sort_keys=True),
+                    "reason": "invalid_numeric_test_eval",
+                    "offending_field": str(bad.get("field", bad.get("metric", ""))),
+                    "offending_value": bad.get("value", np.nan),
+                }
+            )
+            continue
         test_rows.append(
             {
                 "config_id": config_id,
@@ -423,13 +606,31 @@ def _evaluate_models_on_test_set(
                 }
             )
         )
+        _log(
+            "held-out test model completed",
+            model_name=model_name,
+            config_id=config_id,
+            prep_sec=f"{prep_elapsed:.2f}",
+            fit_predict_sec=f"{fit_elapsed:.2f}",
+            metrics_sec=f"{metric_elapsed:.2f}",
+            total_sec=f"{time.perf_counter() - model_start:.2f}",
+        )
 
     test_metrics_path = analysis_dir / "test_metrics.csv"
     test_predictions_path = analysis_dir / "test_predictions.parquet"
     test_meta_path = analysis_dir / "test_eval_metadata.json"
+    rejected_path = analysis_dir / "test_rejected_configs.csv"
 
+    write_start = time.perf_counter()
     pd.DataFrame(test_rows).to_csv(test_metrics_path, index=False)
-    pd.concat(pred_rows, ignore_index=True).to_parquet(test_predictions_path, index=False, engine=parquet_engine)
+    if pred_rows:
+        pd.concat(pred_rows, ignore_index=True).to_parquet(test_predictions_path, index=False, engine=parquet_engine)
+    else:
+        pd.DataFrame(
+            columns=["config_id", "model_name", "row_id", "sale_date", "y_true_log", "y_pred_log", "y_true", "y_pred"]
+        ).to_parquet(test_predictions_path, index=False, engine=parquet_engine)
+    if rejected_rows:
+        pd.DataFrame(rejected_rows).to_csv(rejected_path, index=False)
     test_meta_path.write_text(
         json.dumps(
             {
@@ -446,8 +647,19 @@ def _evaluate_models_on_test_set(
         ),
         encoding="utf-8",
     )
+    _log(
+        "held-out test artifacts written",
+        metrics_rows=int(len(test_rows)),
+        prediction_frames=int(len(pred_rows)),
+        rejected_configs=int(len(rejected_rows)),
+        write_sec=f"{time.perf_counter() - write_start:.2f}",
+        total_sec=f"{time.perf_counter() - eval_start:.2f}",
+    )
 
-    return {"test_metrics_csv": str(test_metrics_path), "test_predictions_parquet": str(test_predictions_path)}
+    out = {"test_metrics_csv": str(test_metrics_path), "test_predictions_parquet": str(test_predictions_path)}
+    if rejected_rows:
+        out["test_rejected_configs_csv"] = str(rejected_path)
+    return out
 
 
 def run_full_pipeline(
@@ -467,6 +679,7 @@ def run_full_pipeline(
     parallel_max_workers: Optional[int],
     parquet_engine: str,
     use_ccao_fallback: bool = False,
+    numeric_sanity_abs_cap: float = 1e6,
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -480,12 +693,24 @@ def run_full_pipeline(
     target_col = "meta_sale_price"
     date_col = "meta_sale_date"
     fairness_ratio_mode = "diff"
+    pipeline_start = time.perf_counter()
+    _log(
+        "pipeline start",
+        result_root=result_root,
+        data_path=data_path,
+        sample_frac=sample_frac,
+        seed=int(seed),
+        parallel=bool(parallel_enabled),
+    )
 
+    config_start = time.perf_counter()
     with open("params.yaml", "r", encoding="utf-8") as f:
         params = yaml.safe_load(f)
     with open("model_params.yaml", "r", encoding="utf-8") as f:
         model_params = yaml.safe_load(f)
+    _log("configuration loaded", elapsed_sec=f"{time.perf_counter() - config_start:.2f}")
 
+    data_start = time.perf_counter()
     df_train_validate, df_test, df_assess, predictor_cols, categorical_cols = _load_and_split_data(
         data_path=data_path,
         params=params,
@@ -494,6 +719,7 @@ def run_full_pipeline(
         sample_frac=sample_frac,
         sample_seed=seed,
     )
+    _log("data load/split finished", elapsed_sec=f"{time.perf_counter() - data_start:.2f}")
 
     linear_pipeline_builder = lambda: build_model_pipeline(
         pred_vars=predictor_cols,
@@ -501,6 +727,7 @@ def run_full_pipeline(
         id_vars=params["model"]["predictor"]["id"],
     )
 
+    model_setup_start = time.perf_counter()
     lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed, use_ccao_fallback=use_ccao_fallback)
     smooth_rhos = [float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)]
     cov_rhos = [float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)]
@@ -510,6 +737,13 @@ def run_full_pipeline(
         rho_values_cov=cov_rhos,
         keep_values=keep_values,
         fairness_ratio_mode=fairness_ratio_mode,
+    )
+    _log(
+        "model specs built",
+        n_models=int(len(model_specs)),
+        n_smooth_rhos=int(len(smooth_rhos)),
+        n_cov_rhos=int(len(cov_rhos)),
+        elapsed_sec=f"{time.perf_counter() - model_setup_start:.2f}",
     )
 
     data_signature = {
@@ -524,6 +758,12 @@ def run_full_pipeline(
         "split_prop_pre2024": float(params["cv"]["split_prop"]),
     }
 
+    cv_start = time.perf_counter()
+    _log(
+        "starting rolling-origin CV",
+        split_protocol=json.dumps(split_protocol, sort_keys=True),
+        bootstrap_protocol=json.dumps(bootstrap_protocol, sort_keys=True),
+    )
     cv_out = run_robust_rolling_origin_cv(
         df_train_validate=df_train_validate,
         date_col=date_col,
@@ -544,12 +784,22 @@ def run_full_pipeline(
         parallel_cpu_fraction=parallel_cpu_fraction,
         parallel_max_workers=parallel_max_workers,
         parallel_backend="loky",
+        numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
+    )
+    _log(
+        "rolling-origin CV finished",
+        data_id=str(cv_out["data_id"]),
+        split_id=str(cv_out["split_id"]),
+        fold_count=int(cv_out["fold_count"]),
+        invalid_configs=int(len(cv_out.get("invalid_config_ids", []))),
+        elapsed_sec=f"{time.perf_counter() - cv_start:.2f}",
     )
 
     data_id = str(cv_out["data_id"])
     split_id = str(cv_out["split_id"])
 
     analysis_dir = Path(result_root) / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
+    test_eval_start = time.perf_counter()
     test_artifacts = _evaluate_models_on_test_set(
         df_train_validate=df_train_validate,
         df_test=df_test,
@@ -562,6 +812,16 @@ def run_full_pipeline(
         fairness_ratio_mode=fairness_ratio_mode,
         analysis_dir=analysis_dir,
         parquet_engine=parquet_engine,
+        numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
+        invalid_config_ids=[str(x) for x in cv_out.get("invalid_config_ids", [])],
+    )
+    _log("held-out test evaluation finished", elapsed_sec=f"{time.perf_counter() - test_eval_start:.2f}")
+
+    _log(
+        "pipeline finished",
+        total_sec=f"{time.perf_counter() - pipeline_start:.2f}",
+        n_models=int(len(model_specs)),
+        n_folds=int(cv_out["fold_count"]),
     )
 
     return {
@@ -575,6 +835,7 @@ def run_full_pipeline(
         "n_assess": int(df_assess.shape[0]),
         "n_models": int(len(model_specs)),
         "n_folds": int(cv_out["fold_count"]),
+        "n_invalid_configs": int(len(cv_out.get("invalid_config_ids", []))),
     }
 
 
@@ -708,6 +969,15 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
             "By default, missing keys fall back to LightGBM's own native defaults."
         ),
     )
+    p.add_argument(
+        "--numeric-sanity-abs-cap",
+        type=float,
+        default=float(cfg.get("numeric_sanity_abs_cap", 1e6)),
+        help=(
+            "Absolute-value cap for numeric sanity checks in CV/test metrics. "
+            "If any metric exceeds this cap or is non-finite, that model configuration is pruned."
+        ),
+    )
     return p
 
 
@@ -725,6 +995,7 @@ if __name__ == "__main__":
     # YAML path recorded in output matches what was actually used.
     if args.config != _CV_CONFIG_PATH:
         cfg = _load_cv_config(args.config)
+    _log("cli arguments parsed", config_path=str(args.config))
 
     val_fraction = float(args.val_fraction) if (args.val_fraction is not None and float(args.val_fraction) > 0) else None
 
@@ -777,6 +1048,7 @@ if __name__ == "__main__":
         parallel_max_workers=(None if args.parallel_max_workers is None else int(args.parallel_max_workers)),
         parquet_engine=str(args.parquet_engine),
         use_ccao_fallback=bool(args.use_ccao_params_fallback),
+        numeric_sanity_abs_cap=float(args.numeric_sanity_abs_cap),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")
@@ -785,4 +1057,3 @@ if __name__ == "__main__":
     print(f"analysis_dir={out['analysis_dir']}")
     print(f"test_metrics_csv={out['test_metrics_csv']}")
     print(f"test_predictions_parquet={out['test_predictions_parquet']}")
-

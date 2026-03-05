@@ -322,6 +322,9 @@ def _compute_extended_metrics(
     ratio_mode: str = "div",
     eps_y: float = 1e-12,
 ) -> Dict[str, Any]:
+    """Extended metrics (accuracy + fairness diagnostics). Stored dispersion metric:
+    - Std(r): population std of r (ratio y_pred/y_true in 'div' mode, or log-diff in 'diff' mode).
+    """
     base = compute_taxation_metrics(
         y_true_log,
         y_pred_log,
@@ -348,14 +351,14 @@ def _compute_extended_metrics(
     quantiles = [0.05, 0.5, 0.95]
     y_q = np.quantile(y_true, quantiles)
     r_q = np.quantile(r, quantiles)
+    # Std(r): population std of r (ratio or log-diff).
     return {
         **base,
         "fairness_ratio_mode": ratio_mode,
         "Corr(r,y)_price": corr_ry,
         "FisherZ(r,y)_price": fisher_ry,
         "Slope(r~y)_price": slope,
-        "Var(r)": float(np.var(r)),
-        "Var(y)": float(np.var(y_true)),
+        "Std(r)": float(np.std(r)),
         "val_rows": int(y_true.size),
         "small_abs_y_share": small_y,
         "y_q05": float(y_q[0]),
@@ -365,6 +368,23 @@ def _compute_extended_metrics(
         "r_q50": float(r_q[1]),
         "r_q95": float(r_q[2]),
     }
+
+
+def _first_bad_numeric_metric(metrics: Dict[str, Any], *, abs_cap: float) -> Optional[Dict[str, Any]]:
+    """Return first offending numeric metric if non-finite or |value| > abs_cap."""
+    cap = float(abs_cap)
+    if not np.isfinite(cap) or cap <= 0.0:
+        return None
+    for k, v in dict(metrics).items():
+        if isinstance(v, (bool, np.bool_)):
+            continue
+        if isinstance(v, (int, float, np.integer, np.floating)):
+            fv = float(v)
+            if not np.isfinite(fv):
+                return {"metric": str(k), "value": fv, "reason": "non_finite"}
+            if abs(fv) > cap:
+                return {"metric": str(k), "value": fv, "reason": "abs_gt_cap"}
+    return None
 
 
 def run_robust_rolling_origin_cv(
@@ -388,6 +408,7 @@ def run_robust_rolling_origin_cv(
     parallel_cpu_fraction: float = 0.75,
     parallel_max_workers: Optional[int] = None,
     parallel_backend: str = "loky",
+    numeric_sanity_abs_cap: float = 1e6,
 ) -> Dict[str, Any]:
     """
     End-to-end robust rolling-origin CV runner with:
@@ -477,6 +498,7 @@ def run_robust_rolling_origin_cv(
     run_records: List[Dict[str, Any]] = []
     bootstrap_records: List[Dict[str, Any]] = []
     failed_records: List[Dict[str, Any]] = []
+    invalid_numeric_records: List[Dict[str, Any]] = []
 
     runs_root = output_root / "runs"
     boots_root = output_root / "bootstrap_metrics"
@@ -626,6 +648,24 @@ def run_robust_rolling_origin_cv(
                 y_train_log=y_train,
                 ratio_mode=fairness_ratio_mode,
             )
+            bad_main = _first_bad_numeric_metric(metrics_full, abs_cap=float(numeric_sanity_abs_cap))
+            if bad_main is not None:
+                invalid_payload = {
+                    "status": "invalid_numeric",
+                    "run_id": run_id,
+                    "data_id": data_id,
+                    "split_id": split_id,
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "fold_id": fold_id,
+                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                    "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
+                    "offending_metric": bad_main["metric"],
+                    "offending_value": bad_main["value"],
+                    "offending_reason": bad_main["reason"],
+                }
+                _write_json_atomic(status_file, invalid_payload)
+                return {"status": "invalid_numeric", "invalid_payload": invalid_payload}
 
             run_row = {
                 "data_id": data_id,
@@ -659,6 +699,33 @@ def run_robust_rolling_origin_cv(
                     y_train_log=y_train,
                     ratio_mode=fairness_ratio_mode,
                 )
+                bad_bs = _first_bad_numeric_metric(m_bs, abs_cap=float(numeric_sanity_abs_cap))
+                if bad_bs is not None:
+                    invalid_payload = {
+                        "status": "invalid_numeric",
+                        "run_id": run_id,
+                        "data_id": data_id,
+                        "split_id": split_id,
+                        "config_id": config_id,
+                        "model_name": model_name,
+                        "fold_id": fold_id,
+                        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                        "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
+                        "offending_metric": bad_bs["metric"],
+                        "offending_value": bad_bs["value"],
+                        "offending_reason": bad_bs["reason"],
+                        "offending_stage": "bootstrap",
+                        "bootstrap_id": int(b_idx),
+                    }
+                    # Remove already written artifacts for this run before returning invalid.
+                    for fp in [run_file, bs_file, pred_file]:
+                        try:
+                            if fp.exists():
+                                fp.unlink()
+                        except Exception:
+                            pass
+                    _write_json_atomic(status_file, invalid_payload)
+                    return {"status": "invalid_numeric", "invalid_payload": invalid_payload}
                 bs_rows.append(
                     {
                         "run_id": run_id,
@@ -765,9 +832,66 @@ def run_robust_rolling_origin_cv(
             bs_rows = res.get("bs_rows", [])
             if bs_rows:
                 bootstrap_records.extend(bs_rows)
+        elif res.get("status") == "invalid_numeric":
+            invalid_numeric_records.append(res["invalid_payload"])
         else:
             failed_records.append(res["failed_payload"])
             failed_runs += 1
+
+    invalid_config_ids = sorted({str(r.get("config_id")) for r in invalid_numeric_records if r.get("config_id")})
+    if invalid_config_ids:
+        run_records = [r for r in run_records if str(r.get("config_id")) not in set(invalid_config_ids)]
+        bootstrap_records = [r for r in bootstrap_records if str(r.get("config_id")) not in set(invalid_config_ids)]
+        split_runs_root = runs_root / f"data_id={data_id}" / f"split_id={split_id}"
+        split_boots_root = boots_root / f"data_id={data_id}" / f"split_id={split_id}"
+        split_preds_root = preds_root / f"data_id={data_id}" / f"split_id={split_id}"
+        split_status_root = status_root / f"data_id={data_id}" / f"split_id={split_id}"
+        removed_artifacts = 0
+        for status_path in sorted(split_status_root.rglob("*.json")) if split_status_root.exists() else []:
+            try:
+                payload = json.loads(status_path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            cfg = str(payload.get("config_id", ""))
+            if cfg not in set(invalid_config_ids):
+                continue
+            rid = str(payload.get("run_id", ""))
+            for root in [split_runs_root, split_boots_root, split_preds_root]:
+                if not root.exists() or not rid:
+                    continue
+                for fp in root.rglob(f"{rid}.parquet"):
+                    try:
+                        fp.unlink()
+                        removed_artifacts += 1
+                    except Exception:
+                        pass
+            try:
+                status_path.unlink()
+            except Exception:
+                pass
+        invalid_report_path = split_status_root / "invalid_numeric_configs.json"
+        invalid_report_path.parent.mkdir(parents=True, exist_ok=True)
+        invalid_report_path.write_text(
+            json.dumps(
+                {
+                    "data_id": data_id,
+                    "split_id": split_id,
+                    "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
+                    "invalid_config_ids": invalid_config_ids,
+                    "n_invalid_runs": int(len(invalid_numeric_records)),
+                    "n_removed_artifacts": int(removed_artifacts),
+                    "records": invalid_numeric_records,
+                },
+                indent=2,
+                sort_keys=True,
+            ),
+            encoding="utf-8",
+        )
+        if log_progress:
+            print(
+                f"[cv] numeric guard pruned configs={len(invalid_config_ids)} "
+                f"invalid_runs={len(invalid_numeric_records)} removed_artifacts={removed_artifacts}"
+            )
 
     if log_progress:
         print(
@@ -782,6 +906,8 @@ def run_robust_rolling_origin_cv(
         "run_records": pd.DataFrame(run_records) if run_records else pd.DataFrame(),
         "bootstrap_records": pd.DataFrame(bootstrap_records) if bootstrap_records else pd.DataFrame(),
         "failed_records": pd.DataFrame(failed_records) if failed_records else pd.DataFrame(),
+        "invalid_numeric_records": pd.DataFrame(invalid_numeric_records) if invalid_numeric_records else pd.DataFrame(),
+        "invalid_config_ids": invalid_config_ids,
     }
 
 
@@ -1232,7 +1358,8 @@ def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):
         metrics["Corr(r,logprice)"] = np.corrcoef(ratios, y_real_log)[0,1]
         metrics["Slope(r~logy)"] = np.polyfit(y_real_log, ratios, 1)[0]
 
-        metrics["Var ratio"] = np.var(ratios)
+        # Std ratio: population std of assessment ratio (y_pred / y_real).
+        metrics["Std ratio"] = float(np.std(ratios))
         metrics["Median ratio"] = np.median(ratios)
         metrics["Mean ratio"] = np.mean(ratios)
         metrics["W. Mean ratio"] = np.sum(y_pred)/np.sum(y_real)
