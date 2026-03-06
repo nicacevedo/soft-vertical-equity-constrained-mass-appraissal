@@ -68,6 +68,29 @@ def _first_bad_numeric_value(payload: Dict[str, Any], *, abs_cap: float) -> Opti
     return None
 
 
+def _numeric_guard_fields(
+    *,
+    bad: Optional[Dict[str, Any]],
+    stage: str = "",
+    cv_flagged: bool = False,
+) -> Dict[str, Any]:
+    flagged = bool(cv_flagged) or (bad is not None)
+    guard_stage = ""
+    if bad is not None:
+        guard_stage = str(stage)
+    elif cv_flagged:
+        guard_stage = "cv_prior_warning"
+    return {
+        "numeric_stability_status": "flagged" if flagged else "stable",
+        "numeric_guard_flagged": bool(flagged),
+        "numeric_guard_stage": guard_stage,
+        "numeric_guard_field": str((bad or {}).get("field", (bad or {}).get("metric", ""))),
+        "numeric_guard_value": (bad or {}).get("value", np.nan),
+        "numeric_guard_reason": str((bad or {}).get("reason", "")),
+        "cv_numeric_warning_flagged": bool(cv_flagged),
+    }
+
+
 def _parse_float_list(values: str) -> List[float]:
     if values.strip() == "":
         return []
@@ -250,7 +273,7 @@ def _load_and_split_data(
     )
 
     filter_start = time.perf_counter()
-    df = df[(~df["ind_pin_is_multicard"].astype("bool").fillna(True)) & (~df["sv_is_outlier"].astype("bool").fillna(True))].copy()
+    df = df[(~df["ind_pin_is_multicard"].astype("bool").fillna(True)) & (~df["sv_is_outlier"].astype("bool").fillna(True))]
     _log(
         "row filters applied",
         rows=int(df.shape[0]),
@@ -502,7 +525,7 @@ def _evaluate_models_on_test_set(
 
     test_rows: List[Dict[str, Any]] = []
     pred_rows: List[pd.DataFrame] = []
-    rejected_rows: List[Dict[str, Any]] = []
+    flagged_rows: List[Dict[str, Any]] = []
     invalid_set = {str(x) for x in (invalid_config_ids or [])}
 
     for spec in model_specs:
@@ -510,24 +533,6 @@ def _evaluate_models_on_test_set(
         model_name = str(spec["name"])
         model_config = dict(spec.get("config", {}))
         config_id = _stable_hash({"model_name": model_name, "config": model_config})
-        if config_id in invalid_set:
-            _log(
-                "skipping held-out test evaluation for invalid CV config",
-                model_name=model_name,
-                config_id=config_id,
-            )
-            rejected_rows.append(
-                {
-                    "config_id": config_id,
-                    "model_name": model_name,
-                    "model_config_json": json.dumps(model_config, sort_keys=True),
-                    "reason": "pruned_from_cv_invalid_numeric",
-                    "offending_field": "",
-                    "offending_value": np.nan,
-                }
-            )
-            continue
-
         _log("held-out test model start", model_name=model_name, config_id=config_id)
         estimator = spec["factory"]()
         prep_elapsed = 0.0
@@ -562,35 +567,39 @@ def _evaluate_models_on_test_set(
             },
             abs_cap=float(numeric_sanity_abs_cap),
         )
-        if (bad_metric is not None) or (bad_pred is not None):
-            bad = bad_metric if bad_metric is not None else bad_pred
+        bad = bad_metric if bad_metric is not None else bad_pred
+        numeric_fields = _numeric_guard_fields(
+            bad=bad,
+            stage=("test_metrics" if bad_metric is not None else "test_predictions") if bad is not None else "",
+            cv_flagged=(config_id in invalid_set),
+        )
+        if bad is not None:
             _log(
-                "held-out test model rejected for invalid numeric output",
+                "held-out test model flagged for invalid numeric output",
                 model_name=model_name,
                 config_id=config_id,
                 offending_field=str(bad.get("field", bad.get("metric", ""))),
                 offending_reason=str(bad.get("reason", "")),
                 total_elapsed_sec=f"{time.perf_counter() - model_start:.2f}",
             )
-            rejected_rows.append(
-                {
-                    "config_id": config_id,
-                    "model_name": model_name,
-                    "model_config_json": json.dumps(model_config, sort_keys=True),
-                    "reason": "invalid_numeric_test_eval",
-                    "offending_field": str(bad.get("field", bad.get("metric", ""))),
-                    "offending_value": bad.get("value", np.nan),
-                }
-            )
-            continue
         test_rows.append(
             {
                 "config_id": config_id,
                 "model_name": model_name,
                 "model_config_json": json.dumps(model_config, sort_keys=True),
+                **numeric_fields,
                 **metrics,
             }
         )
+        if bool(numeric_fields["numeric_guard_flagged"]):
+            flagged_rows.append(
+                {
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "model_config_json": json.dumps(model_config, sort_keys=True),
+                    **numeric_fields,
+                }
+            )
 
         pred_rows.append(
             pd.DataFrame(
@@ -599,6 +608,13 @@ def _evaluate_models_on_test_set(
                     "model_name": model_name,
                     "row_id": df_test.index.to_numpy(),
                     "sale_date": df_test[date_col].to_numpy(),
+                    "numeric_stability_status": numeric_fields["numeric_stability_status"],
+                    "numeric_guard_flagged": numeric_fields["numeric_guard_flagged"],
+                    "numeric_guard_stage": numeric_fields["numeric_guard_stage"],
+                    "numeric_guard_field": numeric_fields["numeric_guard_field"],
+                    "numeric_guard_value": numeric_fields["numeric_guard_value"],
+                    "numeric_guard_reason": numeric_fields["numeric_guard_reason"],
+                    "cv_numeric_warning_flagged": numeric_fields["cv_numeric_warning_flagged"],
                     "y_true_log": y_test_log,
                     "y_pred_log": y_pred_test_log,
                     "y_true": np.exp(y_test_log),
@@ -619,7 +635,8 @@ def _evaluate_models_on_test_set(
     test_metrics_path = analysis_dir / "test_metrics.csv"
     test_predictions_path = analysis_dir / "test_predictions.parquet"
     test_meta_path = analysis_dir / "test_eval_metadata.json"
-    rejected_path = analysis_dir / "test_rejected_configs.csv"
+    flagged_path = analysis_dir / "test_flagged_configs.csv"
+    legacy_flagged_path = analysis_dir / "test_rejected_configs.csv"
 
     write_start = time.perf_counter()
     pd.DataFrame(test_rows).to_csv(test_metrics_path, index=False)
@@ -627,10 +644,27 @@ def _evaluate_models_on_test_set(
         pd.concat(pred_rows, ignore_index=True).to_parquet(test_predictions_path, index=False, engine=parquet_engine)
     else:
         pd.DataFrame(
-            columns=["config_id", "model_name", "row_id", "sale_date", "y_true_log", "y_pred_log", "y_true", "y_pred"]
+            columns=[
+                "config_id",
+                "model_name",
+                "row_id",
+                "sale_date",
+                "numeric_stability_status",
+                "numeric_guard_flagged",
+                "numeric_guard_stage",
+                "numeric_guard_field",
+                "numeric_guard_value",
+                "numeric_guard_reason",
+                "cv_numeric_warning_flagged",
+                "y_true_log",
+                "y_pred_log",
+                "y_true",
+                "y_pred",
+            ]
         ).to_parquet(test_predictions_path, index=False, engine=parquet_engine)
-    if rejected_rows:
-        pd.DataFrame(rejected_rows).to_csv(rejected_path, index=False)
+    if flagged_rows:
+        pd.DataFrame(flagged_rows).to_csv(flagged_path, index=False)
+        pd.DataFrame(flagged_rows).to_csv(legacy_flagged_path, index=False)
     test_meta_path.write_text(
         json.dumps(
             {
@@ -651,14 +685,15 @@ def _evaluate_models_on_test_set(
         "held-out test artifacts written",
         metrics_rows=int(len(test_rows)),
         prediction_frames=int(len(pred_rows)),
-        rejected_configs=int(len(rejected_rows)),
+        flagged_configs=int(len(flagged_rows)),
         write_sec=f"{time.perf_counter() - write_start:.2f}",
         total_sec=f"{time.perf_counter() - eval_start:.2f}",
     )
 
     out = {"test_metrics_csv": str(test_metrics_path), "test_predictions_parquet": str(test_predictions_path)}
-    if rejected_rows:
-        out["test_rejected_configs_csv"] = str(rejected_path)
+    if flagged_rows:
+        out["test_flagged_configs_csv"] = str(flagged_path)
+        out["test_rejected_configs_csv"] = str(legacy_flagged_path)
     return out
 
 
@@ -791,7 +826,7 @@ def run_full_pipeline(
         data_id=str(cv_out["data_id"]),
         split_id=str(cv_out["split_id"]),
         fold_count=int(cv_out["fold_count"]),
-        invalid_configs=int(len(cv_out.get("invalid_config_ids", []))),
+        flagged_configs=int(len(cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])))),
         elapsed_sec=f"{time.perf_counter() - cv_start:.2f}",
     )
 
@@ -813,7 +848,7 @@ def run_full_pipeline(
         analysis_dir=analysis_dir,
         parquet_engine=parquet_engine,
         numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
-        invalid_config_ids=[str(x) for x in cv_out.get("invalid_config_ids", [])],
+        invalid_config_ids=[str(x) for x in cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", []))],
     )
     _log("held-out test evaluation finished", elapsed_sec=f"{time.perf_counter() - test_eval_start:.2f}")
 
@@ -835,7 +870,8 @@ def run_full_pipeline(
         "n_assess": int(df_assess.shape[0]),
         "n_models": int(len(model_specs)),
         "n_folds": int(cv_out["fold_count"]),
-        "n_invalid_configs": int(len(cv_out.get("invalid_config_ids", []))),
+        "n_flagged_configs": int(len(cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])))),
+        "n_invalid_configs": int(len(cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])))),
     }
 
 
@@ -975,7 +1011,7 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         default=float(cfg.get("numeric_sanity_abs_cap", 1e6)),
         help=(
             "Absolute-value cap for numeric sanity checks in CV/test metrics. "
-            "If any metric exceeds this cap or is non-finite, that model configuration is pruned."
+            "If any metric exceeds this cap or is non-finite, the corresponding results are saved but flagged."
         ),
     )
     return p

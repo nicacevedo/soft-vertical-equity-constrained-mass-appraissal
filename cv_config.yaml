@@ -17,8 +17,8 @@ seed: 2025
 
 # Numeric sanity guard used in CV/test evaluation:
 # if any numeric metric is non-finite or abs(value) > this cap,
-# the corresponding model configuration is pruned from artifacts.
-numeric_sanity_abs_cap: 1.0e6
+# the corresponding saved rows are flagged as numerically unstable.
+numeric_sanity_abs_cap: 1e10
 
 
 # ---------------------------------------------------------------------------

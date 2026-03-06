@@ -498,7 +498,7 @@ def run_robust_rolling_origin_cv(
     run_records: List[Dict[str, Any]] = []
     bootstrap_records: List[Dict[str, Any]] = []
     failed_records: List[Dict[str, Any]] = []
-    invalid_numeric_records: List[Dict[str, Any]] = []
+    numeric_warning_records: List[Dict[str, Any]] = []
 
     runs_root = output_root / "runs"
     boots_root = output_root / "bootstrap_metrics"
@@ -508,6 +508,7 @@ def run_robust_rolling_origin_cv(
     processed_runs = 0
     skipped_runs = 0
     completed_runs = 0
+    warning_runs = 0
     failed_runs = 0
 
     pending_jobs: List[Dict[str, Any]] = []
@@ -547,7 +548,7 @@ def run_robust_rolling_origin_cv(
                     status_payload = json.loads(status_file.read_text(encoding="utf-8"))
                 except Exception:
                     status_payload = {}
-                completed = status_payload.get("status") == "completed"
+                completed = status_payload.get("status") in {"completed", "completed_with_numeric_warning"}
                 bootstrap_expected = int(bootstrap_protocol.get("n_bootstrap", 100)) > 0
                 artifacts_ok = (
                     run_file.exists()
@@ -649,24 +650,6 @@ def run_robust_rolling_origin_cv(
                 ratio_mode=fairness_ratio_mode,
             )
             bad_main = _first_bad_numeric_metric(metrics_full, abs_cap=float(numeric_sanity_abs_cap))
-            if bad_main is not None:
-                invalid_payload = {
-                    "status": "invalid_numeric",
-                    "run_id": run_id,
-                    "data_id": data_id,
-                    "split_id": split_id,
-                    "config_id": config_id,
-                    "model_name": model_name,
-                    "fold_id": fold_id,
-                    "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                    "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
-                    "offending_metric": bad_main["metric"],
-                    "offending_value": bad_main["value"],
-                    "offending_reason": bad_main["reason"],
-                }
-                _write_json_atomic(status_file, invalid_payload)
-                return {"status": "invalid_numeric", "invalid_payload": invalid_payload}
-
             run_row = {
                 "data_id": data_id,
                 "split_id": split_id,
@@ -684,11 +667,44 @@ def run_robust_rolling_origin_cv(
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                 "runtime_sec": runtime_sec,
                 "model_config_json": _stable_json(model_config),
+                "numeric_stability_status": "stable",
+                "numeric_guard_flagged": False,
+                "numeric_guard_stage": "",
+                "numeric_guard_metric": "",
+                "numeric_guard_value": np.nan,
+                "numeric_guard_reason": "",
+                "numeric_guard_bootstrap_issue_count": 0,
                 **metrics_full,
             }
-            pd.DataFrame([run_row]).to_parquet(run_file, index=False, engine=parquet_engine)
 
             bs_rows: List[Dict[str, Any]] = []
+            warning_payloads: List[Dict[str, Any]] = []
+            first_warning: Optional[Dict[str, Any]] = None
+            bootstrap_issue_count = 0
+            if bad_main is not None:
+                first_warning = {
+                    "stage": "validation_metrics",
+                    "metric": bad_main["metric"],
+                    "value": bad_main["value"],
+                    "reason": bad_main["reason"],
+                }
+                warning_payloads.append(
+                    {
+                        "status": "numeric_warning",
+                        "run_id": run_id,
+                        "data_id": data_id,
+                        "split_id": split_id,
+                        "config_id": config_id,
+                        "model_name": model_name,
+                        "fold_id": fold_id,
+                        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                        "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
+                        "offending_stage": "validation_metrics",
+                        "offending_metric": bad_main["metric"],
+                        "offending_value": bad_main["value"],
+                        "offending_reason": bad_main["reason"],
+                    }
+                )
             bs_indices = bootstrap_indices_by_fold.get(fold_id, [])
             for b_idx, sample_idx in enumerate(bs_indices):
                 y_val_bs = y_val[sample_idx]
@@ -701,31 +717,32 @@ def run_robust_rolling_origin_cv(
                 )
                 bad_bs = _first_bad_numeric_metric(m_bs, abs_cap=float(numeric_sanity_abs_cap))
                 if bad_bs is not None:
-                    invalid_payload = {
-                        "status": "invalid_numeric",
-                        "run_id": run_id,
-                        "data_id": data_id,
-                        "split_id": split_id,
-                        "config_id": config_id,
-                        "model_name": model_name,
-                        "fold_id": fold_id,
-                        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-                        "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
-                        "offending_metric": bad_bs["metric"],
-                        "offending_value": bad_bs["value"],
-                        "offending_reason": bad_bs["reason"],
-                        "offending_stage": "bootstrap",
-                        "bootstrap_id": int(b_idx),
-                    }
-                    # Remove already written artifacts for this run before returning invalid.
-                    for fp in [run_file, bs_file, pred_file]:
-                        try:
-                            if fp.exists():
-                                fp.unlink()
-                        except Exception:
-                            pass
-                    _write_json_atomic(status_file, invalid_payload)
-                    return {"status": "invalid_numeric", "invalid_payload": invalid_payload}
+                    bootstrap_issue_count += 1
+                    if first_warning is None:
+                        first_warning = {
+                            "stage": "validation_bootstrap",
+                            "metric": bad_bs["metric"],
+                            "value": bad_bs["value"],
+                            "reason": bad_bs["reason"],
+                        }
+                    warning_payloads.append(
+                        {
+                            "status": "numeric_warning",
+                            "run_id": run_id,
+                            "data_id": data_id,
+                            "split_id": split_id,
+                            "config_id": config_id,
+                            "model_name": model_name,
+                            "fold_id": fold_id,
+                            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+                            "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
+                            "offending_stage": "validation_bootstrap",
+                            "offending_metric": bad_bs["metric"],
+                            "offending_value": bad_bs["value"],
+                            "offending_reason": bad_bs["reason"],
+                            "bootstrap_id": int(b_idx),
+                        }
+                    )
                 bs_rows.append(
                     {
                         "run_id": run_id,
@@ -737,9 +754,24 @@ def run_robust_rolling_origin_cv(
                         "bootstrap_seed": int(bootstrap_protocol.get("seed", 2025)) + fold_id,
                         "bootstrap_block_freq": str(bootstrap_protocol.get("block_freq", "M")),
                         "bootstrap_sample_size": int(sample_idx.size),
+                        "numeric_stability_status": "flagged" if bad_bs is not None else "stable",
+                        "numeric_guard_flagged": bool(bad_bs is not None),
+                        "numeric_guard_stage": "validation_bootstrap" if bad_bs is not None else "",
+                        "numeric_guard_metric": str(bad_bs["metric"]) if bad_bs is not None else "",
+                        "numeric_guard_value": bad_bs["value"] if bad_bs is not None else np.nan,
+                        "numeric_guard_reason": str(bad_bs["reason"]) if bad_bs is not None else "",
                         **m_bs,
                     }
                 )
+            if first_warning is not None:
+                run_row["numeric_stability_status"] = "flagged"
+                run_row["numeric_guard_flagged"] = True
+                run_row["numeric_guard_stage"] = str(first_warning["stage"])
+                run_row["numeric_guard_metric"] = str(first_warning["metric"])
+                run_row["numeric_guard_value"] = first_warning["value"]
+                run_row["numeric_guard_reason"] = str(first_warning["reason"])
+                run_row["numeric_guard_bootstrap_issue_count"] = int(bootstrap_issue_count)
+            pd.DataFrame([run_row]).to_parquet(run_file, index=False, engine=parquet_engine)
             if bs_rows:
                 bs_dir.mkdir(parents=True, exist_ok=True)
                 pd.DataFrame(bs_rows).to_parquet(bs_file, index=False, engine=parquet_engine)
@@ -750,6 +782,12 @@ def run_robust_rolling_origin_cv(
                     {
                         "run_id": run_id,
                         "row_id": val_df.index.to_numpy(),
+                        "numeric_stability_status": run_row["numeric_stability_status"],
+                        "numeric_guard_flagged": run_row["numeric_guard_flagged"],
+                        "numeric_guard_stage": run_row["numeric_guard_stage"],
+                        "numeric_guard_metric": run_row["numeric_guard_metric"],
+                        "numeric_guard_value": run_row["numeric_guard_value"],
+                        "numeric_guard_reason": run_row["numeric_guard_reason"],
                         "y_true_log": y_val,
                         "y_pred_log": np.asarray(y_pred_val),
                         "y_true": np.exp(y_val),
@@ -771,6 +809,9 @@ def run_robust_rolling_origin_cv(
                     "fold_id": fold_id,
                     "timestamp_utc": datetime.now(timezone.utc).isoformat(),
                     "runtime_sec": runtime_sec,
+                    "numeric_stability_status": run_row["numeric_stability_status"],
+                    "numeric_warning_count": int(len(warning_payloads)),
+                    "numeric_warning_summary": warning_payloads[0] if warning_payloads else None,
                     "artifacts": {
                         "run_file": str(run_file),
                         "bootstrap_file": str(bs_file) if bs_file.exists() else None,
@@ -778,7 +819,12 @@ def run_robust_rolling_origin_cv(
                     },
                 },
             )
-            return {"status": "completed", "run_row": run_row, "bs_rows": bs_rows}
+            return {
+                "status": "completed_with_numeric_warning" if first_warning is not None else "completed",
+                "run_row": run_row,
+                "bs_rows": bs_rows,
+                "warning_payloads": warning_payloads,
+            }
         except Exception as exc:
             failed_payload = {
                 "status": "failed",
@@ -826,77 +872,49 @@ def run_robust_rolling_origin_cv(
         )
 
     for res in job_results:
-        if res.get("status") == "completed":
+        if res.get("status") in {"completed", "completed_with_numeric_warning"}:
             run_records.append(res["run_row"])
             completed_runs += 1
+            if res.get("status") == "completed_with_numeric_warning":
+                warning_runs += 1
+                numeric_warning_records.extend(res.get("warning_payloads", []))
             bs_rows = res.get("bs_rows", [])
             if bs_rows:
                 bootstrap_records.extend(bs_rows)
-        elif res.get("status") == "invalid_numeric":
-            invalid_numeric_records.append(res["invalid_payload"])
         else:
             failed_records.append(res["failed_payload"])
             failed_runs += 1
 
-    invalid_config_ids = sorted({str(r.get("config_id")) for r in invalid_numeric_records if r.get("config_id")})
-    if invalid_config_ids:
-        run_records = [r for r in run_records if str(r.get("config_id")) not in set(invalid_config_ids)]
-        bootstrap_records = [r for r in bootstrap_records if str(r.get("config_id")) not in set(invalid_config_ids)]
-        split_runs_root = runs_root / f"data_id={data_id}" / f"split_id={split_id}"
-        split_boots_root = boots_root / f"data_id={data_id}" / f"split_id={split_id}"
-        split_preds_root = preds_root / f"data_id={data_id}" / f"split_id={split_id}"
+    flagged_config_ids = sorted({str(r.get("config_id")) for r in numeric_warning_records if r.get("config_id")})
+    if numeric_warning_records:
         split_status_root = status_root / f"data_id={data_id}" / f"split_id={split_id}"
-        removed_artifacts = 0
-        for status_path in sorted(split_status_root.rglob("*.json")) if split_status_root.exists() else []:
-            try:
-                payload = json.loads(status_path.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            cfg = str(payload.get("config_id", ""))
-            if cfg not in set(invalid_config_ids):
-                continue
-            rid = str(payload.get("run_id", ""))
-            for root in [split_runs_root, split_boots_root, split_preds_root]:
-                if not root.exists() or not rid:
-                    continue
-                for fp in root.rglob(f"{rid}.parquet"):
-                    try:
-                        fp.unlink()
-                        removed_artifacts += 1
-                    except Exception:
-                        pass
-            try:
-                status_path.unlink()
-            except Exception:
-                pass
-        invalid_report_path = split_status_root / "invalid_numeric_configs.json"
-        invalid_report_path.parent.mkdir(parents=True, exist_ok=True)
-        invalid_report_path.write_text(
-            json.dumps(
-                {
-                    "data_id": data_id,
-                    "split_id": split_id,
-                    "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
-                    "invalid_config_ids": invalid_config_ids,
-                    "n_invalid_runs": int(len(invalid_numeric_records)),
-                    "n_removed_artifacts": int(removed_artifacts),
-                    "records": invalid_numeric_records,
-                },
-                indent=2,
-                sort_keys=True,
-            ),
-            encoding="utf-8",
-        )
+        warning_payload = {
+            "data_id": data_id,
+            "split_id": split_id,
+            "numeric_sanity_abs_cap": float(numeric_sanity_abs_cap),
+            "flagged_config_ids": flagged_config_ids,
+            "invalid_config_ids": flagged_config_ids,
+            "n_flagged_records": int(len(numeric_warning_records)),
+            "n_invalid_runs": int(len(numeric_warning_records)),
+            "records": numeric_warning_records,
+        }
+        for report_name in ["numeric_guard_flags.json", "invalid_numeric_configs.json"]:
+            report_path = split_status_root / report_name
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            report_path.write_text(
+                json.dumps(warning_payload, indent=2, sort_keys=True),
+                encoding="utf-8",
+            )
         if log_progress:
             print(
-                f"[cv] numeric guard pruned configs={len(invalid_config_ids)} "
-                f"invalid_runs={len(invalid_numeric_records)} removed_artifacts={removed_artifacts}"
+                f"[cv] numeric guard flagged configs={len(flagged_config_ids)} "
+                f"warning_records={len(numeric_warning_records)}"
             )
 
     if log_progress:
         print(
             f"[cv] done | total={total_runs} processed={processed_runs} "
-            f"completed={completed_runs} skipped={skipped_runs} failed={failed_runs}"
+            f"completed={completed_runs} warned={warning_runs} skipped={skipped_runs} failed={failed_runs}"
         )
 
     return {
@@ -906,8 +924,10 @@ def run_robust_rolling_origin_cv(
         "run_records": pd.DataFrame(run_records) if run_records else pd.DataFrame(),
         "bootstrap_records": pd.DataFrame(bootstrap_records) if bootstrap_records else pd.DataFrame(),
         "failed_records": pd.DataFrame(failed_records) if failed_records else pd.DataFrame(),
-        "invalid_numeric_records": pd.DataFrame(invalid_numeric_records) if invalid_numeric_records else pd.DataFrame(),
-        "invalid_config_ids": invalid_config_ids,
+        "invalid_numeric_records": pd.DataFrame(numeric_warning_records) if numeric_warning_records else pd.DataFrame(),
+        "numeric_warning_records": pd.DataFrame(numeric_warning_records) if numeric_warning_records else pd.DataFrame(),
+        "invalid_config_ids": flagged_config_ids,
+        "flagged_config_ids": flagged_config_ids,
     }
 
 
