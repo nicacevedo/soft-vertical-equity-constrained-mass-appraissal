@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple, Union
 
 import numpy as np
+import pandas as pd
 
 try:
     import lightgbm as lgb
@@ -856,9 +857,486 @@ class LGBSmoothPenaltyCVaRTotal:
 
 
 
+# # 3) ABsolute deviation version of the surrogate
+# class LGBAbsDevPenalty:
+#     """LightGBM custom objective: per-sample MSE + rho * calibrated abs-deviation surrogate.
+
+#     L1-style analogue of LGBSmoothPenalty.
+
+#     Default behavior:
+#       ratio_mode="div":
+#           surrogate ≈ scale_match * y_scale^2 * |(y_pred / denom) - target| * |y_true - y_mean| / y_scale
+
+#       ratio_mode="diff":
+#           surrogate ≈ scale_match * y_scale^2 * |(y_pred - y_true) - target| / y_scale * |y_true - y_mean| / y_scale
+#                    = scale_match * |(y_pred - y_true) - target| * |y_true - y_mean|
+
+#     More precisely, to keep LightGBM stable, the abs on the prediction-dependent term is smoothed via:
+#         soft_abs(u) = sqrt(u^2 + delta^2) - delta
+
+#     where delta is small (in normalized units).
+
+#     Parameters
+#     ----------
+#     rho : float
+#         Penalty weight.
+#     ratio_mode : str
+#         "div" (default) or "diff".
+#     target_value : float or None
+#         Default: 1.0 for "div", 0.0 for "diff".
+#     smooth_abs_delta : float
+#         Small smoothing for the abs term on the prediction-dependent deviation.
+#         Applied to the normalized deviation u = (r - t) / r_scale.
+#     scale_mode : str
+#         "rms" (default) or "mad". Determines y_scale used for normalization.
+#     match_l2_scale : bool
+#         If True, multiply penalty by pi/2. This roughly matches the expected magnitude
+#         of |U||V| to U^2 V^2 when U,V are standardized Gaussian-like variables.
+#         If False, uses literal L1-style product scale.
+#     custom_match_factor : float or None
+#         If provided, overrides the automatic match factor.
+#     zero_grad_tol : float
+#         Small floor for gradients/hessians (kept close to your current class behavior).
+#     eps_y : float
+#         Numerical epsilon for safe division in "div" mode.
+#     eps_scale : float
+#         Numerical epsilon for safe scale normalization.
+#     lgbm_params : dict or None
+#         Parameters passed to lgb.LGBMRegressor.
+#     verbose : bool
+#         Whether to print loss diagnostics inside fobj.
+
+#     Notes
+#     -----
+#     - This remains separable across samples.
+#     - This is NOT the same Jensen-type squared upper bound; it is the L1-style analogue.
+#     - Because the regularization geometry changes (L2-like -> L1-like), you should still
+#       expect the best rho for this model to differ from the squared version, even after scaling.
+#     """
+
+#     def __init__(
+#         self,
+#         rho=1e-3,
+#         ratio_mode="div",              # "div" (default) or "diff"
+#         target_value=None,             # default: 1.0 for div, 0.0 for diff
+#         smooth_abs_delta=1e-3,         # smoothing for |u| on normalized deviation
+#         scale_mode="rms",              # "rms" or "mad"
+#         match_l2_scale=True,
+#         custom_match_factor=None,
+#         zero_grad_tol=1e-6,
+#         eps_y=1e-12,
+#         eps_scale=1e-12,
+#         lgbm_params=None,
+#         verbose=True,
+#     ):
+#         self.rho = float(rho)
+#         self.ratio_mode = ratio_mode
+#         self.target_value = target_value
+#         self.smooth_abs_delta = float(smooth_abs_delta)
+#         self.scale_mode = scale_mode
+#         self.match_l2_scale = bool(match_l2_scale)
+#         self.custom_match_factor = custom_match_factor
+#         self.zero_grad_tol = float(zero_grad_tol)
+#         self.eps_y = float(eps_y)
+#         self.eps_scale = float(eps_scale)
+#         self.verbose = bool(verbose)
+#         self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+#     def fit(self, X, y):
+#         y = np.asarray(y, dtype=float)
+#         self.y_mean_ = float(np.mean(y))
+
+#         zc = y - self.y_mean_
+#         if self.scale_mode == "rms":
+#             self.y_scale_ = float(np.sqrt(np.mean(zc ** 2)))
+#         elif self.scale_mode == "mad":
+#             # robust std-like scale from MAD around mean-centered data
+#             self.y_scale_ = float(np.median(np.abs(zc)) / 0.6744897501960817)
+#         else:
+#             raise ValueError("scale_mode must be 'rms' or 'mad'.")
+
+#         self.y_scale_ = max(self.y_scale_, self.eps_scale)
+
+#         if self.custom_match_factor is not None:
+#             self.match_factor_ = float(self.custom_match_factor)
+#         else:
+#             self.match_factor_ = float(np.pi / 2.0) if self.match_l2_scale else 1.0
+
+#         self.model.set_params(objective=self.fobj)
+#         self.model.fit(X, y)
+#         return self
+
+#     def predict(self, X):
+#         return self.model.predict(X)
+
+#     def _soft_abs_with_derivatives(self, u):
+#         """Smooth approximation of |u| with first and second derivatives."""
+#         delta = max(self.smooth_abs_delta, self.eps_scale)
+#         root = np.sqrt(u ** 2 + delta ** 2)
+
+#         # value approximates |u| and is exactly 0 at u=0
+#         val = root - delta
+
+#         # d/du
+#         grad = u / root
+
+#         # d2/du2
+#         hess = (delta ** 2) / (root ** 3)
+
+#         return val, grad, hess
+
+#     def fobj(self, y_true, y_pred):
+#         y_true = np.asarray(y_true, dtype=float)
+#         y_pred = np.asarray(y_pred, dtype=float)
+
+#         z = y_true
+#         zc = y_true - self.y_mean_
+#         abs_zc_norm = np.abs(zc) / self.y_scale_
+
+#         denom = np.maximum(np.abs(z), self.eps_y)
+
+#         # choose r, dr/dy_pred, default target, and normalization scale for r
+#         if self.ratio_mode == "div":
+#             r = y_pred / denom
+#             dr = 1.0 / denom
+#             t = 1.0 if self.target_value is None else float(self.target_value)
+#             r_scale = 1.0
+#         elif self.ratio_mode == "diff":
+#             r = y_pred - z
+#             dr = np.ones_like(y_pred)
+#             t = 0.0 if self.target_value is None else float(self.target_value)
+#             r_scale = self.y_scale_
+#         else:
+#             raise ValueError("ratio_mode must be 'div' or 'diff'.")
+
+#         r_scale = max(float(r_scale), self.eps_scale)
+
+#         # normalized prediction-dependent deviation
+#         u = (r - t) / r_scale
+
+#         # smooth |u|
+#         abs_u, dabs_u, ddabs_u = self._soft_abs_with_derivatives(u)
+
+#         # calibrated penalty scale:
+#         # y_scale_^2 turns the normalized L1-style product back to MSE-like units
+#         pen_scale = self.match_factor_ * (self.y_scale_ ** 2)
+
+#         # per-sample penalty
+#         cov_surr_value = pen_scale * abs_u * abs_zc_norm
+
+#         # total loss
+#         mse_value = (y_true - y_pred) ** 2
+#         loss_value = mse_value + self.rho * cov_surr_value
+
+#         if self.verbose:
+#             model_name = self.__str__()
+#             try:
+#                 corr = float(np.corrcoef(r, y_true)[0, 1])
+#             except Exception:
+#                 corr = float("nan")
+#             print(
+#                 f"[{model_name.split('(')[0]}] "
+#                 f"Loss value: {np.mean(loss_value):.6f} "
+#                 f"| MSE value: {np.mean(mse_value):.6f} "
+#                 f"| AbsDevSurr value: {np.mean(cov_surr_value):.6f} "
+#                 f"| Corr(r,y): {corr:.6f} "
+#                 f"| mode: {self.ratio_mode} | target: {t:.6f} "
+#                 f"| y_scale: {self.y_scale_:.6f} | match: {self.match_factor_:.6f}"
+#             )
+
+#         # base gradients/hessians for (pred - y)^2
+#         grad_base = 2.0 * (y_pred - y_true)
+#         hess_base = 2.0 * np.ones_like(y_pred)
+
+#         # penalty derivatives
+#         # pen_i = pen_scale * soft_abs(u_i) * |zc_i| / y_scale
+#         # u_i = (r_i - t) / r_scale
+#         # d pen_i / d pred_i
+#         du_dpred = dr / r_scale
+#         grad_pen = pen_scale * abs_zc_norm * dabs_u * du_dpred
+
+#         # d2 pen_i / d pred_i^2
+#         # since r is affine in y_pred, only ddabs_u term remains
+#         hess_pen = pen_scale * abs_zc_norm * ddabs_u * (du_dpred ** 2)
+
+#         grad = grad_base + self.rho * grad_pen
+#         hess = hess_base + self.rho * hess_pen
+
+#         # kept intentionally close to your current class for apples-to-apples comparison
+#         grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+#         hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+#         return grad, hess
+
+#     def __str__(self):
+#         return f"LGBAbsDevPenalty(rho={self.rho}, mode={self.ratio_mode})"
 
 
 
+# 3) Surrogate with a categorical feature control by group.
+class LGBSmoothPenaltyGrouped:
+    """
+    LightGBM custom objective:
+        MSE
+      + rho * global separable surrogate
+      + rho_group * grouped separable surrogate
+
+    Global surrogate (same as original):
+      ratio_mode="div":  ((y_pred / denom) - target)^2 * (y_true - global_mean)^2
+      ratio_mode="diff": ((y_pred - y_true) - target)^2 * (y_true - global_mean)^2
+
+    Grouped surrogate (new):
+      same structure, but centered within each group:
+        ((r - target)^2) * (y_true - group_mean)^2
+
+    Group aggregation:
+      - "mean": each group contributes equally in aggregate (default)
+      - "sum" : larger groups contribute more
+
+    Notes
+    -----
+    - Exact original behavior is preserved when:
+        rho_group = 0.0
+        or group_feature is None
+    - The grouped term remains separable because group means / row weights are
+      precomputed once in fit() and treated as constants during boosting.
+    - This is NOT a true covariance penalty within each group; it is the same
+      smooth separable surrogate structure as your current model, applied by group.
+    """
+
+    def __init__(
+        self,
+        rho=1e-3,
+        rho_group=0.0,
+        ratio_mode="div",          # "div" (default) or "diff"
+        target_value=None,         # default: 1.0 for div, 0.0 for diff
+        group_feature=None,        # column name (DataFrame) or column index (ndarray)
+        group_aggregation="mean",  # "mean" or "sum"
+        min_group_size=2,
+        zero_grad_tol=1e-6,
+        eps_y=1e-12,
+        lgbm_params=None,
+        verbose=True,
+    ):
+        self.rho = float(rho)
+        self.rho_group = float(rho_group)
+        self.ratio_mode = ratio_mode
+        self.target_value = target_value
+
+        self.group_feature = group_feature
+        self.group_aggregation = group_aggregation
+        self.min_group_size = int(min_group_size)
+
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.eps_y = float(eps_y)
+        self.verbose = bool(verbose)
+
+        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+        # caches built in fit()
+        self.y_mean_ = None
+        self.group_centered_y_ = None   # row-aligned: y_i - mean(y in group_i)
+        self.group_row_weight_ = None   # row-aligned aggregation weights
+        self.group_labels_ = None
+        self.active_groups_ = None
+
+    def fit(self, X, y):
+        y = np.asarray(y, dtype=float)
+        self.y_mean_ = float(np.mean(y))
+
+        self._prepare_group_cache(X, y)
+
+        self.model.set_params(objective=self.fobj)
+        self.model.fit(X, y)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def _extract_group_values(self, X):
+        """Extract the grouping feature from X."""
+        if self.group_feature is None:
+            return None
+
+        # pandas DataFrame case
+        if hasattr(X, "columns"):
+            if isinstance(self.group_feature, str):
+                if self.group_feature not in X.columns:
+                    raise ValueError(
+                        f"group_feature='{self.group_feature}' not found in X columns."
+                    )
+                g = X[self.group_feature]
+            else:
+                g = X.iloc[:, int(self.group_feature)]
+            return pd.Series(g)
+
+        # ndarray / array-like case
+        X_arr = np.asarray(X)
+        if isinstance(self.group_feature, str):
+            raise ValueError(
+                "group_feature as a string requires X to be a pandas DataFrame."
+            )
+        return pd.Series(X_arr[:, int(self.group_feature)])
+
+    def _prepare_group_cache(self, X, y):
+        """
+        Precompute row-aligned grouped penalty quantities:
+          group_centered_y_[i] = y_i - mean(y in group_i)
+          group_row_weight_[i] = aggregation weight for group_i
+        """
+        n = len(y)
+
+        self.group_centered_y_ = np.zeros(n, dtype=float)
+        self.group_row_weight_ = np.zeros(n, dtype=float)
+        self.group_labels_ = None
+        self.active_groups_ = []
+
+        if self.group_feature is None or self.rho_group == 0.0:
+            return
+
+        g = self._extract_group_values(X)
+        g = g.astype("object").where(~pd.isna(g), "__MISSING__")
+
+        codes, uniques = pd.factorize(g, sort=False)
+        self.group_labels_ = list(uniques)
+
+        for code, label in enumerate(uniques):
+            idx = np.flatnonzero(codes == code)
+            n_g = idx.size
+
+            # Ignore tiny groups
+            if n_g < self.min_group_size:
+                continue
+
+            y_g = y[idx]
+            mu_g = float(np.mean(y_g))
+            zc_g = y_g - mu_g
+
+            # Equal aggregate contribution per group by default
+            if self.group_aggregation == "mean":
+                agg_weight = 1.0 / n_g
+            elif self.group_aggregation == "sum":
+                agg_weight = 1.0
+            else:
+                raise ValueError("group_aggregation must be 'mean' or 'sum'.")
+
+            self.group_centered_y_[idx] = zc_g
+            self.group_row_weight_[idx] = agg_weight
+            self.active_groups_.append(label)
+
+        if self.verbose:
+            print(
+                f"[{self.__class__.__name__}] "
+                f"group_feature={self.group_feature!r} | "
+                f"active_groups={len(self.active_groups_)} | "
+                f"group_aggregation={self.group_aggregation} | "
+                f"min_group_size={self.min_group_size} | "
+                f"rho_group={self.rho_group}"
+            )
+
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true, dtype=float)
+        y_pred = np.asarray(y_pred, dtype=float)
+
+        z = y_true
+        zc_global = y_true - self.y_mean_
+        denom = np.maximum(np.abs(z), self.eps_y)
+
+        # choose r, dr/dy_pred, and default target
+        if self.ratio_mode == "div":
+            r = y_pred / denom
+            dr = 1.0 / denom
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "diff":
+            r = y_pred - z
+            dr = np.ones_like(y_pred)
+            t = 0.0 if self.target_value is None else float(self.target_value)
+        else:
+            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+
+        # -------------------------
+        # base MSE
+        # -------------------------
+        mse_value = (y_true - y_pred) ** 2
+        grad_base = 2.0 * (y_pred - y_true)
+        hess_base = 2.0 * np.ones_like(y_pred)
+
+        # -------------------------
+        # original global penalty
+        # -------------------------
+        global_scale = zc_global ** 2
+        cov_surr_value = (r - t) ** 2 * global_scale
+        grad_pen_global = 2.0 * (r - t) * dr * global_scale
+        hess_pen_global = 2.0 * (dr ** 2) * global_scale
+
+        # -------------------------
+        # new grouped penalty
+        # -------------------------
+        if self.group_centered_y_ is not None and self.group_row_weight_ is not None:
+            group_scale = self.group_centered_y_ ** 2
+            row_weight = self.group_row_weight_
+
+            group_cov_surr_value = row_weight * ((r - t) ** 2) * group_scale
+            grad_pen_group = row_weight * 2.0 * (r - t) * dr * group_scale
+            hess_pen_group = row_weight * 2.0 * (dr ** 2) * group_scale
+        else:
+            group_cov_surr_value = np.zeros_like(y_true)
+            grad_pen_group = np.zeros_like(y_true)
+            hess_pen_group = np.zeros_like(y_true)
+
+        # full loss
+        loss_value = (
+            mse_value
+            + self.rho * cov_surr_value
+            + self.rho_group * group_cov_surr_value
+        )
+
+        # full gradient / hessian
+        grad = (
+            grad_base
+            + self.rho * grad_pen_global
+            + self.rho_group * grad_pen_group
+        )
+
+        hess = (
+            hess_base
+            + self.rho * hess_pen_global
+            + self.rho_group * hess_pen_group
+        )
+
+        # diagnostics
+        if self.verbose:
+            model_name = self.__str__()
+            try:
+                corr = float(np.corrcoef(r, y_true)[0, 1])
+            except Exception:
+                corr = float("nan")
+
+            print(
+                f"[{model_name.split('(')[0]}] "
+                f"Loss value: {np.mean(loss_value):.6f} "
+                f"| MSE value: {np.mean(mse_value):.6f} "
+                f"| CovSurr value: {np.mean(cov_surr_value):.6f} "
+                f"| GroupCovSurr value: {np.sum(group_cov_surr_value):.6f} "
+                f"| Corr(r,y): {corr:.6f} "
+                f"| mode: {self.ratio_mode} | target: {t:.6f}"
+            )
+
+        # zero tol (kept to preserve your original behavior)
+        grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        return grad, hess
+
+    def __str__(self):
+        return (
+            f"LGBSmoothPenaltyGrouped("
+            f"rho={self.rho}, "
+            f"rho_group={self.rho_group}, "
+            f"mode={self.ratio_mode}, "
+            f"group_feature={self.group_feature}"
+            f")"
+        )
 
 
 
@@ -2424,7 +2902,6 @@ class LGBSmoothPenaltyCVaRTotal:
 #         if s > 0:
 #             w /= s
 #         return w
-
 
 
 

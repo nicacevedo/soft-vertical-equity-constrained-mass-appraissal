@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -27,25 +28,78 @@ except ImportError as e:  # pragma: no cover
 from utils.motivation_utils import IAAO_PRB_RANGE, IAAO_PRD_RANGE, IAAO_VEI_RANGE, _compute_extended_metrics
 
 
-def _load_runs_df(*, result_root: str, data_id: str, split_id: str) -> pd.DataFrame:
+def _load_runs_df(
+    *,
+    result_root: str,
+    data_id: str,
+    split_id: str,
+    columns: Optional[List[str]] = None,
+) -> pd.DataFrame:
     runs_dir = Path(result_root) / "runs" / f"data_id={data_id}" / f"split_id={split_id}"
     if not runs_dir.exists():
         raise FileNotFoundError(f"CV runs directory not found: {runs_dir}")
     paths = sorted(runs_dir.rglob("*.parquet"))
     if not paths:
         raise FileNotFoundError(f"No run parquet files found under: {runs_dir}")
-    dfs = [pd.read_parquet(p) for p in paths]
+    read_columns = None if columns is None else list(dict.fromkeys(columns))
+    dfs = [pd.read_parquet(p, columns=read_columns) for p in paths]
     return pd.concat(dfs, ignore_index=True)
 
 
-def _load_predictions_df(*, result_root: str, data_id: str, split_id: str) -> pd.DataFrame:
+def _resolve_prediction_paths(
+    *,
+    preds_dir: Path,
+    selected_runs_by_fold: Optional[Dict[int, List[str]]] = None,
+) -> List[Path]:
+    if not selected_runs_by_fold:
+        return sorted(preds_dir.rglob("*.parquet"))
+
+    selected_paths: List[Path] = []
+    missing_by_fold: Dict[int, set[str]] = {}
+    for fold_id, run_ids in selected_runs_by_fold.items():
+        for run_id in run_ids:
+            path = preds_dir / f"fold_id={int(fold_id)}" / f"{str(run_id)}.parquet"
+            if path.exists():
+                selected_paths.append(path)
+            else:
+                missing_by_fold.setdefault(int(fold_id), set()).add(str(run_id))
+
+    if not missing_by_fold:
+        return sorted(set(selected_paths))
+
+    needed_run_ids = {str(run_id) for run_ids in selected_runs_by_fold.values() for run_id in run_ids}
+    for path in preds_dir.rglob("*.parquet"):
+        parent = path.parent.name
+        if not parent.startswith("fold_id="):
+            continue
+        try:
+            fold_id = int(parent.split("=", 1)[1])
+        except ValueError:
+            continue
+        run_id = path.stem
+        if run_id in needed_run_ids and run_id in missing_by_fold.get(fold_id, set()):
+            selected_paths.append(path)
+            missing_by_fold[fold_id].discard(run_id)
+
+    return sorted(set(selected_paths))
+
+
+def _load_predictions_df(
+    *,
+    result_root: str,
+    data_id: str,
+    split_id: str,
+    columns: Optional[List[str]] = None,
+    selected_runs_by_fold: Optional[Dict[int, List[str]]] = None,
+) -> pd.DataFrame:
     preds_dir = Path(result_root) / "predictions" / f"data_id={data_id}" / f"split_id={split_id}"
     if not preds_dir.exists():
         raise FileNotFoundError(f"Predictions directory not found: {preds_dir}")
-    paths = sorted(preds_dir.rglob("*.parquet"))
+    paths = _resolve_prediction_paths(preds_dir=preds_dir, selected_runs_by_fold=selected_runs_by_fold)
     if not paths:
         raise FileNotFoundError(f"No prediction parquet files found under: {preds_dir}")
-    dfs = [pd.read_parquet(p) for p in paths]
+    read_columns = None if columns is None else list(dict.fromkeys(columns))
+    dfs = [pd.read_parquet(p, columns=read_columns) for p in paths]
     out = pd.concat(dfs, ignore_index=True)
     for c in ["run_id", "row_id", "y_true", "y_pred"]:
         if c not in out.columns:
@@ -580,27 +634,59 @@ def _choose_solver(preferred: str | None = None) -> str:
     raise RuntimeError("No cvxpy solvers installed. Install one of: ecos, scs, osqp, clarabel, mosek.")
 
 
-def _build_fold_prediction_panels(
+def _select_baseline_lgbm_config(
     *,
     runs_df: pd.DataFrame,
-    preds_df: pd.DataFrame,
+    accuracy_metric: str = "OOS R2",
+) -> Optional[str]:
+    if "config_id" not in runs_df.columns or "model_name" not in runs_df.columns:
+        return None
+    dfx = runs_df.copy()
+    dfx["config_id"] = dfx["config_id"].astype(str)
+    dfx = dfx[dfx["model_name"].astype(str) == "LGBMRegressor"].copy()
+    if dfx.empty:
+        return None
+    acc_col = str(accuracy_metric)
+    if acc_col not in dfx.columns:
+        acc_col = "OOS R2" if "OOS R2" in dfx.columns else "R2"
+    if acc_col not in dfx.columns:
+        return None
+    dfx[acc_col] = pd.to_numeric(dfx[acc_col], errors="coerce")
+    dfx = dfx.dropna(subset=[acc_col])
+    if dfx.empty:
+        return None
+    best = (
+        dfx.groupby("config_id", as_index=False)[acc_col]
+        .mean()
+        .sort_values(acc_col, ascending=False, ignore_index=True)
+        .head(1)
+    )
+    if best.empty:
+        return None
+    return str(best["config_id"].iloc[0])
+
+
+def _prepare_prediction_panel_inputs(
+    *,
+    runs_df: pd.DataFrame,
     accuracy_metric: str,
     max_models: Optional[int],
-) -> Tuple[List[int], List[str], Dict[int, Tuple[np.ndarray, np.ndarray]], pd.DataFrame]:
+    force_include_models: Optional[List[str]] = None,
+) -> Tuple[List[int], List[str], pd.DataFrame, pd.DataFrame]:
     """
-    Build per-fold prediction matrices P_f (n_f x M) and targets y_f (n_f,)
-    aligned across a common model set.
-    Returns:
-      folds, models, fold_panels, meta_df(config_id->model_name)
+    Select the aligned fold/model/run panel used by the exact stacking solver.
     """
     req = [str(accuracy_metric), "R2", "PRD", "PRB", "VEI"]
     aligned_df, folds, models = _align_complete_grid(runs_df, required_metrics=req)
+    force_keep = [str(m) for m in (force_include_models or []) if str(m).strip()]
 
-    # Optional pruning by mean accuracy for scalability.
     if max_models is not None and int(max_models) > 0 and len(models) > int(max_models):
         p_acc = aligned_df.pivot_table(index="fold_id", columns="config_id", values=str(accuracy_metric), aggfunc="first")
         mean_acc = p_acc.mean(axis=0).sort_values(ascending=False)
         models = mean_acc.index[: int(max_models)].tolist()
+        for cfg_id in force_keep:
+            if cfg_id in mean_acc.index and cfg_id not in models:
+                models.append(cfg_id)
         aligned_df = aligned_df[aligned_df["config_id"].isin(models)].copy()
         aligned_df, folds, models = _align_complete_grid(aligned_df, required_metrics=req)
 
@@ -612,11 +698,41 @@ def _build_fold_prediction_panels(
             "Ensure run artifacts include run_id and alignment keeps it."
         )
     aligned_df["run_id"] = aligned_df["run_id"].astype(str)
-    preds_df = preds_df.copy()
-    preds_df["run_id"] = preds_df["run_id"].astype(str)
 
     run_map = aligned_df.loc[:, ["fold_id", "config_id", "run_id", "model_name"]].drop_duplicates()
-    pred_by_run = {str(rid): g.copy() for rid, g in preds_df.groupby("run_id", sort=False)}
+    meta_df = run_map.loc[:, ["config_id", "model_name"]].drop_duplicates("config_id").copy()
+    meta_df["config_id"] = meta_df["config_id"].astype(str)
+    meta_df = meta_df[meta_df["config_id"].isin(models)].copy()
+    return sorted([int(x) for x in folds]), [str(m) for m in models], run_map, meta_df
+
+
+def _build_fold_prediction_panels(
+    *,
+    preds_df: pd.DataFrame,
+    folds: List[int],
+    models: List[str],
+    run_map: pd.DataFrame,
+    meta_df: pd.DataFrame,
+) -> Tuple[List[int], List[str], Dict[int, Tuple[np.ndarray, np.ndarray]], pd.DataFrame]:
+    """
+    Build per-fold prediction matrices P_f (n_f x M) and targets y_f (n_f,)
+    aligned across a common model set.
+    Returns:
+      folds, models, fold_panels, meta_df(config_id->model_name)
+    """
+    preds_min = preds_df.loc[:, ["run_id", "row_id", "y_true", "y_pred"]].copy()
+    preds_min["run_id"] = preds_min["run_id"].astype(str)
+    preds_min["row_id"] = preds_min["row_id"].astype(np.int64, copy=False)
+
+    pred_by_run: Dict[str, Dict[str, np.ndarray]] = {}
+    for rid, g in preds_min.groupby("run_id", sort=False):
+        gg = g.drop_duplicates(subset=["row_id"], keep="first").sort_values("row_id", kind="mergesort")
+        pred_by_run[str(rid)] = {
+            "row_id": gg["row_id"].to_numpy(dtype=np.int64, copy=False),
+            "y_true": gg["y_true"].to_numpy(dtype=float, copy=False),
+            "y_pred": gg["y_pred"].to_numpy(dtype=float, copy=False),
+        }
+
     fold_panels: Dict[int, Tuple[np.ndarray, np.ndarray]] = {}
 
     for f in sorted([int(x) for x in folds]):
@@ -626,19 +742,22 @@ def _build_fold_prediction_panels(
             continue
 
         run_ids = sub["run_id"].tolist()
-        # Ensure all required run IDs have predictions.
         if any(rid not in pred_by_run for rid in run_ids):
             continue
 
-        # Intersect row IDs across all models for this fold.
-        row_sets = [set(pred_by_run[rid]["row_id"].astype(int).tolist()) for rid in run_ids]
-        common_rows = sorted(set.intersection(*row_sets)) if row_sets else []
-        if len(common_rows) < 2:
+        row_arrays = [pred_by_run[rid]["row_id"] for rid in run_ids]
+        common_rows = row_arrays[0]
+        for rows in row_arrays[1:]:
+            common_rows = np.intersect1d(common_rows, rows, assume_unique=False)
+            if common_rows.size < 2:
+                break
+        if common_rows.size < 2:
             continue
 
-        # Build y and P aligned by common row order.
         cfg_to_run = dict(zip(sub["config_id"].astype(str), sub["run_id"].astype(str)))
-        y_ref = pred_by_run[cfg_to_run[models[0]]].set_index("row_id").loc[common_rows, "y_true"].to_numpy(dtype=float)
+        ref_run = pred_by_run[cfg_to_run[models[0]]]
+        ref_idx = np.searchsorted(ref_run["row_id"], common_rows)
+        y_ref = ref_run["y_true"][ref_idx]
         if not np.all(np.isfinite(y_ref)):
             continue
         y_ref = np.maximum(y_ref, 1e-9)
@@ -650,7 +769,9 @@ def _build_fold_prediction_panels(
             if rid is None:
                 ok = False
                 break
-            p = pred_by_run[rid].set_index("row_id").loc[common_rows, "y_pred"].to_numpy(dtype=float)
+            pred_run = pred_by_run[rid]
+            pred_idx = np.searchsorted(pred_run["row_id"], common_rows)
+            p = pred_run["y_pred"][pred_idx]
             if not np.all(np.isfinite(p)):
                 ok = False
                 break
@@ -664,12 +785,6 @@ def _build_fold_prediction_panels(
     folds_final = sorted(fold_panels.keys())
     if not folds_final:
         raise RuntimeError("Could not build any complete fold panels from predictions.")
-
-    # Keep only models present for all retained folds.
-    # (By construction with _align_complete_grid and common-row intersection, this should hold.)
-    meta_df = run_map.loc[:, ["config_id", "model_name"]].drop_duplicates("config_id").copy()
-    meta_df["config_id"] = meta_df["config_id"].astype(str)
-    meta_df = meta_df[meta_df["config_id"].isin(models)].copy()
     return folds_final, [str(m) for m in models], fold_panels, meta_df
 
 
@@ -690,6 +805,8 @@ def _solve_prd_socp_for_mode(
     use_bootstrap_scenarios: bool,
     n_bootstrap_scenarios: int,
     bootstrap_seed: int,
+    constrain_mape_to_lgbm: bool = False,
+    lgbm_baseline_idx: Optional[int] = None,
 ) -> Tuple[np.ndarray, Dict[str, Any]]:
     """
     Solve PRD-constrained convex stacking with one objective mode.
@@ -703,8 +820,10 @@ def _solve_prd_socp_for_mode(
     denom_constraints: List[Any] = []
     objective_link_constraints: List[Any] = []
     prd_constraints: List[Any] = []
+    mape_constraints: List[Any] = []
     prd_low_affine_terms: List[Any] = []
     prd_high_affine_terms: List[Any] = []
+    baseline_mape_thresholds: List[float] = []
 
     prd_lo, prd_hi = float(IAAO_PRD_RANGE[0]), float(IAAO_PRD_RANGE[1])
     prd_constraint_aggregation = str(prd_constraint_aggregation)
@@ -713,6 +832,11 @@ def _solve_prd_socp_for_mode(
     prd_feasibility_mode = str(prd_feasibility_mode)
     if prd_feasibility_mode not in {"priced_gap", "hard"}:
         raise ValueError("prd_feasibility_mode must be one of: priced_gap, hard")
+    if bool(constrain_mape_to_lgbm):
+        if lgbm_baseline_idx is None:
+            raise ValueError("lgbm_baseline_idx is required when constrain_mape_to_lgbm=True.")
+        if int(lgbm_baseline_idx) < 0 or int(lgbm_baseline_idx) >= n_models:
+            raise ValueError("lgbm_baseline_idx is out of range.")
     prd_gap_penalty = float(prd_gap_penalty)
     if prd_feasibility_mode == "priced_gap" and prd_gap_penalty < 0.0:
         raise ValueError("prd_gap_penalty must be >= 0.")
@@ -747,6 +871,12 @@ def _solve_prd_socp_for_mode(
         # With y treated as fixed positive data, this remains a convex quadratic in w.
         loss_f = cp.sum_squares(cp.multiply(1.0 / y_norm, Pn @ w) - 1.0) / float(y_norm.shape[0])
         scenario_losses.append(loss_f)
+        if bool(constrain_mape_to_lgbm):
+            base_ratio_f = (Pn[:, int(lgbm_baseline_idx)] / y_norm) - 1.0
+            base_mape_f = float(np.mean(np.abs(base_ratio_f)))
+            mape_f = cp.norm1(cp.multiply(1.0 / y_norm, Pn @ w) - 1.0) / float(y_norm.shape[0])
+            mape_constraints.append(mape_f <= (base_mape_f + 1e-12))
+            baseline_mape_thresholds.append(base_mape_f)
 
         if use_bootstrap_scenarios and int(n_bootstrap_scenarios) > 0:
             n = int(y_norm.shape[0])
@@ -766,6 +896,12 @@ def _solve_prd_socp_for_mode(
                 scenario_losses.append(
                     cp.sum_squares(cp.multiply(1.0 / yb_pos, Pb @ w) - 1.0) / float(yb_pos.shape[0])
                 )
+                if bool(constrain_mape_to_lgbm):
+                    base_ratio_b = (Pb[:, int(lgbm_baseline_idx)] / yb_pos) - 1.0
+                    base_mape_b = float(np.mean(np.abs(base_ratio_b)))
+                    mape_b = cp.norm1(cp.multiply(1.0 / yb_pos, Pb @ w) - 1.0) / float(yb_pos.shape[0])
+                    mape_constraints.append(mape_b <= (base_mape_b + 1e-12))
+                    baseline_mape_thresholds.append(base_mape_b)
 
     gap_var = cp.Variable(nonneg=True) if prd_feasibility_mode == "priced_gap" else None
 
@@ -850,7 +986,7 @@ def _solve_prd_socp_for_mode(
         objective_expr = objective_expr + float(prd_gap_penalty) * gap_var
     objective = cp.Minimize(objective_expr)
 
-    hard_constraints = simplex_constraints + denom_constraints + objective_link_constraints + prd_constraints
+    hard_constraints = simplex_constraints + denom_constraints + objective_link_constraints + prd_constraints + mape_constraints
     prob = cp.Problem(objective, hard_constraints)
     preferred = _choose_solver(solver)
     installed = set(cp.installed_solvers())
@@ -889,7 +1025,7 @@ def _solve_prd_socp_for_mode(
     if not solved:
         # Final fallback: drop PRD constraints and solve simplex-only objective.
         # Runtime evidence showed some splits are infeasible under hard PRD bounds.
-        fallback_constraints = simplex_constraints + objective_link_constraints
+        fallback_constraints = simplex_constraints + objective_link_constraints + mape_constraints
         fallback_prob = cp.Problem(cp.Minimize(objective_expr), fallback_constraints)
         for candidate in solvers_to_try:
             print(f"[stacking][{mode}] trying solver={candidate} (unconstrained fallback)")
@@ -951,7 +1087,15 @@ def _solve_prd_socp_for_mode(
         "objective_value": float(prob.value) if prob.value is not None else None,
         "n_constraints": int(len(hard_constraints)),
         "n_prd_bound_constraints": int(len(prd_constraints)),
+        "n_mape_constraints": int(len(mape_constraints)),
         "n_scenarios": int(len(scenario_losses)),
+        "constrain_mape_to_lgbm": bool(constrain_mape_to_lgbm),
+        "lgbm_baseline_config_id": (str(models[int(lgbm_baseline_idx)]) if bool(constrain_mape_to_lgbm) and lgbm_baseline_idx is not None else None),
+        "lgbm_baseline_mape_mean": (
+            float(np.mean(np.asarray(baseline_mape_thresholds, dtype=float)))
+            if baseline_mape_thresholds
+            else None
+        ),
     }
 
 
@@ -977,7 +1121,13 @@ def run_stacking_pf_optimization(
     if objective_mode not in {"worst_fold", "mean_fold"}:
         raise ValueError("objective_mode must be one of: worst_fold, mean_fold")
 
-    runs_df = _load_runs_df(result_root=result_root, data_id=data_id, split_id=split_id)
+    run_columns = ["fold_id", "config_id", "model_name", str(accuracy_metric), "PRD", "PRB", "VEI", "R2"]
+    runs_df = _load_runs_df(
+        result_root=result_root,
+        data_id=data_id,
+        split_id=split_id,
+        columns=run_columns,
+    )
 
     required = [str(accuracy_metric), "PRD", "PRB", "VEI", "R2"]
     aligned_df, folds, models = _align_complete_grid(runs_df, required_metrics=required)
@@ -1113,14 +1263,51 @@ def run_stacking_prd_socp_optimization(
     objective_mode = str(objective_mode)
     if objective_mode not in {"average", "worst", "time_decay", "cvar"}:
         raise ValueError("objective_mode must be one of: average, worst, time_decay, cvar")
-    runs_df = _load_runs_df(result_root=result_root, data_id=data_id, split_id=split_id)
-    preds_df = _load_predictions_df(result_root=result_root, data_id=data_id, split_id=split_id)
-    folds, models, fold_panels, meta_df = _build_fold_prediction_panels(
+    run_columns = [
+        "fold_id",
+        "config_id",
+        "model_name",
+        "run_id",
+        "OOS R2",
+        "R2",
+        "PRD",
+        "PRB",
+        "VEI",
+        "COD",
+        "Corr(r,price)",
+    ]
+    runs_df = _load_runs_df(
+        result_root=result_root,
+        data_id=data_id,
+        split_id=split_id,
+        columns=run_columns,
+    )
+    lgbm_baseline_config = _select_baseline_lgbm_config(runs_df=runs_df, accuracy_metric="OOS R2")
+    folds, models, run_map, meta_df = _prepare_prediction_panel_inputs(
         runs_df=runs_df,
-        preds_df=preds_df,
         accuracy_metric="OOS R2",
         max_models=max_models,
+        force_include_models=([str(lgbm_baseline_config)] if lgbm_baseline_config is not None else None),
     )
+    selected_runs_by_fold = {
+        int(fold_id): sorted(group["run_id"].astype(str).tolist())
+        for fold_id, group in run_map.groupby("fold_id", sort=False)
+    }
+    preds_df = _load_predictions_df(
+        result_root=result_root,
+        data_id=data_id,
+        split_id=split_id,
+        columns=["run_id", "row_id", "y_true", "y_pred"],
+        selected_runs_by_fold=selected_runs_by_fold,
+    )
+    folds, models, fold_panels, meta_df = _build_fold_prediction_panels(
+        preds_df=preds_df,
+        folds=folds,
+        models=models,
+        run_map=run_map,
+        meta_df=meta_df,
+    )
+    lgbm_baseline_idx = models.index(str(lgbm_baseline_config)) if lgbm_baseline_config in models else None
 
     if bool(solve_all_modes):
         modes_to_run: List[str] = []
@@ -1156,6 +1343,10 @@ def run_stacking_prd_socp_optimization(
                     "VEI_ensemble": float(met.get("VEI", np.nan)),
                     "COD_ensemble": float(met.get("COD", np.nan)),
                     "Corr(r,price)_ensemble": float(met.get("Corr(r,price)", np.nan)),
+                    "RMSE_ensemble": float(met.get("RMSE", np.nan)),
+                    "MAE_ensemble": float(met.get("MAE", np.nan)),
+                    "MAPE_ensemble": float(met.get("MAPE", np.nan)),
+                    "MdAPE_ensemble": float(met.get("MdAPE", np.nan)),
                 }
             )
         return pd.DataFrame(fold_rows)
@@ -1216,6 +1407,8 @@ def run_stacking_prd_socp_optimization(
             use_bootstrap_scenarios=bool(use_bootstrap_scenarios),
             n_bootstrap_scenarios=int(n_bootstrap_scenarios),
             bootstrap_seed=int(bootstrap_seed),
+            constrain_mape_to_lgbm=False,
+            lgbm_baseline_idx=lgbm_baseline_idx,
         )
 
         weights_df = pd.DataFrame({"config_id": models, "weight": w_opt})
@@ -1238,6 +1431,62 @@ def run_stacking_prd_socp_optimization(
         }
         s_path.write_text(json.dumps(mode_summary, indent=2, sort_keys=True), encoding="utf-8")
         all_summaries[mode] = mode_summary
+
+    lgbm_mape_summary: Dict[str, Any]
+    if lgbm_baseline_idx is None:
+        lgbm_mape_summary = {
+            "status": "skipped",
+            "reason": "lgbm_baseline_not_available_in_model_panel",
+            "objective_mode": str(objective_mode),
+            "lgbm_baseline_config_id": (str(lgbm_baseline_config) if lgbm_baseline_config is not None else None),
+        }
+    else:
+        try:
+            w_lgbm_mape, summ_lgbm_mape = _solve_prd_socp_for_mode(
+                mode=objective_mode,
+                folds=folds,
+                models=models,
+                fold_panels=fold_panels,
+                solver=solver,
+                solver_verbose=solver_verbose,
+                time_decay_gamma=time_decay_gamma,
+                cvar_alpha=cvar_alpha,
+                prd_constraint_aggregation=prd_constraint_aggregation,
+                prd_constraint_cvar_alpha=prd_constraint_cvar_alpha,
+                prd_feasibility_mode=prd_feasibility_mode,
+                prd_gap_penalty=prd_gap_penalty,
+                use_bootstrap_scenarios=bool(use_bootstrap_scenarios),
+                n_bootstrap_scenarios=int(n_bootstrap_scenarios),
+                bootstrap_seed=int(bootstrap_seed),
+                constrain_mape_to_lgbm=True,
+                lgbm_baseline_idx=int(lgbm_baseline_idx),
+            )
+            weights_lgbm_mape_df = pd.DataFrame({"config_id": models, "weight": w_lgbm_mape})
+            weights_lgbm_mape_df = weights_lgbm_mape_df.merge(meta_df, on="config_id", how="left").sort_values(
+                "weight", ascending=False, ignore_index=True
+            )
+            fold_lgbm_mape_df = _build_fold_metrics_from_weights(w_lgbm_mape, f"{objective_mode}_lgbm_mape")
+            weights_lgbm_mape_path = out_dir / "weights_lgbm_mape.csv"
+            fold_lgbm_mape_path = out_dir / "fold_ensemble_metrics_lgbm_mape.csv"
+            summary_lgbm_mape_path = out_dir / "optimization_summary_lgbm_mape.json"
+            weights_lgbm_mape_df.to_csv(weights_lgbm_mape_path, index=False)
+            fold_lgbm_mape_df.to_csv(fold_lgbm_mape_path, index=False)
+            lgbm_mape_summary = {
+                **summ_lgbm_mape,
+                "mode": objective_mode,
+                "n_models": int(len(models)),
+                "n_folds": int(len(folds)),
+                "weights_csv": str(weights_lgbm_mape_path),
+                "fold_metrics_csv": str(fold_lgbm_mape_path),
+            }
+            summary_lgbm_mape_path.write_text(json.dumps(lgbm_mape_summary, indent=2, sort_keys=True), encoding="utf-8")
+        except Exception as exc:
+            lgbm_mape_summary = {
+                "status": "failed",
+                "reason": str(exc),
+                "objective_mode": str(objective_mode),
+                "lgbm_baseline_config_id": str(models[int(lgbm_baseline_idx)]),
+            }
 
     # Single-model alternative for the requested PRD-SOCP objective.
     single_w, single_meta = _build_single_requested_solution(
@@ -1265,16 +1514,14 @@ def run_stacking_prd_socp_optimization(
     single_weights_df.to_csv(single_weights_path, index=False)
     single_fold_df.to_csv(single_fold_path, index=False)
     # Stable aliases for downstream readers.
-    (out_dir / "weights_single_requested.csv").write_text(single_weights_path.read_text(encoding="utf-8"), encoding="utf-8")
-    (out_dir / "fold_ensemble_metrics_single_requested.csv").write_text(
-        single_fold_path.read_text(encoding="utf-8"), encoding="utf-8"
-    )
+    shutil.copyfile(single_weights_path, out_dir / "weights_single_requested.csv")
+    shutil.copyfile(single_fold_path, out_dir / "fold_ensemble_metrics_single_requested.csv")
 
     # Compatibility aliases for downstream readers: use requested default objective.
     default_weights = out_dir / f"weights_{objective_mode}.csv"
     default_folds = out_dir / f"fold_ensemble_metrics_{objective_mode}.csv"
-    (out_dir / "weights.csv").write_text(default_weights.read_text(encoding="utf-8"), encoding="utf-8")
-    (out_dir / "fold_ensemble_metrics.csv").write_text(default_folds.read_text(encoding="utf-8"), encoding="utf-8")
+    shutil.copyfile(default_weights, out_dir / "weights.csv")
+    shutil.copyfile(default_folds, out_dir / "fold_ensemble_metrics.csv")
 
     summary_json = out_dir / "optimization_summary.json"
     summary_json.write_text(
@@ -1311,6 +1558,7 @@ def run_stacking_prd_socp_optimization(
                     "weights_csv": str(single_utopia_weights_path),
                     "fold_metrics_csv": str(single_utopia_fold_path),
                 },
+                "lgbm_mape_requested": lgbm_mape_summary,
                 "modes": all_summaries,
             },
             indent=2,
@@ -1461,4 +1709,3 @@ if __name__ == "__main__":
     print(f"weights_csv={out['weights_csv']}")
     print(f"fold_metrics_csv={out['fold_metrics_csv']}")
     print(f"summary_json={out['summary_json']}")
-

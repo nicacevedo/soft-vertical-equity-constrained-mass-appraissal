@@ -599,6 +599,8 @@ def run_robust_rolling_origin_cv(
         if log_progress:
             print(f"[cv] run | model={model_name} fold={fold_id} run_id={run_id}")
 
+        metric_ratio_mode = str(spec.get("metric_ratio_mode", model_config.get("ratio_mode", fairness_ratio_mode)))
+
         _write_json_atomic(
             status_file,
             {
@@ -647,7 +649,7 @@ def run_robust_rolling_origin_cv(
                 y_true_log=y_val,
                 y_pred_log=y_pred_val,
                 y_train_log=y_train,
-                ratio_mode=fairness_ratio_mode,
+                ratio_mode=metric_ratio_mode,
             )
             bad_main = _first_bad_numeric_metric(metrics_full, abs_cap=float(numeric_sanity_abs_cap))
             run_row = {
@@ -656,6 +658,7 @@ def run_robust_rolling_origin_cv(
                 "config_id": config_id,
                 "run_id": run_id,
                 "model_name": model_name,
+                "ratio_mode": metric_ratio_mode,
                 "fold_id": fold_id,
                 "train_start": fold["train_start"],
                 "train_end": fold["train_end"],
@@ -713,7 +716,7 @@ def run_robust_rolling_origin_cv(
                     y_true_log=y_val_bs,
                     y_pred_log=y_pred_bs,
                     y_train_log=y_train,
-                    ratio_mode=fairness_ratio_mode,
+                    ratio_mode=metric_ratio_mode,
                 )
                 bad_bs = _first_bad_numeric_metric(m_bs, abs_cap=float(numeric_sanity_abs_cap))
                 if bad_bs is not None:
@@ -750,6 +753,7 @@ def run_robust_rolling_origin_cv(
                         "split_id": split_id,
                         "fold_id": fold_id,
                         "config_id": config_id,
+                        "ratio_mode": metric_ratio_mode,
                         "bootstrap_id": b_idx,
                         "bootstrap_seed": int(bootstrap_protocol.get("seed", 2025)) + fold_id,
                         "bootstrap_block_freq": str(bootstrap_protocol.get("block_freq", "M")),
@@ -781,6 +785,7 @@ def run_robust_rolling_origin_cv(
                 pred_df = pd.DataFrame(
                     {
                         "run_id": run_id,
+                        "ratio_mode": metric_ratio_mode,
                         "row_id": val_df.index.to_numpy(),
                         "numeric_stability_status": run_row["numeric_stability_status"],
                         "numeric_guard_flagged": run_row["numeric_guard_flagged"],
@@ -1372,7 +1377,6 @@ def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):
         # metrics["Loss"] = 
 
         # 2. My metrics of interest
-        from sklearn.feature_selection import mutual_info_regression
         ratios = y_pred / y_real
         metrics["Corr(r,price)"] = np.corrcoef(ratios, y_real)[0,1]
         metrics["Corr(r,logprice)"] = np.corrcoef(ratios, y_real_log)[0,1]

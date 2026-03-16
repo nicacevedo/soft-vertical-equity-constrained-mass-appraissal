@@ -7,7 +7,7 @@ import os
 import time
 import traceback
 from pathlib import Path
-from typing import List, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -122,13 +122,78 @@ def _candidate_metrics(df: pd.DataFrame) -> List[str]:
     return out
 
 
-def _validate_schema(tidy: pd.DataFrame, points: pd.DataFrame) -> None:
-    missing_tidy = [c for c in TIDY_REQUIRED_COLUMNS if c not in tidy.columns]
+def _parquet_metadata(path: Path) -> Tuple[Optional[int], List[str]]:
+    try:
+        import pyarrow.parquet as pq  # type: ignore
+
+        pf = pq.ParquetFile(path)
+        return int(pf.metadata.num_rows), [str(c) for c in pf.schema.names]
+    except Exception:
+        try:
+            df = pd.read_parquet(path)
+        except Exception:
+            return None, []
+        return int(df.shape[0]), [str(c) for c in df.columns]
+
+
+def _validate_schema_columns(tidy_columns: Sequence[str], points_columns: Sequence[str]) -> None:
+    missing_tidy = [c for c in TIDY_REQUIRED_COLUMNS if c not in set(tidy_columns)]
     if missing_tidy:
         raise ValueError(f"analysis_tidy.parquet is missing required columns: {missing_tidy}")
-    missing_points_meta = [c for c in POINTS_META_COLUMNS if c not in points.columns]
+    missing_points_meta = [c for c in POINTS_META_COLUMNS if c not in set(points_columns)]
     if missing_points_meta:
         raise ValueError(f"analysis_points.parquet is missing required metadata columns: {missing_points_meta}")
+
+
+def _read_parquet_filtered(path: Path, *, filters: Optional[List[Tuple[str, str, Sequence[str] | str]]] = None) -> pd.DataFrame:
+    if not filters:
+        return pd.read_parquet(path)
+    try:
+        return pd.read_parquet(path, filters=filters)
+    except Exception:
+        return pd.read_parquet(path)
+
+
+def _sample_parquet_rows(
+    path: Path,
+    *,
+    max_rows: int,
+    seed: int,
+    columns: Optional[Sequence[str]] = None,
+) -> pd.DataFrame:
+    target = int(max_rows)
+    if target <= 0:
+        return pd.read_parquet(path, columns=list(columns) if columns is not None else None)
+
+    total_rows, _ = _parquet_metadata(path)
+    if total_rows is not None and int(total_rows) <= target:
+        return pd.read_parquet(path, columns=list(columns) if columns is not None else None)
+
+    try:
+        import pyarrow.parquet as pq  # type: ignore
+
+        pf = pq.ParquetFile(path)
+        rng = np.random.default_rng(int(seed))
+        keep = pd.DataFrame()
+        read_columns = None if columns is None else [str(c) for c in columns]
+        for batch in pf.iter_batches(batch_size=65536, columns=read_columns):
+            batch_df = batch.to_pandas()
+            if batch_df.empty:
+                continue
+            batch_df["_wandb_sample_key"] = rng.random(batch_df.shape[0])
+            if keep.empty:
+                keep = batch_df
+            else:
+                keep = pd.concat([keep, batch_df], ignore_index=True)
+            if keep.shape[0] > (2 * target):
+                keep = keep.nsmallest(target, "_wandb_sample_key").reset_index(drop=True)
+        if keep.empty:
+            return keep
+        keep = keep.nsmallest(target, "_wandb_sample_key").drop(columns=["_wandb_sample_key"], errors="ignore")
+        return keep.reset_index(drop=True)
+    except Exception:
+        full = pd.read_parquet(path, columns=list(columns) if columns is not None else None)
+        return _sample_rows(full, max_rows=target, seed=int(seed))
 
 
 def _coerce_dtypes(tidy: pd.DataFrame, points: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -144,6 +209,7 @@ def _coerce_dtypes(tidy: pd.DataFrame, points: pd.DataFrame) -> Tuple[pd.DataFra
         "artifact",
         "model_name",
         "config_id",
+        "ratio_mode",
         "metric",
         "stat",
         "cv_scheme",
@@ -168,6 +234,7 @@ def _coerce_dtypes(tidy: pd.DataFrame, points: pd.DataFrame) -> Tuple[pd.DataFra
         "artifact",
         "model_name",
         "config_id",
+        "ratio_mode",
         "stat",
         "cv_scheme",
         "bootstrap_spec",
@@ -349,6 +416,11 @@ def _build_arg_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = _build_arg_parser().parse_args()
     debug_run_id = f"{args.data_id}:{args.split_id}"
+    split_values = _parse_csv_list(args.filter_split)
+    grain_values = _parse_csv_list(args.filter_grain)
+    stat_values = _parse_csv_list(args.filter_stat)
+    include_models = _parse_csv_list(args.include_model_families)
+    exclude_models = _parse_csv_list(args.exclude_model_families)
     # #region agent log
     _debug_log(
         run_id=debug_run_id,
@@ -383,18 +455,33 @@ def main() -> None:
             "points_exists": bool(points_path.exists()),
             "tidy_size": int(os.path.getsize(tidy_path)) if tidy_path.exists() else -1,
             "points_size": int(os.path.getsize(points_path)) if points_path.exists() else -1,
+            "filter_split": split_values,
+            "filter_grain": grain_values,
+            "filter_stat": stat_values,
         },
     )
     # #endregion
+    tidy_total_rows, tidy_columns = _parquet_metadata(tidy_path)
+    points_total_rows, points_columns = _parquet_metadata(points_path)
+    _validate_schema_columns(tidy_columns, points_columns)
+
     try:
-        tidy = pd.read_parquet(tidy_path)
+        tidy = _sample_parquet_rows(
+            tidy_path,
+            max_rows=int(args.max_table_rows),
+            seed=int(args.sample_seed),
+        )
         # #region agent log
         _debug_log(
             run_id=debug_run_id,
             hypothesis_id="H5",
             location="analysis_streamlit_app.py:main:read_tidy_default_ok",
-            message="read tidy parquet with default engine",
-            data={"rows": int(tidy.shape[0]), "cols": int(tidy.shape[1])},
+            message="read tidy parquet sample for W&B table",
+            data={
+                "rows_loaded": int(tidy.shape[0]),
+                "rows_total": (None if tidy_total_rows is None else int(tidy_total_rows)),
+                "cols": int(tidy.shape[1]),
+            },
         )
         # #endregion
     except Exception:
@@ -409,15 +496,30 @@ def main() -> None:
         # #endregion
         raise
 
+    parquet_filters: List[Tuple[str, str, Sequence[str] | str]] = []
+    if split_values:
+        parquet_filters.append(("split", "in", [str(x) for x in split_values]))
+    if grain_values:
+        parquet_filters.append(("grain", "in", [str(x) for x in grain_values]))
+    if stat_values:
+        parquet_filters.append(("stat", "in", [str(x) for x in stat_values]))
+    if include_models:
+        parquet_filters.append(("model_name", "in", [str(x) for x in include_models]))
+
     try:
-        points = pd.read_parquet(points_path)
+        points = _read_parquet_filtered(points_path, filters=parquet_filters)
         # #region agent log
         _debug_log(
             run_id=debug_run_id,
             hypothesis_id="H5",
             location="analysis_streamlit_app.py:main:read_points_default_ok",
-            message="read points parquet with default engine",
-            data={"rows": int(points.shape[0]), "cols": int(points.shape[1])},
+            message="read points parquet with pushdown filters when available",
+            data={
+                "rows_loaded": int(points.shape[0]),
+                "rows_total": (None if points_total_rows is None else int(points_total_rows)),
+                "cols": int(points.shape[1]),
+                "filters": [(str(a), str(b), list(c) if isinstance(c, list) else str(c)) for (a, b, c) in parquet_filters],
+            },
         )
         # #endregion
     except Exception:
@@ -452,14 +554,7 @@ def main() -> None:
             )
             # #endregion
         raise
-    _validate_schema(tidy, points)
     tidy, points = _coerce_dtypes(tidy, points)
-
-    split_values = _parse_csv_list(args.filter_split)
-    grain_values = _parse_csv_list(args.filter_grain)
-    stat_values = _parse_csv_list(args.filter_stat)
-    include_models = _parse_csv_list(args.include_model_families)
-    exclude_models = _parse_csv_list(args.exclude_model_families)
 
     points_filtered = _apply_filters(
         points,
@@ -478,6 +573,7 @@ def main() -> None:
         message="filter and pair summary",
         data={
             "rows_points": int(points.shape[0]),
+            "rows_points_total": (None if points_total_rows is None else int(points_total_rows)),
             "rows_points_filtered": int(points_filtered.shape[0]),
             "pairs_count": int(len(pairs)),
             "pairs": [f"{x}__{y}" for (x, y) in pairs],
@@ -519,8 +615,8 @@ def main() -> None:
             metadata={
                 "data_id": str(args.data_id),
                 "split_id": str(args.split_id),
-                "rows_tidy": int(tidy.shape[0]),
-                "rows_points": int(points.shape[0]),
+                "rows_tidy": (-1 if tidy_total_rows is None else int(tidy_total_rows)),
+                "rows_points": (-1 if points_total_rows is None else int(points_total_rows)),
                 "rows_points_filtered": int(points_filtered.shape[0]),
             },
         )
@@ -528,9 +624,7 @@ def main() -> None:
         artifact.add_file(str(points_path))
         run.log_artifact(artifact)
 
-        tidy_upload = _sanitize_for_wandb_table(
-            _sample_rows(tidy, max_rows=int(args.max_table_rows), seed=int(args.sample_seed))
-        )
+        tidy_upload = _sanitize_for_wandb_table(tidy)
         points_upload = _sanitize_for_wandb_table(
             _sample_rows(points_filtered, max_rows=int(args.max_table_rows), seed=int(args.sample_seed))
         )
@@ -541,8 +635,8 @@ def main() -> None:
             }
         )
 
-        run.summary["rows_tidy"] = int(tidy.shape[0])
-        run.summary["rows_points"] = int(points.shape[0])
+        run.summary["rows_tidy"] = (-1 if tidy_total_rows is None else int(tidy_total_rows))
+        run.summary["rows_points"] = (-1 if points_total_rows is None else int(points_total_rows))
         run.summary["rows_points_filtered"] = int(points_filtered.shape[0])
         run.summary["model_families_filtered"] = int(points_filtered["model_name"].astype(str).nunique()) if "model_name" in points_filtered.columns else 0
 
@@ -592,7 +686,7 @@ def main() -> None:
                             "xcol": str(xcol),
                             "ycol": str(ycol),
                             "rows_dd": int(dd.shape[0]),
-                            "dd_dtypes": {str(k): str(v) for k, v in dd.dtypes.items() if str(k) in {"fold_id", "bootstrap_id", "rho", "cvar_keep", "model_name", str(xcol), str(ycol)}},
+                            "dd_dtypes": {str(k): str(v) for k, v in dd.dtypes.items() if str(k) in {"fold_id", "bootstrap_id", "rho", "ratio_mode", "cvar_keep", "model_name", str(xcol), str(ycol)}},
                             "na_counts": {str(k): int(dd[str(k)].isna().sum()) for k in [xcol, ycol, "fold_id", "bootstrap_id"] if str(k) in dd.columns},
                         },
                     )
@@ -600,7 +694,10 @@ def main() -> None:
                     sym_col = f"pareto_2d_filtered__{xcol}__{ycol}"
                     xarr = pd.to_numeric(dd[xcol], errors="coerce").to_numpy(dtype=float)
                     yarr = pd.to_numeric(dd[ycol], errors="coerce").to_numpy(dtype=float)
-                    pareto = _compute_2d_pareto_mask(xarr, yarr, minimize_x=True, minimize_y=False)
+                    if sym_col in dd.columns:
+                        pareto = dd[sym_col].fillna(False).to_numpy(dtype=bool)
+                    else:
+                        pareto = _compute_2d_pareto_mask(xarr, yarr, minimize_x=True, minimize_y=False)
                     mnames = dd["model_name"].astype(str).to_numpy()
                     baseline_models = {"LinearRegression", "LGBMRegressor", "LR", "LGBM"}
                     is_baseline = np.array([m in baseline_models for m in mnames], dtype=bool)
@@ -614,13 +711,14 @@ def main() -> None:
                         "model=%{customdata[0]}<br>"
                         "config_id=%{customdata[1]}<br>"
                         "rho=%{customdata[2]}<br>"
-                        "cvar_keep=%{customdata[3]}<br>"
-                        "split=%{customdata[4]}<br>"
-                        "grain=%{customdata[5]}<br>"
-                        "artifact=%{customdata[6]}<br>"
-                        "stat=%{customdata[7]}<br>"
-                        "fold_id=%{customdata[8]}<br>"
-                        "bootstrap_id=%{customdata[9]}<br>"
+                        "ratio_mode=%{customdata[3]}<br>"
+                        "cvar_keep=%{customdata[4]}<br>"
+                        "split=%{customdata[5]}<br>"
+                        "grain=%{customdata[6]}<br>"
+                        "artifact=%{customdata[7]}<br>"
+                        "stat=%{customdata[8]}<br>"
+                        "fold_id=%{customdata[9]}<br>"
+                        "bootstrap_id=%{customdata[10]}<br>"
                         f"{xcol}=%{{x}}<br>{ycol}=%{{y}}<extra></extra>"
                     )
                     for model in uniq_models:
@@ -640,6 +738,7 @@ def main() -> None:
                                 sub["model_name"].astype(str).to_numpy(),
                                 sub["config_id"].astype(str).to_numpy() if "config_id" in sub.columns else np.array([""] * sub.shape[0], dtype=object),
                                 pd.to_numeric(sub["rho"], errors="coerce").to_numpy(dtype=float) if "rho" in sub.columns else np.full(sub.shape[0], np.nan),
+                                sub["ratio_mode"].astype(str).to_numpy() if "ratio_mode" in sub.columns else np.array([""] * sub.shape[0], dtype=object),
                                 pd.to_numeric(sub["cvar_keep"], errors="coerce").to_numpy(dtype=float) if "cvar_keep" in sub.columns else np.full(sub.shape[0], np.nan),
                                 sub["split"].astype(str).to_numpy() if "split" in sub.columns else np.array([""] * sub.shape[0], dtype=object),
                                 sub["grain"].astype(str).to_numpy() if "grain" in sub.columns else np.array([""] * sub.shape[0], dtype=object),

@@ -26,7 +26,7 @@ numeric_sanity_abs_cap: 1e10
 #   Set sample_frac to a float in (0, 1) to randomly downsample the training
 #   universe before the CV.  Use null to disable (full dataset).
 # ---------------------------------------------------------------------------
-sample_frac: 0.99 #null          # e.g. 0.40  or  null for full data
+sample_frac: null #0.99 #null          # e.g. 0.40  or  null for full data
 
 
 # ---------------------------------------------------------------------------
@@ -36,10 +36,13 @@ sample_frac: 0.99 #null          # e.g. 0.40  or  null for full data
 #                 (backward-compatible: explicit full rho list still works)
 #   rho_count   : number of rho values between min/max (inclusive)
 #   rho_scale   : spacing ("linear", "log", "geom")
+#   ratio_modes : extra sweep axis for rho-weighted models that support
+#                 ratio targets. Use ["diff"] to preserve the current workflow,
+#                 or ["div", "diff"] to sweep both target conventions.
 #   keep_values : list of CVaR keep fractions tried for LGBPrimalDual
 # ---------------------------------------------------------------------------
 rho_values:   [1e-1, 10.0]
-rho_count:   10
+rho_count:   50
 rho_scale:   "log"
 
 # rho_values_smooth: [2.043]
@@ -50,7 +53,9 @@ rho_scale:   "log"
 # rho_count_cov: 1
 # rho_scale_cov: "log"
 
-keep_values: [0.8, 0.9, 0.95]
+ratio_modes: ["diff", "div"]
+
+keep_values: [0.8, 0.85, 0.9, 0.95]
 # ---------------------------------------------------------------------------
 # Rolling-origin split protocol
 #

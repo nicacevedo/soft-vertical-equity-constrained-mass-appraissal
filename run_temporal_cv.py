@@ -31,7 +31,7 @@ except ImportError as e:  # pragma: no cover
 from preprocessing.recipes_pipelined import build_model_pipeline
 from soft_constrained_models.boosting_models import (
     LGBCovPenalty,
-    LGBCovPenaltyCVaR,
+    # LGBCovPenaltyCVaR,
     LGBCovPenaltyCVaRTotal,
     LGBSmoothPenalty,
     LGBSmoothPenaltyCVaR,
@@ -50,6 +50,37 @@ def _log(message: str, **fields: Any) -> None:
     if fields:
         suffix = " | " + " | ".join(f"{k}={v}" for k, v in fields.items())
     print(f"[run_temporal_cv +{dt:8.1f}s] {message}{suffix}", flush=True)
+
+
+def _write_json_atomic(path: Path, data: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    with tmp_path.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, sort_keys=True, default=str)
+    tmp_path.replace(path)
+
+
+def _write_csv_atomic(df: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    df.to_csv(tmp_path, index=False)
+    tmp_path.replace(path)
+
+
+def _write_parquet_atomic(df: pd.DataFrame, path: Path, *, engine: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    df.to_parquet(tmp_path, index=False, engine=engine)
+    tmp_path.replace(path)
+
+
+def _read_json_if_exists(path: Path) -> Dict[str, Any]:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
 
 
 def _first_bad_numeric_value(payload: Dict[str, Any], *, abs_cap: float) -> Optional[Dict[str, Any]]:
@@ -95,6 +126,21 @@ def _parse_float_list(values: str) -> List[float]:
     if values.strip() == "":
         return []
     return [float(x) for x in values.split(",")]
+
+
+def _parse_ratio_mode_list(values: str) -> List[str]:
+    modes = [str(x).strip().lower() for x in str(values).split(",") if str(x).strip()]
+    if not modes:
+        return ["diff"]
+    out: List[str] = []
+    seen = set()
+    for mode in modes:
+        if mode not in {"div", "diff"}:
+            raise ValueError("ratio_modes must contain only 'div' and/or 'diff'.")
+        if mode not in seen:
+            out.append(mode)
+            seen.add(mode)
+    return out
 
 
 def _build_rho_values(
@@ -349,6 +395,7 @@ def _build_model_specs(
     rho_values_smooth: List[float],
     rho_values_cov: List[float],
     keep_values: List[float],
+    ratio_modes: List[str],
     fairness_ratio_mode: str,
 ) -> List[Dict[str, Any]]:
     specs: List[Dict[str, Any]] = []
@@ -373,99 +420,123 @@ def _build_model_specs(
 
     # Soft penalty variants (rho sweep)
     keep_sweep = [float(k) for k in keep_values] if keep_values else [1.0]
-    for rho in rho_values_smooth:
-        r = float(rho)
-        specs.append(
-            {
-                "name": "LGBSmoothPenalty",
-                "config": {"rho": r},
-                "requires_linear_pipeline": False,
-                "factory": (lambda rho=r: LGBSmoothPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
-            }
-        )
-        # for keep in keep_sweep:
-        #     k = float(keep)
-        #     specs.append(
-        #         {
-        #             "name": "LGBSmoothPenaltyCVaR",
-        #             "config": {"rho": r, "keep": k},
-        #             "requires_linear_pipeline": False,
-        #             "factory": (
-        #                 lambda rho=r, keep=k: LGBSmoothPenaltyCVaR(
-        #                     rho=rho,
-        #                     mse_keep=keep,
-        #                     ratio_mode=fairness_ratio_mode,
-        #                     zero_grad_tol=1e-12,
-        #                     lgbm_params=dict(lgbm_params),
-        #                     verbose=False,
-        #                 )
-        #             ),
-        #         }
-        #     )
-        #     specs.append(
-        #         {
-        #             "name": "LGBSmoothPenaltyCVaRTotal",
-        #             "config": {"rho": r, "keep": k},
-        #             "requires_linear_pipeline": False,
-        #             "factory": (
-        #                 lambda rho=r, keep=k: LGBSmoothPenaltyCVaRTotal(
-        #                     rho=rho,
-        #                     keep=keep,
-        #                     ratio_mode=fairness_ratio_mode,
-        #                     zero_grad_tol=1e-12,
-        #                     lgbm_params=dict(lgbm_params),
-        #                     verbose=False,
-        #                 )
-        #             ),
-        #         }
-        #     )
+    ratio_mode_sweep = [str(m) for m in ratio_modes] if ratio_modes else [str(fairness_ratio_mode)]
+    for ratio_mode in ratio_mode_sweep:
+        for rho in rho_values_smooth:
+            r = float(rho)
+            specs.append(
+                {
+                    "name": "LGBSmoothPenalty",
+                    "config": {"rho": r, "ratio_mode": ratio_mode},
+                    "metric_ratio_mode": ratio_mode,
+                    "requires_linear_pipeline": False,
+                    "factory": (
+                        lambda rho=r, ratio_mode=ratio_mode: LGBSmoothPenalty(
+                            rho=rho,
+                            ratio_mode=ratio_mode,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=dict(lgbm_params),
+                            verbose=False,
+                        )
+                    ),
+                }
+            )
+            for keep in keep_sweep:
+                k = float(keep)
+                specs.append(
+                    {
+                        "name": "LGBSmoothPenaltyCVaR",
+                        "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
+                        "metric_ratio_mode": ratio_mode,
+                        "requires_linear_pipeline": False,
+                        "factory": (
+                            lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBSmoothPenaltyCVaR(
+                                rho=rho,
+                                mse_keep=keep,
+                                ratio_mode=ratio_mode,
+                                zero_grad_tol=1e-12,
+                                lgbm_params=dict(lgbm_params),
+                                verbose=False,
+                            )
+                        ),
+                    }
+                )
+                specs.append(
+                    {
+                        "name": "LGBSmoothPenaltyCVaRTotal",
+                        "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
+                        "metric_ratio_mode": ratio_mode,
+                        "requires_linear_pipeline": False,
+                        "factory": (
+                            lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBSmoothPenaltyCVaRTotal(
+                                rho=rho,
+                                keep=keep,
+                                ratio_mode=ratio_mode,
+                                zero_grad_tol=1e-12,
+                                lgbm_params=dict(lgbm_params),
+                                verbose=False,
+                            )
+                        ),
+                    }
+                )
 
-    for rho in rho_values_cov:
-        r = float(rho)
-        specs.append(
-            {
-                "name": "LGBCovPenalty",
-                "config": {"rho": r},
-                "requires_linear_pipeline": False,
-                "factory": (lambda rho=r: LGBCovPenalty(rho=rho, ratio_mode=fairness_ratio_mode, zero_grad_tol=1e-12, lgbm_params=dict(lgbm_params), verbose=False)),
-            }
-        )
-        # for keep in keep_sweep:
-        #     k = float(keep)
-        #     # specs.append( # NOTE: This variant is not stable, since its just one side of the loss. It has overflow issues.
-        #     #     {
-        #     #         "name": "LGBCovPenaltyCVaR",
-        #     #         "config": {"rho": r, "keep": k},
-        #     #         "requires_linear_pipeline": False,
-        #     #         "factory": (
-        #     #             lambda rho=r, keep=k: LGBCovPenaltyCVaR(
-        #     #                 rho=rho,
-        #     #                 mse_keep=keep,
-        #     #                 ratio_mode=fairness_ratio_mode,
-        #     #                 zero_grad_tol=1e-12,
-        #     #                 lgbm_params=dict(lgbm_params),
-        #     #                 verbose=False,
-        #     #             )
-        #     #         ),
-        #     #     }
-        #     # )
-        #     specs.append(
-        #         {
-        #             "name": "LGBCovPenaltyCVaRTotal",
-        #             "config": {"rho": r, "keep": k},
-        #             "requires_linear_pipeline": False,
-        #             "factory": (
-        #                 lambda rho=r, keep=k: LGBCovPenaltyCVaRTotal(
-        #                     rho=rho,
-        #                     mse_keep=keep,
-        #                     ratio_mode=fairness_ratio_mode,
-        #                     zero_grad_tol=1e-12,
-        #                     lgbm_params=dict(lgbm_params),
-        #                     verbose=False,
-        #                 )
-        #             ),
-        #         }
-        #     )
+        for rho in rho_values_cov:
+            r = float(rho)
+            specs.append(
+                {
+                    "name": "LGBCovPenalty",
+                    "config": {"rho": r, "ratio_mode": ratio_mode},
+                    "metric_ratio_mode": ratio_mode,
+                    "requires_linear_pipeline": False,
+                    "factory": (
+                        lambda rho=r, ratio_mode=ratio_mode: LGBCovPenalty(
+                            rho=rho,
+                            ratio_mode=ratio_mode,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=dict(lgbm_params),
+                            verbose=False,
+                        )
+                    ),
+                }
+            )
+            for keep in keep_sweep:
+                k = float(keep)
+                # specs.append( # NOTE: This variant is not stable, since its just one side of the loss. It has overflow issues.
+                #     {
+                #         "name": "LGBCovPenaltyCVaR",
+                #         "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
+                #         "metric_ratio_mode": ratio_mode,
+                #         "requires_linear_pipeline": False,
+                #         "factory": (
+                #             lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBCovPenaltyCVaR(
+                #                 rho=rho,
+                #                 mse_keep=keep,
+                #                 ratio_mode=ratio_mode,
+                #                 zero_grad_tol=1e-12,
+                #                 lgbm_params=dict(lgbm_params),
+                #                 verbose=False,
+                #             )
+                #         ),
+                #     }
+                # )
+                specs.append(
+                    {
+                        "name": "LGBCovPenaltyCVaRTotal",
+                        "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
+                        "metric_ratio_mode": ratio_mode,
+                        "requires_linear_pipeline": False,
+                        "factory": (
+                            lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBCovPenaltyCVaRTotal(
+                                rho=rho,
+                                mse_keep=keep,
+                                ratio_mode=ratio_mode,
+                                zero_grad_tol=1e-12,
+                                lgbm_params=dict(lgbm_params),
+                                verbose=False,
+                            )
+                        ),
+                    }
+                )
 
     # # Primal-dual (CVaR-like) variants (rho × keep sweep)
     # for rho in rho_values:
@@ -504,7 +575,73 @@ def _evaluate_models_on_test_set(
     Fit each config on the full train/validate universe and evaluate once on held-out test.
     """
     analysis_dir.mkdir(parents=True, exist_ok=True)
+    test_metrics_path = analysis_dir / "test_metrics.csv"
+    test_predictions_path = analysis_dir / "test_predictions.parquet"
+    test_meta_path = analysis_dir / "test_eval_metadata.json"
+    flagged_path = analysis_dir / "test_flagged_configs.csv"
+    legacy_flagged_path = analysis_dir / "test_rejected_configs.csv"
+    status_path = analysis_dir / "test_eval_status.json"
+    shard_metrics_root = analysis_dir / "test_run_metrics"
+    shard_preds_root = analysis_dir / "test_run_predictions"
+    shard_status_root = analysis_dir / "test_run_status"
     eval_start = time.perf_counter()
+
+    spec_jobs: List[Dict[str, Any]] = []
+    for spec in model_specs:
+        model_name = str(spec["name"])
+        model_config = dict(spec.get("config", {}))
+        metric_ratio_mode = str(spec.get("metric_ratio_mode", model_config.get("ratio_mode", fairness_ratio_mode)))
+        config_id = _stable_hash({"model_name": model_name, "config": model_config})
+        spec_jobs.append(
+            {
+                "spec": spec,
+                "model_name": model_name,
+                "model_config": model_config,
+                "model_config_json": json.dumps(model_config, sort_keys=True),
+                "metric_ratio_mode": metric_ratio_mode,
+                "config_id": config_id,
+                "metrics_file": shard_metrics_root / f"{config_id}.parquet",
+                "predictions_file": shard_preds_root / f"{config_id}.parquet",
+                "status_file": shard_status_root / f"{config_id}.json",
+            }
+        )
+
+    eval_manifest = {
+        "fairness_ratio_mode": fairness_ratio_mode,
+        "n_models": int(len(spec_jobs)),
+        "config_ids": [str(job["config_id"]) for job in spec_jobs],
+        "models": [
+            {
+                "config_id": str(job["config_id"]),
+                "model_name": str(job["model_name"]),
+                "ratio_mode": str(job["metric_ratio_mode"]),
+                "model_config_json": str(job["model_config_json"]),
+            }
+            for job in spec_jobs
+        ],
+    }
+    eval_signature = _stable_hash({"stage": "held_out_test", **eval_manifest})
+
+    existing_status = _read_json_if_exists(status_path)
+    if (
+        existing_status.get("status") == "completed"
+        and str(existing_status.get("eval_signature", "")) == str(eval_signature)
+        and test_metrics_path.exists()
+        and test_predictions_path.exists()
+        and test_meta_path.exists()
+    ):
+        _log(
+            "held-out test evaluation already complete; reusing aggregate artifacts",
+            n_models=int(len(spec_jobs)),
+            analysis_dir=str(analysis_dir),
+        )
+        out = {"test_metrics_csv": str(test_metrics_path), "test_predictions_parquet": str(test_predictions_path)}
+        if flagged_path.exists():
+            out["test_flagged_configs_csv"] = str(flagged_path)
+        if legacy_flagged_path.exists():
+            out["test_rejected_configs_csv"] = str(legacy_flagged_path)
+        return out
+
     _log(
         "starting held-out test evaluation",
         analysis_dir=str(analysis_dir),
@@ -523,89 +660,149 @@ def _evaluate_models_on_test_set(
         X_tv[c] = X_tv[c].astype("category")
         X_test[c] = X_test[c].astype("category")
 
-    test_rows: List[Dict[str, Any]] = []
-    pred_rows: List[pd.DataFrame] = []
-    flagged_rows: List[Dict[str, Any]] = []
     invalid_set = {str(x) for x in (invalid_config_ids or [])}
+    pred_columns = [
+        "config_id",
+        "model_name",
+        "ratio_mode",
+        "row_id",
+        "sale_date",
+        "numeric_stability_status",
+        "numeric_guard_flagged",
+        "numeric_guard_stage",
+        "numeric_guard_field",
+        "numeric_guard_value",
+        "numeric_guard_reason",
+        "cv_numeric_warning_flagged",
+        "y_true_log",
+        "y_pred_log",
+        "y_true",
+        "y_pred",
+    ]
 
-    for spec in model_specs:
-        model_start = time.perf_counter()
-        model_name = str(spec["name"])
-        model_config = dict(spec.get("config", {}))
-        config_id = _stable_hash({"model_name": model_name, "config": model_config})
-        _log("held-out test model start", model_name=model_name, config_id=config_id)
-        estimator = spec["factory"]()
-        prep_elapsed = 0.0
-        if bool(spec.get("requires_linear_pipeline", False)):
-            prep_start = time.perf_counter()
-            pipe = linear_pipeline_builder()
-            X_train_m = pipe.fit_transform(X_tv, y_tv_log)
-            X_test_m = pipe.transform(X_test)
-            prep_elapsed = time.perf_counter() - prep_start
-        else:
-            X_train_m = X_tv
-            X_test_m = X_test
-
-        fit_start = time.perf_counter()
-        estimator.fit(X_train_m, y_tv_log)
-        y_pred_test_log = np.asarray(estimator.predict(X_test_m), dtype=float).reshape(-1)
-        fit_elapsed = time.perf_counter() - fit_start
-
-        metric_start = time.perf_counter()
-        metrics = _compute_extended_metrics(
-            y_true_log=y_test_log,
-            y_pred_log=y_pred_test_log,
-            y_train_log=y_tv_log,
-            ratio_mode=fairness_ratio_mode,
-        )
-        metric_elapsed = time.perf_counter() - metric_start
-        bad_metric = _first_bad_numeric_value(metrics, abs_cap=float(numeric_sanity_abs_cap))
-        bad_pred = _first_bad_numeric_value(
-            {
-                "y_pred_log_min": float(np.nanmin(y_pred_test_log)),
-                "y_pred_log_max": float(np.nanmax(y_pred_test_log)),
-            },
-            abs_cap=float(numeric_sanity_abs_cap),
-        )
-        bad = bad_metric if bad_metric is not None else bad_pred
-        numeric_fields = _numeric_guard_fields(
-            bad=bad,
-            stage=("test_metrics" if bad_metric is not None else "test_predictions") if bad is not None else "",
-            cv_flagged=(config_id in invalid_set),
-        )
-        if bad is not None:
+    reusable_jobs = 0
+    pending_jobs: List[Dict[str, Any]] = []
+    for job in spec_jobs:
+        status_payload = _read_json_if_exists(job["status_file"])
+        completed = status_payload.get("status") in {"completed", "completed_with_numeric_warning"}
+        artifacts_ok = job["metrics_file"].exists() and job["predictions_file"].exists()
+        same_signature = str(status_payload.get("eval_signature", "")) == str(eval_signature)
+        if completed and artifacts_ok and same_signature:
+            reusable_jobs += 1
             _log(
-                "held-out test model flagged for invalid numeric output",
-                model_name=model_name,
-                config_id=config_id,
-                offending_field=str(bad.get("field", bad.get("metric", ""))),
-                offending_reason=str(bad.get("reason", "")),
-                total_elapsed_sec=f"{time.perf_counter() - model_start:.2f}",
+                "held-out test model skip",
+                model_name=str(job["model_name"]),
+                config_id=str(job["config_id"]),
+                reason="existing_completed_artifacts",
             )
-        test_rows.append(
+            continue
+        pending_jobs.append(job)
+
+    _write_json_atomic(
+        status_path,
+        {
+            "status": "started",
+            "eval_signature": eval_signature,
+            "analysis_dir": str(analysis_dir),
+            "n_models": int(len(spec_jobs)),
+            "reused_models": int(reusable_jobs),
+            "pending_models": int(len(pending_jobs)),
+            "timestamp_utc": pd.Timestamp.utcnow().isoformat(),
+            "manifest": eval_manifest,
+        },
+    )
+    _log(
+        "held-out test execution plan",
+        pending_models=int(len(pending_jobs)),
+        reused_models=int(reusable_jobs),
+        total_models=int(len(spec_jobs)),
+    )
+
+    for job in pending_jobs:
+        model_start = time.perf_counter()
+        spec = job["spec"]
+        model_name = str(job["model_name"])
+        model_config_json = str(job["model_config_json"])
+        metric_ratio_mode = str(job["metric_ratio_mode"])
+        config_id = str(job["config_id"])
+        metrics_file = job["metrics_file"]
+        predictions_file = job["predictions_file"]
+        model_status_file = job["status_file"]
+        _log("held-out test model start", model_name=model_name, config_id=config_id)
+        _write_json_atomic(
+            model_status_file,
             {
+                "status": "started",
+                "eval_signature": eval_signature,
                 "config_id": config_id,
                 "model_name": model_name,
-                "model_config_json": json.dumps(model_config, sort_keys=True),
+                "ratio_mode": metric_ratio_mode,
+                "timestamp_utc": pd.Timestamp.utcnow().isoformat(),
+            },
+        )
+        try:
+            estimator = spec["factory"]()
+            prep_elapsed = 0.0
+            if bool(spec.get("requires_linear_pipeline", False)):
+                prep_start = time.perf_counter()
+                pipe = linear_pipeline_builder()
+                X_train_m = pipe.fit_transform(X_tv, y_tv_log)
+                X_test_m = pipe.transform(X_test)
+                prep_elapsed = time.perf_counter() - prep_start
+            else:
+                X_train_m = X_tv
+                X_test_m = X_test
+
+            fit_start = time.perf_counter()
+            estimator.fit(X_train_m, y_tv_log)
+            y_pred_test_log = np.asarray(estimator.predict(X_test_m), dtype=float).reshape(-1)
+            fit_elapsed = time.perf_counter() - fit_start
+
+            metric_start = time.perf_counter()
+            metrics = _compute_extended_metrics(
+                y_true_log=y_test_log,
+                y_pred_log=y_pred_test_log,
+                y_train_log=y_tv_log,
+                ratio_mode=metric_ratio_mode,
+            )
+            metric_elapsed = time.perf_counter() - metric_start
+            bad_metric = _first_bad_numeric_value(metrics, abs_cap=float(numeric_sanity_abs_cap))
+            bad_pred = _first_bad_numeric_value(
+                {
+                    "y_pred_log_min": float(np.nanmin(y_pred_test_log)),
+                    "y_pred_log_max": float(np.nanmax(y_pred_test_log)),
+                },
+                abs_cap=float(numeric_sanity_abs_cap),
+            )
+            bad = bad_metric if bad_metric is not None else bad_pred
+            numeric_fields = _numeric_guard_fields(
+                bad=bad,
+                stage=("test_metrics" if bad_metric is not None else "test_predictions") if bad is not None else "",
+                cv_flagged=(config_id in invalid_set),
+            )
+            if bad is not None:
+                _log(
+                    "held-out test model flagged for invalid numeric output",
+                    model_name=model_name,
+                    config_id=config_id,
+                    offending_field=str(bad.get("field", bad.get("metric", ""))),
+                    offending_reason=str(bad.get("reason", "")),
+                    total_elapsed_sec=f"{time.perf_counter() - model_start:.2f}",
+                )
+
+            metrics_row = {
+                "config_id": config_id,
+                "model_name": model_name,
+                "ratio_mode": metric_ratio_mode,
+                "model_config_json": model_config_json,
                 **numeric_fields,
                 **metrics,
             }
-        )
-        if bool(numeric_fields["numeric_guard_flagged"]):
-            flagged_rows.append(
+            pred_df = pd.DataFrame(
                 {
                     "config_id": config_id,
                     "model_name": model_name,
-                    "model_config_json": json.dumps(model_config, sort_keys=True),
-                    **numeric_fields,
-                }
-            )
-
-        pred_rows.append(
-            pd.DataFrame(
-                {
-                    "config_id": config_id,
-                    "model_name": model_name,
+                    "ratio_mode": metric_ratio_mode,
                     "row_id": df_test.index.to_numpy(),
                     "sale_date": df_test[date_col].to_numpy(),
                     "numeric_stability_status": numeric_fields["numeric_stability_status"],
@@ -621,77 +818,153 @@ def _evaluate_models_on_test_set(
                     "y_pred": np.exp(y_pred_test_log),
                 }
             )
-        )
-        _log(
-            "held-out test model completed",
-            model_name=model_name,
-            config_id=config_id,
-            prep_sec=f"{prep_elapsed:.2f}",
-            fit_predict_sec=f"{fit_elapsed:.2f}",
-            metrics_sec=f"{metric_elapsed:.2f}",
-            total_sec=f"{time.perf_counter() - model_start:.2f}",
-        )
-
-    test_metrics_path = analysis_dir / "test_metrics.csv"
-    test_predictions_path = analysis_dir / "test_predictions.parquet"
-    test_meta_path = analysis_dir / "test_eval_metadata.json"
-    flagged_path = analysis_dir / "test_flagged_configs.csv"
-    legacy_flagged_path = analysis_dir / "test_rejected_configs.csv"
+            _write_parquet_atomic(pd.DataFrame([metrics_row]), metrics_file, engine=parquet_engine)
+            _write_parquet_atomic(pred_df, predictions_file, engine=parquet_engine)
+            _write_json_atomic(
+                model_status_file,
+                {
+                    "status": "completed_with_numeric_warning" if bool(numeric_fields["numeric_guard_flagged"]) else "completed",
+                    "eval_signature": eval_signature,
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "ratio_mode": metric_ratio_mode,
+                    "timestamp_utc": pd.Timestamp.utcnow().isoformat(),
+                    "artifacts": {
+                        "metrics_file": str(metrics_file),
+                        "predictions_file": str(predictions_file),
+                    },
+                    "numeric_stability_status": numeric_fields["numeric_stability_status"],
+                    "numeric_guard_flagged": bool(numeric_fields["numeric_guard_flagged"]),
+                },
+            )
+            _log(
+                "held-out test model completed",
+                model_name=model_name,
+                config_id=config_id,
+                prep_sec=f"{prep_elapsed:.2f}",
+                fit_predict_sec=f"{fit_elapsed:.2f}",
+                metrics_sec=f"{metric_elapsed:.2f}",
+                total_sec=f"{time.perf_counter() - model_start:.2f}",
+            )
+        except Exception as exc:
+            _write_json_atomic(
+                model_status_file,
+                {
+                    "status": "failed",
+                    "eval_signature": eval_signature,
+                    "config_id": config_id,
+                    "model_name": model_name,
+                    "ratio_mode": metric_ratio_mode,
+                    "timestamp_utc": pd.Timestamp.utcnow().isoformat(),
+                    "error_type": exc.__class__.__name__,
+                    "error_message": str(exc),
+                }
+            )
+            raise
 
     write_start = time.perf_counter()
-    pd.DataFrame(test_rows).to_csv(test_metrics_path, index=False)
+    test_metric_frames: List[pd.DataFrame] = []
+    pred_rows: List[pd.DataFrame] = []
+    for job in spec_jobs:
+        metrics_file = job["metrics_file"]
+        predictions_file = job["predictions_file"]
+        if not metrics_file.exists():
+            raise FileNotFoundError(f"Missing held-out metrics shard for config_id={job['config_id']}: {metrics_file}")
+        if not predictions_file.exists():
+            raise FileNotFoundError(f"Missing held-out predictions shard for config_id={job['config_id']}: {predictions_file}")
+        test_metric_frames.append(pd.read_parquet(metrics_file))
+        pred_rows.append(pd.read_parquet(predictions_file))
+
+    test_metrics_df = pd.concat(test_metric_frames, ignore_index=True) if test_metric_frames else pd.DataFrame()
+    if "config_id" in test_metrics_df.columns:
+        test_metrics_df["config_id"] = test_metrics_df["config_id"].astype(str)
+    _write_csv_atomic(test_metrics_df, test_metrics_path)
+
     if pred_rows:
-        pd.concat(pred_rows, ignore_index=True).to_parquet(test_predictions_path, index=False, engine=parquet_engine)
+        test_predictions_df = pd.concat(pred_rows, ignore_index=True)
+        _write_parquet_atomic(test_predictions_df, test_predictions_path, engine=parquet_engine)
     else:
-        pd.DataFrame(
-            columns=[
-                "config_id",
-                "model_name",
-                "row_id",
-                "sale_date",
-                "numeric_stability_status",
-                "numeric_guard_flagged",
-                "numeric_guard_stage",
-                "numeric_guard_field",
-                "numeric_guard_value",
-                "numeric_guard_reason",
-                "cv_numeric_warning_flagged",
-                "y_true_log",
-                "y_pred_log",
-                "y_true",
-                "y_pred",
-            ]
-        ).to_parquet(test_predictions_path, index=False, engine=parquet_engine)
-    if flagged_rows:
-        pd.DataFrame(flagged_rows).to_csv(flagged_path, index=False)
-        pd.DataFrame(flagged_rows).to_csv(legacy_flagged_path, index=False)
-    test_meta_path.write_text(
-        json.dumps(
-            {
-                "fairness_ratio_mode": fairness_ratio_mode,
-                # For reproducibility of `OOS R2` in downstream stacked test overlays.
-                # Note: in this repo's current metric implementation, `OOS R2` uses
-                # the mean of the provided y_train array (whatever scale it is in).
-                "y_train_log_mean": float(np.mean(y_tv_log)),
-                "n_train_validate": int(df_train_validate.shape[0]),
-                "n_test": int(df_test.shape[0]),
+        test_predictions_df = pd.DataFrame(columns=pred_columns)
+        _write_parquet_atomic(test_predictions_df, test_predictions_path, engine=parquet_engine)
+
+    flagged_columns = [
+        "config_id",
+        "model_name",
+        "ratio_mode",
+        "model_config_json",
+        "numeric_stability_status",
+        "numeric_guard_flagged",
+        "numeric_guard_stage",
+        "numeric_guard_field",
+        "numeric_guard_value",
+        "numeric_guard_reason",
+        "cv_numeric_warning_flagged",
+    ]
+    flagged_df = pd.DataFrame(columns=flagged_columns)
+    if (not test_metrics_df.empty) and ("numeric_guard_flagged" in test_metrics_df.columns):
+        flagged_df = test_metrics_df.loc[test_metrics_df["numeric_guard_flagged"].fillna(False), flagged_columns].copy()
+    if not flagged_df.empty:
+        _write_csv_atomic(flagged_df, flagged_path)
+        _write_csv_atomic(flagged_df, legacy_flagged_path)
+    else:
+        if flagged_path.exists():
+            flagged_path.unlink()
+        if legacy_flagged_path.exists():
+            legacy_flagged_path.unlink()
+
+    _write_json_atomic(
+        test_meta_path,
+        {
+            "fairness_ratio_mode": fairness_ratio_mode,
+            "swept_ratio_modes": sorted(
+                {
+                    str(dict(spec.get("config", {})).get("ratio_mode", spec.get("metric_ratio_mode", fairness_ratio_mode)))
+                    for spec in model_specs
+                }
+            ),
+            # For reproducibility of `OOS R2` in downstream stacked test overlays.
+            # Note: in this repo's current metric implementation, `OOS R2` uses
+            # the mean of the provided y_train array (whatever scale it is in).
+            "y_train_log_mean": float(np.mean(y_tv_log)),
+            "n_train_validate": int(df_train_validate.shape[0]),
+            "n_test": int(df_test.shape[0]),
+            "eval_signature": eval_signature,
+            "config_ids": [str(job["config_id"]) for job in spec_jobs],
+        },
+    )
+    _write_json_atomic(
+        status_path,
+        {
+            "status": "completed",
+            "eval_signature": eval_signature,
+            "analysis_dir": str(analysis_dir),
+            "n_models": int(len(spec_jobs)),
+            "reused_models": int(reusable_jobs),
+            "computed_models": int(len(pending_jobs)),
+            "timestamp_utc": pd.Timestamp.utcnow().isoformat(),
+            "manifest": eval_manifest,
+            "artifacts": {
+                "test_metrics_csv": str(test_metrics_path),
+                "test_predictions_parquet": str(test_predictions_path),
+                "test_eval_metadata_json": str(test_meta_path),
+                "test_flagged_configs_csv": str(flagged_path) if flagged_df.shape[0] > 0 else None,
+                "test_rejected_configs_csv": str(legacy_flagged_path) if flagged_df.shape[0] > 0 else None,
             },
-            indent=2,
-            sort_keys=True,
-        ),
-        encoding="utf-8",
+        },
     )
     _log(
         "held-out test artifacts written",
-        metrics_rows=int(len(test_rows)),
+        metrics_rows=int(test_metrics_df.shape[0]),
         prediction_frames=int(len(pred_rows)),
-        flagged_configs=int(len(flagged_rows)),
+        flagged_configs=int(flagged_df.shape[0]),
+        reused_models=int(reusable_jobs),
+        computed_models=int(len(pending_jobs)),
         write_sec=f"{time.perf_counter() - write_start:.2f}",
         total_sec=f"{time.perf_counter() - eval_start:.2f}",
     )
 
     out = {"test_metrics_csv": str(test_metrics_path), "test_predictions_parquet": str(test_predictions_path)}
-    if flagged_rows:
+    if not flagged_df.empty:
         out["test_flagged_configs_csv"] = str(flagged_path)
         out["test_rejected_configs_csv"] = str(legacy_flagged_path)
     return out
@@ -707,6 +980,7 @@ def run_full_pipeline(
     rho_values_smooth: Optional[List[float]],
     rho_values_cov: Optional[List[float]],
     keep_values: List[float],
+    ratio_modes: List[str],
     split_protocol: Dict[str, Any],
     bootstrap_protocol: Dict[str, Any],
     parallel_enabled: bool,
@@ -771,6 +1045,7 @@ def run_full_pipeline(
         rho_values_smooth=smooth_rhos,
         rho_values_cov=cov_rhos,
         keep_values=keep_values,
+        ratio_modes=ratio_modes,
         fairness_ratio_mode=fairness_ratio_mode,
     )
     _log(
@@ -778,6 +1053,7 @@ def run_full_pipeline(
         n_models=int(len(model_specs)),
         n_smooth_rhos=int(len(smooth_rhos)),
         n_cov_rhos=int(len(cov_rhos)),
+        n_ratio_modes=int(len(ratio_modes)),
         elapsed_sec=f"{time.perf_counter() - model_setup_start:.2f}",
     )
 
@@ -911,6 +1187,11 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
     # --- Sweep grids ---
     default_rho = ",".join(str(v) for v in cfg.get("rho_values", [0.0, 10.0]))
     default_keep = ",".join(str(v) for v in cfg.get("keep_values", [0.5, 0.7, 0.9]))
+    ratio_modes_cfg = cfg.get("ratio_modes", ["diff"])
+    if isinstance(ratio_modes_cfg, str):
+        default_ratio_modes = ratio_modes_cfg
+    else:
+        default_ratio_modes = ",".join(str(v) for v in ratio_modes_cfg)
     p.add_argument(
         "--rho-values",
         type=str,
@@ -964,6 +1245,12 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         help="Optional rho_scale override for --rho-values-cov.",
     )
     p.add_argument("--keep-values", type=str, default=default_keep, help="Comma-separated keep values for primal-dual models.")
+    p.add_argument(
+        "--ratio-modes",
+        type=str,
+        default=default_ratio_modes,
+        help="Comma-separated ratio modes for rho-weighted models. Allowed values: div,diff.",
+    )
 
     # --- Split protocol ---
     p.add_argument("--train-mode", type=str, default=sp.get("train_mode", "expanding"), choices=["expanding", "sliding"])
@@ -1065,6 +1352,7 @@ if __name__ == "__main__":
         rho_values_smooth=rho_values_smooth,
         rho_values_cov=rho_values_cov,
         keep_values=[float(x) for x in _parse_float_list(str(args.keep_values))],
+        ratio_modes=_parse_ratio_mode_list(str(args.ratio_modes)),
         split_protocol={
             "train_mode": str(args.train_mode),
             "initial_train_months": int(args.initial_train_months),
