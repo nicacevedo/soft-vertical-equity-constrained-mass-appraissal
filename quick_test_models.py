@@ -3,7 +3,7 @@ Quick test runner.
 
 Goal
 ----
-Fit and evaluate the 4 core models on:
+Fit and evaluate baseline and fairness-regularized models on:
   - held-out test split (most recent pre-2024 sales; ~2023 by CCAO-style split)
   - assessment split (2024 sales)
 
@@ -14,8 +14,8 @@ Models
 ------
 1) LinearRegression (baseline)
 2) LGBMRegressor (baseline; defaults from `model_params.yaml` + fallback `params.yaml`)
-3) LGBSmoothPenalty (fairness-regularized; uses `rho`)
-4) LGBCovPenalty (fairness-regularized; uses `rho`)
+3) LGBSmoothPenalty across `diff` and `ratio` modes
+4) LGBSmoothPenaltyGroupCVaR across `diff` and `ratio` modes with keep in {0.5, 0.7, 0.9}
 
 Outputs
 -------
@@ -51,13 +51,19 @@ from sklearn.linear_model import LinearRegression
 import lightgbm as lgb
 
 from preprocessing.recipes_pipelined import build_model_pipeline
-from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty, LGBSmoothPenaltyGrouped, LGBCovPenaltyCVaR, LGBSmoothPenaltyCVaR, LGBCovPenaltyCVaRTotal, LGBSmoothPenaltyCVaRTotal
-from utils.plotting_utils import plot_ratio_vs_logprice
+from soft_constrained_models.boosting_models import LGBSmoothPenalty, LGBSmoothPenaltyGroupCVaR
+from utils.plotting_utils import (
+    plot_ratio_vs_logprice,
+    plot_residual_vs_logprice,
+    plot_ratio_vs_logprediction,
+    plot_residual_vs_logprediction,
+)
 from utils.motivation_utils import _build_time_block_bootstrap_indices, _compute_extended_metrics
 
 
 _PAIRWISE_DEPENDENCE_SAMPLE_N = 1024
-_MAIN_SWEEP_FAMILIES = ("LGBSmoothPenalty", "LGBCovPenalty", "LGBSmoothPenaltyGrouped")
+_MAIN_SWEEP_FAMILIES = ("LGBSmoothPenalty", "LGBSmoothPenaltyGroupCVaR")
+_GROUPED_SWEEP_FAMILY = "LGBSmoothPenaltyGrouped"
 _RHO_PLOT_METRICS = [
     "Corr(r,price)",
     "Corr(r,logprice)",
@@ -272,6 +278,13 @@ def _build_rho_sweep(
     return [float(v) for v in values.tolist()]
 
 
+def _parse_float_list(values_raw: str) -> List[float]:
+    values = [float(token.strip()) for token in str(values_raw).split(",") if token.strip()]
+    if not values:
+        raise ValueError("Expected at least one numeric value.")
+    return values
+
+
 def _pairwise_metric_subsample(x: np.ndarray, y: np.ndarray, max_n: int) -> Tuple[np.ndarray, np.ndarray]:
     n = int(x.size)
     if n <= max_n:
@@ -364,10 +377,13 @@ def _compute_logprice_dependence_metrics(
 
     if ratio_mode == "diff":
         r = y_pred_log - y_true_log
+    elif ratio_mode == "div":
+        r = y_pred_log / np.maximum(np.abs(y_true_log), eps_y)
+    elif ratio_mode == "ratio":
+        log_ratio = np.clip(y_pred_log - y_true_log, -50.0, 50.0)
+        r = np.exp(log_ratio)
     else:
-        y_true = np.exp(y_true_log)
-        y_pred = np.exp(y_pred_log)
-        r = y_pred / np.maximum(np.abs(y_true), eps_y)
+        raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
 
     mask = np.isfinite(y_true_log) & np.isfinite(r)
     x = y_true_log[mask]
@@ -383,6 +399,80 @@ def _compute_logprice_dependence_metrics(
         "nHSIC(r,logprice)_sampled": nhsic,
         "pairwise_dependence_sample_n": int(sample_n),
     }
+
+
+def _compute_quantile_block_error_metrics(
+    *,
+    y_true_log: np.ndarray,
+    y_pred_log: np.ndarray,
+    quantile_counts: Tuple[int, ...] = (3, 5),
+) -> Dict[str, Any]:
+    """
+    Compute per-quantile accuracy summaries on equal-count bins formed from the
+    actual target price.
+
+    Because log is strictly increasing on positive prices, quantile bins on y and
+    log(y) induce the same row partition. We bin on y for direct interpretability.
+    """
+    y_true = np.exp(np.asarray(y_true_log, dtype=float).reshape(-1))
+    y_pred = np.exp(np.asarray(y_pred_log, dtype=float).reshape(-1))
+
+    mask = np.isfinite(y_true) & np.isfinite(y_pred)
+    y_true = y_true[mask]
+    y_pred = y_pred[mask]
+
+    metrics: Dict[str, Any] = {}
+    if y_true.size == 0:
+        for q in quantile_counts:
+            metrics[f"effective_bins_q{q}"] = 0
+            for bin_idx in range(1, int(q) + 1):
+                metrics[f"MAE_q{q}_bin{bin_idx}"] = np.nan
+                metrics[f"MAPE_q{q}_bin{bin_idx}"] = np.nan
+                metrics[f"MdAPE_q{q}_bin{bin_idx}"] = np.nan
+                metrics[f"MeanPred_q{q}_bin{bin_idx}"] = np.nan
+                metrics[f"MedianPred_q{q}_bin{bin_idx}"] = np.nan
+        return metrics
+
+    y_true_s = pd.Series(y_true)
+    abs_err = np.abs(y_pred - y_true)
+    eps_y_true = np.maximum(np.abs(y_true), 1e-12)
+    eps_y_pred = np.maximum(np.abs(y_pred), 1e-12)
+    ape = abs_err / eps_y_true
+    dape_repo = np.abs((y_true / eps_y_pred) - 1.0)
+
+    for q in quantile_counts:
+        q_int = int(q)
+        try:
+            bins = pd.qcut(y_true_s, q=q_int, labels=False, duplicates="drop")
+        except ValueError:
+            bins = pd.Series(np.zeros(y_true_s.shape[0], dtype=int), index=y_true_s.index)
+
+        bin_codes = pd.to_numeric(pd.Series(bins, index=y_true_s.index), errors="coerce")
+        code_arr = np.full(y_true.shape[0], -1, dtype=int)
+        valid_mask = bin_codes.notna().to_numpy(dtype=bool)
+        if np.any(valid_mask):
+            code_arr[valid_mask] = bin_codes.loc[valid_mask].astype(int).to_numpy(dtype=int)
+        effective_bins = int(np.unique(code_arr[code_arr >= 0]).size)
+        metrics[f"effective_bins_q{q_int}"] = effective_bins
+
+        for bin_idx in range(q_int):
+            in_bin = code_arr == bin_idx if effective_bins > 0 else np.zeros(y_true.shape[0], dtype=bool)
+            col_suffix = f"q{q_int}_bin{bin_idx + 1}"
+            if not np.any(in_bin):
+                metrics[f"MAE_{col_suffix}"] = np.nan
+                metrics[f"MAPE_{col_suffix}"] = np.nan
+                metrics[f"MdAPE_{col_suffix}"] = np.nan
+                metrics[f"MeanPred_{col_suffix}"] = np.nan
+                metrics[f"MedianPred_{col_suffix}"] = np.nan
+                continue
+
+            metrics[f"MAE_{col_suffix}"] = float(np.mean(abs_err[in_bin]))
+            metrics[f"MAPE_{col_suffix}"] = float(np.mean(ape[in_bin]))
+            metrics[f"MdAPE_{col_suffix}"] = float(100.0 * np.median(dape_repo[in_bin]))
+            metrics[f"MeanPred_{col_suffix}"] = float(np.mean(y_pred[in_bin]))
+            metrics[f"MedianPred_{col_suffix}"] = float(np.median(y_pred[in_bin]))
+
+    return metrics
 
 
 def _compute_quick_test_metrics(
@@ -405,85 +495,67 @@ def _compute_quick_test_metrics(
             ratio_mode=ratio_mode,
         )
     )
+    metrics.update(
+        _compute_quantile_block_error_metrics(
+            y_true_log=y_true_log,
+            y_pred_log=y_pred_log,
+        )
+    )
     return metrics
 
 
 def _build_quick_test_models(
     *,
     rho_values: List[float],
+    eta_values: List[float],
+    keep_values: List[float],
     lgbm_params: dict,
+    early_stopping_rounds: int | None,
 ) -> List[Dict[str, Any]]:
-    models: List[Dict[str, Any]] = [
-        {
-            "model_name": "LinearRegression",
-            "model_family": "LinearRegression",
-            "rho": np.nan,
-            "rho_group": np.nan,
-            "estimator": LinearRegression(fit_intercept=True),
-            "requires_linear_pipeline": True,
-        },
-        {
-            "model_name": "LGBMRegressor",
-            "model_family": "LGBMRegressor",
-            "rho": np.nan,
-            "rho_group": np.nan,
-            "estimator": lgb.LGBMRegressor(**lgbm_params),
-            "requires_linear_pipeline": False,
-        },
-    ]
+    models: List[Dict[str, Any]] = []
+    ratio_modes = ("diff", "ratio")
+
+    for ratio_mode in ratio_modes:
+        models.extend(
+            [
+                {
+                    "model_name": f"LinearRegression_mode_{ratio_mode}",
+                    "model_family": "LinearRegression",
+                    "ratio_mode": ratio_mode,
+                    "rho": np.nan,
+                    "rho_group": np.nan,
+                    "estimator": LinearRegression(fit_intercept=True),
+                    "requires_linear_pipeline": True,
+                },
+                {
+                    "model_name": f"LGBMRegressor_mode_{ratio_mode}",
+                    "model_family": "LGBMRegressor",
+                    "ratio_mode": ratio_mode,
+                    "rho": np.nan,
+                    "rho_group": np.nan,
+                    "estimator": lgb.LGBMRegressor(**lgbm_params),
+                    "requires_linear_pipeline": False,
+                },
+            ]
+        )
 
     rho_list = [float(r) for r in rho_values]
-    multi_rho_mode = len(rho_list) > 1
+    eta_list = [float(v) for v in eta_values]
+    keep_list = [float(v) for v in keep_values]
 
-    for rho_value in rho_list:
-        models.append(
-            {
-                "model_name": f"LGBSmoothPenalty_rho_{rho_value}",
-                "model_family": "LGBSmoothPenalty",
-                "rho": float(rho_value),
-                "rho_group": np.nan,
-                "estimator": LGBSmoothPenalty(
-                    rho=float(rho_value),
-                    ratio_mode="diff",
-                    zero_grad_tol=1e-12,
-                    lgbm_params=lgbm_params,
-                    verbose=True,
-                ),
-                "requires_linear_pipeline": False,
-            }
-        )
-        models.append(
-            {
-                "model_name": f"LGBCovPenalty_rho_{rho_value}",
-                "model_family": "LGBCovPenalty",
-                "rho": float(rho_value),
-                "rho_group": np.nan,
-                "estimator": LGBCovPenalty(
-                    rho=float(rho_value),
-                    ratio_mode="diff",
-                    zero_grad_tol=1e-12,
-                    lgbm_params=lgbm_params,
-                    verbose=True,
-                ),
-                "requires_linear_pipeline": False,
-            }
-        )
-
-    for rho_value in rho_list:
-        for rho_group_value in rho_list:
+    for ratio_mode in ratio_modes:
+        for rho_value in rho_list:
             models.append(
                 {
-                    "model_name": f"LGBSmoothPenaltyGrouped_rho_{rho_value}_rho_group_{rho_group_value}",
-                    "model_family": "LGBSmoothPenaltyGrouped",
+                    "model_name": f"LGBSmoothPenalty_mode_{ratio_mode}_rho_{rho_value}",
+                    "model_family": f"LGBSmoothPenalty[{ratio_mode}]",
+                    "ratio_mode": ratio_mode,
                     "rho": float(rho_value),
-                    "rho_group": float(rho_group_value),
-                    "estimator": LGBSmoothPenaltyGrouped(
+                    "rho_group": np.nan,
+                    "estimator": LGBSmoothPenalty(
                         rho=float(rho_value),
-                        rho_group=float(rho_group_value),
-                        ratio_mode="diff",
-                        group_feature=_META_TOWNSHIP_TRIAD_COL,
-                        group_aggregation="mean",
-                        min_group_size=2,
+                        ratio_mode=ratio_mode,
+                        early_stopping_rounds=early_stopping_rounds,
                         zero_grad_tol=1e-12,
                         lgbm_params=lgbm_params,
                         verbose=True,
@@ -491,60 +563,31 @@ def _build_quick_test_models(
                     "requires_linear_pipeline": False,
                 }
             )
-
-    if multi_rho_mode:
-        return models
-
-    rho_single = float(rho_list[0])
-    models.extend(
-        [
-            {
-                "model_name": f"LGBCovPenaltyCVaRTotal_rho_{rho_single}_keep_0.9",
-                "model_family": "LGBCovPenaltyCVaRTotal",
-                "rho": float(rho_single),
-                "rho_group": np.nan,
-                "estimator": LGBCovPenaltyCVaRTotal(
-                    rho=6.58,
-                    mse_keep=0.9,
-                    ratio_mode="diff",
-                    zero_grad_tol=1e-12,
-                    lgbm_params=lgbm_params,
-                    verbose=True,
-                ),
-                "requires_linear_pipeline": False,
-            },
-            {
-                "model_name": f"LGBCovPenaltyCVaRTotal_rho_{rho_single}_keep_0.7",
-                "model_family": "LGBCovPenaltyCVaRTotal",
-                "rho": float(rho_single),
-                "rho_group": np.nan,
-                "estimator": LGBCovPenaltyCVaRTotal(
-                    rho=6.58,
-                    mse_keep=0.7,
-                    ratio_mode="diff",
-                    zero_grad_tol=1e-12,
-                    lgbm_params=lgbm_params,
-                    verbose=True,
-                ),
-                "requires_linear_pipeline": False,
-            },
-            {
-                "model_name": f"LGBCovPenaltyCVaRTotal_rho_{rho_single}_keep_0.5",
-                "model_family": "LGBCovPenaltyCVaRTotal",
-                "rho": float(rho_single),
-                "rho_group": np.nan,
-                "estimator": LGBCovPenaltyCVaRTotal(
-                    rho=6.58,
-                    mse_keep=0.5,
-                    ratio_mode="diff",
-                    zero_grad_tol=1e-12,
-                    lgbm_params=lgbm_params,
-                    verbose=True,
-                ),
-                "requires_linear_pipeline": False,
-            },
-        ]
-    )
+            for eta_value in eta_list:
+                for keep_value in keep_list:
+                    models.append(
+                        {
+                            "model_name": f"LGBSmoothPenaltyGroupCVaR_mode_{ratio_mode}_rho_{rho_value}_eta_{eta_value}_keep_{keep_value}",
+                            "model_family": f"LGBSmoothPenaltyGroupCVaR[{ratio_mode}]",
+                            "ratio_mode": ratio_mode,
+                            "rho": float(rho_value),
+                            "rho_group": np.nan,
+                            "eta": float(eta_value),
+                            "keep": float(keep_value),
+                            "estimator": LGBSmoothPenaltyGroupCVaR(
+                                rho=float(rho_value),
+                                eta=float(eta_value),
+                                keep=float(keep_value),
+                                group_feature=[_META_TOWNSHIP_TRIAD_COL, _CHAR_CLASS_BUCKET_COL],
+                                ratio_mode=ratio_mode,
+                                early_stopping_rounds=early_stopping_rounds,
+                                zero_grad_tol=1e-12,
+                                lgbm_params=lgbm_params,
+                                verbose=True,
+                            ),
+                            "requires_linear_pipeline": False,
+                        }
+                    )
     return models
 
 
@@ -600,10 +643,7 @@ def _write_rho_evolution_plot(
             )
 
         ax.axhline(0.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.6)
-        if family == "LGBSmoothPenaltyGrouped":
-            ax.set_title("LGBSmoothPenaltyGrouped\n(avg over rho_group)")
-        else:
-            ax.set_title(family)
+        ax.set_title(family)
         ax.set_xlabel("rho")
         ax.grid(True, linestyle=":", alpha=0.4)
 
@@ -618,6 +658,76 @@ def _write_rho_evolution_plot(
     plt.close(fig)
 
 
+def _write_grouped_rho_evolution_plots(
+    df: pd.DataFrame,
+    *,
+    split_label: str,
+    out_dir: Path,
+) -> None:
+    if df.empty or "model_family" not in df.columns or "rho" not in df.columns or "rho_group" not in df.columns:
+        return
+
+    plot_df = df.loc[df["model_family"] == _GROUPED_SWEEP_FAMILY, :].copy()
+    if plot_df.empty:
+        return
+
+    plot_df["rho"] = pd.to_numeric(plot_df["rho"], errors="coerce")
+    plot_df["rho_group"] = pd.to_numeric(plot_df["rho_group"], errors="coerce")
+    plot_df = plot_df.loc[np.isfinite(plot_df["rho"]) & np.isfinite(plot_df["rho_group"]), :]
+    if plot_df.empty:
+        return
+
+    metric_names = [metric_name for metric_name in _RHO_PLOT_METRICS if metric_name in plot_df.columns]
+    if not metric_names:
+        return
+
+    split_slug = _sanitize_plot_filename(split_label.lower())
+    out_dir.mkdir(parents=True, exist_ok=True)
+    rho_group_values = sorted(float(v) for v in plot_df["rho_group"].dropna().unique().tolist())
+
+    for rho_group_value in rho_group_values:
+        family_df = plot_df.loc[plot_df["rho_group"] == rho_group_value, :].copy()
+        if family_df.empty:
+            continue
+        if family_df["rho"].duplicated().any():
+            family_df = (
+                family_df.groupby("rho", as_index=False)[metric_names]
+                .mean(numeric_only=True)
+                .sort_values("rho")
+            )
+        else:
+            family_df = family_df.sort_values("rho")
+
+        fig, ax = plt.subplots(1, 1, figsize=(6.5, 5))
+        for metric_name in metric_names:
+            y = pd.to_numeric(family_df[metric_name], errors="coerce")
+            if not np.isfinite(y.to_numpy(dtype=float)).any():
+                continue
+            ax.plot(
+                family_df["rho"].to_numpy(dtype=float),
+                y.to_numpy(dtype=float),
+                marker="o",
+                linewidth=1.8,
+                linestyle="--",
+                label=metric_name,
+            )
+
+        ax.axhline(0.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.6)
+        ax.set_title(f"{_GROUPED_SWEEP_FAMILY}\nrho_group={rho_group_value}")
+        ax.set_xlabel("rho")
+        ax.set_ylabel("metric value")
+        ax.grid(True, linestyle=":", alpha=0.4)
+        handles, labels = ax.get_legend_handles_labels()
+        if handles:
+            fig.legend(handles, labels, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, -0.02))
+        fig.suptitle(f"Correlation Metric Evolution vs rho ({split_label})")
+        fig.tight_layout(rect=(0.0, 0.08, 1.0, 0.92))
+        rho_group_slug = _sanitize_plot_filename(f"{rho_group_value}")
+        out_path = out_dir / f"quick_test_rho_evolution_grouped_rho_group_{rho_group_slug}_{split_slug}.pdf"
+        fig.savefig(out_path, dpi=180, bbox_inches="tight")
+        plt.close(fig)
+
+
 def _sanitize_plot_filename(name: str) -> str:
     safe = re.sub(r"[^A-Za-z0-9._-]+", "_", str(name).strip())
     return safe or "plot"
@@ -630,6 +740,8 @@ def _write_ratio_vs_logprice_plots(
     y_true_log: np.ndarray,
     pred_logs: Dict[str, np.ndarray],
     out_dir: Path,
+    grouped_feature_labels: np.ndarray | None = None,
+    grouped_feature_name: str | None = None,
 ) -> None:
     if results_df.empty or not pred_logs:
         return
@@ -642,6 +754,8 @@ def _write_ratio_vs_logprice_plots(
         y_pred_log = pred_logs.get(model_name)
         if y_pred_log is None:
             continue
+        model_family = str(row.get("model_family", ""))
+        color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
         out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
         plot_ratio_vs_logprice(
             y_true_log=y_true_log,
@@ -650,6 +764,120 @@ def _write_ratio_vs_logprice_plots(
             model_label=model_name,
             split_label=split_label,
             metrics=row.to_dict(),
+            group_labels=color_labels,
+            group_label_name=(grouped_feature_name if color_labels is not None else None),
+            y_limits=(0.0, 3.0),
+        )
+
+
+def _write_residual_vs_logprice_plots(
+    *,
+    split_label: str,
+    results_df: pd.DataFrame,
+    y_true_log: np.ndarray,
+    pred_logs: Dict[str, np.ndarray],
+    out_dir: Path,
+    grouped_feature_labels: np.ndarray | None = None,
+    grouped_feature_name: str | None = None,
+) -> None:
+    if results_df.empty or not pred_logs:
+        return
+
+    split_dir = out_dir / split_label.lower()
+    split_dir.mkdir(parents=True, exist_ok=True)
+
+    for _, row in results_df.iterrows():
+        model_name = str(row.get("model_name", "model"))
+        y_pred_log = pred_logs.get(model_name)
+        if y_pred_log is None:
+            continue
+        model_family = str(row.get("model_family", ""))
+        color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
+        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
+        plot_residual_vs_logprice(
+            y_true_log=y_true_log,
+            y_pred_log=y_pred_log,
+            out_path=out_path,
+            model_label=model_name,
+            split_label=split_label,
+            metrics=row.to_dict(),
+            group_labels=color_labels,
+            group_label_name=(grouped_feature_name if color_labels is not None else None),
+            y_limits=(-1.5, 1.5),
+        )
+
+
+def _write_ratio_vs_logprediction_plots(
+    *,
+    split_label: str,
+    results_df: pd.DataFrame,
+    y_true_log: np.ndarray,
+    pred_logs: Dict[str, np.ndarray],
+    out_dir: Path,
+    grouped_feature_labels: np.ndarray | None = None,
+    grouped_feature_name: str | None = None,
+) -> None:
+    if results_df.empty or not pred_logs:
+        return
+
+    split_dir = out_dir / split_label.lower()
+    split_dir.mkdir(parents=True, exist_ok=True)
+
+    for _, row in results_df.iterrows():
+        model_name = str(row.get("model_name", "model"))
+        y_pred_log = pred_logs.get(model_name)
+        if y_pred_log is None:
+            continue
+        model_family = str(row.get("model_family", ""))
+        color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
+        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
+        plot_ratio_vs_logprediction(
+            y_true_log=y_true_log,
+            y_pred_log=y_pred_log,
+            out_path=out_path,
+            model_label=model_name,
+            split_label=split_label,
+            metrics=row.to_dict(),
+            group_labels=color_labels,
+            group_label_name=(grouped_feature_name if color_labels is not None else None),
+            y_limits=(0.0, 3.0),
+        )
+
+
+def _write_residual_vs_logprediction_plots(
+    *,
+    split_label: str,
+    results_df: pd.DataFrame,
+    y_true_log: np.ndarray,
+    pred_logs: Dict[str, np.ndarray],
+    out_dir: Path,
+    grouped_feature_labels: np.ndarray | None = None,
+    grouped_feature_name: str | None = None,
+) -> None:
+    if results_df.empty or not pred_logs:
+        return
+
+    split_dir = out_dir / split_label.lower()
+    split_dir.mkdir(parents=True, exist_ok=True)
+
+    for _, row in results_df.iterrows():
+        model_name = str(row.get("model_name", "model"))
+        y_pred_log = pred_logs.get(model_name)
+        if y_pred_log is None:
+            continue
+        model_family = str(row.get("model_family", ""))
+        color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
+        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
+        plot_residual_vs_logprediction(
+            y_true_log=y_true_log,
+            y_pred_log=y_pred_log,
+            out_path=out_path,
+            model_label=model_name,
+            split_label=split_label,
+            metrics=row.to_dict(),
+            group_labels=color_labels,
+            group_label_name=(grouped_feature_name if color_labels is not None else None),
+            y_limits=(-1.5, 1.5),
         )
 
 
@@ -692,6 +920,12 @@ def run_quick_test(
     *,
     rho: float,
     rho_values: List[float] | None,
+    eta: float | None,
+    eta_values: List[float] | None,
+    keep_values: List[float],
+    rho_group: float,
+    rho_group_values: List[float] | None,
+    early_stopping_rounds: int | None,
     out_dir: str,
     data_path: str,
     sample_frac: float | None,
@@ -1099,12 +1333,15 @@ def run_quick_test(
     # Model parameterization (baseline LGBM defaults).
     lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed)
     rho_sweep = [float(r) for r in (rho_values if rho_values is not None else [rho])]
+    eta_sweep = [float(v) for v in (eta_values if eta_values is not None else [rho if eta is None else eta])]
     models = _build_quick_test_models(
         rho_values=rho_sweep,
+        eta_values=eta_sweep,
+        keep_values=keep_values,
         lgbm_params=lgbm_params,
+        early_stopping_rounds=early_stopping_rounds,
     )
-
-    fairness_ratio_mode = "diff"
+    model_ratio_modes = {str(spec["model_name"]): str(spec["ratio_mode"]) for spec in models}
 
     # --- Evaluate on TEST (train on df_train_validate only; strict out-of-time).
     test_rows = []
@@ -1119,12 +1356,15 @@ def run_quick_test(
             y_train_log=y_tv_log,
             X_eval=X_test,
             y_eval_log=y_test_log,
-            fairness_ratio_mode=fairness_ratio_mode,
+            fairness_ratio_mode=str(spec["ratio_mode"]),
             return_prediction_log=True,
         )
         row["model_family"] = str(spec["model_family"])
+        row["ratio_mode"] = str(spec["ratio_mode"])
         row["rho"] = spec["rho"]
         row["rho_group"] = spec.get("rho_group", np.nan)
+        row["eta"] = spec.get("eta", np.nan)
+        row["keep"] = spec.get("keep", np.nan)
         test_pred_logs[str(spec["model_name"])] = np.asarray(row.pop("_y_pred_eval_log"), dtype=float).reshape(-1)
         test_rows.append(row)
     test_df = pd.DataFrame(test_rows)
@@ -1150,12 +1390,15 @@ def run_quick_test(
                 y_train_log=y_pre_log,
                 X_eval=X_assess,
                 y_eval_log=y_assess_log,
-                fairness_ratio_mode=fairness_ratio_mode,
+                fairness_ratio_mode=str(spec["ratio_mode"]),
                 return_prediction_log=True,
             )
             row["model_family"] = str(spec["model_family"])
+            row["ratio_mode"] = str(spec["ratio_mode"])
             row["rho"] = spec["rho"]
             row["rho_group"] = spec.get("rho_group", np.nan)
+            row["eta"] = spec.get("eta", np.nan)
+            row["keep"] = spec.get("keep", np.nan)
             assess_pred_logs[str(spec["model_name"])] = np.asarray(row.pop("_y_pred_eval_log"), dtype=float).reshape(-1)
             assess_rows.append(row)
         assess_df = pd.DataFrame(assess_rows)
@@ -1181,6 +1424,7 @@ def run_quick_test(
         )
         for model_name, y_pred_log in test_pred_logs.items():
             per_bs: List[Dict[str, Any]] = []
+            metric_ratio_mode = str(model_ratio_modes.get(str(model_name), "diff"))
             for sample_idx in bs_indices:
                 idx = np.asarray(sample_idx, dtype=int)
                 if idx.size < 2:
@@ -1189,7 +1433,7 @@ def run_quick_test(
                     y_true_log=y_test_log[idx],
                     y_pred_log=y_pred_log[idx],
                     y_train_log=y_tv_log,
-                    ratio_mode=fairness_ratio_mode,
+                    ratio_mode=metric_ratio_mode,
                 )
                 per_bs.append(m)
             if not per_bs:
@@ -1201,11 +1445,14 @@ def run_quick_test(
                 "bootstrap_block_freq": str(bootstrap_block_freq),
             }
             if not test_df.empty:
-                match = test_df.loc[test_df["model_name"] == str(model_name), ["model_family", "rho", "rho_group"]]
+                match = test_df.loc[test_df["model_name"] == str(model_name), ["model_family", "ratio_mode", "rho", "rho_group", "eta", "keep"]]
                 if not match.empty:
                     row["model_family"] = str(match.iloc[0]["model_family"])
+                    row["ratio_mode"] = str(match.iloc[0]["ratio_mode"])
                     row["rho"] = match.iloc[0]["rho"]
                     row["rho_group"] = match.iloc[0]["rho_group"]
+                    row["eta"] = match.iloc[0]["eta"]
+                    row["keep"] = match.iloc[0]["keep"]
             for c in bs_df.columns:
                 s = pd.to_numeric(bs_df[c], errors="coerce")
                 v = s.to_numpy(dtype=float)
@@ -1217,22 +1464,41 @@ def run_quick_test(
 
     plots_dir = out / "plots"
     rho_plots_dir = plots_dir / "rho_evolution"
+    grouped_rho_plots_dir = rho_plots_dir / "grouped"
     ratio_plots_dir = plots_dir / "ratio_vs_logprice"
+    residual_plots_dir = plots_dir / "residual_vs_logprice"
+    ratio_pred_plots_dir = plots_dir / "ratio_vs_logprediction"
+    residual_pred_plots_dir = plots_dir / "residual_vs_logprediction"
     _write_rho_evolution_plot(
         bootstrap_df,
         split_label="Validation bootstrap average",
         out_path=rho_plots_dir / "quick_test_rho_evolution_validation.pdf",
+    )
+    _write_grouped_rho_evolution_plots(
+        bootstrap_df,
+        split_label="Validation bootstrap average",
+        out_dir=grouped_rho_plots_dir,
     )
     _write_rho_evolution_plot(
         test_df,
         split_label="Test",
         out_path=rho_plots_dir / "quick_test_rho_evolution_test.pdf",
     )
+    _write_grouped_rho_evolution_plots(
+        test_df,
+        split_label="Test",
+        out_dir=grouped_rho_plots_dir,
+    )
     if not assess_df.empty:
         _write_rho_evolution_plot(
             assess_df,
             split_label="Assessment",
             out_path=rho_plots_dir / "quick_test_rho_evolution_assess.pdf",
+        )
+        _write_grouped_rho_evolution_plots(
+            assess_df,
+            split_label="Assessment",
+            out_dir=grouped_rho_plots_dir,
         )
 
     _write_ratio_vs_logprice_plots(
@@ -1241,6 +1507,43 @@ def run_quick_test(
         y_true_log=y_test_log,
         pred_logs=test_pred_logs,
         out_dir=ratio_plots_dir,
+        grouped_feature_labels=df_test[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+        if _META_TOWNSHIP_TRIAD_COL in df_test.columns
+        else None,
+        grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+    )
+    _write_ratio_vs_logprediction_plots(
+        split_label="Test",
+        results_df=test_df,
+        y_true_log=y_test_log,
+        pred_logs=test_pred_logs,
+        out_dir=ratio_pred_plots_dir,
+        grouped_feature_labels=df_test[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+        if _META_TOWNSHIP_TRIAD_COL in df_test.columns
+        else None,
+        grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+    )
+    _write_residual_vs_logprice_plots(
+        split_label="Test",
+        results_df=test_df,
+        y_true_log=y_test_log,
+        pred_logs=test_pred_logs,
+        out_dir=residual_plots_dir,
+        grouped_feature_labels=df_test[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+        if _META_TOWNSHIP_TRIAD_COL in df_test.columns
+        else None,
+        grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+    )
+    _write_residual_vs_logprediction_plots(
+        split_label="Test",
+        results_df=test_df,
+        y_true_log=y_test_log,
+        pred_logs=test_pred_logs,
+        out_dir=residual_pred_plots_dir,
+        grouped_feature_labels=df_test[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+        if _META_TOWNSHIP_TRIAD_COL in df_test.columns
+        else None,
+        grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
     )
     if not assess_df.empty:
         _write_ratio_vs_logprice_plots(
@@ -1249,6 +1552,43 @@ def run_quick_test(
             y_true_log=y_assess_log,
             pred_logs=assess_pred_logs,
             out_dir=ratio_plots_dir,
+            grouped_feature_labels=df_assess[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_ratio_vs_logprediction_plots(
+            split_label="Assessment",
+            results_df=assess_df,
+            y_true_log=y_assess_log,
+            pred_logs=assess_pred_logs,
+            out_dir=ratio_pred_plots_dir,
+            grouped_feature_labels=df_assess[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_residual_vs_logprice_plots(
+            split_label="Assessment",
+            results_df=assess_df,
+            y_true_log=y_assess_log,
+            pred_logs=assess_pred_logs,
+            out_dir=residual_plots_dir,
+            grouped_feature_labels=df_assess[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_residual_vs_logprediction_plots(
+            split_label="Assessment",
+            results_df=assess_df,
+            y_true_log=y_assess_log,
+            pred_logs=assess_pred_logs,
+            out_dir=residual_pred_plots_dir,
+            grouped_feature_labels=df_assess[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
         )
 
     return {
@@ -1260,13 +1600,25 @@ def run_quick_test(
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Quick test: 4 core models on test (~2023) + assessment (2024).")
+    p = argparse.ArgumentParser(description="Quick test: baselines + main fairness models across ratio modes on test (~2023) + assessment (2024).")
     p.add_argument("--rho", type=float, default=1.0, help="Rho used for the two regularized models.")
+    p.add_argument(
+        "--eta",
+        type=float,
+        default=None,
+        help="Eta used for LGBSmoothPenaltyGroupCVaR when --eta-range is omitted. Defaults to --rho.",
+    )
+    p.add_argument(
+        "--early-stopping-rounds",
+        type=int,
+        default=10,
+        help="Training-loss patience for LGBSmoothPenalty. Use 0 to disable.",
+    )
     p.add_argument(
         "--rho-range",
         type=str,
         default="",
-        help="Optional comma-separated rho range for LGBSmoothPenalty and LGBCovPenalty in the form min,max. If omitted, uses --rho.",
+        help="Optional comma-separated rho range for LGBSmoothPenalty and LGBSmoothPenaltyGroupCVaR in the form min,max. If omitted, uses --rho.",
     )
     p.add_argument("--rho-count", type=int, default=5, help="Number of rho values to generate when --rho-range is provided.")
     p.add_argument(
@@ -1274,6 +1626,25 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         type=str,
         default="log",
         help="Scale for rho sweep when --rho-range is provided. Allowed: linear, log, geom.",
+    )
+    p.add_argument(
+        "--eta-range",
+        type=str,
+        default="",
+        help="Optional comma-separated eta range for LGBSmoothPenaltyGroupCVaR in the form min,max. If omitted, uses --eta or --rho.",
+    )
+    p.add_argument("--eta-count", type=int, default=5, help="Number of eta values to generate when --eta-range is provided.")
+    p.add_argument(
+        "--eta-scale",
+        type=str,
+        default="log",
+        help="Scale for eta sweep when --eta-range is provided. Allowed: linear, log, geom.",
+    )
+    p.add_argument(
+        "--keep-values",
+        type=str,
+        default="0.5,0.7,0.9",
+        help="Comma-separated keep values for LGBSmoothPenaltyGroupCVaR, e.g. 0.5,0.7,0.9.",
     )
     p.add_argument("--out-dir", type=str, default="./output/quick_test", help="Directory to write CSV outputs.")
     p.add_argument(
@@ -1305,6 +1676,21 @@ if __name__ == "__main__":
             int(args.rho_count),
             str(args.rho_scale),
         ),
+        eta=(None if args.eta is None else float(args.eta)),
+        eta_values=(
+            _build_rho_sweep(
+                float(args.eta if args.eta is not None else args.rho),
+                str(args.eta_range),
+                int(args.eta_count),
+                str(args.eta_scale),
+            )
+            if str(args.eta_range).strip()
+            else None
+        ),
+        keep_values=_parse_float_list(str(args.keep_values)),
+        rho_group=1.0,
+        rho_group_values=None,
+        early_stopping_rounds=(None if int(args.early_stopping_rounds) <= 0 else int(args.early_stopping_rounds)),
         out_dir=str(args.out_dir),
         data_path=str(args.data_path),
         sample_frac=(None if args.sample_frac is None else float(args.sample_frac)),

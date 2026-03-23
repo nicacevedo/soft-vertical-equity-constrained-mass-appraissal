@@ -33,19 +33,69 @@ except ImportError as e:  # pragma: no cover
     raise ImportError("This module requires scikit-learn. Install via `pip install scikit-learn`.") from e
 
 
+def _training_early_stopping_callback(stopping_rounds: int, verbose: bool = True):
+    """Stop when the tracked training metric stops improving."""
+    rounds = int(stopping_rounds)
+    if rounds <= 0:
+        raise ValueError("stopping_rounds must be >= 1.")
+
+    class _Callback:
+        order = 30
+        before_iteration = False
+
+        def __init__(self):
+            self.best_iteration = 0
+            self.best_score = None
+            self.best_score_list = None
+
+        def __call__(self, env):
+            if not env.evaluation_result_list:
+                return
+
+            metric = env.evaluation_result_list[0]
+            score = float(metric[2])
+            higher_better = bool(metric[3])
+
+            if self.best_score is None:
+                improved = True
+            elif higher_better:
+                improved = score > self.best_score
+            else:
+                improved = score < self.best_score
+
+            if improved:
+                self.best_score = score
+                self.best_iteration = env.iteration
+                self.best_score_list = list(env.evaluation_result_list)
+                return
+
+            if (env.iteration - self.best_iteration) >= rounds:
+                if verbose:
+                    metric_name = f"{metric[0]}'s {metric[1]}"
+                    print(
+                        f"Early stopping at iteration {env.iteration + 1}; "
+                        f"best iteration was {self.best_iteration + 1} "
+                        f"with {metric_name}: {self.best_score:.6f}"
+                    )
+                raise lgb.callback.EarlyStopException(self.best_iteration, self.best_score_list)
+
+    return _Callback()
+
+
 # ============================= MAIN MODELS =============================
 
 # ==========================================================
 # 1) Direct covariance penalty (non-separable but usable in LightGBM via indep. assumption)
 # ==========================================================
 
-# V2: with diff/div inputs
+# V2: with diff/div/ratio inputs
 class LGBCovPenalty:
     """LightGBM objective: MSE + rho * (Cov(r, y))^2
 
     r is chosen by ratio_mode:
       - "div"  : r = y_pred / max(|y_true|, eps_y)    (DEFAULT, preserves old behavior)
       - "diff" : r = y_pred - y_true                 (useful when y is log-price -> log-residual)
+      - "ratio": r = exp(y_pred - y_true)            (true price ratio when y is log-price)
 
     Cov is computed as: cov = mean( r_eff * (y_true - y_mean_) ),
     where r_eff may optionally be shifted by an "anchor" (see below).
@@ -66,9 +116,10 @@ class LGBCovPenalty:
     def __init__(
         self,
         rho=1e-3,
-        ratio_mode="div",          # "div" or "diff"
+        ratio_mode="div",          # "div", "diff", or "ratio"
         anchor_mode="target",        # "none" | "target" | "iter_mean"  (no-op here; see note)
-        target_value=None,         # if anchor_mode="target": default 1.0 (div) or 0.0 (diff)
+        target_value=None,         # if anchor_mode="target": default 1.0 (div/ratio) or 0.0 (diff)
+        early_stopping_rounds=10,
         zero_grad_tol=1e-6,
         eps_y=1e-12,
         lgbm_params=None,
@@ -78,6 +129,7 @@ class LGBCovPenalty:
         self.ratio_mode = ratio_mode
         self.anchor_mode = anchor_mode
         self.target_value = target_value
+        self.early_stopping_rounds = None if early_stopping_rounds is None else int(early_stopping_rounds)
         self.zero_grad_tol = float(zero_grad_tol)
         self.eps_y = float(eps_y)
         self.verbose = bool(verbose)
@@ -85,8 +137,21 @@ class LGBCovPenalty:
 
     def fit(self, X, y):
         self.y_mean_ = float(np.mean(y))
-        self.model.set_params(objective=self.fobj)
-        self.model.fit(X, y)
+        self.model.set_params(objective=self.fobj, metric="None")
+
+        fit_kwargs = {}
+        if self.early_stopping_rounds is not None and self.early_stopping_rounds > 0:
+            fit_kwargs["eval_set"] = [(X, y)]
+            fit_kwargs["eval_names"] = ["train"]
+            fit_kwargs["eval_metric"] = self.feval
+            fit_kwargs["callbacks"] = [
+                _training_early_stopping_callback(
+                    stopping_rounds=self.early_stopping_rounds,
+                    verbose=self.verbose,
+                )
+            ]
+
+        self.model.fit(X, y, **fit_kwargs)
         return self
 
     def predict(self, X):
@@ -107,8 +172,12 @@ class LGBCovPenalty:
         elif self.ratio_mode == "diff":
             r = y_pred - y_true
             dr = np.ones_like(y_pred)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - y_true, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            dr = r
         else:
-            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
 
         # ---- optional anchor (no-op for centered yc; kept for API symmetry) ----
         anchor = 0.0
@@ -118,7 +187,7 @@ class LGBCovPenalty:
             anchor = float(np.mean(r))
         elif self.anchor_mode == "target":
             if self.target_value is None:
-                anchor = 1.0 if self.ratio_mode == "div" else 0.0
+                anchor = 1.0 if self.ratio_mode in ("div", "ratio") else 0.0
             else:
                 anchor = float(self.target_value)
         else:
@@ -165,6 +234,41 @@ class LGBCovPenalty:
         hess[hess < self.zero_grad_tol] = self.zero_grad_tol
 
         return grad, hess
+
+    def feval(self, y_true, y_pred):
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+        n = y_pred.size
+
+        yc = (y_true - self.y_mean_)
+
+        if self.ratio_mode == "div":
+            denom = np.maximum(np.abs(y_true), self.eps_y)
+            r = y_pred / denom
+        elif self.ratio_mode == "diff":
+            r = y_pred - y_true
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - y_true, -50.0, 50.0)
+            r = np.exp(log_ratio)
+        else:
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
+
+        if self.anchor_mode == "none":
+            anchor = 0.0
+        elif self.anchor_mode == "iter_mean":
+            anchor = float(np.mean(r))
+        elif self.anchor_mode == "target":
+            if self.target_value is None:
+                anchor = 1.0 if self.ratio_mode in ("div", "ratio") else 0.0
+            else:
+                anchor = float(self.target_value)
+        else:
+            raise ValueError("anchor_mode must be 'none', 'iter_mean', or 'target'.")
+
+        cov = float(np.mean((r - anchor) * yc))
+        mse_mean = float(np.mean((y_true - y_pred) ** 2))
+        pen_value = 0.5 * self.rho * float(n) * (cov ** 2)
+        return "train_loss", mse_mean + pen_value, False
 
     def __str__(self):
         return f"LGBCovPenalty(rho={self.rho}, ratio_mode={self.ratio_mode})" #, anchor_mode={self.anchor_mode})"
@@ -366,7 +470,7 @@ class LGBCovPenaltyCVaRTotal:
     mse_keep : float in (0,1]
         CVaR keep-fraction (same input name as your other CVaR class).
         keep=1.0 recovers mean-MSE weighting.
-    ratio_mode : {"div","diff"}
+    ratio_mode : {"div","diff","ratio"}
         Same as LGBCovPenalty.
     anchor_mode : {"none","target","iter_mean"}
         Same as LGBCovPenalty (effectively no-op for centered covariance; kept for API symmetry).
@@ -374,7 +478,7 @@ class LGBCovPenaltyCVaRTotal:
         Anchor target for direct covariance class (same semantics as LGBCovPenalty; effectively no-op).
     proxy_target_value : float or None
         Target used ONLY in the smooth proxy for tail selection:
-          - default 1.0 if ratio_mode="div"
+          - default 1.0 if ratio_mode in {"div","ratio"}
           - default 0.0 if ratio_mode="diff"
     zero_grad_tol : float
         Numerical floor.
@@ -390,7 +494,7 @@ class LGBCovPenaltyCVaRTotal:
         self,
         rho=1e-3,
         mse_keep=1.0,
-        ratio_mode="div",          # "div" or "diff"
+        ratio_mode="div",          # "div", "diff", or "ratio"
         anchor_mode="target",      # "none" | "target" | "iter_mean" (no-op for centered cov)
         target_value=None,         # direct-cov anchor target (API symmetry)
         proxy_target_value=None,   # target ONLY for total proxy tail selection
@@ -441,8 +545,13 @@ class LGBCovPenaltyCVaRTotal:
             r = y_pred - y_true
             dr = np.ones_like(y_pred)
             t_proxy = 0.0 if self.proxy_target_value is None else float(self.proxy_target_value)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - y_true, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            dr = r
+            t_proxy = 1.0 if self.proxy_target_value is None else float(self.proxy_target_value)
         else:
-            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
 
         # ---- optional anchor for direct covariance (effectively no-op due centered yc) ----
         if self.anchor_mode == "none":
@@ -451,7 +560,7 @@ class LGBCovPenaltyCVaRTotal:
             anchor = float(np.mean(r))
         elif self.anchor_mode == "target":
             if self.target_value is None:
-                anchor = 1.0 if self.ratio_mode == "div" else 0.0
+                anchor = 1.0 if self.ratio_mode in ("div", "ratio") else 0.0
             else:
                 anchor = float(self.target_value)
         else:
@@ -535,7 +644,7 @@ class LGBCovPenaltyCVaRTotal:
 # 2) Plain (no dual/adversary): minimize MSE + rho * Cov-surrogate (separable)
 # ==========================================================
 
-# V2: with diff/div inputs
+# V2: with diff/div/ratio inputs
 class LGBSmoothPenalty:
     """LightGBM custom objective: per-sample MSE + rho * separable surrogate.
 
@@ -544,14 +653,17 @@ class LGBSmoothPenalty:
 
     Added minimal option:
       ratio_mode="diff": surrogate = ((y_pred - y_true) - 0)^2 * (y_true - y_mean)^2
+      ratio_mode="ratio": surrogate = (exp(y_pred - y_true) - 1)^2 * (y_true - y_mean)^2
 
     Optional minimal target:
       - If ratio_mode="div": target_value defaults to 1.0
       - If ratio_mode="diff": target_value defaults to 0.0
+      - If ratio_mode="ratio": target_value defaults to 1.0
       surrogate = (r - target_value)^2 * zc^2
     where:
       - r = y_pred / denom   (div)
       - r = y_pred - y_true  (diff)
+      - r = exp(y_pred - y_true) (ratio)
 
     Notes:
       - This remains separable (per-sample), so grad/hess are exact and diagonal.
@@ -562,8 +674,9 @@ class LGBSmoothPenalty:
     def __init__(
         self,
         rho=1e-3,
-        ratio_mode="div",        # "div" (default) or "diff"
-        target_value=None,       # default: 1.0 for div, 0.0 for diff
+        ratio_mode="div",        # "div" (default), "diff", or "ratio"
+        target_value=None,       # default: 1.0 for div/ratio, 0.0 for diff
+        early_stopping_rounds=10,
         zero_grad_tol=1e-6,
         eps_y=1e-12,
         lgbm_params=None,
@@ -572,6 +685,7 @@ class LGBSmoothPenalty:
         self.rho = float(rho)
         self.ratio_mode = ratio_mode
         self.target_value = target_value
+        self.early_stopping_rounds = None if early_stopping_rounds is None else int(early_stopping_rounds)
         self.zero_grad_tol = float(zero_grad_tol)
         self.eps_y = float(eps_y)
         self.verbose = bool(verbose)
@@ -579,8 +693,21 @@ class LGBSmoothPenalty:
 
     def fit(self, X, y):
         self.y_mean_ = float(np.mean(y))
-        self.model.set_params(objective=self.fobj)
-        self.model.fit(X, y)
+        self.model.set_params(objective=self.fobj, metric="None")
+
+        fit_kwargs = {}
+        if self.early_stopping_rounds is not None and self.early_stopping_rounds > 0:
+            fit_kwargs["eval_set"] = [(X, y)]
+            fit_kwargs["eval_names"] = ["train"]
+            fit_kwargs["eval_metric"] = self.feval
+            fit_kwargs["callbacks"] = [
+                _training_early_stopping_callback(
+                    stopping_rounds=self.early_stopping_rounds,
+                    verbose=self.verbose,
+                )
+            ]
+
+        self.model.fit(X, y, **fit_kwargs)
         return self
 
     def predict(self, X):
@@ -603,8 +730,13 @@ class LGBSmoothPenalty:
             r = y_pred - z
             dr = np.ones_like(y_pred)
             t = 0.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - z, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            dr = r
+            t = 1.0 if self.target_value is None else float(self.target_value)
         else:
-            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
 
         # losses
         mse_value = (y_true - y_pred) ** 2
@@ -646,6 +778,32 @@ class LGBSmoothPenalty:
         hess[hess < self.zero_grad_tol] = self.zero_grad_tol
 
         return grad, hess
+
+    def feval(self, y_true, y_pred):
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+
+        z = y_true
+        zc = (y_true - self.y_mean_)
+        denom = np.maximum(np.abs(z), self.eps_y)
+
+        if self.ratio_mode == "div":
+            r = y_pred / denom
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "diff":
+            r = y_pred - z
+            t = 0.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - z, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        else:
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
+
+        mse_value = (y_true - y_pred) ** 2
+        cov_surr_value = (r - t) ** 2 * (zc ** 2)
+        loss_value = mse_value + self.rho * cov_surr_value
+        return "train_loss", float(np.mean(loss_value)), False
 
     def __str__(self):
         return f"LGBSmoothPenalty(rho={self.rho}, mode={self.ratio_mode})"
@@ -812,8 +970,13 @@ class LGBSmoothPenaltyCVaRTotal:
             r = y_pred - z
             dr = np.ones_like(y_pred)
             t = 0.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - z, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            dr = r
+            t = 1.0 if self.target_value is None else float(self.target_value)
         else:
-            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
 
         mse_value = (y_true - y_pred) ** 2
         cov_surr_value = (r - t) ** 2 * (zc ** 2)
@@ -1084,6 +1247,7 @@ class LGBSmoothPenaltyGrouped:
     Global surrogate (same as original):
       ratio_mode="div":  ((y_pred / denom) - target)^2 * (y_true - global_mean)^2
       ratio_mode="diff": ((y_pred - y_true) - target)^2 * (y_true - global_mean)^2
+      ratio_mode="ratio": (exp(y_pred - y_true) - target)^2 * (y_true - global_mean)^2
 
     Grouped surrogate (new):
       same structure, but centered within each group:
@@ -1093,7 +1257,6 @@ class LGBSmoothPenaltyGrouped:
       - "mean": each group contributes equally in aggregate (default)
       - "sum" : larger groups contribute more
 
-    Notes
     -----
     - Exact original behavior is preserved when:
         rho_group = 0.0
@@ -1108,8 +1271,8 @@ class LGBSmoothPenaltyGrouped:
         self,
         rho=1e-3,
         rho_group=0.0,
-        ratio_mode="div",          # "div" (default) or "diff"
-        target_value=None,         # default: 1.0 for div, 0.0 for diff
+        ratio_mode="div",          # "div" (default), "diff", or "ratio"
+        target_value=None,         # default: 1.0 for div/ratio, 0.0 for diff
         group_feature=None,        # column name (DataFrame) or column index (ndarray)
         group_aggregation="mean",  # "mean" or "sum"
         min_group_size=2,
@@ -1251,8 +1414,13 @@ class LGBSmoothPenaltyGrouped:
             r = y_pred - z
             dr = np.ones_like(y_pred)
             t = 0.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - z, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            dr = r
+            t = 1.0 if self.target_value is None else float(self.target_value)
         else:
-            raise ValueError("ratio_mode must be 'div' or 'diff'.")
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
 
         # -------------------------
         # base MSE
@@ -1340,6 +1508,449 @@ class LGBSmoothPenaltyGrouped:
 
 
 
+class LGBSmoothPenaltyGroupCVaR:
+    """LightGBM custom objective:
+        per-sample MSE
+      + rho * separable surrogate
+      + eta * worst-group group-MSE CVaR-like term.
+
+    Original behavior (unchanged):
+      ratio_mode="div":
+          surrogate = ((y_pred / denom) - 1)^2 * (y_true - y_mean)^2
+
+    Added minimal options:
+      ratio_mode="diff":
+          surrogate = ((y_pred - y_true) - 0)^2 * (y_true - y_mean)^2
+
+      ratio_mode="ratio":
+          surrogate = (exp(y_pred - y_true) - 1)^2 * (y_true - y_mean)^2
+
+    Optional target_value:
+      - div   -> default 1.0
+      - diff  -> default 0.0
+      - ratio -> default 1.0
+
+    New worst-group accuracy term:
+      - Groups are defined by `group_feature`
+      - If `group_feature` is a list/tuple of features, the group CVaR term uses
+        their interaction (cartesian combination of values). Interaction groups
+        with fewer than 100 samples are pooled into one fallback bucket.
+      - Group loss:
+            L_g = mean_{i in g} (y_pred_i - y_true_i)^2
+      - keep in (0,1] is the fraction of groups to keep as "worst groups"
+        (if keep > 1 and <= 100, it is interpreted as a percentage and divided by 100)
+      - Let k = round(keep * G), clipped to [1, G]
+      - Group CVaR-like term:
+            worst_group_value = mean of top-k group losses
+      - Final objective:
+            mse + rho * cov_surr + eta * worst_group_value
+
+    Notes:
+      - The new group term is non-separable because the active top-k groups depend
+        on the current prediction vector.
+      - The gradient/Hessian below are exact conditional on the current active set.
+        At ties / active-set changes, this acts as a practical subgradient.
+      - The grouping feature is only used to define the groups; it is not removed
+        from X and can still be used by the model as a predictive feature.
+    """
+
+    def __init__(
+        self,
+        rho=1e-3,
+        eta=0.0,
+        keep=0.10,               # top fraction of worst groups to keep
+        group_feature=None,      # column/index or list/tuple of them for interaction groups
+        ratio_mode="div",        # "div" (default), "diff", or "ratio"
+        target_value=None,       # default: 1.0 for div/ratio, 0.0 for diff
+        early_stopping_rounds=10,
+        zero_grad_tol=1e-6,
+        eps_y=1e-12,
+        lgbm_params=None,
+        verbose=True,
+    ):
+        self.rho = float(rho)
+        self.eta = float(eta)
+        self.keep = float(keep)
+        self.group_feature = group_feature
+
+        # accept either fraction in (0,1] or percentage in (1,100]
+        if self.keep <= 0:
+            raise ValueError("keep must be > 0.")
+        if self.keep > 1.0:
+            if self.keep <= 100.0:
+                self.keep = self.keep / 100.0
+            else:
+                raise ValueError("keep must be in (0,1] or in (0,100].")
+
+        self.ratio_mode = ratio_mode
+        self.target_value = target_value
+        self.early_stopping_rounds = (
+            None if early_stopping_rounds is None else int(early_stopping_rounds)
+        )
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.eps_y = float(eps_y)
+        self.verbose = bool(verbose)
+
+        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+        self.interaction_min_group_size_ = 100
+
+        # filled in fit()
+        self.y_mean_ = None
+        self.group_ids_ = None
+        self.group_sizes_ = None
+        self.group_inv_sizes_per_sample_ = None
+        self.group_labels_ = None
+        self.n_groups_ = 0
+        self.n_kept_groups_ = 0
+
+    def fit(self, X, y):
+        y = np.asarray(y)
+        self.y_mean_ = float(np.mean(y))
+
+        self._prepare_groups(X)
+
+        self.model.set_params(objective=self.fobj, metric="None")
+
+        fit_kwargs = {}
+        if self.early_stopping_rounds is not None and self.early_stopping_rounds > 0:
+            fit_kwargs["eval_set"] = [(X, y)]
+            fit_kwargs["eval_names"] = ["train"]
+            fit_kwargs["eval_metric"] = self.feval
+            fit_kwargs["callbacks"] = [
+                _training_early_stopping_callback(
+                    stopping_rounds=self.early_stopping_rounds,
+                    verbose=self.verbose,
+                )
+            ]
+
+        self.model.fit(X, y, **fit_kwargs)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def _prepare_groups(self, X):
+        """Extract grouping feature from X and precompute group structures."""
+        self.group_ids_ = None
+        self.group_sizes_ = None
+        self.group_inv_sizes_per_sample_ = None
+        self.group_labels_ = None
+        self.n_groups_ = 0
+        self.n_kept_groups_ = 0
+
+        if self.eta <= 0.0:
+            return
+
+        if self.group_feature is None:
+            raise ValueError(
+                "group_feature must be provided when eta > 0 "
+                "to define the worst-group CVaR-like term."
+            )
+
+        group_values = self._extract_group_values(X)
+        group_ids, group_labels = self._factorize_group_values(group_values)
+
+        if self._is_interaction_group_feature():
+            group_sizes = np.bincount(group_ids, minlength=len(group_labels))
+            small_group_mask = group_sizes < self.interaction_min_group_size_
+            if np.any(small_group_mask):
+                pooled_values = np.asarray(group_values, dtype=object).copy()
+                pooled_values[small_group_mask[group_ids]] = "__SMALL_INTERACTION_GROUP__"
+                group_ids, group_labels = self._factorize_group_values(pooled_values)
+
+        self.group_ids_ = group_ids.astype(np.int32, copy=False)
+        self.group_labels_ = np.asarray(group_labels, dtype=object)
+        self.n_groups_ = int(len(self.group_labels_))
+
+        if self.n_groups_ <= 0:
+            raise ValueError("No groups were found from group_feature.")
+
+        self.n_kept_groups_ = int(np.round(self.keep * self.n_groups_))
+        self.n_kept_groups_ = max(1, min(self.n_groups_, self.n_kept_groups_))
+
+        self.group_sizes_ = np.bincount(
+            self.group_ids_, minlength=self.n_groups_
+        ).astype(float)
+
+        if np.any(self.group_sizes_ <= 0):
+            raise ValueError("At least one group has zero size, which should not happen.")
+
+        self.group_inv_sizes_per_sample_ = 1.0 / self.group_sizes_[self.group_ids_]
+
+        if self.verbose:
+            print(
+                f"[{self.__class__.__name__}] "
+                f"group_feature={self.group_feature!r} | "
+                f"total groups={self.n_groups_} | "
+                f"min_group_size={self.interaction_min_group_size_ if self._is_interaction_group_feature() else 'n/a'} | "
+                f"keep={self.keep:.2%} | "
+                f"groups kept={self.n_kept_groups_}"
+            )
+
+    def _is_interaction_group_feature(self):
+        return isinstance(self.group_feature, (list, tuple)) and len(self.group_feature) > 1
+
+    def _extract_group_values(self, X):
+        """Read the grouping feature from DataFrame or ndarray-like X."""
+        # pandas DataFrame-like
+        if hasattr(X, "iloc"):
+            if isinstance(self.group_feature, (list, tuple)):
+                feature_specs = list(self.group_feature)
+                if not feature_specs:
+                    raise ValueError("group_feature list cannot be empty.")
+                if len(feature_specs) == 1:
+                    feature_specs = [feature_specs[0]]
+                parts = []
+                for feature in feature_specs:
+                    if isinstance(feature, str):
+                        if feature not in X.columns:
+                            raise ValueError(
+                                f"group_feature={feature!r} not found in DataFrame columns."
+                            )
+                        part = pd.Series(X[feature], copy=False)
+                    else:
+                        idx = int(feature)
+                        part = pd.Series(X.iloc[:, idx], copy=False)
+                    part = part.astype(object).where(~pd.isna(part), "__MISSING__").astype(str)
+                    parts.append(part.to_numpy(dtype=object))
+                if len(parts) == 1:
+                    return np.asarray(parts[0], dtype=object)
+                return np.asarray(
+                    ["__X__".join(values) for values in zip(*parts)],
+                    dtype=object,
+                )
+            if isinstance(self.group_feature, str):
+                if self.group_feature not in X.columns:
+                    raise ValueError(
+                        f"group_feature={self.group_feature!r} not found in DataFrame columns."
+                    )
+                return np.asarray(X[self.group_feature])
+            idx = int(self.group_feature)
+            return np.asarray(X.iloc[:, idx])
+
+        # ndarray-like
+        X_arr = np.asarray(X)
+        if X_arr.ndim != 2:
+            raise ValueError("X must be 2D.")
+        if isinstance(self.group_feature, (list, tuple)):
+            feature_specs = list(self.group_feature)
+            if not feature_specs:
+                raise ValueError("group_feature list cannot be empty.")
+            parts = []
+            for feature in feature_specs:
+                if not isinstance(feature, (int, np.integer)):
+                    raise ValueError(
+                        "For ndarray inputs, group_feature list entries must be integer column indices."
+                    )
+                parts.append(np.asarray(X_arr[:, int(feature)], dtype=object))
+            if len(parts) == 1:
+                return np.asarray(parts[0], dtype=object)
+            return np.asarray(
+                ["__X__".join("__MISSING__" if value is None else str(value) for value in values) for values in zip(*parts)],
+                dtype=object,
+            )
+        if not isinstance(self.group_feature, (int, np.integer)):
+            raise ValueError(
+                "For ndarray inputs, group_feature must be an integer column index."
+            )
+        idx = int(self.group_feature)
+        return np.asarray(X_arr[:, idx])
+
+    def _factorize_group_values(self, values):
+        """Factorize group values, treating missing values as one explicit group."""
+        if pd is not None:
+            s = pd.Series(values, copy=False)
+            s = s.astype(object)
+            s = s.where(~pd.isna(s), "__MISSING__")
+            codes, uniques = pd.factorize(s, sort=False)
+            return np.asarray(codes), list(uniques)
+
+        # fallback without pandas
+        vals = np.asarray(values, dtype=object).copy()
+        for i, v in enumerate(vals):
+            if v is None:
+                vals[i] = "__MISSING__"
+            else:
+                try:
+                    if np.isnan(v):
+                        vals[i] = "__MISSING__"
+                except Exception:
+                    pass
+        uniques, codes = np.unique(vals, return_inverse=True)
+        return np.asarray(codes), list(uniques)
+
+    def _compute_group_cvar_term(self, y_true, y_pred):
+        """Compute worst-group group-MSE top-k average and its conditional grad/hess."""
+        if self.eta <= 0.0 or self.group_ids_ is None:
+            zero = np.zeros_like(y_pred, dtype=float)
+            return 0.0, zero, zero, None, None
+
+        err = y_pred - y_true
+        sq_err = err ** 2
+
+        group_sse = np.bincount(
+            self.group_ids_,
+            weights=sq_err,
+            minlength=self.n_groups_,
+        )
+        group_mse = group_sse / self.group_sizes_
+
+        k = self.n_kept_groups_
+
+        if k >= self.n_groups_:
+            active_group_ids = np.arange(self.n_groups_, dtype=np.int32)
+        else:
+            # top-k largest group MSEs
+            active_group_ids = np.argpartition(group_mse, -k)[-k:].astype(np.int32)
+
+        active_group_mask = np.zeros(self.n_groups_, dtype=bool)
+        active_group_mask[active_group_ids] = True
+        active_sample_mask = active_group_mask[self.group_ids_]
+
+        worst_group_value = float(np.mean(group_mse[active_group_ids]))
+
+        # Conditional gradient / Hessian for:
+        #   (1/k) * sum_{g in active} (1/n_g) * sum_{i in g} err_i^2
+        # So for i in active group g:
+        #   d/d pred_i = (1/k) * 2 * err_i / n_g
+        #   d2/d pred_i2 = (1/k) * 2 / n_g
+        grad = np.zeros_like(y_pred, dtype=float)
+        hess = np.zeros_like(y_pred, dtype=float)
+
+        coeff = (2.0 / k) * self.group_inv_sizes_per_sample_
+        grad[active_sample_mask] = coeff[active_sample_mask] * err[active_sample_mask]
+        hess[active_sample_mask] = coeff[active_sample_mask]
+
+        return worst_group_value, grad, hess, group_mse, active_group_ids
+
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+
+        z = y_true
+        zc = (y_true - self.y_mean_)
+        denom = np.maximum(np.abs(z), self.eps_y)
+
+        # choose r, dr/dy_pred, and default target
+        if self.ratio_mode == "div":
+            r = y_pred / denom
+            dr = 1.0 / denom
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "diff":
+            r = y_pred - z
+            dr = np.ones_like(y_pred)
+            t = 0.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - z, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            dr = r
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        else:
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
+
+        # losses
+        mse_value = (y_true - y_pred) ** 2
+        cov_surr_value = (r - t) ** 2 * (zc ** 2)
+
+        worst_group_value, grad_group, hess_group, group_mse, active_group_ids = (
+            self._compute_group_cvar_term(y_true, y_pred)
+        )
+
+        loss_value = (
+            mse_value
+            + self.rho * cov_surr_value
+            + self.eta * worst_group_value
+        )
+
+        if self.verbose:
+            model_name = self.__str__()
+            try:
+                corr = float(np.corrcoef(r, y_true)[0, 1])
+            except Exception:
+                corr = float("nan")
+
+            msg = (
+                f"[{model_name.split('(')[0]}] "
+                f"Loss value: {np.mean(loss_value):.6f} "
+                f"| MSE value: {np.mean(mse_value):.6f} "
+                f"| CovSurr value: {np.mean(cov_surr_value):.6f} "
+                f"| Corr(r,y): {corr:.6f} "
+                f"| mode: {self.ratio_mode} | target: {t:.6f}"
+            )
+
+            if self.eta > 0.0 and self.group_ids_ is not None:
+                msg += (
+                    f" | GroupCVaR value: {worst_group_value:.6f} "
+                    f"| groups: {self.n_groups_} "
+                    f"| kept: {self.n_kept_groups_}"
+                )
+                if group_mse is not None and active_group_ids is not None:
+                    msg += (
+                        f" | max group MSE: {np.max(group_mse):.6f} "
+                        f"| mean kept group MSE: {np.mean(group_mse[active_group_ids]):.6f}"
+                    )
+
+            print(msg)
+
+        # base gradients/hessians for (pred-y)^2
+        grad_base = 2.0 * (y_pred - y_true)
+        hess_base = 2.0 * np.ones_like(y_pred)
+
+        # penalty gradients/hessians (separable, exact)
+        # pen_i = (r_i - t)^2 * zc_i^2
+        # d pen_i / d pred_i = 2 * (r_i - t) * dr_i * zc_i^2
+        scale = (zc ** 2)
+        grad_pen = 2.0 * (r - t) * dr * scale
+        hess_pen = 2.0 * (dr ** 2) * scale
+
+        grad = grad_base + self.rho * grad_pen + self.eta * grad_group
+        hess = hess_base + self.rho * hess_pen + self.eta * hess_group
+
+        # zero tol
+        grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        return grad, hess
+
+    def feval(self, y_true, y_pred):
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+
+        z = y_true
+        zc = (y_true - self.y_mean_)
+        denom = np.maximum(np.abs(z), self.eps_y)
+
+        if self.ratio_mode == "div":
+            r = y_pred / denom
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "diff":
+            r = y_pred - z
+            t = 0.0 if self.target_value is None else float(self.target_value)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - z, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            t = 1.0 if self.target_value is None else float(self.target_value)
+        else:
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
+
+        mse_value = (y_true - y_pred) ** 2
+        cov_surr_value = (r - t) ** 2 * (zc ** 2)
+
+        worst_group_value, _, _, _, _ = self._compute_group_cvar_term(y_true, y_pred)
+
+        loss_value = (
+            mse_value
+            + self.rho * cov_surr_value
+            + self.eta * worst_group_value
+        )
+        return "train_loss", float(np.mean(loss_value)), False
+
+    def __str__(self):
+        return (
+            f"LGBSmoothPenaltyGroupCVaR("
+            f"rho={self.rho}, eta={self.eta}, keep={self.keep}, "
+            f"group_feature={self.group_feature}, mode={self.ratio_mode})"
+        )
 
 
 

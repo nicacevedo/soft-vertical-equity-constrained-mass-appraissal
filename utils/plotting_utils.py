@@ -267,6 +267,8 @@ def plot_ratio_vs_logprice(
     model_label=None,
     split_label=None,
     metrics=None,
+    group_labels=None,
+    group_label_name=None,
     sample_size=15000,
     random_seed=2025,
     lowess_frac=0.4,
@@ -282,10 +284,13 @@ def plot_ratio_vs_logprice(
     y_true_log = _as_float_array(y_true_log)
     y_pred_log = _as_float_array(y_pred_log)
     ratio = np.exp(y_pred_log - y_true_log)
+    group_labels_arr = None if group_labels is None else np.asarray(group_labels, dtype=object)
 
     mask = np.isfinite(y_true_log) & np.isfinite(y_pred_log) & np.isfinite(ratio)
     y_true_log = y_true_log[mask]
     ratio = ratio[mask]
+    if group_labels_arr is not None:
+        group_labels_arr = group_labels_arr[mask]
     if y_true_log.size < 2:
         return {"n_points": int(y_true_log.size), "slope": np.nan, "lowess_used": False}
 
@@ -294,21 +299,41 @@ def plot_ratio_vs_logprice(
         idx = rng.choice(y_true_log.size, size=int(sample_size), replace=False)
         x_plot = y_true_log[idx]
         y_plot = ratio[idx]
+        labels_plot = None if group_labels_arr is None else group_labels_arr[idx]
     else:
         x_plot = y_true_log
         y_plot = ratio
+        labels_plot = group_labels_arr
 
     fig, ax = plt.subplots(figsize=(8.5, 6.5))
-    ax.scatter(
-        x_plot,
-        y_plot,
-        facecolors="none",
-        edgecolors="black",
-        s=32,
-        alpha=0.32,
-        linewidths=0.7,
-        label="Sales",
-    )
+    if labels_plot is None:
+        ax.scatter(
+            x_plot,
+            y_plot,
+            facecolors="none",
+            edgecolors="black",
+            s=32,
+            alpha=0.32,
+            linewidths=0.7,
+            label="Sales",
+        )
+    else:
+        labels_plot = pd.Series(labels_plot, dtype="object").where(pd.notna(labels_plot), "NA").astype(str).to_numpy()
+        unique_labels = list(pd.unique(labels_plot))
+        cmap = plt.cm.get_cmap("tab10", max(len(unique_labels), 1))
+        for idx_label, label in enumerate(unique_labels):
+            label_mask = labels_plot == label
+            if not np.any(label_mask):
+                continue
+            ax.scatter(
+                x_plot[label_mask],
+                y_plot[label_mask],
+                s=28,
+                alpha=0.45,
+                color=cmap(idx_label),
+                edgecolors="none",
+                label=label,
+            )
 
     ax.grid(True, which="major", axis="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
     ax.minorticks_on()
@@ -346,6 +371,8 @@ def plot_ratio_vs_logprice(
                 metric_parts.append(f"{metric_name}={metric_value:.4f}")
         if metric_parts:
             title_lines.append(" | ".join(metric_parts))
+    if labels_plot is not None:
+        title_lines.append(f"Color = {group_label_name or 'group'}")
     if title_lines:
         ax.set_title("\n".join(title_lines))
 
@@ -367,6 +394,417 @@ def plot_ratio_vs_logprice(
     fig.savefig(out_path, dpi=300, bbox_inches="tight")
     plt.close(fig)
     return {"n_points": int(y_true_log.size), "slope": slope, "lowess_used": bool(lowess_used)}
+
+
+def plot_residual_vs_logprice(
+    y_true_log,
+    y_pred_log,
+    *,
+    out_path,
+    model_label=None,
+    split_label=None,
+    metrics=None,
+    group_labels=None,
+    group_label_name=None,
+    sample_size=15000,
+    random_seed=2025,
+    lowess_frac=0.4,
+    y_limits=None,
+):
+    """
+    Quick-test diagnostic:
+      - scatter of log residual vs log sale price
+      - horizontal reference at 0.0
+      - LOWESS trend
+      - linear trend with slope label
+    """
+    y_true_log = _as_float_array(y_true_log)
+    y_pred_log = _as_float_array(y_pred_log)
+    residual = y_pred_log - y_true_log
+    group_labels_arr = None if group_labels is None else np.asarray(group_labels, dtype=object)
+
+    mask = np.isfinite(y_true_log) & np.isfinite(y_pred_log) & np.isfinite(residual)
+    y_true_log = y_true_log[mask]
+    residual = residual[mask]
+    if group_labels_arr is not None:
+        group_labels_arr = group_labels_arr[mask]
+    if y_true_log.size < 2:
+        return {"n_points": int(y_true_log.size), "slope": np.nan, "lowess_used": False}
+
+    if sample_size is not None and int(sample_size) > 0 and y_true_log.size > int(sample_size):
+        rng = np.random.default_rng(int(random_seed))
+        idx = rng.choice(y_true_log.size, size=int(sample_size), replace=False)
+        x_plot = y_true_log[idx]
+        y_plot = residual[idx]
+        labels_plot = None if group_labels_arr is None else group_labels_arr[idx]
+    else:
+        x_plot = y_true_log
+        y_plot = residual
+        labels_plot = group_labels_arr
+
+    fig, ax = plt.subplots(figsize=(8.5, 6.5))
+    if labels_plot is None:
+        ax.scatter(
+            x_plot,
+            y_plot,
+            facecolors="none",
+            edgecolors="#4C2A85",
+            s=32,
+            alpha=0.32,
+            linewidths=0.7,
+            label="Sales",
+        )
+    else:
+        labels_plot = pd.Series(labels_plot, dtype="object").where(pd.notna(labels_plot), "NA").astype(str).to_numpy()
+        unique_labels = list(pd.unique(labels_plot))
+        cmap = plt.cm.get_cmap("Dark2", max(len(unique_labels), 1))
+        for idx_label, label in enumerate(unique_labels):
+            label_mask = labels_plot == label
+            if not np.any(label_mask):
+                continue
+            ax.scatter(
+                x_plot[label_mask],
+                y_plot[label_mask],
+                s=28,
+                alpha=0.45,
+                color=cmap(idx_label),
+                edgecolors="none",
+                label=label,
+            )
+
+    ax.grid(True, which="major", axis="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.minorticks_on()
+    ax.grid(True, which="minor", axis="both", color="lightgray", linestyle=":", linewidth=0.5, alpha=0.5)
+    ax.axhline(y=0.0, color="#C2410C", linestyle="--", linewidth=2, label="Perfect Equity (0.0)")
+
+    lowess_used = False
+    try:
+        import statsmodels.api as sm  # local import to avoid hard dependency
+
+        lowess = sm.nonparametric.lowess(y_plot, x_plot, frac=float(lowess_frac))
+        ax.plot(lowess[:, 0], lowess[:, 1], color="#0F766E", linewidth=2.5, label="Trend (LOWESS)")
+        lowess_used = True
+    except Exception:
+        pass
+
+    slope = np.nan
+    if x_plot.size >= 2:
+        z = np.polyfit(x_plot, y_plot, 1)
+        slope = float(z[0])
+        p = np.poly1d(z)
+        order = np.argsort(x_plot)
+        ax.plot(x_plot[order], p(x_plot[order]), color="#7C3AED", alpha=0.75, linewidth=2.2, label=f"Linear Slope={slope:.4f}")
+
+    title_lines = []
+    if split_label:
+        title_lines.append(str(split_label))
+    if model_label:
+        title_lines.append(str(model_label))
+    if metrics:
+        metric_parts = []
+        for metric_name in ("Corr(r,price)", "Corr(r,logprice)", "PRB", "PRD", "VEI"):
+            metric_value = pd.to_numeric(metrics.get(metric_name), errors="coerce")
+            if np.isfinite(metric_value):
+                metric_parts.append(f"{metric_name}={metric_value:.4f}")
+        if metric_parts:
+            title_lines.append(" | ".join(metric_parts))
+    if labels_plot is not None:
+        title_lines.append(f"Color = {group_label_name or 'group'}")
+    if title_lines:
+        ax.set_title("\n".join(title_lines))
+
+    ax.set_xlabel("Log Sale Price")
+    ax.set_ylabel("Residual (log prediction - log sale price)")
+
+    if y_limits is None:
+        q_lo, q_hi = np.quantile(y_plot, [0.01, 0.99])
+        if np.isfinite(q_lo) and np.isfinite(q_hi):
+            spread = max(float(q_hi - q_lo), 0.1)
+            y_limits = (float(q_lo - 0.15 * spread), float(q_hi + 0.15 * spread))
+    if y_limits is not None:
+        ax.set_ylim(y_limits)
+
+    ax.legend(loc="upper right")
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    return {"n_points": int(y_true_log.size), "slope": slope, "lowess_used": bool(lowess_used)}
+
+
+def plot_ratio_vs_logprediction(
+    y_true_log,
+    y_pred_log,
+    *,
+    out_path,
+    model_label=None,
+    split_label=None,
+    metrics=None,
+    group_labels=None,
+    group_label_name=None,
+    sample_size=15000,
+    random_seed=2025,
+    lowess_frac=0.4,
+    y_limits=None,
+):
+    """
+    Quick-test diagnostic:
+      - scatter of predicted-price ratio vs log predicted price
+      - horizontal reference at 1.0
+      - LOWESS trend
+      - linear trend with slope label
+    """
+    y_true_log = _as_float_array(y_true_log)
+    y_pred_log = _as_float_array(y_pred_log)
+    ratio = np.exp(y_pred_log - y_true_log)
+    group_labels_arr = None if group_labels is None else np.asarray(group_labels, dtype=object)
+
+    mask = np.isfinite(y_true_log) & np.isfinite(y_pred_log) & np.isfinite(ratio)
+    x_vals = y_pred_log[mask]
+    y_plot_all = ratio[mask]
+    if group_labels_arr is not None:
+        group_labels_arr = group_labels_arr[mask]
+    if x_vals.size < 2:
+        return {"n_points": int(x_vals.size), "slope": np.nan, "lowess_used": False}
+
+    if sample_size is not None and int(sample_size) > 0 and x_vals.size > int(sample_size):
+        rng = np.random.default_rng(int(random_seed))
+        idx = rng.choice(x_vals.size, size=int(sample_size), replace=False)
+        x_plot = x_vals[idx]
+        y_plot = y_plot_all[idx]
+        labels_plot = None if group_labels_arr is None else group_labels_arr[idx]
+    else:
+        x_plot = x_vals
+        y_plot = y_plot_all
+        labels_plot = group_labels_arr
+
+    fig, ax = plt.subplots(figsize=(8.5, 6.5))
+    if labels_plot is None:
+        ax.scatter(
+            x_plot,
+            y_plot,
+            facecolors="none",
+            edgecolors="black",
+            s=32,
+            alpha=0.32,
+            linewidths=0.7,
+            label="Sales",
+        )
+    else:
+        labels_plot = pd.Series(labels_plot, dtype="object").where(pd.notna(labels_plot), "NA").astype(str).to_numpy()
+        unique_labels = list(pd.unique(labels_plot))
+        cmap = plt.cm.get_cmap("tab10", max(len(unique_labels), 1))
+        for idx_label, label in enumerate(unique_labels):
+            label_mask = labels_plot == label
+            if not np.any(label_mask):
+                continue
+            ax.scatter(
+                x_plot[label_mask],
+                y_plot[label_mask],
+                s=28,
+                alpha=0.45,
+                color=cmap(idx_label),
+                edgecolors="none",
+                label=label,
+            )
+
+    ax.grid(True, which="major", axis="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.minorticks_on()
+    ax.grid(True, which="minor", axis="both", color="lightgray", linestyle=":", linewidth=0.5, alpha=0.5)
+    ax.axhline(y=1.0, color="red", linestyle="--", linewidth=2, label="Perfect Equity (1.0)")
+
+    lowess_used = False
+    try:
+        import statsmodels.api as sm  # local import to avoid hard dependency
+
+        lowess = sm.nonparametric.lowess(y_plot, x_plot, frac=float(lowess_frac))
+        ax.plot(lowess[:, 0], lowess[:, 1], color="blue", linewidth=2.5, label="Trend (LOWESS)")
+        lowess_used = True
+    except Exception:
+        pass
+
+    slope = np.nan
+    if x_plot.size >= 2:
+        z = np.polyfit(x_plot, y_plot, 1)
+        slope = float(z[0])
+        p = np.poly1d(z)
+        order = np.argsort(x_plot)
+        ax.plot(x_plot[order], p(x_plot[order]), "g-", alpha=0.7, linewidth=2.2, label=f"Linear Slope={slope:.4f}")
+
+    title_lines = []
+    if split_label:
+        title_lines.append(str(split_label))
+    if model_label:
+        title_lines.append(str(model_label))
+    if metrics:
+        metric_parts = []
+        for metric_name in ("Corr(r,price)", "Corr(r,logprice)", "PRB", "PRD", "VEI"):
+            metric_value = pd.to_numeric(metrics.get(metric_name), errors="coerce")
+            if np.isfinite(metric_value):
+                metric_parts.append(f"{metric_name}={metric_value:.4f}")
+        if metric_parts:
+            title_lines.append(" | ".join(metric_parts))
+    if labels_plot is not None:
+        title_lines.append(f"Color = {group_label_name or 'group'}")
+    if title_lines:
+        ax.set_title("\n".join(title_lines))
+
+    ax.set_xlabel("Log Predicted Price")
+    ax.set_ylabel("Predicted Price / Sale Price")
+
+    if y_limits is None:
+        q_lo, q_hi = np.quantile(y_plot, [0.01, 0.99])
+        if np.isfinite(q_lo) and np.isfinite(q_hi):
+            spread = max(float(q_hi - q_lo), 0.1)
+            y_limits = (max(0.0, float(q_lo - 0.15 * spread)), float(q_hi + 0.15 * spread))
+    if y_limits is not None:
+        ax.set_ylim(y_limits)
+
+    ax.legend(loc="upper right")
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    return {"n_points": int(x_vals.size), "slope": slope, "lowess_used": bool(lowess_used)}
+
+
+def plot_residual_vs_logprediction(
+    y_true_log,
+    y_pred_log,
+    *,
+    out_path,
+    model_label=None,
+    split_label=None,
+    metrics=None,
+    group_labels=None,
+    group_label_name=None,
+    sample_size=15000,
+    random_seed=2025,
+    lowess_frac=0.4,
+    y_limits=None,
+):
+    """
+    Quick-test diagnostic:
+      - scatter of log residual vs log predicted price
+      - horizontal reference at 0.0
+      - LOWESS trend
+      - linear trend with slope label
+    """
+    y_true_log = _as_float_array(y_true_log)
+    y_pred_log = _as_float_array(y_pred_log)
+    residual = y_pred_log - y_true_log
+    group_labels_arr = None if group_labels is None else np.asarray(group_labels, dtype=object)
+
+    mask = np.isfinite(y_true_log) & np.isfinite(y_pred_log) & np.isfinite(residual)
+    x_vals = y_pred_log[mask]
+    y_plot_all = residual[mask]
+    if group_labels_arr is not None:
+        group_labels_arr = group_labels_arr[mask]
+    if x_vals.size < 2:
+        return {"n_points": int(x_vals.size), "slope": np.nan, "lowess_used": False}
+
+    if sample_size is not None and int(sample_size) > 0 and x_vals.size > int(sample_size):
+        rng = np.random.default_rng(int(random_seed))
+        idx = rng.choice(x_vals.size, size=int(sample_size), replace=False)
+        x_plot = x_vals[idx]
+        y_plot = y_plot_all[idx]
+        labels_plot = None if group_labels_arr is None else group_labels_arr[idx]
+    else:
+        x_plot = x_vals
+        y_plot = y_plot_all
+        labels_plot = group_labels_arr
+
+    fig, ax = plt.subplots(figsize=(8.5, 6.5))
+    if labels_plot is None:
+        ax.scatter(
+            x_plot,
+            y_plot,
+            facecolors="none",
+            edgecolors="#4C2A85",
+            s=32,
+            alpha=0.32,
+            linewidths=0.7,
+            label="Sales",
+        )
+    else:
+        labels_plot = pd.Series(labels_plot, dtype="object").where(pd.notna(labels_plot), "NA").astype(str).to_numpy()
+        unique_labels = list(pd.unique(labels_plot))
+        cmap = plt.cm.get_cmap("Dark2", max(len(unique_labels), 1))
+        for idx_label, label in enumerate(unique_labels):
+            label_mask = labels_plot == label
+            if not np.any(label_mask):
+                continue
+            ax.scatter(
+                x_plot[label_mask],
+                y_plot[label_mask],
+                s=28,
+                alpha=0.45,
+                color=cmap(idx_label),
+                edgecolors="none",
+                label=label,
+            )
+
+    ax.grid(True, which="major", axis="both", color="gray", linestyle="--", linewidth=0.5, alpha=0.7)
+    ax.minorticks_on()
+    ax.grid(True, which="minor", axis="both", color="lightgray", linestyle=":", linewidth=0.5, alpha=0.5)
+    ax.axhline(y=0.0, color="#C2410C", linestyle="--", linewidth=2, label="Perfect Equity (0.0)")
+
+    lowess_used = False
+    try:
+        import statsmodels.api as sm  # local import to avoid hard dependency
+
+        lowess = sm.nonparametric.lowess(y_plot, x_plot, frac=float(lowess_frac))
+        ax.plot(lowess[:, 0], lowess[:, 1], color="#0F766E", linewidth=2.5, label="Trend (LOWESS)")
+        lowess_used = True
+    except Exception:
+        pass
+
+    slope = np.nan
+    if x_plot.size >= 2:
+        z = np.polyfit(x_plot, y_plot, 1)
+        slope = float(z[0])
+        p = np.poly1d(z)
+        order = np.argsort(x_plot)
+        ax.plot(x_plot[order], p(x_plot[order]), color="#7C3AED", alpha=0.75, linewidth=2.2, label=f"Linear Slope={slope:.4f}")
+
+    title_lines = []
+    if split_label:
+        title_lines.append(str(split_label))
+    if model_label:
+        title_lines.append(str(model_label))
+    if metrics:
+        metric_parts = []
+        for metric_name in ("Corr(r,price)", "Corr(r,logprice)", "PRB", "PRD", "VEI"):
+            metric_value = pd.to_numeric(metrics.get(metric_name), errors="coerce")
+            if np.isfinite(metric_value):
+                metric_parts.append(f"{metric_name}={metric_value:.4f}")
+        if metric_parts:
+            title_lines.append(" | ".join(metric_parts))
+    if labels_plot is not None:
+        title_lines.append(f"Color = {group_label_name or 'group'}")
+    if title_lines:
+        ax.set_title("\n".join(title_lines))
+
+    ax.set_xlabel("Log Predicted Price")
+    ax.set_ylabel("Residual (log prediction - log sale price)")
+
+    if y_limits is None:
+        q_lo, q_hi = np.quantile(y_plot, [0.01, 0.99])
+        if np.isfinite(q_lo) and np.isfinite(q_hi):
+            spread = max(float(q_hi - q_lo), 0.1)
+            y_limits = (float(q_lo - 0.15 * spread), float(q_hi + 0.15 * spread))
+    if y_limits is not None:
+        ax.set_ylim(y_limits)
+
+    ax.legend(loc="upper right")
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    plt.close(fig)
+    return {"n_points": int(x_vals.size), "slope": slope, "lowess_used": bool(lowess_used)}
 
 
 def _metrics_title_line(metrics):
