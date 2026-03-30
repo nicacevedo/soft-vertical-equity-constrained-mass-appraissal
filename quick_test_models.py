@@ -3,7 +3,7 @@ Quick test runner.
 
 Goal
 ----
-Fit and evaluate baseline and fairness-regularized models on:
+Fit and evaluate selected fairness-regularized models on:
   - held-out test split (most recent pre-2024 sales; ~2023 by CCAO-style split)
   - assessment split (2024 sales)
 
@@ -12,10 +12,9 @@ but avoids CV and bootstrapping to stay fast and easy to read.
 
 Models
 ------
-1) LinearRegression (baseline)
-2) LGBMRegressor (baseline; defaults from `model_params.yaml` + fallback `params.yaml`)
-3) LGBSmoothPenalty across `diff` and `ratio` modes
-4) LGBSmoothPenaltyGroupCVaR across `diff` and `ratio` modes with keep in {0.5, 0.7, 0.9}
+1) LGBCovLinearPenalty in `diff` mode
+2) LGBCovPenalty in `diff` mode
+3) LGBSmoothPenalty in `diff` mode
 
 Outputs
 -------
@@ -47,11 +46,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import yaml
-from sklearn.linear_model import LinearRegression
-import lightgbm as lgb
 
 from preprocessing.recipes_pipelined import build_model_pipeline
-from soft_constrained_models.boosting_models import LGBSmoothPenalty, LGBSmoothPenaltyGroupCVaR
+from soft_constrained_models.boosting_models import LGBCovLinearPenalty, LGBCovPenalty, LGBSmoothPenalty
 from utils.plotting_utils import (
     plot_ratio_vs_logprice,
     plot_residual_vs_logprice,
@@ -62,7 +59,13 @@ from utils.motivation_utils import _build_time_block_bootstrap_indices, _compute
 
 
 _PAIRWISE_DEPENDENCE_SAMPLE_N = 1024
-_MAIN_SWEEP_FAMILIES = ("LGBSmoothPenalty", "LGBSmoothPenaltyGroupCVaR")
+_RATIO_MODES = ("diff",)
+_LINEAR_PENALTY_RHO_EXPONENT = 0.25
+_MAIN_SWEEP_FAMILIES = (
+    "LGBCovLinearPenalty[diff]",
+    "LGBCovPenalty[diff]",
+    "LGBSmoothPenalty[diff]",
+)
 _GROUPED_SWEEP_FAMILY = "LGBSmoothPenaltyGrouped"
 _RHO_PLOT_METRICS = [
     "Corr(r,price)",
@@ -283,6 +286,28 @@ def _parse_float_list(values_raw: str) -> List[float]:
     if not values:
         raise ValueError("Expected at least one numeric value.")
     return values
+
+
+def _compress_linear_penalty_rho_values(rho_values: List[float]) -> List[float]:
+    """
+    Compress the shared rho grid for the linear covariance penalty only.
+
+    The current quick-test outputs show `LGBCovLinearPenalty` becomes unstable at
+    rho values where the squared-penalty models remain well behaved, so we use a
+    slower power-law increase anchored at the smallest shared rho.
+    """
+    values = [float(v) for v in rho_values]
+    if not values:
+        return []
+
+    rho_min = min(values)
+    if rho_min <= 0.0:
+        return values
+
+    return [
+        float(rho_min * ((rho_value / rho_min) ** _LINEAR_PENALTY_RHO_EXPONENT))
+        for rho_value in values
+    ]
 
 
 def _pairwise_metric_subsample(x: np.ndarray, y: np.ndarray, max_n: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -513,38 +538,48 @@ def _build_quick_test_models(
     early_stopping_rounds: int | None,
 ) -> List[Dict[str, Any]]:
     models: List[Dict[str, Any]] = []
-    ratio_modes = ("diff", "ratio")
-
-    for ratio_mode in ratio_modes:
-        models.extend(
-            [
-                {
-                    "model_name": f"LinearRegression_mode_{ratio_mode}",
-                    "model_family": "LinearRegression",
-                    "ratio_mode": ratio_mode,
-                    "rho": np.nan,
-                    "rho_group": np.nan,
-                    "estimator": LinearRegression(fit_intercept=True),
-                    "requires_linear_pipeline": True,
-                },
-                {
-                    "model_name": f"LGBMRegressor_mode_{ratio_mode}",
-                    "model_family": "LGBMRegressor",
-                    "ratio_mode": ratio_mode,
-                    "rho": np.nan,
-                    "rho_group": np.nan,
-                    "estimator": lgb.LGBMRegressor(**lgbm_params),
-                    "requires_linear_pipeline": False,
-                },
-            ]
-        )
 
     rho_list = [float(r) for r in rho_values]
-    eta_list = [float(v) for v in eta_values]
-    keep_list = [float(v) for v in keep_values]
+    linear_rho_list = _compress_linear_penalty_rho_values(rho_list)
 
-    for ratio_mode in ratio_modes:
-        for rho_value in rho_list:
+    for ratio_mode in _RATIO_MODES:
+        for linear_rho_value, rho_value in zip(linear_rho_list, rho_list):
+            models.append(
+                {
+                    "model_name": f"LGBCovLinearPenalty_mode_{ratio_mode}_rho_{linear_rho_value}",
+                    "model_family": f"LGBCovLinearPenalty[{ratio_mode}]",
+                    "ratio_mode": ratio_mode,
+                    "rho": float(linear_rho_value),
+                    "rho_group": np.nan,
+                    "estimator": LGBCovLinearPenalty(
+                        rho=float(linear_rho_value),
+                        ratio_mode=ratio_mode,
+                        early_stopping_rounds=early_stopping_rounds,
+                        zero_grad_tol=1e-12,
+                        lgbm_params=lgbm_params,
+                        verbose=True,
+                    ),
+                    "requires_linear_pipeline": False,
+                }
+            )
+            models.append(
+                {
+                    "model_name": f"LGBCovPenalty_mode_{ratio_mode}_rho_{rho_value}",
+                    "model_family": f"LGBCovPenalty[{ratio_mode}]",
+                    "ratio_mode": ratio_mode,
+                    "rho": float(rho_value),
+                    "rho_group": np.nan,
+                    "estimator": LGBCovPenalty(
+                        rho=float(rho_value),
+                        ratio_mode=ratio_mode,
+                        early_stopping_rounds=early_stopping_rounds,
+                        zero_grad_tol=1e-12,
+                        lgbm_params=lgbm_params,
+                        verbose=True,
+                    ),
+                    "requires_linear_pipeline": False,
+                }
+            )
             models.append(
                 {
                     "model_name": f"LGBSmoothPenalty_mode_{ratio_mode}_rho_{rho_value}",
@@ -563,31 +598,6 @@ def _build_quick_test_models(
                     "requires_linear_pipeline": False,
                 }
             )
-            for eta_value in eta_list:
-                for keep_value in keep_list:
-                    models.append(
-                        {
-                            "model_name": f"LGBSmoothPenaltyGroupCVaR_mode_{ratio_mode}_rho_{rho_value}_eta_{eta_value}_keep_{keep_value}",
-                            "model_family": f"LGBSmoothPenaltyGroupCVaR[{ratio_mode}]",
-                            "ratio_mode": ratio_mode,
-                            "rho": float(rho_value),
-                            "rho_group": np.nan,
-                            "eta": float(eta_value),
-                            "keep": float(keep_value),
-                            "estimator": LGBSmoothPenaltyGroupCVaR(
-                                rho=float(rho_value),
-                                eta=float(eta_value),
-                                keep=float(keep_value),
-                                group_feature=[_META_TOWNSHIP_TRIAD_COL, _CHAR_CLASS_BUCKET_COL],
-                                ratio_mode=ratio_mode,
-                                early_stopping_rounds=early_stopping_rounds,
-                                zero_grad_tol=1e-12,
-                                lgbm_params=lgbm_params,
-                                verbose=True,
-                            ),
-                            "requires_linear_pipeline": False,
-                        }
-                    )
     return models
 
 
@@ -934,9 +944,7 @@ def run_quick_test(
     n_bootstrap_validation: int = 5,
     bootstrap_block_freq: str = "M",
 ) -> Dict[str, str]:
-    """
-    Runs the 4-model quick test and writes the output CSV tables.
-    """
+    """Runs the quick test and writes the output CSV tables."""
     target_column = "meta_sale_price"
     date_column = "meta_sale_date"
 
@@ -953,17 +961,8 @@ def run_quick_test(
         sample_frac=sample_frac,
         sample_seed=seed,
     )
-    df_train_validate = _add_quick_test_grouped_features(df_train_validate)
-    df_test = _add_quick_test_grouped_features(df_test)
-    df_assess = _add_quick_test_grouped_features(df_assess)
-
     predictor_cols = list(predictor_cols)
     categorical_cols = list(categorical_cols)
-    for engineered_col in (_META_TOWNSHIP_TRIAD_COL, _CHAR_CLASS_BUCKET_COL):
-        if engineered_col in df_train_validate.columns and engineered_col not in predictor_cols:
-            predictor_cols.append(engineered_col)
-        if engineered_col in df_train_validate.columns and engineered_col not in categorical_cols:
-            categorical_cols.append(engineered_col)
 
     # Pipeline builder for linear models (matches `main.py`).
     linear_pipeline_builder = lambda: build_model_pipeline(
@@ -1600,8 +1599,8 @@ def run_quick_test(
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    p = argparse.ArgumentParser(description="Quick test: baselines + main fairness models across ratio modes on test (~2023) + assessment (2024).")
-    p.add_argument("--rho", type=float, default=1.0, help="Rho used for the two regularized models.")
+    p = argparse.ArgumentParser(description="Quick test: covariance-regularized LightGBM models in diff mode on test (~2023) + assessment (2024).")
+    p.add_argument("--rho", type=float, default=1.0, help="Rho used for LGBCovLinearPenalty, LGBCovPenalty, and LGBSmoothPenalty.")
     p.add_argument(
         "--eta",
         type=float,
@@ -1612,13 +1611,13 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--early-stopping-rounds",
         type=int,
         default=10,
-        help="Training-loss patience for LGBSmoothPenalty. Use 0 to disable.",
+        help="Training-loss patience for the LightGBM fairness models. Use 0 to disable.",
     )
     p.add_argument(
         "--rho-range",
         type=str,
         default="",
-        help="Optional comma-separated rho range for LGBSmoothPenalty and LGBSmoothPenaltyGroupCVaR in the form min,max. If omitted, uses --rho.",
+        help="Optional comma-separated rho range for the shared sweep in the form min,max. LGBCovLinearPenalty uses a compressed version of this grid.",
     )
     p.add_argument("--rho-count", type=int, default=5, help="Number of rho values to generate when --rho-range is provided.")
     p.add_argument(

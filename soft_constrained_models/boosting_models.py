@@ -84,6 +84,212 @@ def _training_early_stopping_callback(stopping_rounds: int, verbose: bool = True
 
 # ============================= MAIN MODELS =============================
 
+# 0) Separable linear covariance penalty
+class LGBCovLinearPenalty:
+    """LightGBM objective: MSE - rho * n * Cov(r, y)
+
+    Directional linear covariance penalty.
+
+    r is chosen by ratio_mode:
+      - "div"  : r = y_pred / max(|y_true|, eps_y)    (preserves old behavior)
+      - "diff" : r = y_pred - y_true                  (prediction - truth)
+      - "ratio": r = exp(y_pred - y_true)             (true price ratio when y is log-price)
+
+    Cov is computed as: cov = mean( r_eff * (y_true - y_mean_) ),
+    where r_eff may optionally be shifted by an "anchor" (see below).
+
+    With objective minimization, the term - rho * n * Cov(r, y):
+      - penalizes negative covariance,
+      - rewards positive covariance.
+
+    This matches the intended direction when r is defined so that negative
+    covariance is the undesirable pattern (e.g. r = y_pred - y_true under
+    your convention).
+
+    Anchor note (important):
+      Because yc = (y_true - y_mean_) is mean-centered, subtracting any *constant*
+      anchor from r does not change cov (up to floating error). Therefore
+      anchor_mode/target_value are effectively no-ops for this specific cov
+      definition. Included only for API symmetry.
+
+    Separable penalty:
+      cov = mean( r_eff * (y_true - y_mean_) )
+      penalty = - rho * n * cov
+      grad_pen_i = - rho * (y_true_i - y_mean_) * d r_i / d y_pred_i
+      hess_pen_i = - rho * (y_true_i - y_mean_) * d²r_i / d y_pred_i²
+
+    Notes:
+      - For "div" and "diff", d²r/dy_pred² = 0, so the penalty Hessian is zero.
+      - For "ratio", d²r/dy_pred² = r (same clipping convention as before).
+    """
+
+    def __init__(
+        self,
+        rho=1e-3,
+        ratio_mode="div",            # "div", "diff", or "ratio"
+        anchor_mode="target",        # "none" | "target" | "iter_mean"  (no-op here; see note)
+        target_value=None,           # if anchor_mode="target": default 1.0 (div/ratio) or 0.0 (diff)
+        early_stopping_rounds=10,
+        zero_grad_tol=1e-6,
+        eps_y=1e-12,
+        lgbm_params=None,
+        verbose=True,
+    ):
+        self.rho = float(rho)
+        self.ratio_mode = ratio_mode
+        self.anchor_mode = anchor_mode
+        self.target_value = target_value
+        self.early_stopping_rounds = None if early_stopping_rounds is None else int(early_stopping_rounds)
+        self.zero_grad_tol = float(zero_grad_tol)
+        self.eps_y = float(eps_y)
+        self.verbose = bool(verbose)
+        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+
+    def fit(self, X, y):
+        self.y_mean_ = float(np.mean(y))
+        self.model.set_params(objective=self.fobj, metric="None")
+
+        fit_kwargs = {}
+        if self.early_stopping_rounds is not None and self.early_stopping_rounds > 0:
+            fit_kwargs["eval_set"] = [(X, y)]
+            fit_kwargs["eval_names"] = ["train"]
+            fit_kwargs["eval_metric"] = self.feval
+            fit_kwargs["callbacks"] = [
+                _training_early_stopping_callback(
+                    stopping_rounds=self.early_stopping_rounds,
+                    verbose=self.verbose,
+                )
+            ]
+
+        self.model.fit(X, y, **fit_kwargs)
+        return self
+
+    def predict(self, X):
+        return self.model.predict(X)
+
+    def fobj(self, y_true, y_pred):
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+        n = y_pred.size
+
+        yc = (y_true - self.y_mean_)  # centered y
+
+        # ---- choose r, dr/dy_pred, d2r/dy_pred^2 ----
+        if self.ratio_mode == "div":
+            denom = np.maximum(np.abs(y_true), self.eps_y)
+            r = y_pred / denom
+            dr = 1.0 / denom
+            d2r = np.zeros_like(y_pred)
+        elif self.ratio_mode == "diff":
+            r = y_pred - y_true
+            dr = np.ones_like(y_pred)
+            d2r = np.zeros_like(y_pred)
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - y_true, -50.0, 50.0)
+            r = np.exp(log_ratio)
+            dr = r
+            d2r = r
+        else:
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
+
+        # ---- optional anchor (no-op for centered yc; kept for API symmetry) ----
+        anchor = 0.0
+        if self.anchor_mode == "none":
+            anchor = 0.0
+        elif self.anchor_mode == "iter_mean":
+            anchor = float(np.mean(r))
+        elif self.anchor_mode == "target":
+            if self.target_value is None:
+                anchor = 1.0 if self.ratio_mode in ("div", "ratio") else 0.0
+            else:
+                anchor = float(self.target_value)
+        else:
+            raise ValueError("anchor_mode must be 'none', 'iter_mean', or 'target'.")
+
+        r_eff = r - anchor  # (effectively no change to cov because mean(yc)=0)
+
+        # ---- covariance ----
+        cov = float(np.mean(r_eff * yc))
+
+        # ---- objective pieces (for prints) ----
+        mse_vec = (y_true - y_pred) ** 2
+        mse_mean = float(np.mean(mse_vec))
+        pen_value = - self.rho * float(n) * cov
+
+        try:
+            corr = float(np.corrcoef(r, y_true)[0, 1])
+        except Exception:
+            corr = float("nan")
+
+        if self.verbose:
+            model_name = self.__str__().split("(")[0]
+            print(
+                f"[{model_name}] "
+                f"Loss: {(mse_mean + pen_value):.6f} | MSE: {mse_mean:.6f} | "
+                f"Cov: {cov:.6e} | Pen: {pen_value:.6f} | Corr(r,y): {corr:.6f}"
+            )
+
+        # ---- base MSE grads/hess ----
+        grad_base = 2.0 * (y_pred - y_true)
+        hess_base = 2.0 * np.ones_like(y_pred)
+
+        # ---- linear cov penalty grads/hess ----
+        # cov = mean(r_eff * yc), so:
+        # d cov / d y_pred_i   = (1/n) * yc_i * dr_i
+        # d²cov / d y_pred_i²  = (1/n) * yc_i * d2r_i
+        #
+        # penalty = - rho * n * cov
+        # grad_pen_i = - rho * yc_i * dr_i
+        # hess_pen_i = - rho * yc_i * d2r_i
+        grad_pen = - self.rho * yc * dr
+        hess_pen = - self.rho * yc * d2r
+
+        grad = grad_base + grad_pen
+        hess = hess_base + hess_pen
+
+        grad[np.abs(grad) < self.zero_grad_tol] = self.zero_grad_tol
+        hess[hess < self.zero_grad_tol] = self.zero_grad_tol
+
+        return grad, hess
+
+    def feval(self, y_true, y_pred):
+        y_true = np.asarray(y_true)
+        y_pred = np.asarray(y_pred)
+        n = y_pred.size
+
+        yc = (y_true - self.y_mean_)
+
+        if self.ratio_mode == "div":
+            denom = np.maximum(np.abs(y_true), self.eps_y)
+            r = y_pred / denom
+        elif self.ratio_mode == "diff":
+            r = y_pred - y_true
+        elif self.ratio_mode == "ratio":
+            log_ratio = np.clip(y_pred - y_true, -50.0, 50.0)
+            r = np.exp(log_ratio)
+        else:
+            raise ValueError("ratio_mode must be 'div', 'diff', or 'ratio'.")
+
+        if self.anchor_mode == "none":
+            anchor = 0.0
+        elif self.anchor_mode == "iter_mean":
+            anchor = float(np.mean(r))
+        elif self.anchor_mode == "target":
+            if self.target_value is None:
+                anchor = 1.0 if self.ratio_mode in ("div", "ratio") else 0.0
+            else:
+                anchor = float(self.target_value)
+        else:
+            raise ValueError("anchor_mode must be 'none', 'iter_mean', or 'target'.")
+
+        cov = float(np.mean((r - anchor) * yc))
+        mse_mean = float(np.mean((y_true - y_pred) ** 2))
+        pen_value = - self.rho * float(n) * cov
+        return "train_loss", mse_mean + pen_value, False
+
+    def __str__(self):
+        return f"LGBCovLinearPenalty(rho={self.rho}, ratio_mode={self.ratio_mode})"
+
 # ==========================================================
 # 1) Direct covariance penalty (non-separable but usable in LightGBM via indep. assumption)
 # ==========================================================
