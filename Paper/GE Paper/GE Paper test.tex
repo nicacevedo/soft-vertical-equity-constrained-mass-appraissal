@@ -1,0 +1,778 @@
+\documentclass[12pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage[labelfont=bf]{caption}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[style=numeric,sorting=nyt]{biblatex}
+
+
+\setlength{\marginparwidth}{2cm}
+\usepackage[textsize=tiny]{todonotes}
+\usepackage{dsfont}
+% Line numbers
+\usepackage{lineno}
+\renewcommand{\linenumberfont}{\normalfont\bfseries\tiny\color{gray}}
+\linenumbers
+
+% 
+
+\addbibresource{references.bib}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+\title{\vspace{-4mm}Reducing Regressivity in ML-based Mass Appraisal:\\
+A Practical Covariance Regularization Layer for Assessor Workflows\vspace{-1mm}}
+\author{
+Nicol\'as Acevedo Villena\\
+{\small Operations Research Center, MIT}\\
+{\small \texttt{nacevedo@mit.edu}}
+% \and
+% Haihao Lu\\
+% {\small Sloan School of Management, MIT}\\
+% {\small \texttt{haihao@mit.edu}}
+}
+\date{\vspace{-8mm}}
+
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\argmin}{\mathop{\mathrm{arg\,min}}}
+\newcommand{\argmax}{\mathop{\mathrm{arg\,max}}}
+
+\doublespacing
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Mass appraisal is a critical component of local public finance, and recent assessor workflows increasingly rely on machine-learning models to produce scalable property valuations. Yet the ML-based valuation literature remains dominated by predictive criteria, while assessor practice treats equity as a central objective. One of the most persistent equity concerns is \emph{regressivity}, a form of vertical inequity in which lower-value homes tend to be over-assessed while higher-value homes tend to be under-assessed. We develop a practical in-processing approach for reducing regressivity in standard valuation models by augmenting their training objectives with a covariance-based dependence penalty. Rather than proposing a new valuation paradigm, the method is designed as a low-disruption correction that can be layered onto model classes already used by assessors, including regularized linear models and gradient boosting. We then formalize the downstream calibration problem as a constrained model-selection step over validation folds, where predictive performance is optimized subject to assessor-facing equity and dispersion requirements. Finally, using a Cook County Assessor's Office (CCAO)--derived pipeline, we show that covariance-penalized models can materially improve vertical-equity diagnostics while preserving, and in several cases improving, out-of-sample predictive performance. 
+
+\end{abstract}
+
+\section{Introduction}
+
+Mass appraisal is a critical component of local public finance: it helps local governments determine property taxes, often the largest source of local public revenue in the United States \cite{Berry2021}. Mass appraisal refers to the process of estimating the value of a group of real estate properties, as of a given date, for tax purposes, using common data, standardized methods, and statistical testing \cite{IAAO2025Mass}. Its importance extends beyond property owners for two reasons. First, assessments help determine property tax liabilities, which in turn finance roads, schools, and many other public services. Second, they affect property values and housing costs more broadly, with consequences that extend to much of the population, both directly and indirectly \cite{Berry2021,Rootetal2023}. Accurate and equitable assessment is therefore not merely a technical modeling goal; it is central to the legitimacy of local public finance.
+
+In recent years, assessor offices have increasingly adopted machine-learning (ML) methods in mass appraisal, motivated by their predictive performance, efficiency, and scalability in large valuation settings \cite{IAAOAITaskForce2022,BidansetRakow2022,Rootetal2023}. Commonly studied model classes include linear regression variants, tree ensembles, and other modern automated valuation models \cite{Rootetal2023,Ostrikova2024,Sevgen2024100111}. In practice, however, predictive gains alone are not sufficient. Methods deployed by assessors must remain explainable, operationally feasible, and compatible with existing workflow and governance requirements. This makes mass appraisal a particularly important setting for fairness-aware ML: the objective is not merely to improve predictions, but to do so in a way that remains administratively defensible and practically usable.
+
+A central assessor-side concern in this setting is \emph{vertical equity}, that is, whether properties at different price levels are assessed proportionally. The most salient failure mode is \emph{regressivity}: lower-valued properties tend to be over-assessed, while higher-valued properties tend to be under-assessed \cite{McMillen2020,IAAO2023VerticalReview,McMillenSingh2023}. This pattern has substantial distributional consequences. \textcite{amornsiripanitch2020why} argue that owners of lower-valued properties can face substantially higher effective tax rates than owners of higher-valued properties, and \textcite{Berry2021} document that regressive assessment is widespread across U.S.\ counties. In other words, the move toward ML-based mass appraisal creates both an opportunity and a challenge: modern workflows provide an optimization object that can be modified, but standard regression objectives still focus on average predictive accuracy rather than price-tier fairness.
+
+The present paper addresses that tension. Our starting point is the assessor-facing observation that regressivity appears as a systematic trend in the relationship between assessment ratios and property values. In ratio-study language, if \(r=\hat P/P\) denotes the assessment-to-sale ratio, then regressive assessment corresponds to ratios that decline with value. In ML language, this suggests treating regressivity as an undesirable statistical dependence pattern and discouraging that pattern during training. This creates a natural bridge between two bodies of work that have largely developed in parallel: the mass-appraisal literature, which has rich diagnostic and governance tools for vertical equity \cite{IAAO2025ExposureRatio,McMillenSingh2023,Rootetal2023}, and the fair-regression literature, which develops regularization, constrained optimization, and tradeoff-analysis methods for continuous prediction \cite{AgarwalDudikWu2019,FitzsimonsEtAl2019,lee2022maximal,LiEtAl2022Fairness,CatonHaas2024}.
+
+Our contribution is to make that bridge practical. We develop a covariance-based regularization layer that can be inserted into standard regression learners already used in assessment workflows, rather than requiring a new valuation architecture. We then show how the resulting candidate models can be calibrated through a constrained validation-fold selection problem that optimizes predictive performance subject to assessor-facing requirements on ratio, regressivity, and dispersion diagnostics. Finally, we study the approach in a CCAO-derived pipeline based on the 2025 assessment-year workflow, using 2016--2022 for train/validation, 2023 as an out-of-time test year, and 2024 as the assessment year reserved for later deployment analysis.
+
+\noindent\textbf{Contributions.}
+\begin{itemize}[leftmargin=1.5em]
+    \item We formulate regressivity mitigation in ML-based mass appraisal as a dependence-control problem and propose a covariance-based regularization strategy that can be layered onto existing regression learners.
+    \item We show how this framework can be implemented in regularized linear models and gradient-boosted trees, preserving the basic logic of existing assessor workflows while adding only one main calibration knob, the penalty weight \(\rho\).
+    \item We formalize model calibration as a constrained single-model selection problem over validation folds, where predictive performance is optimized subject to assessor-facing diagnostics such as PRD, PRB, VEI, COD, and related ratio-study summaries.
+    \item Using a CCAO-derived empirical pipeline, we show that covariance-penalized LightGBM variants can substantially reduce regressivity while maintaining, and in some cases improving, out-of-sample predictive performance.
+\end{itemize}
+
+The remainder of the paper proceeds as follows. Section~\ref{sec:related_work} reviews the relevant assessor and fair-regression literatures. Section~\ref{sec:problem_setting} introduces the prediction setting, ratio diagnostics, and temporal validation protocol. Sections~\ref{sec:framework} and \ref{sec:implementation} develop the regularization framework and its implementation in standard model classes. Section~\ref{sec:model_selection} formalizes constrained model calibration across validation folds. Section~\ref{sec:empirical} presents the empirical study in the CCAO-derived pipeline. Sections~\ref{sec:discussion} and \ref{sec:limitations} conclude with discussion, limitations, and future directions.
+
+\section{Related Work}
+\label{sec:related_work}
+
+\subsection{Machine Learning in Mass Appraisal and Assessor Workflows}
+
+Recent reviews show that mass appraisal and real-estate valuation research have moved steadily toward automated valuation models (AVMs) and machine-learning methods, with multiple regression, tree ensembles, and neural-network-based models among the most frequently studied approaches \cite{WangLi2019,Rootetal2023,Zilli2024,purdueAssessingTechniques}. Across this literature, model evaluation is still dominated by predictive criteria---typically accuracy and model comparison across algorithms---rather than by equity as an explicit model-design target \cite{WangLi2019,Rootetal2023,Zilli2024}. In particular, recent reviews identify Random Forest, Gradient Boosting, and related ensemble methods as some of the most commonly used and best-performing model classes in modern mass appraisal studies \cite{Rootetal2023,Sevgen2024100111,Zilli2024}.
+
+From an assessor perspective, however, adoption depends on more than predictive fit alone. The assessor-oriented AI literature emphasizes explainability, defensibility, administrative feasibility, and integration into office workflows as central conditions for real-world use \cite{IAAOAITaskForce2022}. Consistent with this, \textcite{BidansetRakow2022} report that AVM adoption in assessment offices remains partial and uneven, with perceived barriers including communication challenges, technical capacity, and budget constraints. The relevant question for the present paper is therefore not simply which learner predicts best, but how modern learners can be modified and calibrated in ways that remain operationally useful and publicly defensible.
+
+\subsection{Equity in Mass Appraisal: Horizontal Equity, Vertical Equity, and Regressivity}
+
+Equity has long been treated as a core objective of mass appraisal rather than as a byproduct of predictive performance \cite{IAAO2013Ratio,IAAO2025Mass,Quintos2014}. In assessor practice, this objective is commonly decomposed into \emph{horizontal equity}, which concerns the uniform treatment of similarly situated properties, and \emph{vertical equity}, which concerns the absence of systematic price-related bias across the value distribution \cite{10578d49-78f8-3ef9-8277-9b6add2bd071,cornia2006property,McMillenSingh2023}. The basic diagnostic framework remains the sales-ratio study, with COD as a standard measure of uniformity and PRD/PRB as central diagnostics for vertical equity \cite{IAAO2013Ratio,IAAO2025Mass}.
+
+Recent assessor literature has become more cautious about relying on any single vertical-equity measure. \textcite{IAAO2023VerticalReview} recommend reporting a suite of tests rather than privileging one statistic, and \textcite{McMillenSingh2023} show that some regression-based regressivity tests can themselves be biased when assessments are generated by regression-based valuation models. At the same time, policy-oriented work shows that regressive assessment is neither isolated nor innocuous. \textcite{Berry2021} document widespread regressivity across U.S.\ counties, while \textcite{AvenancioLeonHoward2022} show how assessment inequities translate into differences in tax burdens for the same bundle of local public services.
+
+A smaller but highly relevant strand of the literature moves from diagnosis to correction. \textcite{Quintos2014} propose a two-step spatial-lag/spatial-quantile procedure that improves both horizontal and vertical equity in a heterogeneous market. \textcite{BidansetEtAl2019} and \textcite{BidansetEtAl2025} use geographically weighted methods and clustering to expose or correct local vertical inequities. At the research frontier, \textcite{CandoganHanLu2023} explicitly study fairness--accuracy tradeoffs in regressive property taxation. This literature shows that equity does not arise automatically from better prediction alone; explicit monitoring and, in some settings, explicit correction are increasingly necessary.
+
+\subsection{Fairness in Machine Learning for Regression}
+
+Most of the fairness-in-ML literature was originally developed for classification, but many consequential applications involve continuous prediction rather than binary decisions \cite{CatonHaas2024,BarocasHardtNarayanan2023}. In those settings, fairness cannot usually be reduced to a single thresholded decision without discarding information about score magnitudes, residual structure, and calibration. For that reason, a substantial literature has developed around \emph{fair regression}: methods that treat fairness as an explicit objective when the prediction target is continuous \cite{AgarwalDudikWu2019,FitzsimonsEtAl2019,ChzhenEtAl2020Wasserstein,ChzhenEtAl2020Recalibration,WeiEtAl2023}.
+
+A recurring conclusion of this literature is that no single fairness notion is universally preferred for regression. Depending on the application, one may care about parity in the marginal distribution of predictions, parity of losses or residuals, equality of conditional means, or some broader structural notion of non-discrimination \cite{AgarwalDudikWu2019,CatonHaas2024,BarocasHardtNarayanan2023}. Methodologically, the literature has moved from ad hoc heuristics toward constrained or regularized empirical risk minimization. \textcite{AgarwalDudikWu2019} formulate fair regression under bounded-group-loss and statistical-parity constraints, while \textcite{FitzsimonsEtAl2019} introduce a general expectation-based framework that can be integrated into many learners.
+
+\subsection{Dependence-Based Fairness Regularization}
+
+A particularly relevant idea from fair regression is that unfairness can often be represented as an undesirable statistical relationship between model outputs and some variable of concern, and then mitigated by explicitly penalizing that relationship during training. This perspective is especially natural when the variable of concern is continuous rather than categorical. \textcite{MaryEtAl2019} extend fairness-aware learning to continuous sensitive attributes using maximal correlation. \textcite{KomiyamaEtAl2018} formulate regression fairness through correlation and coefficient-of-determination constraints. \textcite{lee2022maximal}, \textcite{PerezSuayEtAl2017}, \textcite{LiEtAl2022Fairness}, and \textcite{BuylDefranceDeBie2024FAIRRET} develop related dependence-regularization frameworks using maximal correlation, HSIC, or other differentiable dependence measures.
+
+This literature is methodologically close to the present problem. In mass appraisal, the relevant source of inequity is not primarily a binary protected-class variable; it is a systematic dependence between assessment behavior and value level. That makes dependence-based fair-regression methods more natural than many of the better-known group-fairness approaches designed for discrete attributes.
+
+\subsection{Fairness--Accuracy Tradeoffs and Calibration}
+
+A separate but closely related literature treats fairness mitigation as a genuinely multi-objective problem rather than as a single constrained-learning problem with one fixed penalty weight \cite{CatonHaas2024}. \textcite{martinez2020minimax} formulate fairness as a multi-objective optimization problem and characterize Pareto-efficient solutions, while \textcite{little2022fairness} study empirical fairness--accuracy frontiers directly. This perspective is especially natural for assessor workflows, where calibration already compares many candidate specifications across multiple out-of-sample criteria. Fairness-aware mass appraisal does not create a wholly new decision problem; it extends an existing calibration problem by adding explicit equity requirements.
+
+\subsection{Positioning of the Present Work}
+
+The present paper sits at the intersection of these two bodies of work. On the one hand, the mass-appraisal literature has developed rich standards, diagnostics, and application-specific corrections for vertical equity, but it still treats regressivity primarily as a ratio-study outcome or as a problem addressed by spatial, segmented, or post hoc procedures. On the other hand, the fair-regression literature has developed general dependence-regularization and tradeoff-analysis tools, but usually in settings organized around demographic protected attributes rather than assessor-style notions of vertical inequity. Our contribution is to connect these literatures in an assessor-compatible way: we start from an assessor-defined problem and recast it in a form that fair-regression tools can act on directly during training and calibration.
+
+\section{Preliminaries}
+
+
+% In this section, we introduce the general problem setting, the different ratio-based diagnostics available to measure equity, and the temporal-dependent evaluation step.
+
+This section fixes the basic prediction notation, defines the assessor-facing equity objects used throughout the paper, and formalizes the temporal evaluation setting in which models are trained, calibrated, and compared.
+% This section serves as an introduction to the prob
+
+% \todo{Make this an introductory parahgraph.} \textbf{{Problem Setting, Ratio Diagnostics, and Temporal Evaluation}
+% % \label{sec:problem_setting}
+% }
+
+
+\subsection{Mass-Appraisal Prediction Setting}
+
+Mass appraisal estimates the value of a group of properties as of a given date using common data, standardized methods, and statistical testing \cite{IAAO2025Mass}. In the predictive setting studied here, we observe a sample of sold properties
+$
+\mathcal D_n:=\{(x_i,p_i,t_i)\}_{i=1}^n,
+$$
+where \(x_i\in\mathcal X\) is the vector of observed characteristics for property \(i\), \(p_i\in\R_{++}\) is its verified sale price, and \(t_i\) is its sale date. Because sale prices are positive and strongly right-skewed, we work internally on the log-price scale and define
+$
+y_i:=\log p_i.
+$
+
+Let \(\Theta\) denote the parameter space of an arbitrary regression model and let \(f_\theta:\mathcal X\to\R\) denote a candidate predictor of log-price. The model-implied log-prediction is
+$
+\hat y_i(\theta):=f_\theta(x_i),
+$
+and the corresponding prediction on the original price scale is
+$
+\hat P_i(\theta):=\exp\bigl(\hat y_i(\theta)\bigr).
+$
+Throughout the paper, \(\hat P_i(\theta)\) is interpreted as the model-implied assessed value at the predictive layer.
+
+The baseline learning problem is the regularized empirical-risk minimization problem
+\begin{equation}
+\label{eq:baseline_erm}
+\hat\theta\in\argmin_{\theta\in\Theta}
+\left\{
+\frac{1}{n}\sum_{i=1}^n \ell\bigl(f_\theta(x_i),y_i\bigr)+\Omega(\theta)
+\right\},
+\end{equation}
+where \(\ell\) is a loss function on the log-price scale and \(\Omega\) is an optional complexity penalty. This formulation covers the model classes used later in the paper, including regularized linear models and gradient-boosted trees.
+
+A key identity is obtained by comparing predictions and observed prices on the log scale. Define the residual
+$
+e_i(\theta):=\hat y_i(\theta)-y_i.
+$
+Then
+\begin{equation}
+\label{eq:log_ratio_identity}
+e_i(\theta)
+=
+\log \hat P_i(\theta)-\log p_i
+=
+\log\!\left(\frac{\hat P_i(\theta)}{p_i}\right).
+\end{equation}
+Thus the log-space residual is exactly the logarithm of the assessment ratio.
+
+\paragraph{Prediction scale and retransformation.}
+All assessor-facing diagnostics in the paper are computed on the original price scale, so the predictive object ultimately evaluated is \(\hat P_i=\exp(\hat y_i)\). This choice is deliberate: the operational target in the present workflow is the price-scale assessment ratio, not a bias-corrected estimate of \(\E[P\mid X]\) under a separate lognormal mean model \todo{Add a citation as an example maybe (?)}. Accordingly, the method is optimized on the log scale for statistical stability and then evaluated on the price scale because that is where ratio studies, PRD, PRB, VEI, and related diagnostics are defined. If a jurisdiction prefers a specific retransformation correction for deployment, the same framework can be re-evaluated under that mapping, but the central dependence-control logic is unchanged.
+
+\subsection{Assessment Ratios and Assessor-Facing Diagnostics}
+
+For any fitted model and any evaluation sample \(S\), define the assessment-to-sale ratio
+\begin{equation}
+\label{eq:ratio_def}
+r_i:=\frac{\hat P_i}{p_i},
+\qquad i\in S.
+\end{equation}
+% Assessor-facing equity diagnostics are computed on the original price scale from \(\hat P_i\) and \(p_i\), not directly from the log residuals.
+
+Most of the equity measures defined by the IAAO depend on this quantity \cite{IAAO2013Ratio}. First, we summarize horizontal equity primarily through the coefficient of dispersion (COD). Let
+$
+m_S:=\operatorname{med}\{r_i:i\in S\}
+$
+denote the median ratio in sample \(S\), then the COD is defined as
+\begin{equation}
+\label{eq:cod}
+\operatorname{COD}(S)
+=
+\frac{100}{|S|}\sum_{i\in S}\frac{|r_i-m_S|}{m_S}.
+\end{equation}
+Lower COD values indicate greater within-sample uniformity. We also report the assessor coefficient of variation (COV) as a supplementary dispersion diagnostic (see \cite{IAAO2013Ratio}) \todo{Not sure on leaving this like this, instead of defining COV}.
+
+We summarize vertical equity using price-related statistics. First, the price-related differential (PRD) is
+\todo{Not sure if leave the $p$ in uppercase or lowercase }
+\begin{equation}
+\label{eq:prd}
+\operatorname{PRD}(S)
+=
+\Bar r \dot
+{\left(\frac{\sum_{i\in S}\hat P_i}{\sum_{i\in S}P_i}\right)^{-1}},
+\end{equation}
+that is, the mean ratio divided by the value-weighted mean ratio. Under standard assessor interpretation, PRD values above roughly \(1.03\) indicate regressivity and values below roughly \(0.98\) indicate progressivity \cite{IAAO2013Ratio,IAAO2025ExposureRatio}. We also report the price-related bias (PRB), which measures the slope of relative ratio deviations against a value proxy designed to reduce measurement-error bias, and the vertical equity indicator (VEI), which provides a complementary value-tier diagnostic. In the empirical section we additionally report the market-value inequity index (MKI) as a supplementary summary closer to one under proportional assessment. \todo{Maybe we can change this paragraphs to a table with the definitions}
+
+\begin{table}[t]
+\centering
+\caption{Reference interpretation ranges used in the empirical discussion.}
+\label{tab:reference_ranges}
+\begin{tabular}{lcc}
+\toprule
+Diagnostic & Preferred region & Interpretation \\
+\midrule
+PRD & \([0.98,1.03]\) & Values \(>1.03\) suggest regressivity \\
+PRB & \([-0.05,0.05]\) & Closer to \(0\) indicates less price-related bias \\
+VEI & \([-10\%,10\%]\) & Closer to \(0\) indicates less value-tier distortion \\
+MKI & \(\approx 1\) & Closer to \(1\) indicates more proportional assessment \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Regressivity as a Dependence Problem}
+
+In assessor language, regressivity means that low-value properties are assessed at higher fractions of market value than high-value properties. Equivalently, the ratio \(r_i\) tends to decline with value. This suggests treating regressivity as a dependence problem.
+
+% Let \(c_i:=y_i-\bar y\), where 
+Let \(\bar e=\frac{1}{n}\sum_i e_i\) and \(\bar y=\frac{1}{n}\sum_i y_i\) be the average residuals and the average log-market price, respectively. The empirical covariance between the log-ratio proxy \(e_i=\hat y_i-y_i\) and the centered log value \(y_i - \Bar y\) is
+\[
+\widehat{\Cov}_n(e,y)=\frac{1}{n}\sum_{i=1}^n (e_i - \Bar{e}) (y_i - \Bar{y}) = \frac{1}{n}\sum_{i=1}^n e_i (y_i - \Bar{y}).
+\]
+Negative values correspond to downward trends in the log-ratio proxy as value increases and are therefore consistent with regressive behavior. This does not make covariance a complete vertical-equity diagnostic; PRD, PRB, VEI, and related ratio-study summaries remain the deployment-facing measures. But it does provide a simple training-time target that is well aligned with the qualitative pattern assessors want to reduce.
+
+The same section also clarifies why flexible predictive models can generate regressive behavior even when they are optimized for standard prediction error.
+
+
+The same discussion also helps explain why even highly flexible predictive models can still generate regressive pressure when they do not fully resolve price-relevant heterogeneity. The key mechanism is local rather than global. Whenever multiple properties with different realized sale prices receive the same fitted assessed value---or, more generally, very similar fitted values---their assessment ratios must decline with price within that prediction stratum. Thus, lower-priced properties in that stratum receive higher ratios, while higher-priced properties receive lower ratios. This does not imply that every squared-loss predictor is globally regressive, but it identifies a basic mechanism through which regressive patterns can arise when the feature set \(X\) does not fully separate the determinants of market value.
+
+\begin{proposition}[Local ratio monotonicity under a common fitted value]
+\label{prop:local_ratio_monotonicity}
+Fix any collection of observations that receive the same fitted assessed value \(\hat P>0\). For each such observation \(i\), let \(P_i>0\) denote its realized sale price and define its assessment ratio by $r_i$ (\ref{eq:ratio_def}).
+% \[
+% r_i:=\frac{\hat P}{P_i}.
+% \]
+Then \(r_i\) is strictly decreasing in \(P_i\). Equivalently, for any two observations \(i\) and \(j\) in that collection,
+\[
+P_i<P_j
+\qquad\Longrightarrow\qquad
+r_i>r_j.
+\]
+Hence, among observations sharing the same fitted assessed value, lower-priced properties necessarily receive higher assessment ratios and higher-priced properties necessarily receive lower assessment ratios.
+\end{proposition}
+
+\begin{proof}
+Fix \(\hat P>0\). The map
+\[
+P \mapsto \frac{\hat P}{P}
+\]
+is strictly decreasing on \(\mathbb{R}_{++}\), since
+\[
+\frac{d}{dP}\left(\frac{\hat P}{P}\right)=-\frac{\hat P}{P^2}<0.
+\]
+Therefore, if \(P_i<P_j\), then
+\[
+\frac{\hat P}{P_i}>\frac{\hat P}{P_j},
+\]
+that is, \(r_i>r_j\). This proves the claim.
+\end{proof}
+
+Proposition~\ref{prop:local_ratio_monotonicity} should be interpreted as a local mechanism, not as a full characterization of global regressivity. It shows that whenever unresolved heterogeneity causes distinct properties to share the same fitted value, the induced assessment ratios are mechanically tilted against the higher-priced properties within that stratum. Flexible learners can reduce this effect by fitting finer distinctions in \(X\), but they do not eliminate it unless the remaining price-relevant heterogeneity is negligible. In that sense, the proposition helps explain why regressivity can persist even in nonlinear ML-based appraisal models trained to optimize standard prediction loss.
+
+% \begin{proposition}[Conditional-mean mechanism behind regressive pressure]
+% \label{prop:conditional_mean_mechanism}
+% Fix a feature vector \(x\) and suppose the population predictor for log-price is the squared-loss minimizer
+% \[
+% f^\star(x)=\E[Y\mid X=x].
+% \]
+% Let \(P=\exp(Y)\) and \(\hat P(x)=\exp(f^\star(x))\). Then for any realized sale price \(p\) observed at the same feature value \(x\),
+% \[
+% p<\hat P(x)\quad \Longrightarrow\quad \frac{\hat P(x)}{p}>1,
+% \qquad
+% p>\hat P(x)\quad \Longrightarrow\quad \frac{\hat P(x)}{p}<1.
+% \]
+% Hence, within any feature cell in which realized prices span both sides of \(\hat P(x)\), the conditional-mean predictor over-assesses lower-valued observations in that cell and under-assesses higher-valued observations in that cell.
+% \end{proposition}
+
+% \begin{proof}
+% Under squared loss, the population-optimal predictor is the conditional mean \(f^\star(x)=\E[Y\mid X=x]\). Exponentiating yields the price-scale prediction \(\hat P(x)=\exp(f^\star(x))>0\). If \(p<\hat P(x)\), then dividing by the positive quantity \(p\) gives \(\hat P(x)/p>1\). If \(p>\hat P(x)\), then \(\hat P(x)/p<1\). Therefore, within the same feature cell \(x\), the single conditional-mean prediction necessarily lies above some observed prices and below others whenever the conditional price distribution is nondegenerate. Those lower observations receive ratios above one and those higher observations receive ratios below one. This proposition does not claim that every squared-loss predictor is globally regressive, but it identifies the within-cell shrinkage mechanism through which regressivity can arise when price-relevant heterogeneity is not fully captured by \(X\).
+% \end{proof}
+
+\subsection{Temporal Evaluation Setting}
+
+Because assessor workflows are inherently time-ordered (we predict future prices using past market values), model evaluation should also be time-ordered. We therefore use a temporal validation protocol based on rolling-origin or expanding-window logic: candidate models are trained on earlier years, validated on later years, and finally evaluated on an untouched out-of-time test year before any deployment-period assessment analysis. This avoids leakage from future transactions and aligns model calibration with the way assessors must actually use historical sales to predict assessments in later periods.
+
+The exact calendar split used in the empirical study is summarized in Section~\ref{sec:empirical}. The validation-window geometry is part of the calibration method and not merely an implementation detail. \todo{}
+
+\section{Regressivity-Aware Learning Framework}
+\label{sec:framework}
+
+\subsection{General Dependence-Controlled Objective}
+
+The paper does not propose a new valuation paradigm. Instead, it takes the learner already being used and adds a soft dependence-control term to its objective. Let \(L_n(f)\) denote the baseline empirical loss and let \(\Psi_n(f)\) be a penalty designed to discourage regressivity-related dependence. We then solve
+\begin{equation}
+\label{eq:penalized_general}
+f^\star_\rho
+\in
+\argmin_{f\in\mathcal H}
+\left\{
+L_n(f)+\rho\,\Psi_n(f)
+\right\},
+\end{equation}
+where \(\rho\ge 0\) is a tuning parameter. When \(\rho=0\), \eqref{eq:penalized_general} recovers the baseline learner. Larger \(\rho\) values place more weight on reducing price-tier dependence.
+
+A generic formulation is obtained by choosing a ratio proxy \(g(\hat y,y)\) and a value transform \(\phi(y)\). Then
+\[
+\Psi_n(f)
+\approx
+\widehat{\Cov}_n\!\bigl(g(\hat y,y),\phi(y)\bigr)^2
+\]
+discourages systematic dependence between assessment behavior and value level. In the present paper, the main choices are built around log-price models, where \(y=\log P\), \(\hat y=f(X)\), \(g(\hat y,y)=\hat y-y\), and \(\phi(y)=y\).
+
+\subsection{Primary and Supporting Penalty Formulations}
+
+The \emph{primary} formulation studied in the paper is the squared covariance penalty, because it most directly encodes the goal of flattening the value-related trend in assessment behavior.
+
+\paragraph{Primary method: squared covariance penalty.}
+The most direct formulation penalizes the squared empirical covariance
+\begin{equation}
+\label{eq:cov_penalty}
+\Psi_n^{\mathrm{cov}^2}(f)
+=
+\left(
+\frac{1}{n}\sum_{i=1}^n
+(e_i-\bar e)(y_i-\bar y)
+\right)^2.
+\end{equation}
+This is the closest implementation of the ``flatten the trend'' idea, but it couples all samples through the covariance term and therefore produces dense curvature.
+
+\paragraph{Practical approximation: separable surrogate penalty.}
+Because the squared covariance term is globally coupled, we also study a separable surrogate motivated by a Cauchy--Schwarz/Jensen upper bound:
+\begin{equation}
+\label{eq:surr_penalty}
+\Psi_n^{\mathrm{surr}}(f)
+=
+\frac{1}{n}\sum_{i=1}^n e_i^2\,(y_i-\bar y)^2.
+\end{equation}
+This surrogate discourages large ratio distortions away from the center of the value distribution and is especially convenient in off-the-shelf boosting libraries because it is observation-wise separable.
+
+\paragraph{Secondary extension: one-sided covariance control.}
+A directional or one-sided covariance penalty can also be used when the design goal is to penalize only regressive trends and not progressive ones. Because this variant does not play a central empirical role in the present manuscript, we treat it as a secondary extension and defer the main discussion to the appendix-style remarks at the end of the implementation section.
+
+\subsection{Assessor-Workflow Interpretation and Scope}
+
+The practical meaning of \eqref{eq:penalized_general} is simple: take an existing assessor model, keep the same preprocessing, feature engineering, prediction target, and ratio diagnostics, and add one tunable term that discourages price-tier bias. This is the main operational appeal of the approach. In a pipeline view, the new step sits between baseline model training and downstream assessment calibration, and can be tuned either jointly with or after standard model hyperparameters.
+
+The scope of the method should also be made explicit. The penalty is not itself a deployment-facing fairness certification. It is a low-friction in-processing correction designed to move candidate models toward better vertical-equity behavior before final model selection is performed with assessor-facing diagnostics.
+
+\section{Model-Specific Implementations}
+\label{sec:implementation}
+
+\subsection{Regularized Linear Models}
+
+The dependence-control framework extends immediately to penalized linear estimators of the form
+\[
+\min_{\theta\in\Theta}
+\left\{
+L_n(f_\theta)+\mathcal R(\theta)+\rho\,\Psi_n(f_\theta)
+\right\},
+\]
+where \(\mathcal R\) is a complexity penalty such as ridge regularization. In the ridge case, the resulting systems remain quadratic and can be solved in closed form after adding the usual ridge term to the coefficient matrix. \(\ell_1\)-penalized variants remain convex but generally require numerical solvers. Linear models are an important benchmark because they remain highly interpretable and, in practice, often display more stable vertical-equity behavior than highly flexible nonlinear learners.
+
+\subsection{Second-Order Gradient Boosting}
+
+We next consider second-order additive tree boosting under squared loss, as used in systems such as XGBoost and LightGBM. Let \(f^{(m-1)}\) denote the current predictor at iteration \(m\), and write
+\[
+f_i:=f^{(m-1)}(x_i),
+\qquad
+e_i:=f_i-y_i,
+\qquad
+c_i:=y_i-\bar y,
+\qquad
+z:=\widehat{\Cov}_n(e,y)=\frac{1}{n}\sum_{i=1}^n e_i c_i.
+\]
+At step \(m\), one adds a regression tree \(t\) so that
+\[
+f^{(m)}(x)=f^{(m-1)}(x)+\nu\,t(x),
+\]
+where \(\nu\in(0,1]\) is the learning rate. Standard second-order boosting uses a local quadratic approximation
+\begin{equation}
+\label{eq:boosting_local_objective}
+\widetilde{\mathcal J}(t)
+=
+\sum_{i=1}^n
+\left(
+g_i t_i + \frac{1}{2}h_i t_i^2
+\right)
++\Omega(t),
+\end{equation}
+with \(g_i\) and \(h_i\) denoting the first- and second-order derivatives of the current penalized objective with respect to \(f_i\).
+
+The surrogate penalty is observation-wise separable and therefore has standard custom-gradient/Hessian form:
+\begin{align}
+g_i^{\mathrm{surr}}
+&=
+\frac{e_i}{n}+\frac{2\rho}{n}e_i c_i^2,
+\label{eq:surr_grad}
+\\
+h_i^{\mathrm{surr}}
+&=
+\frac{1}{n}+\frac{2\rho}{n}c_i^2.
+\label{eq:surr_hess}
+\end{align}
+Accordingly, once the weights \(c_i^2\) are precomputed, the surrogate can be passed directly to standard second-order boosting interfaces.
+
+The squared covariance penalty is the most direct implementation of the covariance-control idea, but it introduces dense curvature and is therefore not naturally handled by the usual observation-wise Hessian interface. In practice, one can either use a diagonal Hessian approximation or implement a custom leaf solver. The exact route preserves the full curvature of the covariance penalty but requires a more customized tree-construction procedure.
+
+\subsection{Implementation Summary and Algorithmic Scope}
+
+The formulas above show that the covariance-based framework is compatible with both transparent linear estimators and high-performing nonlinear learners. This flexibility is essential for the paper's practical objective: regressivity correction can be layered onto predictive tools already used in assessment workflows, rather than requiring a separate valuation architecture. From an implementation standpoint, the main empirical message is simple: the approach can be deployed with minimal changes, adds one main hyperparameter with interpretable behavior, and can be calibrated as an additional step around standard model tuning.
+
+A one-sided covariance variant can also be implemented and may be attractive when one specifically wishes to penalize negative covariance but not positive covariance. Since the present empirical section focuses on the squared covariance penalty and the separable surrogate, we leave the directional version as a secondary extension rather than a headline method.
+
+For completeness, the final paper may place pseudocode for the exact squared-covariance boosting implementation and any first-order approximation in an appendix. Those algorithmic details are useful for reproducibility, but they are not necessary for understanding the main narrative of the paper.
+
+\section{Constrained Model Selection Across Validation Folds}
+\label{sec:model_selection}
+
+\subsection{Why Accuracy-Only Selection Is Insufficient}
+
+Once regressivity-aware penalties are introduced, candidate models may trade off predictive performance, ratio-study diagnostics, regressivity measures, and dispersion measures in different ways. Selecting the best average-accuracy model is therefore no longer enough. The correct calibration problem is not ``which model minimizes validation error?'' but rather ``which feasible model gives the best predictive performance subject to the chosen assessment-quality requirements?''
+
+\subsection{Single-Model Constrained Calibration}
+
+Let \(\mathcal V=\{1,\dots,V\}\) index the validation folds or rolling-origin validation windows, and let \(V_v\) denote the validation sample associated with fold \(v\). Let \(\mathcal C\) denote a finite set of candidate model configurations. Each configuration \(c\in\mathcal C\) specifies
+(i) a model family,
+(ii) a penalty choice \(\Psi_n\in\{0,\Psi_n^{\mathrm{cov}^2},\Psi_n^{\mathrm{surr}}\}\), and
+(iii) all associated tuning parameters, including \(\rho\) when applicable. For each fold \(v\), fitting \(c\) on the corresponding training portion yields a predictor \(f_{c,v}\).
+
+For each observation \(i\in V_v\), let
+\[
+\hat y_i^{\,v}(c):=f_{c,v}(x_i^{\,v}),
+\qquad
+\hat P_i^{\,v}(c):=\exp\!\bigl(\hat y_i^{\,v}(c)\bigr),
+\qquad
+r_i^{\,v}(c):=\frac{\hat P_i^{\,v}(c)}{P_i^{\,v}}.
+\]
+From the validation predictions on fold \(v\), we compute a predictive performance score \(\mathrm{Perf}_v(c)\), written so that larger values are preferred, together with fold-level assessment diagnostics \(Q_{m,v}(c)\). If one starts from an error metric \(E_v(c)\) that is minimized, such as MSE, RMSE, or MAE, one may simply set \(\mathrm{Perf}_v(c):=-E_v(c)\).
+
+To aggregate results across folds, let \(\alpha_v\ge 0\) satisfy \(\sum_v \alpha_v=1\), and define
+\[
+\bar{\mathrm{Perf}}(c):=\sum_{v\in\mathcal V}\alpha_v\,\mathrm{Perf}_v(c),
+\qquad
+\bar Q_m(c):=\sum_{v\in\mathcal V}\alpha_v\,Q_{m,v}(c).
+\]
+The default choice is uniform weighting, \(\alpha_v=1/V\), although the same formulation allows non-uniform weights when one wishes to emphasize more recent validation windows.
+
+We then select a single deployed model by solving
+\begin{align}
+\label{eq:model_selection_single}
+c^\star
+\in
+\argmax_{c\in\mathcal C}
+\quad
+& \bar{\mathrm{Perf}}(c)
+\\
+\text{s.t.}\quad
+& \underline{\kappa}_m\le \bar Q_m(c)\le \overline{\kappa}_m,
+\qquad m\in\mathcal M_{\mathrm{int}},
+\nonumber\\
+& \bar Q_m(c)\le \overline{\kappa}_m,
+\qquad m\in\mathcal M_{\mathrm{up}}.
+\nonumber
+\end{align}
+Here, \(\mathcal M_{\mathrm{int}}\) indexes diagnostics constrained to lie in admissible intervals, while \(\mathcal M_{\mathrm{up}}\) indexes diagnostics handled through upper bounds only. Typical elements of \(\mathcal M_{\mathrm{int}}\) include mean ratio, weighted mean ratio, median ratio, VEI, PRD, and PRB. Typical elements of \(\mathcal M_{\mathrm{up}}\) include COD and COV.
+
+Formulation \eqref{eq:model_selection_single} deliberately avoids collapsing all validation criteria into a single weighted score. Predictive performance remains the objective, while ratio-study, regressivity, and dispersion diagnostics enter as explicit feasibility requirements. This mirrors assessor calibration more closely than a purely accuracy-driven ranking rule.
+
+\subsection{Recipe-Like Interpretation}
+
+The constrained single-model procedure can be read as the following practical recipe:
+\begin{enumerate}[leftmargin=1.6em]
+    \item Specify a finite candidate set \(\mathcal C\) containing baseline and covariance-penalized variants.
+    \item Fit each candidate on each validation fold and compute validation predictions.
+    \item Compute the chosen predictive score \(\mathrm{Perf}_v(c)\) and assessment diagnostics \(Q_{m,v}(c)\) on each fold.
+    \item Aggregate those fold-level quantities into \(\bar{\mathrm{Perf}}(c)\) and \(\bar Q_m(c)\).
+    \item Discard all configurations that violate any active assessment-quality constraint.
+    \item Rank the remaining feasible configurations by aggregated predictive performance and select the best one.
+    \item Refit the selected configuration on the full pre-assessment development sample.
+\end{enumerate}
+The only substantive departure from the usual accuracy-only workflow lies in Steps 5--6: instead of ranking all candidates solely by predictive error, the constrained version first screens for feasibility and then ranks only the feasible models by predictive performance.
+
+\subsection{Why Not Impose Hard Regressivity Constraints During Training?}
+
+A natural question is whether one should constrain PRD, PRB, or VEI directly inside the learning problem. Three practical considerations argue against making that the main route in the present paper. First, hard fairness constraints can be infeasible or unstable in sample, especially for simpler models. Second, complex dependence constraints can fail to generalize out of sample because the empirical market-value distribution changes over time. Third, direct constraints on diagnostics such as VEI are often nonconvex or nondifferentiable and therefore require substantially more sophisticated optimization machinery. For these reasons, we treat soft penalties plus constrained downstream calibration as the main practical workflow.
+
+\subsection{Convex Stacking as an Extension}
+
+A natural extension of \eqref{eq:model_selection_single} is to allow convex combinations of candidate predictions rather than selecting only one configuration. In the single-model case, calibration is a constrained sorting problem over finitely many candidates. In the stacking case, the decision variable becomes a nonnegative weight vector on the simplex, and calibration becomes a constrained optimization problem over those weights. When the objective is mean squared error and the active constraints are expressed through affine price-scale quantities such as mean ratio, weighted mean ratio, and PRD box constraints, the resulting problem can be formulated as a convex quadratic program. We view this as a promising extension, but not as the main contribution of the present paper.
+
+\section{Empirical Study: CCAO-Derived Pipeline}
+\label{sec:empirical}
+
+\subsection{Pipeline Provenance, Scope, and Data Splits}
+
+The empirical study is based on a Cook County Assessor's Office--derived workflow. Pre-training steps follow the \texttt{model-res-avm} codebase and the \texttt{assessment-year-2025} pipeline, including data preparation, preprocessing, and feature engineering, implemented in Python~3.10.14 as a translation of the original R-based workflow. The temporal splits are chosen to mimic a realistic assessor setting: 2016--2022 form the train/validation development period, 2023 is used as the out-of-time test year, and 2024 is treated as the current assessment year reserved for later deployment analysis.
+
+At the current stage of the project, the empirical evidence reported in the manuscript comes from the validation and test components of this translated pipeline. The final paper should continue to state clearly whether any remaining differences persist between the translated implementation and the original production workflow, since that distinction matters for both reproducibility and external interpretation.
+
+\begin{table}[t]
+\centering
+\caption{Temporal data splits in the CCAO-derived pipeline.}
+\label{tab:data_splits}
+\begin{tabular}{lll}
+\toprule
+Split & Begin date & End date \\
+\midrule
+Train/Validation & Jan.\ 01, 2016 & Dec.\ 31, 2022 \\
+Test & Jan.\ 01, 2023 & Dec.\ 31, 2023 \\
+Assessment & Jan.\ 01, 2024 & Dec.\ 27, 2024 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Preprocessing, Filtering, and Sample Construction}
+
+Because the empirical contribution is intended as a real workflow study rather than a purely conceptual example, the final paper should report the main inclusion rules, exclusion rules, and final sample sizes used in the translated CCAO pipeline. Table~\ref{tab:sample_construction_placeholder} is a placeholder for that information. At a minimum, the final version should document the property scope, any multicard or outlier exclusions, the construction of the sale-price target, and the final observation counts by temporal split.
+
+\begin{table}[t]
+\centering
+\caption{Placeholder for sample construction summary. Replace with the final counts and main filtering rules from the experiment pipeline.}
+\label{tab:sample_construction_placeholder}
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert final sample-construction table here.} Suggested columns: stage, main rule applied, number of remaining observations, and split-specific counts. Suggested rows: raw extract, sale verification filters, multicard exclusion, outlier exclusion, modeling-ready sample, and split counts for train/validation, test, and assessment.
+}}
+\end{table}
+
+\subsection{Exact Validation Windows and Fold Weights}
+
+The constrained calibration framework in Section~\ref{sec:model_selection} is defined over validation folds, so the final paper should report the exact rolling-origin or expanding-window construction used inside the 2016--2022 development period. Table~\ref{tab:fold_definition_placeholder} is a placeholder for that exact specification. This should include the training window, validation window, whether the training sample expands over time, and the fold weights \(\alpha_v\) used in metric aggregation.
+
+\begin{table}[t]
+\centering
+\caption{Placeholder for exact validation-window construction.}
+\label{tab:fold_definition_placeholder}
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert final fold-definition table here.} Suggested columns: fold index, training years, validation years, number of validation observations, and aggregation weight \(\alpha_v\). This table should make the calibration protocol fully reproducible.
+}}
+\end{table}
+
+\subsection{Baseline Tension: Linear Versus Nonlinear Models}
+
+The empirical story begins with a familiar tension. On the test set, the baseline LightGBM model substantially improves predictive accuracy relative to linear regression, but it also worsens vertical-equity diagnostics. Table~\ref{tab:baseline_models} reports the current benchmark comparison. Relative to linear regression, the baseline LightGBM model improves \(R^2\), MAE, COD, and COV, but its VEI, PRD, PRB, and MKI values are materially more regressive. This is the main empirical motivation for the paper: stronger nonlinear predictive fit does not automatically imply better vertical equity.
+
+\begin{table}[t]
+\centering
+\caption{Baseline comparison on the test set. Lower is better for MAE, COD, and COV. For VEI and PRB, values closer to zero are preferred; for PRD and MKI, values closer to one are preferred.}
+\label{tab:baseline_models}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Model & \(R^2\) & MAE & COD & COV & VEI & PRD & PRB & MKI \\
+\midrule
+Linear Regression & 0.798 & \$85{,}273 & 24.306 & 0.354 & 6.223\% & 1.016 & 0.033 & 1.009 \\
+LGBM Regressor & 0.860 & \$73{,}398 & 21.647 & 0.330 & -31.431\% & 1.082 & -0.108 & 0.890 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Table~\ref{tab:baseline_models} should be paired with the main motivation plot in the final version. Figure~\ref{fig:baseline_regressivity_placeholder} is the placeholder for that visual.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert baseline regressivity plot here.} Suggested figure: assessment ratio \(r=\hat P/P\) versus log market value under the baseline LightGBM model, including the horizontal \(r=1\) line, a LOWESS trend, and an optional linear trend line. This is the main visual motivation for the regressivity problem.
+}}
+\caption{Placeholder for the baseline regressivity motivation figure.}
+\label{fig:baseline_regressivity_placeholder}
+\end{figure}
+
+\subsection{Effect of Covariance Penalization}
+
+We next add covariance-aware penalties to the baseline LightGBM learner. The current empirical results show the basic mechanism clearly. For the baseline model, the ratio--log-value relationship exhibits a strong negative trend, with a reported linear slope of approximately \(-0.2156\) and ratio--price correlation of approximately \(-0.2666\). Under the squared covariance penalty, the slope moves to about \(-0.1263\) and the correlation to about \(-0.1224\). Under the separable surrogate penalty, the slope moves even closer to flat, about \(-0.0222\), and the correlation to about \(-0.0239\). These are not deployment diagnostics by themselves, but they visually illustrate that the training-time penalties act in the intended direction.
+
+The final paper should show that before/after comparison directly. Figure~\ref{fig:penalty_mechanism_placeholder} is the placeholder for the main paired ratio-trend figure.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert before/after penalty mechanism figure here.} Suggested layout: two panels comparing baseline LightGBM against a squared-covariance or surrogate-penalized LightGBM, each showing ratio versus log value, the \(r=1\) line, and trend overlays. Add the reported slope and correlation summaries in the caption or callout box.
+}}
+\caption{Placeholder for the main mechanism figure showing how covariance penalization flattens the ratio--value trend.}
+\label{fig:penalty_mechanism_placeholder}
+\end{figure}
+
+\subsection{Penalized LightGBM Performance on the Test Set}
+
+Table~\ref{tab:penalized_models} summarizes the current test-set results for the main penalized LightGBM variants. All four reported penalized models move the vertical-equity diagnostics sharply toward assessor-preferred ranges. For example, the baseline LightGBM has PRD \(=1.082\) and PRB \(=-0.108\), both strongly regressive, whereas the penalized variants move PRD into the 1.029--1.030 range and PRB into the \(-0.026\) to \(0.008\) range. At the same time, the best reported squared-covariance configuration improves \(R^2\) from \(0.860\) to \(0.880\) and improves MAE from \$73{,}398 to \$70{,}855. These results are exactly the kind of middle-ground behavior the method is designed to find.
+
+\begin{table}[t]
+\centering
+\caption{Covariance-penalized LightGBM results on the test set. The reported \(\rho\) values are penalty-specific tuning parameters and are not directly comparable across penalty definitions.}
+\label{tab:penalized_models}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrrr}
+\toprule
+Model & \(\rho\) & \(R^2\) & MAE & COD & COV & VEI & PRD & PRB & MKI \\
+\midrule
+LGBM Regressor & -- & 0.860 & \$73{,}398 & 21.647 & 0.330 & -31.431\% & 1.082 & -0.108 & 0.890 \\
+LGBMSurrPenalty [v1] & 2.043 & 0.872 & \$74{,}579 & 21.770 & 0.316 & -0.043\% & 1.030 & 0.003 & 0.970 \\
+LGBMSurrPenalty [v2] & 280.7 & 0.867 & \$75{,}641 & 21.829 & 0.313 & 3.403\% & 1.029 & 0.008 & 0.970 \\
+LGBMCovPenalty [v1] & 6.58 & 0.877 & \$72{,}042 & 21.693 & 0.319 & -6.579\% & 1.030 & -0.026 & 0.989 \\
+LGBMCovPenalty [v2] & 1487.0 & 0.880 & \$70{,}855 & 21.467 & 0.317 & -4.043\% & 1.029 & -0.022 & 0.986 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+If desired, the final paper can also add a second table with percentage improvements relative to the baseline LightGBM model. That presentation is useful for quick interpretation, but Table~\ref{tab:penalized_models} should remain the primary source of the raw metric values.
+
+\subsection{Tradeoff Frontiers}
+
+The current results indicate that increasing \(\rho\) traces a meaningful accuracy--equity tradeoff curve rather than producing a degenerate monotone sacrifice of fit. In PRD--\(R^2\) space, the penalized models move from the unconstrained LightGBM point toward the assessor compliance band while remaining near the upper edge of the accuracy frontier. A similar pattern appears in VEI--\(R^2\) space. These frontier views justify the constrained calibration logic of Section~\ref{sec:model_selection}: in a genuinely multi-criteria setting, the practical question is not which model is globally best, but which feasible model offers the best accuracy among those that satisfy the chosen assessment-quality requirements.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert frontier figure(s) here.} Suggested layout: one panel for PRD versus \(R^2\) with the compliance band indicated, and one panel for VEI versus \(R^2\). Label baseline linear regression, baseline LightGBM, and the penalized families across increasing \(\rho\).
+}}
+\caption{Placeholder for the main accuracy--equity frontier figure.}
+\label{fig:frontier_placeholder}
+\end{figure}
+
+
+
+
+
+\subsection{Validation-Fold Constrained Calibration}
+
+One of the paper's methodological contributions is the constrained calibration rule of Section~\ref{sec:model_selection}, so the empirical section should also instantiate that rule directly. The final version should report the exact active validation constraints, the number of candidate configurations evaluated, the number of feasible configurations, the selected configuration, and the corresponding performance on the untouched test year. Table~\ref{tab:calibration_constraints_placeholder} and Table~\ref{tab:selected_model_placeholder} are placeholders for that information.
+
+\begin{table}[t]
+\centering
+\caption{Placeholder for the exact empirical calibration rule used on validation folds.}
+\label{tab:calibration_constraints_placeholder}
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert final calibration-constraints table here.} Suggested columns: diagnostic, constraint type, lower bound, upper bound, and whether the constraint is aggregated across folds or enforced foldwise. Typical rows may include PRD, PRB, VEI, COD, COV, and ratio-statistic guardrails.
+}}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Placeholder for the final selected configuration under constrained calibration.}
+\label{tab:selected_model_placeholder}
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert selected-model summary here.} Suggested rows or columns: selected model family, penalty type, \(\rho\), number of feasible candidates, best infeasible accuracy-only model, final selected feasible model, and held-out test metrics for the selected configuration.
+}}
+\end{table}
+
+This subsection is also the natural place to explain any difference between (i) the full frontier of candidate models and (ii) the single final model selected for deployment under the chosen assessment-quality requirements.
+
+\subsection{Uncertainty, Stability, and Fold Heterogeneity}
+
+Because regressivity diagnostics can be noisy across time windows, the final paper should also report a stability summary rather than relying only on point estimates. This can be done through bootstrap confidence intervals on the held-out test metrics, foldwise distributions across validation windows, or both. Figure~\ref{fig:stability_placeholder} is the placeholder for that summary.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\textwidth}{
+\textbf{Insert stability/uncertainty figure here.} Suggested options: foldwise boxplots for PRD, PRB, VEI, COD, and \(R^2\); bootstrap confidence intervals for the selected model versus the main baselines; or a table of foldwise means and standard deviations.
+}}
+\caption{Placeholder for stability and uncertainty reporting.}
+\label{fig:stability_placeholder}
+\end{figure}
+
+\subsection{Practical Implications for Assessor Workflows}
+
+The empirical message is operationally simple. The method can be inserted into an existing valuation workflow with minimal changes. It uses the same preprocessing, the same base model classes, and the same downstream diagnostics already familiar to assessors. It adds one main penalty parameter with a transparent qualitative effect: larger \(\rho\) values tend to move models toward less regressive behavior. This makes the method attractive not only because it improves the attainable tradeoffs, but because it does so in a form that can be calibrated, audited, and communicated within existing assessor practice.
+
+
+
+\section{Discussion and Conclusion}
+\label{sec:discussion}
+
+The paper's main message is that high predictive accuracy does not guarantee vertical equity, and that this gap can be addressed within standard assessor workflows by adding a practical dependence-control term to existing learners. In mass appraisal, regressivity is already understood by assessors as a systematic pattern in the relationship between assessment outcomes and value level. Fair-regression theory suggests a natural way to act on that pattern directly during training, and the CCAO-derived empirical study shows that doing so can materially improve vertical-equity diagnostics with little or no predictive cost.
+
+Just as importantly, the contribution is not only mathematical. The proposed method preserves the model classes, diagnostics, and calibration logic that assessor offices already use. In that sense, the paper is not advocating a radical workflow redesign. It is showing that a modest, well-targeted correction can shift the attainable accuracy--equity frontier in a practically meaningful way.
+
+The revised organization of the manuscript also clarifies the role of each layer of the contribution. The theory section explains why regressivity can be interpreted as a dependence problem; the implementation sections show how that dependence control enters familiar learners; the calibration section separates model design from model choice; and the empirical section grounds the method in a real assessor-derived workflow. This separation improves the paper's narrative discipline and makes the practical contribution easier to interpret.
+
+\section{Limitations and Future Work}
+\label{sec:limitations}
+
+The proposed solution has important limitations. First, it does not directly constrain deployment-facing regressivity measures such as PRD, PRB, VEI, or MKI during training; instead, it targets a simpler dependence proxy and relies on downstream calibration for final feasibility. Second, we do not currently provide out-of-sample guarantees for regressivity control. Third, covariance-style penalties mainly target linear-type dependence and therefore may miss more complex nonlinear price-tier distortions. Fourth, the current penalties are not submarket-aware and may average away local inequities tied to geography, class, or neighborhood structure.
+
+These limitations suggest several directions for future work. One is to move beyond covariance and penalize richer dependence measures such as HSIC, distance covariance, or maximal correlation. Another is to develop submarket-aware or stratified penalties that avoid averaging away local inequities. A third is to study interpretable nonlinear learners, such as GAMs or EBMs, under vertical-equity control. A fourth is to expand the downstream calibration framework to convex stacking or other robust aggregation schemes when the goal is to enlarge the attainable accuracy--equity frontier beyond the single-model case. Finally, broader cross-jurisdiction empirical validation will be needed to assess how robust the observed tradeoffs are outside the present CCAO-derived pipeline.
+
+\appendix
+
+\section{Notation Summary}
+\label{app:notation}
+
+\begin{table}[h]
+\centering
+\caption{Notation summary for the main text.}
+\label{tab:notation_summary}
+\begin{tabular}{p{0.18\textwidth}p{0.73\textwidth}}
+\toprule
+Symbol & Meaning \\
+\midrule
+\(x_i\) & Observed feature vector for property \(i\) \\
+\(p_i\), \(P_i\) & Observed sale price / market value proxy for property \(i\) \\
+\(y_i\) & Log sale price, \(y_i=\log p_i\) \\
+\(\hat y_i\) & Model prediction on the log-price scale \\
+\(\hat P_i\) & Model prediction on the price scale, \(\hat P_i=\exp(\hat y_i)\) \\
+\(r_i\) & Assessment-to-sale ratio, \(r_i=\hat P_i/p_i\) \\
+\(e_i\) & Log-residual or log-ratio proxy, \(e_i=\hat y_i-y_i\) \\
+\(\Psi_n\) & Dependence-control penalty \\
+\(\rho\) & Penalty weight controlling the strength of the regressivity correction \\
+\(\mathcal C\) & Finite set of candidate model configurations \\
+\(\mathcal V\) & Set of validation folds or temporal validation windows \\
+\(\mathrm{Perf}_v(c)\) & Fold-\(v\) predictive performance score for configuration \(c\) \\
+\(Q_{m,v}(c)\) & Fold-\(v\) diagnostic \(m\) for configuration \(c\) \\
+\(\alpha_v\) & Weight assigned to validation fold \(v\) in aggregated calibration \\
+\(\mathcal M_{\mathrm{int}}\) & Set of diagnostics constrained to lie within intervals \\
+\(\mathcal M_{\mathrm{up}}\) & Set of diagnostics constrained only by upper bounds \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Additional Metric Notes}
+
+The main text uses COD, PRD, PRB, and VEI as the primary assessor-facing diagnostics. In the empirical tables we additionally report COV and MKI as supplementary summaries. Following the conventions used in the empirical discussion, lower values are preferred for MAE, COD, and COV; values closer to zero are preferred for VEI and PRB; and values closer to one are preferred for PRD and MKI.
+
+\section{General Learner View}
+
+The covariance-regularization framework can be summarized at a high level as follows. Given a hypothesis class \(\mathcal H\), a baseline learner solves
+\[
+f^\star\in\argmin_{f\in\mathcal H}L(f;X,y)=\argmin_{f\in\mathcal H}\{J(f;X,y)+\Omega(f)\},
+\]
+where \(J\) is the empirical risk and \(\Omega\) is a complexity regularizer. We then add a vertical-equity dependence-control term and solve either a hard-constrained version
+\[
+\min_{f\in\mathcal H}L(f;X,y)\quad\text{s.t.}\quad
+\widehat{\Cov}_n\!\bigl(g(\hat y,y),\phi(y)\bigr)^2\le \varepsilon,
+\]
+or, as in the present paper, the soft-penalty version
+\[
+\min_{f\in\mathcal H}L(f;X,y)+\rho\,\widehat{\Cov}_n\!\bigl(g(\hat y,y),\phi(y)\bigr)^2.
+\]
+This highlights the practical meaning of the approach: take an existing assessor model and add one tunable term that discourages price-tier bias.
+
+\section{Optional Algorithmic Details Placeholder}
+
+If the final paper includes algorithmic pseudocode for the exact squared-covariance boosting implementation, it can be placed here without interrupting the main narrative. A natural appendix organization is:
+\begin{enumerate}[leftmargin=1.5em]
+    \item exact Newton-style boosting with the squared covariance penalty,
+    \item first-order approximation if used in practice,
+    \item any diagonal-Hessian approximation details for LightGBM interfaces, and
+    \item computational complexity notes relative to standard boosting.
+\end{enumerate}
+
+\printbibliography
+
+\end{document}

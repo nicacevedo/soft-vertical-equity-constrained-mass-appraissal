@@ -81,6 +81,20 @@ def _prepare_df(df: pd.DataFrame) -> pd.DataFrame:
     return dfx
 
 
+def _parse_constraint_metrics(raw: Any) -> List[str]:
+    return [str(x).strip().upper() for x in str(raw).split(",") if str(x).strip()]
+
+
+def _format_constraint_metrics_label(metric_ids: List[str]) -> str:
+    if not metric_ids:
+        return ""
+    if len(metric_ids) == 1:
+        return metric_ids[0]
+    if len(metric_ids) == 2:
+        return f"{metric_ids[0]} and {metric_ids[1]}"
+    return f"{', '.join(metric_ids[:-1])}, and {metric_ids[-1]}"
+
+
 def _summary_by_config(runs_df: pd.DataFrame) -> pd.DataFrame:
     dfx = _prepare_df(runs_df)
     agg_cols = [
@@ -607,6 +621,141 @@ def _load_positive_weight_tables(analysis_dir: Path) -> List[Dict[str, Any]]:
                 "weights_df": wdf,
             }
         )
+    for spec in _load_simple_model_selection_weight_tables(analysis_dir):
+        out.append(spec)
+    return out
+
+
+def _load_simple_model_selection_specs(analysis_dir: Path) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    path = analysis_dir / "simple_model_selection" / "selection_summary.csv"
+    if not path.exists():
+        return out
+    try:
+        sdf = pd.read_csv(path)
+    except Exception:
+        return out
+    required = {"row_kind", "status", "config_id"}
+    if not required.issubset(set(sdf.columns)):
+        return out
+    sdf = sdf.copy()
+    sdf["row_kind"] = sdf["row_kind"].astype(str)
+    sdf["status"] = sdf["status"].astype(str)
+    sdf["config_id"] = sdf["config_id"].astype(str)
+    sdf = sdf[
+        (sdf["row_kind"] == "summary")
+        & (sdf["status"].isin(["selected", "selected_closest_infeasible"]))
+        & (sdf["config_id"].str.len() > 0)
+    ].copy()
+    if sdf.empty:
+        return out
+    seen: set[tuple[str, str, str]] = set()
+    for row in sdf.itertuples(index=False):
+        config_id = str(getattr(row, "config_id", "")).strip()
+        model_family = str(
+            getattr(
+                row,
+                "model_family",
+                getattr(row, "comparison_group", getattr(row, "model_name", "UNKNOWN")),
+            )
+        ).strip()
+        selection_method = str(getattr(row, "selection_method", "")).strip().lower()
+        status = str(getattr(row, "status", "")).strip()
+        constraint_metric_ids = _parse_constraint_metrics(getattr(row, "constraint_metrics", ""))
+        constrained_metrics = str(getattr(row, "constraint_metrics_label", "")).strip()
+        if not constrained_metrics:
+            constrained_metrics = _format_constraint_metrics_label(constraint_metric_ids)
+        dedupe_key = (config_id, model_family, selection_method, ",".join(constraint_metric_ids))
+        if not config_id or dedupe_key in seen:
+            continue
+        model_config_json = str(getattr(row, "model_config_json", "")).strip()
+        rho = _extract_rho_from_config_json(model_config_json) if model_config_json else np.nan
+        solution_name = model_family
+        if selection_method:
+            solution_name = f"{solution_name}_{selection_method.upper()}"
+        if status == "selected_closest_infeasible":
+            solution_name = f"{solution_name}_CLOSEST_INFEASIBLE"
+        out.append(
+            {
+                "config_id": config_id,
+                "model_family": model_family,
+                "solution_name": solution_name,
+                "family": "simple_selection",
+                "rho": rho,
+                "selection_method": selection_method,
+                "constrained_metrics": constrained_metrics,
+            }
+        )
+        seen.add(dedupe_key)
+    return out
+
+
+def _load_simple_model_selection_weight_tables(analysis_dir: Path) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    path = analysis_dir / "simple_model_selection" / "selection_summary.csv"
+    if not path.exists():
+        return out
+    try:
+        sdf = pd.read_csv(path)
+    except Exception:
+        return out
+    required = {"row_kind", "status", "stacking_weights_csv"}
+    if not required.issubset(set(sdf.columns)):
+        return out
+    sdf = sdf.copy()
+    sdf["row_kind"] = sdf["row_kind"].astype(str)
+    sdf["status"] = sdf["status"].astype(str)
+    sdf["stacking_weights_csv"] = sdf["stacking_weights_csv"].astype(str)
+    sdf = sdf[
+        (sdf["row_kind"] == "stacking_summary")
+        & (sdf["status"].isin(["selected", "selected_closest_infeasible"]))
+        & (sdf["stacking_weights_csv"].str.len() > 0)
+    ].copy()
+    if sdf.empty:
+        return out
+
+    seen_keys: set[tuple[str, str]] = set()
+    for row in sdf.itertuples(index=False):
+        weights_path = Path(str(getattr(row, "stacking_weights_csv", "")).strip())
+        if not weights_path.exists():
+            continue
+        constraint_metric_ids = _parse_constraint_metrics(getattr(row, "constraint_metrics", ""))
+        constrained_metrics = str(getattr(row, "constraint_metrics_label", "")).strip()
+        if not constrained_metrics:
+            constrained_metrics = _format_constraint_metrics_label(constraint_metric_ids)
+        solution_name = str(
+            getattr(
+                row,
+                "stacking_solution_name",
+                getattr(row, "model_name", getattr(row, "comparison_group", "SIMPLE_SELECTION_STACKING")),
+            )
+        ).strip()
+        status = str(getattr(row, "status", "")).strip()
+        if status == "selected_closest_infeasible":
+            solution_name = f"{solution_name}_CLOSEST_INFEASIBLE"
+        dedupe_key = (solution_name, ",".join(constraint_metric_ids))
+        if not solution_name or dedupe_key in seen_keys:
+            continue
+        try:
+            wdf = pd.read_csv(weights_path)
+        except Exception:
+            continue
+        if "config_id" not in wdf.columns or "weight" not in wdf.columns:
+            continue
+        wdf["config_id"] = wdf["config_id"].astype(str)
+        wdf["weight"] = pd.to_numeric(wdf["weight"], errors="coerce").fillna(0.0)
+        wdf = wdf[wdf["weight"] > 0.0].copy()
+        if wdf.empty:
+            continue
+        out.append(
+            {
+                "solution_name": solution_name,
+                "family": "simple_selection_stacking",
+                "weights_df": wdf,
+                "constrained_metrics": constrained_metrics,
+            }
+        )
+        seen_keys.add(dedupe_key)
     return out
 
 
@@ -669,6 +818,19 @@ def _blend_with_white(color: Any, intensity: float) -> Tuple[float, float, float
     rgb = np.asarray(mcolors.to_rgb(color), dtype=float)
     t = float(np.clip(intensity, 0.0, 1.0))
     return tuple(((1.0 - t) * np.ones(3) + t * rgb).tolist())
+
+
+def _format_rho_label(value: float) -> str:
+    if not np.isfinite(value):
+        return "rho=nan"
+    if value == 0.0:
+        return "rho=0"
+    abs_val = abs(float(value))
+    if abs_val >= 1000.0 or abs_val < 0.01:
+        return f"rho={value:.1e}"
+    if abs_val >= 10.0:
+        return f"rho={value:.1f}"
+    return f"rho={value:.3g}"
 
 
 def _add_iaao_reference_band(ax, metric_col: str, axis: str = "y") -> None:
@@ -1018,14 +1180,16 @@ def _plot_tradeoff(
 ) -> int:
     dfx = df.copy()
     dfx = dfx[np.isfinite(dfx[x_col]) & np.isfinite(dfx[y_col])].copy()
+    if dfx.empty:
+        return 0
 
     x = dfx[x_col].to_numpy(dtype=float)
     y = dfx[y_col].to_numpy(dtype=float)
     # Tradeoff convention: x=fairness deviation (lower is better), y=accuracy (higher is better).
     pareto = _compute_2d_pareto_mask(x, y, maximize_x=False, minimize_y=False)
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.grid(True, alpha=0.35)
+    fig, ax = plt.subplots(figsize=(9.2, 6.2))
+    ax.grid(True, linestyle=":", alpha=0.4)
 
     if "model_config_json" in dfx.columns:
         dfx["_plot_model_name"] = [
@@ -1037,39 +1201,101 @@ def _plot_tradeoff(
     dfx["_rho"] = dfx["model_config_json"].apply(_extract_rho_from_config_json) if "model_config_json" in dfx.columns else np.nan
     dfx["_model_name"] = dfx["_plot_model_name"].astype(str)
 
+    _add_iaao_reference_band(ax, x_col, axis="x")
+
     for model_name, g in dfx.groupby("_model_name", sort=True):
         is_baseline = str(model_name) in {"LR", "LGBM"}
-        marker = "*" if is_baseline else "o"
-        size = 120 if is_baseline else 30
         base_color = model_color_map.get(model_name, "C0")
+        gplot = g.copy()
+        gplot["_rho"] = pd.to_numeric(gplot["_rho"], errors="coerce")
+        if np.isfinite(gplot["_rho"]).any():
+            gplot = gplot.sort_values("_rho", kind="mergesort")
+        else:
+            gplot = gplot.sort_values([x_col, y_col], kind="mergesort")
 
-        rho_vals = pd.to_numeric(g["_rho"], errors="coerce").to_numpy(dtype=float)
+        x_vals = gplot[x_col].to_numpy(dtype=float)
+        y_vals = gplot[y_col].to_numpy(dtype=float)
+
+        if is_baseline:
+            ax.scatter(
+                x_vals,
+                y_vals,
+                s=150,
+                marker="*",
+                color=base_color,
+                edgecolors="black",
+                linewidths=0.6,
+                alpha=0.98,
+                zorder=4,
+                label=model_name,
+            )
+            continue
+
+        rho_vals = gplot["_rho"].to_numpy(dtype=float)
         finite = np.isfinite(rho_vals)
-        intensities = np.full(g.shape[0], 0.80 if is_baseline else 0.55, dtype=float)
         if np.any(finite):
-            # Higher rho -> more intense color; use log scale for stability across decades.
             log_rho = np.log10(np.maximum(rho_vals[finite], 1e-12))
             lo, hi = float(np.nanmin(log_rho)), float(np.nanmax(log_rho))
             if hi > lo:
-                norm = (log_rho - lo) / (hi - lo)
+                intensities = np.full_like(rho_vals, 0.85, dtype=float)
+                intensities[finite] = 0.35 + 0.65 * ((log_rho - lo) / (hi - lo))
             else:
-                norm = np.ones_like(log_rho)
-            intensities[finite] = 0.35 + 0.65 * norm
+                intensities = np.full_like(rho_vals, 0.85, dtype=float)
+        else:
+            intensities = np.full(gplot.shape[0], 0.70, dtype=float)
+        colors = [_blend_with_white(base_color, val) for val in intensities.tolist()]
 
-        colors = [_blend_with_white(base_color, t) for t in intensities.tolist()]
+        if len(x_vals) > 1:
+            ax.plot(x_vals, y_vals, color=base_color, linewidth=1.8, alpha=0.8, zorder=2)
+            for idx in range(len(x_vals) - 1):
+                ax.annotate(
+                    "",
+                    xy=(x_vals[idx + 1], y_vals[idx + 1]),
+                    xytext=(x_vals[idx], y_vals[idx]),
+                    arrowprops=dict(
+                        arrowstyle="-|>",
+                        color=base_color,
+                        lw=0.8,
+                        alpha=0.5,
+                        shrinkA=3,
+                        shrinkB=3,
+                        mutation_scale=10,
+                    ),
+                    zorder=2,
+                )
+
         ax.scatter(
-            g[x_col].to_numpy(dtype=float),
-            g[y_col].to_numpy(dtype=float),
-            s=size,
-            marker=marker,
+            x_vals,
+            y_vals,
+            s=48,
             c=colors,
+            edgecolors=base_color,
+            linewidths=0.8,
             alpha=0.95,
+            zorder=3,
             label=model_name,
         )
 
-    ax.scatter(x[pareto], y[pareto], s=100, facecolors="none", edgecolors="black", linewidths=1.6, label="pareto (2D)")
+        if np.isfinite(rho_vals[0]):
+            ax.annotate(
+                _format_rho_label(float(rho_vals[0])),
+                xy=(x_vals[0], y_vals[0]),
+                xytext=(4, 6),
+                textcoords="offset points",
+                fontsize=7,
+                color=base_color,
+            )
+        if len(x_vals) > 1 and np.isfinite(rho_vals[-1]):
+            ax.annotate(
+                _format_rho_label(float(rho_vals[-1])),
+                xy=(x_vals[-1], y_vals[-1]),
+                xytext=(4, -10),
+                textcoords="offset points",
+                fontsize=7,
+                color=base_color,
+            )
 
-    _add_iaao_reference_band(ax, x_col, axis="x")
+    ax.scatter(x[pareto], y[pareto], s=100, facecolors="none", edgecolors="black", linewidths=1.6, label="pareto (2D)")
 
     if overlay_points is not None and not overlay_points.empty:
         o = overlay_points.copy()
@@ -1155,17 +1381,25 @@ def _plot_tradeoff(
                     s=150,
                     marker=marker,
                     color=color,
+                    edgecolors="black",
+                    linewidths=0.6,
                     alpha=0.95,
+                    zorder=5,
                     label=label,
                 )
 
     ax.set_title(title)
     ax.set_xlabel(x_col)
     ax.set_ylabel(y_col)
-    ax.legend(loc="best", frameon=True)
+    handles, labels = ax.get_legend_handles_labels()
+    deduped: Dict[str, Any] = {}
+    for handle, label in zip(handles, labels):
+        if label and label not in deduped:
+            deduped[label] = handle
+    ax.legend(list(deduped.values()), list(deduped.keys()), loc="best", frameon=True)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    fig.savefig(out_path, dpi=160)
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
     return int(dfx.shape[0])
 
@@ -2104,10 +2338,12 @@ def _build_final_model_comparison_taxation_metrics(
     """
     baseline_cfg = _select_baseline_config_ids(runs_df)
     weighted_specs = _load_positive_weight_tables(analysis_dir)
+    simple_selection_specs = _load_simple_model_selection_specs(analysis_dir)
     needed_val_config_ids = list(baseline_cfg.values())
     needed_val_config_ids.extend(
         cfg for spec in weighted_specs for cfg in spec["weights_df"]["config_id"].astype(str).tolist()
     )
+    needed_val_config_ids.extend(spec["config_id"] for spec in simple_selection_specs)
     needed_val_config_ids = list(dict.fromkeys(str(c) for c in needed_val_config_ids if str(c)))
 
     val_preds = _load_validation_predictions_subset_df(
@@ -2164,7 +2400,42 @@ def _build_final_model_comparison_taxation_metrics(
         except Exception:
             return {}
 
+    def _metrics_from_test_metrics_row(row: pd.Series) -> Dict[str, float]:
+        out: Dict[str, float] = {}
+        for col in [
+            "R2",
+            "OOS R2",
+            "R2 (log)",
+            "RMSE",
+            "MAE",
+            "MAPE",
+            "MdAPE",
+            "Corr(r,price)",
+            "Corr(r,logprice)",
+            "Slope(r~logy)",
+            "Std ratio",
+            "Median ratio",
+            "Mean ratio",
+            "W. Mean ratio",
+            "COD",
+            "COV_IAAO",
+            "VEI",
+            "PRD",
+            "PRB",
+            "MKI",
+        ]:
+            if col not in row.index:
+                continue
+            val = pd.to_numeric(row.get(col), errors="coerce")
+            if pd.notna(val):
+                out[str(col)] = float(val)
+        return out
+
     rows: List[Dict[str, Any]] = []
+    test_metrics_path = analysis_dir / "test_metrics.csv"
+    test_metrics_df = pd.read_csv(test_metrics_path) if test_metrics_path.exists() else pd.DataFrame()
+    if not test_metrics_df.empty and "config_id" in test_metrics_df.columns:
+        test_metrics_df["config_id"] = test_metrics_df["config_id"].astype(str)
 
     # Baseline rows
     for model_name, cfg_id in baseline_cfg.items():
@@ -2172,17 +2443,52 @@ def _build_final_model_comparison_taxation_metrics(
             v = val_preds[val_preds["config_id"] == str(cfg_id)].copy()
             mv = _metrics_from_arrays(v["y_true"].to_numpy(), v["y_pred"].to_numpy(), None)
             if mv:
-                rows.append({"split": "validation_avg", "solution": str(model_name), "family": "baseline", "config_id": str(cfg_id), **mv})
+                rows.append({"split": "validation_avg", "solution": str(model_name), "family": "baseline", "config_id": str(cfg_id), "rho": np.nan, "constrained_metrics": "", **mv})
         if not test_preds.empty and {"config_id", "y_true", "y_pred"}.issubset(set(test_preds.columns)):
             t = test_preds[test_preds["config_id"] == str(cfg_id)].copy()
             mt = _metrics_from_arrays(t["y_true"].to_numpy(), t["y_pred"].to_numpy(), y_train_test)
             if mt:
-                rows.append({"split": "test", "solution": str(model_name), "family": "baseline", "config_id": str(cfg_id), **mt})
+                rows.append({"split": "test", "solution": str(model_name), "family": "baseline", "config_id": str(cfg_id), "rho": np.nan, "constrained_metrics": "", **mt})
+
+    # Simple model-selection rows (if available for this split).
+    for spec in simple_selection_specs:
+        cfg_id = str(spec["config_id"])
+        sol_name = str(spec["solution_name"])
+        fam = str(spec["family"])
+        rho = spec.get("rho", np.nan)
+        constrained_metrics = str(spec.get("constrained_metrics", ""))
+        if not val_preds.empty and {"config_id", "y_true", "y_pred"}.issubset(set(val_preds.columns)):
+            v = val_preds[val_preds["config_id"] == cfg_id].copy()
+            mv = _metrics_from_arrays(v["y_true"].to_numpy(), v["y_pred"].to_numpy(), None)
+            if mv:
+                rows.append({"split": "validation_avg", "solution": sol_name, "family": fam, "config_id": cfg_id, "rho": rho, "constrained_metrics": constrained_metrics, **mv})
+        if not test_preds.empty and {"config_id", "y_true", "y_pred"}.issubset(set(test_preds.columns)):
+            t = test_preds[test_preds["config_id"] == cfg_id].copy()
+            mt = _metrics_from_arrays(t["y_true"].to_numpy(), t["y_pred"].to_numpy(), y_train_test)
+            if mt:
+                rows.append({"split": "test", "solution": sol_name, "family": fam, "config_id": cfg_id, "rho": rho, "constrained_metrics": constrained_metrics, **mt})
+            else:
+                mt_row = (
+                    test_metrics_df.loc[test_metrics_df["config_id"] == cfg_id, :].head(1)
+                    if not test_metrics_df.empty
+                    else pd.DataFrame()
+                )
+                mt = _metrics_from_test_metrics_row(mt_row.iloc[0]) if not mt_row.empty else {}
+                rows.append({"split": "test", "solution": sol_name, "family": fam, "config_id": cfg_id, "rho": rho, "constrained_metrics": constrained_metrics, **mt})
+        else:
+            mt_row = (
+                test_metrics_df.loc[test_metrics_df["config_id"] == cfg_id, :].head(1)
+                if not test_metrics_df.empty
+                else pd.DataFrame()
+            )
+            mt = _metrics_from_test_metrics_row(mt_row.iloc[0]) if not mt_row.empty else {}
+            rows.append({"split": "test", "solution": sol_name, "family": fam, "config_id": cfg_id, "rho": rho, "constrained_metrics": constrained_metrics, **mt})
 
     # Stacking rows from available weights files
     for spec in weighted_specs:
         sol_name = str(spec["solution_name"])
         wdf = spec["weights_df"].copy()
+        constrained_metrics = str(spec.get("constrained_metrics", ""))
 
         if not val_preds.empty and {"config_id", "run_id", "row_id", "y_true", "y_pred"}.issubset(set(val_preds.columns)):
             pv = val_preds[val_preds["config_id"].isin(wdf["config_id"])].copy()
@@ -2205,7 +2511,7 @@ def _build_final_model_comparison_taxation_metrics(
                         mv = _metrics_from_arrays(y_true, y_hat, None)
                         if mv:
                             fam = str(spec["family"])
-                            rows.append({"split": "validation_avg", "solution": sol_name, "family": fam, "config_id": "", **mv})
+                            rows.append({"split": "validation_avg", "solution": sol_name, "family": fam, "config_id": "", "rho": np.nan, "constrained_metrics": constrained_metrics, **mv})
 
         if not test_preds.empty and {"config_id", "row_id", "y_true", "y_pred"}.issubset(set(test_preds.columns)):
             pt = test_preds[test_preds["config_id"].isin(wdf["config_id"])].copy()
@@ -2228,12 +2534,12 @@ def _build_final_model_comparison_taxation_metrics(
                         mt = _metrics_from_arrays(y_true, y_hat, y_train_test)
                         if mt:
                             fam = str(spec["family"])
-                            rows.append({"split": "test", "solution": sol_name, "family": fam, "config_id": "", **mt})
+                            rows.append({"split": "test", "solution": sol_name, "family": fam, "config_id": "", "rho": np.nan, "constrained_metrics": constrained_metrics, **mt})
 
     if not rows:
         return pd.DataFrame()
     out = pd.DataFrame(rows)
-    pref = ["split", "family", "solution", "config_id"]
+    pref = ["split", "family", "solution", "config_id", "rho", "constrained_metrics"]
     other = [c for c in out.columns if c not in pref]
     return out.loc[:, pref + other].copy()
 

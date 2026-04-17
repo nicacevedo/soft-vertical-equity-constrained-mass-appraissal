@@ -1,0 +1,750 @@
+
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+
+\title{Gradient Boosting and Newton-Style Tree Boosting\\
+with a Squared Covariance Penalty}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Setup}
+
+Consider training data $\{(x_i,y_i)\}_{i=1}^n$, where $y_i$ is the log-price and $f_i := f(x_i)$ is the current prediction. Define the residual vector
+\[
+e := y - f \in \R^n,
+\qquad
+e_i = y_i - f_i.
+\]
+We study the empirical objective
+\begin{equation}
+\label{eq:main-objective}
+\mathcal{L}(f)
+=
+\frac{1}{2n}\sum_{i=1}^n (y_i-f_i)^2
++
+\frac{\rho}{2}\,\widehat{\Cov}(e,y)^2,
+\end{equation}
+where $\rho \ge 0$ is a regularization parameter and $\widehat{\Cov}(e,y)$ is the empirical covariance between the residuals and the target vector.
+
+We use the convention
+\[
+\widehat{\Cov}(e,y)
+=
+\frac{1}{n}\sum_{i=1}^n (e_i-\bar e)(y_i-\bar y),
+\]
+with
+\[
+\bar e = \frac{1}{n}\sum_{i=1}^n e_i,
+\qquad
+\bar y = \frac{1}{n}\sum_{i=1}^n y_i.
+\]
+
+Define the centered target vector
+\[
+c := y - \bar y \1 \in \R^n,
+\qquad
+c_i = y_i - \bar y.
+\]
+Since $\sum_{i=1}^n c_i = 0$, we have the exact identity
+\begin{equation}
+\label{eq:cov-linear-form}
+\widehat{\Cov}(e,y)
+=
+\frac{1}{n} e^\top c
+=
+\frac{1}{n}(y-f)^\top c.
+\end{equation}
+
+Therefore, the penalty term can be rewritten as
+\[
+\frac{\rho}{2}\left(\frac{1}{n}(y-f)^\top c\right)^2.
+\]
+This is a \emph{global rank-one quadratic penalty} in the prediction vector $f$, which is the reason the loss becomes nonseparable across observations.
+
+\paragraph{Notation.}
+For convenience, define
+\begin{equation}
+\label{eq:def-z}
+z := \widehat{\Cov}(e,y) = \frac{1}{n}(y-f)^\top c.
+\end{equation}
+Then \eqref{eq:main-objective} becomes
+\[
+\mathcal{L}(f)
+=
+\frac{1}{2n}\|y-f\|_2^2 + \frac{\rho}{2} z^2.
+\]
+
+\section{Gradient and Hessian with respect to the prediction vector}
+
+Because boosting optimizes over functions through their values on the training set, the relevant derivatives are those with respect to the vector $f=(f_1,\dots,f_n)^\top$.
+
+\subsection{Gradient}
+
+For the quadratic error term,
+\[
+\nabla_f \left(\frac{1}{2n}\|y-f\|_2^2\right)
+=
+\frac{1}{n}(f-y).
+\]
+
+Now, since
+\[
+z = \frac{1}{n}(y-f)^\top c,
+\]
+we get
+\[
+\nabla_f z = -\frac{1}{n}c.
+\]
+Hence
+\[
+\nabla_f \left(\frac{\rho}{2}z^2\right)
+=
+\rho z \nabla_f z
+=
+-\frac{\rho}{n}z\,c.
+\]
+
+Therefore, the full gradient is
+\begin{equation}
+\label{eq:gradient}
+g := \nabla_f \mathcal{L}(f)
+=
+\frac{1}{n}(f-y)
+-
+\frac{\rho}{n} z\,c.
+\end{equation}
+Componentwise,
+\begin{equation}
+\label{eq:gradient-components}
+g_i
+=
+\frac{f_i-y_i}{n}
+-
+\frac{\rho}{n}\,\widehat{\Cov}(e,y)\,(y_i-\bar y).
+\end{equation}
+
+Thus, the negative gradient is
+\begin{equation}
+\label{eq:neg-gradient}
+-g_i
+=
+\frac{y_i-f_i}{n}
++
+\frac{\rho}{n}\,\widehat{\Cov}(e,y)\,(y_i-\bar y).
+\end{equation}
+Up to the common positive factor $1/n$, the pseudo-residual used by first-order boosting is
+\begin{equation}
+\label{eq:pseudo-residual}
+\widetilde r_i
+=
+e_i + \rho z\,c_i.
+\end{equation}
+
+\subsection{Hessian}
+
+Since $z$ is linear in $f$, the Hessian of the penalty term is
+\[
+\nabla_f^2 \left(\frac{\rho}{2}z^2\right)
+=
+\rho\,(\nabla_f z)(\nabla_f z)^\top
+=
+\frac{\rho}{n^2}cc^\top.
+\]
+Thus the full Hessian is
+\begin{equation}
+\label{eq:hessian}
+H := \nabla_f^2 \mathcal{L}(f)
+=
+\frac{1}{n}I
++
+\frac{\rho}{n^2}cc^\top.
+\end{equation}
+
+This is the key structural result:
+\begin{itemize}[leftmargin=2em]
+\item the gradient is still easy to compute samplewise once the scalar $z$ is known;
+\item the Hessian is \emph{not diagonal};
+\item instead, it is a diagonal matrix plus a rank-one positive semidefinite correction.
+\end{itemize}
+
+\section{Consequences for classical gradient boosting}
+
+\subsection{Functional gradient view}
+
+In standard gradient boosting for squared error, the pseudo-residual is simply the residual $e_i = y_i-f_i$. Here the loss is modified, so the pseudo-residual changes to \eqref{eq:pseudo-residual}:
+\[
+\widetilde r_i = e_i + \rho z\,c_i.
+\]
+
+Therefore, the first-order boosting loop becomes:
+\begin{enumerate}[leftmargin=2em]
+\item compute current residuals $e_i$;
+\item compute the scalar covariance statistic
+\[
+z = \frac{1}{n}\sum_{i=1}^n e_i c_i;
+\]
+\item form pseudo-residuals $\widetilde r_i = e_i + \rho z c_i$;
+\item fit the next base learner to these pseudo-residuals;
+\item compute a line-search step size;
+\item update the prediction function.
+\end{enumerate}
+
+\subsection{Exact line search for a generic base learner}
+
+Suppose the current base learner has values $h_i = h(x_i)$ on the training set, and consider the update
+\[
+f^{+} = f + \gamma h.
+\]
+Then the new residual vector is
+\[
+e^{+} = y - (f+\gamma h) = e - \gamma h.
+\]
+By \eqref{eq:cov-linear-form},
+\[
+\widehat{\Cov}(e^{+},y)
+=
+\frac{1}{n}(e-\gamma h)^\top c
+=
+z - \gamma q,
+\]
+where
+\begin{equation}
+\label{eq:def-q}
+q := \frac{1}{n}c^\top h = \frac{1}{n}\sum_{i=1}^n c_i h_i.
+\end{equation}
+
+Therefore, the exact one-dimensional optimization problem is
+\begin{equation}
+\label{eq:line-search-problem}
+\gamma^\star
+=
+\argmin_{\gamma \in \R}
+\left\{
+\frac{1}{2n}\|e-\gamma h\|_2^2
++
+\frac{\rho}{2}(z-\gamma q)^2
+\right\}.
+\end{equation}
+Expanding and differentiating yields the closed form
+\begin{equation}
+\label{eq:line-search-closed-form}
+\gamma^\star
+=
+\frac{\frac{1}{n}e^\top h + \rho z q}
+{\frac{1}{n}\|h\|_2^2 + \rho q^2}.
+\end{equation}
+
+\subsection{Tree base learners: exact leaf-weight update}
+
+Now suppose the weak learner is a regression tree with leaves $I_1,\dots,I_J$ and leaf values $w_1,\dots,w_J$. Then
+\[
+h(x) = \sum_{j=1}^J w_j \mathbf{1}\{x \in I_j\}.
+\]
+For a sample $i \in I_j$, the new residual becomes
+\[
+e_i^{+} = e_i - w_j.
+\]
+Hence the exact leaf-weight problem for a fixed tree structure is
+\begin{equation}
+\label{eq:leaf-problem-first-order}
+\min_{w \in \R^J}
+\left\{
+\frac{1}{2n}\sum_{j=1}^J \sum_{i \in I_j} (e_i - w_j)^2
++
+\frac{\rho}{2}
+\left(
+z - \sum_{j=1}^J q_j w_j
+\right)^2
+\right\},
+\end{equation}
+where
+\[
+q_j := \frac{1}{n}\sum_{i \in I_j} c_i.
+\]
+
+Define the leaf aggregates
+\begin{equation}
+\label{eq:leaf-aggregates-first-order}
+n_j := |I_j|,
+\qquad
+b_j := \sum_{i \in I_j} e_i,
+\qquad
+s_j := \sum_{i \in I_j} c_i,
+\qquad
+q_j = \frac{s_j}{n}.
+\end{equation}
+Let
+\[
+b := (b_1,\dots,b_J)^\top,
+\qquad
+q := (q_1,\dots,q_J)^\top.
+\]
+Then the first-order optimality conditions give
+\begin{equation}
+\label{eq:coupled-leaf-system-first-order}
+\left(
+\diag\left(\frac{n_1}{n},\dots,\frac{n_J}{n}\right)
++
+\rho q q^\top
+\right) w
+=
+\frac{1}{n}b + \rho z q.
+\end{equation}
+
+This replaces the usual independent leafwise average formula. The crucial change is that the optimal leaf weights are now \emph{coupled across leaves} through the rank-one matrix $\rho qq^\top$.
+
+\subsection{Efficient closed form via Sherman--Morrison}
+
+Let
+\[
+D := \diag\left(\frac{n_1}{n},\dots,\frac{n_J}{n}\right),
+\qquad
+r := \frac{1}{n}b + \rho z q.
+\]
+Then
+\[
+w^\star = (D+\rho qq^\top)^{-1}r.
+\]
+Since this is a diagonal plus rank-one system, Sherman--Morrison gives
+\begin{equation}
+\label{eq:sherman-morrison-first-order}
+(D+\rho qq^\top)^{-1}
+=
+D^{-1}
+-
+\frac{\rho D^{-1}qq^\top D^{-1}}
+{1+\rho q^\top D^{-1}q},
+\end{equation}
+and thus
+\begin{equation}
+\label{eq:leaf-weights-first-order-closed-form}
+w^\star
+=
+D^{-1}r
+-
+\frac{\rho D^{-1}q \, (q^\top D^{-1}r)}
+{1+\rho q^\top D^{-1}q}.
+\end{equation}
+
+\section{Newton-style tree boosting (XGBoost / LightGBM style)}
+
+\subsection{Second-order expansion}
+
+In Newton-style tree boosting, one usually builds a second-order approximation of the objective in the additive update $\delta \in \R^n$:
+\[
+\mathcal{L}(f+\delta)
+\approx
+\mathcal{L}(f) + g^\top \delta + \frac{1}{2}\delta^\top H \delta.
+\]
+Here the objective is already quadratic in $f$, so this expansion is in fact \emph{exact}. Using \eqref{eq:gradient} and \eqref{eq:hessian},
+\begin{equation}
+\label{eq:exact-second-order}
+\mathcal{L}(f+\delta)
+=
+\mathcal{L}(f) + g^\top \delta + \frac{1}{2}\delta^\top
+\left(
+\frac{1}{n}I + \frac{\rho}{n^2}cc^\top
+\right)\delta.
+\end{equation}
+
+If the update is constrained to a regression tree with $J$ leaves, write
+\[
+\delta = Bw,
+\]
+where $B \in \{0,1\}^{n \times J}$ is the leaf-membership matrix:
+\[
+B_{ij} = 1
+\quad \Longleftrightarrow \quad
+x_i \in I_j.
+\]
+Then the exact tree subproblem becomes
+\begin{equation}
+\label{eq:newton-tree-subproblem}
+\min_{w \in \R^J}
+\left\{
+g^\top Bw + \frac{1}{2}w^\top(B^\top H B)w + \Omega(w)
+\right\},
+\end{equation}
+with the usual regularizer
+\[
+\Omega(w) = \gamma J + \frac{\lambda}{2}\|w\|_2^2.
+\]
+
+\subsection{Aggregated form}
+
+Define the usual leafwise gradient sums
+\begin{equation}
+\label{eq:Gj}
+G_j := \sum_{i \in I_j} g_i,
+\end{equation}
+and also
+\begin{equation}
+\label{eq:sj}
+n_j := |I_j|,
+\qquad
+s_j := \sum_{i \in I_j} c_i.
+\end{equation}
+Then
+\[
+B^\top H B
+=
+\diag\left(\frac{n_1}{n},\dots,\frac{n_J}{n}\right)
++
+\frac{\rho}{n^2}ss^\top,
+\]
+where
+\[
+s := (s_1,\dots,s_J)^\top.
+\]
+Therefore, the exact Newton tree subproblem becomes
+\begin{equation}
+\label{eq:newton-tree-subproblem-aggregated}
+\min_{w \in \R^J}
+\left\{
+G^\top w
++
+\frac{1}{2}
+w^\top
+\left(
+\diag\left(\frac{n_1}{n},\dots,\frac{n_J}{n}\right)
++
+\frac{\rho}{n^2}ss^\top
++
+\lambda I
+\right)
+w
++
+\gamma J
+\right\},
+\end{equation}
+where $G = (G_1,\dots,G_J)^\top$.
+
+Hence the exact optimal leaf weights are
+\begin{equation}
+\label{eq:newton-leaf-system}
+w^\star
+=
+-
+\left(
+\diag\left(\frac{n_1}{n},\dots,\frac{n_J}{n}\right)
++
+\frac{\rho}{n^2}ss^\top
++
+\lambda I
+\right)^{-1}
+G.
+\end{equation}
+
+\paragraph{Comparison with the standard case.}
+When $\rho=0$, \eqref{eq:newton-leaf-system} reduces to the familiar independent formula
+\[
+w_j^\star
+=
+-\frac{G_j}{\frac{n_j}{n}+\lambda}.
+\]
+When $\rho>0$, the leaf weights are coupled through the rank-one term $\frac{\rho}{n^2}ss^\top$.
+
+\subsection{Closed form via Sherman--Morrison}
+
+Let
+\[
+a_j := \frac{n_j}{n}+\lambda,
+\qquad
+D := \diag(a_1,\dots,a_J),
+\qquad
+\beta := \frac{\rho}{n^2}.
+\]
+Then
+\[
+w^\star = -(D+\beta ss^\top)^{-1}G.
+\]
+By Sherman--Morrison,
+\begin{equation}
+\label{eq:sherman-morrison-newton}
+(D+\beta ss^\top)^{-1}
+=
+D^{-1}
+-
+\frac{\beta D^{-1}ss^\top D^{-1}}
+{1+\beta s^\top D^{-1}s}.
+\end{equation}
+Therefore,
+\begin{equation}
+\label{eq:newton-leaf-weights-closed-form}
+w^\star
+=
+- D^{-1}G
++
+\frac{\beta D^{-1}s \, (s^\top D^{-1}G)}
+{1+\beta s^\top D^{-1}s}.
+\end{equation}
+Componentwise,
+\begin{equation}
+\label{eq:newton-leaf-weights-componentwise}
+w_j^\star
+=
+-\frac{G_j}{a_j}
++
+\frac{\beta s_j}{a_j}
+\cdot
+\frac{\sum_{k=1}^J \frac{s_k G_k}{a_k}}
+{1+\beta \sum_{k=1}^J \frac{s_k^2}{a_k}}.
+\end{equation}
+
+\subsection{Exact gain for a fixed tree}
+
+For a fixed tree structure, plugging $w^\star$ into the quadratic objective yields the optimal value
+\[
+-\frac{1}{2}
+G^\top
+(D+\beta ss^\top)^{-1}
+G
++
+\gamma J
+\]
+up to constants that do not depend on the tree. Therefore, the exact gain is
+\begin{equation}
+\label{eq:exact-gain}
+\operatorname{Gain}(T)
+=
+\frac{1}{2}
+G^\top
+(D+\beta ss^\top)^{-1}
+G
+-
+\gamma J.
+\end{equation}
+
+This replaces the standard separable gain
+\[
+\frac{1}{2}\sum_{j=1}^J \frac{G_j^2}{H_j+\lambda} - \gamma J.
+\]
+The gain is no longer a simple sum of independent leaf contributions, because of the rank-one coupling across leaves.
+
+\section{Why the standard LightGBM/XGBoost custom-objective interface is not exact}
+
+Standard Newton-style boosting libraries assume that the loss can be represented through per-observation first and second derivatives:
+\[
+\{(g_i,h_i)\}_{i=1}^n,
+\]
+so that the second-order model is approximated as
+\[
+\sum_{i=1}^n \left(g_i \delta_i + \frac{1}{2}h_i \delta_i^2\right).
+\]
+That approximation is exact for separable losses and diagonal Hessians.
+
+In the present setting:
+\begin{itemize}[leftmargin=2em]
+\item the gradient vector can be computed exactly and returned samplewise;
+\item however, the Hessian is \emph{not diagonal}, since
+\[
+H = \frac{1}{n}I + \frac{\rho}{n^2}cc^\top;
+\]
+\item therefore, returning only samplewise Hessian entries would ignore the off-diagonal coupling induced by the covariance penalty.
+\end{itemize}
+
+As a consequence:
+\begin{enumerate}[leftmargin=2em]
+\item the usual split-gain formulas are not exact;
+\item the usual leaf-weight formula $w_j = -G_j/(H_j+\lambda)$ is not exact;
+\item to obtain the correct Newton update, one must modify the tree learner to use the rank-one coupled leaf system in \eqref{eq:newton-leaf-system}.
+\end{enumerate}
+
+\section{Algorithmic summaries}
+
+\begin{algorithm}[h!]
+\caption{First-order gradient boosting with squared covariance penalty}
+\begin{algorithmic}[1]
+\Require Training data $\{(x_i,y_i)\}_{i=1}^n$, penalty $\rho \ge 0$, learning rate $\nu \in (0,1]$, number of rounds $M$
+\State Compute $c_i \gets y_i - \bar y$, where $\bar y = \frac{1}{n}\sum_{i=1}^n y_i$
+\State Initialize $f_0(x) \gets \bar y$
+\For{$m = 1,\dots,M$}
+    \State Compute current predictions $f_i \gets f_{m-1}(x_i)$ for all $i$
+    \State Compute residuals $e_i \gets y_i - f_i$ for all $i$
+    \State Compute covariance statistic
+    \[
+    z \gets \frac{1}{n}\sum_{i=1}^n e_i c_i
+    \]
+    \State Form pseudo-residuals
+    \[
+    \widetilde r_i \gets e_i + \rho z c_i
+    \qquad \forall i=1,\dots,n
+    \]
+    \State Fit a base learner structure $T_m$ to $\{(x_i,\widetilde r_i)\}_{i=1}^n$
+    \If{$T_m$ is a generic weak learner with output vector $h \in \R^n$}
+        \State Compute
+        \[
+        q \gets \frac{1}{n}c^\top h
+        \]
+        \State Set exact line-search step
+        \[
+        \gamma_m \gets
+        \frac{\frac{1}{n}e^\top h + \rho z q}
+        {\frac{1}{n}\|h\|_2^2 + \rho q^2}
+        \]
+        \State Update
+        \[
+        f_m(\cdot) \gets f_{m-1}(\cdot) + \nu \gamma_m h(\cdot)
+        \]
+    \Else
+        \State Let $I_1,\dots,I_J$ be the leaves of $T_m$
+        \For{$j=1,\dots,J$}
+            \State $n_j \gets |I_j|$
+            \State $b_j \gets \sum_{i \in I_j} e_i$
+            \State $s_j \gets \sum_{i \in I_j} c_i$
+            \State $q_j \gets s_j/n$
+        \EndFor
+        \State Form
+        \[
+        D \gets \diag\!\left(\frac{n_1}{n},\dots,\frac{n_J}{n}\right),
+        \qquad
+        r \gets \frac{1}{n}b + \rho z q
+        \]
+        \State Solve the coupled leaf system
+        \[
+        (D+\rho qq^\top)w = r
+        \]
+        \State Update
+        \[
+        f_m(\cdot) \gets f_{m-1}(\cdot) + \nu\,T_m(\cdot;w)
+        \]
+    \EndIf
+\EndFor
+\State \Return $f_M$
+\end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[h!]
+\caption{Exact Newton-style tree boosting with squared covariance penalty}
+\begin{algorithmic}[1]
+\Require Training data $\{(x_i,y_i)\}_{i=1}^n$, penalty $\rho \ge 0$, leaf regularization $\lambda \ge 0$, complexity penalty $\gamma \ge 0$, learning rate $\nu \in (0,1]$, number of rounds $M$
+\State Compute $c_i \gets y_i - \bar y$ for all $i$
+\State Initialize prediction function $f_0$
+\For{$m = 1,\dots,M$}
+    \State Compute current predictions $f_i \gets f_{m-1}(x_i)$
+    \State Compute residuals $e_i \gets y_i - f_i$
+    \State Compute
+    \[
+    z \gets \frac{1}{n}\sum_{i=1}^n e_i c_i
+    \]
+    \State Compute exact gradients
+    \[
+    g_i \gets \frac{f_i-y_i}{n} - \frac{\rho}{n} z c_i
+    \qquad \forall i=1,\dots,n
+    \]
+    \State Search over candidate tree structures $T$
+    \For{each candidate tree $T$ with leaves $I_1,\dots,I_J$}
+        \For{$j=1,\dots,J$}
+            \State $G_j \gets \sum_{i \in I_j} g_i$
+            \State $n_j \gets |I_j|$
+            \State $s_j \gets \sum_{i \in I_j} c_i$
+        \EndFor
+        \State Form
+        \[
+        D \gets \diag\!\left(\frac{n_1}{n}+\lambda,\dots,\frac{n_J}{n}+\lambda\right),
+        \qquad
+        \beta \gets \frac{\rho}{n^2},
+        \qquad
+        A_T \gets D + \beta ss^\top
+        \]
+        \State Compute exact tree gain
+        \[
+        \operatorname{Gain}(T)
+        \gets
+        \frac{1}{2}G^\top A_T^{-1}G - \gamma J
+        \]
+    \EndFor
+    \State Select the best tree structure $T_m$
+    \State For the selected tree, form $A_m = D + \beta ss^\top$
+    \State Compute exact leaf weights
+    \[
+    w^\star \gets -A_m^{-1}G
+    \]
+    \State Update
+    \[
+    f_m(\cdot) \gets f_{m-1}(\cdot) + \nu\,T_m(\cdot;w^\star)
+    \]
+\EndFor
+\State \Return $f_M$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Most important points: high-relevance summary}
+
+The most important structural facts are the following.
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{The covariance penalty is global and nonseparable.}
+Because
+\[
+\widehat{\Cov}(e,y) = \frac{1}{n}(y-f)^\top (y-\bar y\1),
+\]
+the added regularization term is a rank-one quadratic function of the full prediction vector.
+
+\item \textbf{The pseudo-residual is no longer just the residual.}
+For first-order boosting, the correct pseudo-residual is
+\[
+\widetilde r_i = e_i + \rho\,\widehat{\Cov}(e,y)\,(y_i-\bar y).
+\]
+
+\item \textbf{The Hessian is not diagonal.}
+The exact Hessian is
+\[
+H = \frac{1}{n}I + \frac{\rho}{n^2}cc^\top.
+\]
+This is diagonal plus rank one, not diagonal.
+
+\item \textbf{Tree leaf weights become coupled.}
+For a fixed tree, the covariance term prevents independent optimization of each leaf value. The correct leaf values must be obtained from a small linear system of the form
+\[
+(D + \text{rank-one term})w = \text{right-hand side}.
+\]
+
+\item \textbf{The coupling is still computationally cheap.}
+Because the extra term is rank one, the exact leaf system can be solved efficiently using Sherman--Morrison, so the correction is mathematically important but computationally manageable.
+
+\item \textbf{Standard XGBoost/LightGBM custom-objective hooks are not exact for this loss.}
+They assume per-sample Hessians only. That is insufficient here because the exact Hessian contains off-diagonal terms. Therefore, standard custom objectives can provide the exact gradient but not the exact Newton update unless the tree learner itself is modified.
+
+\item \textbf{There are two clean implementation paths.}
+A high-fidelity implementation can be built either as:
+\begin{itemize}[leftmargin=2em]
+\item an \emph{exact first-order boosting algorithm}, using the modified pseudo-residuals and the exact coupled leaf-weight solve; or
+\item an \emph{exact Newton-style tree algorithm}, using the rank-one corrected gain and leaf-weight formulas.
+\end{itemize}
+\end{enumerate}
+
+\section{Optional implementation remark}
+
+If one wants a practical approximation inside an existing package such as LightGBM or XGBoost without changing the internal split-search code, a reasonable compromise is:
+\begin{enumerate}[leftmargin=2em]
+\item use the exact gradient \eqref{eq:gradient-components};
+\item build the tree structure using the library's standard machinery;
+\item once the structure is fixed, replace the library's usual independent leaf-weight formula by the exact coupled solve in \eqref{eq:newton-leaf-system} or \eqref{eq:newton-leaf-weights-closed-form}.
+\end{enumerate}
+This still does not make the entire procedure fully exact, but it corrects one of the most important consequences of the nonseparable penalty.
+
+\end{document}

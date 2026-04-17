@@ -1,0 +1,216 @@
+\documentclass[11pt]{article}
+% \usepackage[margin=1in]{geometry}
+\usepackage[a4paper, total={6in, 10.5in}]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+% \documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+% \usepackage[a4paper, total={5in, 10in}]{geometry}
+% \usepackage{xcolor}
+% \usepackage{color,soul}
+\usepackage{listings}
+\usepackage{booktabs}
+
+% Citations
+% \usepackage{natbib}
+% Use the biblatex package, specifying the backend (biber is recommended)
+\usepackage[style=numeric, sorting=nyt]{biblatex}
+% Import your bibliography file (omit the .bib extension here)
+\addbibresource{references.bib}
+
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Subplots
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+% colored area
+\usepackage{tcolorbox}
+\usepackage{xcolor} % Required for defining custom colors
+\definecolor{lightgray}{gray}{0.9} % Define a light gray color
+
+% Highlights
+\usepackage{color,soul}
+
+% TODOs
+\usepackage{todonotes}
+
+% 
+% \documentclass{book} % Use the book or report class
+
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+
+\title{\vspace{-7mm}Fairness in Machine Learning for Real Estate Valuation:\\ Soft Regressivity Constraints in Mass Appraisal Pipelines \vspace{0mm}}
+% Simple Regressivity Control for Mass Appraisal Pipelines
+\author{\textbf{Research-oriented proposal:} Nicolas Acevedo Villena }
+\date{
+% \today
+\vspace{-8mm}
+}
+
+% theorem envs
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\prox}{\mathrm{prox}}
+\newcommand{\argmin}{\mathop{\mathrm{arg\,min}}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\ip}[2]{\left\langle #1,#2 \right\rangle}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\Var}{\text{Var}}
+
+
+% Set commands
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\J}{\mathcal{J}}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\M}{\mathcal{M}}
+\renewcommand{\L}{\mathcal{L}}
+\renewcommand{\H}{\mathcal{H}}
+\renewcommand{\P}{\mathcal{P}}
+\renewcommand{\R}{\mathbb{R}}
+
+\newcommand{\muBold}{\boldsymbol{\mu}}
+\renewcommand{\t}{^{\top}}
+\newcommand{\qt}[1]{``#1''}
+
+\newcommand{\Expected}[1]{\mathbb{E}[#1]}
+\newcommand{\Prob}[1]{\mathbb{P}(#1)}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+
+% Math sets commands
+
+\begin{document}
+\maketitle
+% \tableofcontents
+
+
+% Real estate assessment is a critical issue for local governments and municipalities, with a major impact on the economy. Valuation methods determine property taxes, which generate the single largest source of revenue for American local governments. These are used to fund roads, schools, and many other public services and projects. Moreover, they directly impact almost everyone, directly or indirectly, through market prices for buying and selling, as well as rental rates. Therefore, it is vital that the process ensures an accurate and fair assessment.
+Real estate assessment is a critical issue for local governments, especially municipalities \cite{Rootetal2023}. Valuation methods help determine property taxes—the largest source of revenue for American local governments—used to fund roads, schools, and other public services \cite{Berry2021}. Moreover, valuation practices affect nearly everyone, directly or indirectly, through property prices and rents. Therefore, an accurate and fair assessment is essential.
+
+
+% In some cases, such as in Chicago [2, 3], inaccurate property assessments have been argued to
+% result in what is termed “regressive taxation.” This occurs when properties at the lower end of the
+% market are assessed at values higher than their actual worth (often measured by sales price). This
+% leads to a higher effective tax rate for these properties, disproportionately affecting owners of less
+% valuable properties. The impact of this regressive taxation can be substantial. For instance, owners of
+% lower-valued properties might face effective tax rates up to 50% higher than those paid by owners of
+% higher-valued properties. This disparity exists despite both groups having access to the same amenities
+% funded by property taxes and being subject to the same statutory property tax rates [4]. This issue of
+% regressive taxation due to inaccurate property assessments is not unique to Chicago but is a pattern
+% that is argued to be prevalent throughout the United States. The limitations of the data and assessment
+% methods used are often cited as reasons for these inaccuracies; see, e.g., [2].
+In recent decades, assessors have shifted toward the use of Machine Learning (ML) models to assist in the mass appraisal process, given their higher predictive performance \cite{Rootetal2023, Ostrikova2024,Sevgen2024100111}. Naturally, this raises concerns, with one of the major ones being the capacity of ML to produce \textit{fair} predictions across: (i) properties with similar characteristics (\textit{horizontal equity}), and (ii) properties of different price levels (\textit{vertical equity}) \cite{quintos2014improving}. These two concepts have been extensively studied in the literature \cite{10578d49-78f8-3ef9-8277-9b6add2bd071,cornia2006property}, but securing vertical equity remains a major challenge; in practice, assessments tend to be \textit{regressive} \cite{McMillen2020}. 
+
+\textit{Regressivity} occurs when properties at the lower-end of the market tend to be over-assessed (assessed price > market price), while properties at the higher-end of the market tend to be under-assessed (assessed price < market price). This regressive pattern in assessments is argued to be prevalent throughout the United States. Its impact can be substantial; owners of
+lower-valued properties might face effective tax rates up to 50\% higher than those paid by owners of
+higher-valued properties \cite{amornsiripanitch2020why}. The limitations of the data and assessment methods used are often cited as reasons for these inequities \cite{Berry2021}. The adoption of ML-based assessment workflows opens an opportunity to correct these regressive behaviors mathematically (see, e.g., \textcite{candogan2023achieving}).
+
+
+
+\textbf{Case Study.} 
+There exists a well-documented example of the use of advanced ML models in the mass appraisal process: the Cook County Assessor's Office (CCAO) in Chicago \cite{ccao_how_properties_are_valued}. The CCAO manages an extensive open-access repository with the datasets, code, and guides describing the mass appraisal process used to predict property values in Cook County \cite{ccao_data_2026}. Linear models were used by the CCAO until 2018, and then the office transitioned to gradient boosting methods in 2019, specifically LightGBM \cite{lightgbm}. The latter methods achieve high predictive accuracy, but they also exhibit stronger regressive behavior \cite{candogan2023achieving}. We aim to reduce these regressive patterns while maintaining a similar level of accuracy. 
+
+% ---
+% The main caveat for accurately identifying the heterogeneity of parcels in a certain region is that unsold properties also need to be assessed (unknown market prices)
+
+% Given the sensitivity of the matter, we constrain ourselves to the standard equity definitions defined by
+We follow the standard equity definitions as provided by the International Association of Assessing Officers (IAAO), which proposes a collection of metrics for both horizontal and vertical equity \cite{iaao2025ratio} (e.g., the coefficient of dispersion and the price-related differential). Most of these metrics rely on what they call the \textit{Assessment-to-Sales ratio}, defined in terms of a market price $y$ and its assessed value $\hat{y}${\color{white}-}as
+% \vspace{-2mm}
+$r(\hat{y}, y):= \frac{\hat{y}}{y}$. For example, a negative slope between $r$ and $y$ could suggest a regressive behavior. The IAAO further defines the standard intervals within which the equity measures should lie \cite{iaao2025ratio}, which define our reference points. 
+
+% In general, if for the results of a predictive model the majority of low-valued properties satisfy $r > 1$ (over-predicted), while the majority of high-valued properties satisfy $r < 1$ (under-predicted), we would say that our predictive model exhibits \textit{regressivity}. In the opposite case, we would say that it exhibits \textit{progressivity}. 
+
+\textbf{Contributions.} We make the following contributions: (i) We propose an in-processing approach to mitigate regressive patterns in ML-based mass appraisal by adding a soft covariance-constraint modification between transformations of $r$ and $y$ to a general learning loss (see \textcite{lee2022maximal} for related methodology). (ii) We empirically demonstrate, using a real-world mass appraisal pipeline (CCAO's), that these corrections can achieve the desired accuracy-fairness tradeoff—and, in some cases, improve both—under standard measures, using Pareto-based criteria (see, e.g., \textcite{martinez2020minimax, little2022fairness}). (iii) Finally, we empirically show that our model modification can also be used, as a simple post-processing step, to correct regressive patterns in models originally trained without such corrections, achieving performance similar to that of the original models while significantly improving standard equity measures (see \textcite{lee2022maximal, little2022fairness} for related post-processing corrections).  
+
+
+% \textbf{Approach. } We propose a soft covariance-constrained approach to mitigate regressive patterns in general ML settings (see \textcite{lee2022maximal} for related methodology). Specifically, given a loss function $\L_n$ (e.g., mean squared error), we add a linear relationship regularization term between the ratio vector $r \in \R^n$ and market price vector $y\in \R^n_{++}$ in some learning problem, i.e., \vspace{-2mm}
+% \begin{equation}
+% \label{opt:unconstrained_learner}
+% \min_{f\in \H} \L_n(f) + \rho\frac{1}{2}{\textbf{Cov}}(r(f), y)^2, 
+% % := \frac{1}{2n}\sum_{i=1}^n (f(x_i) - z_i)^2 + \frac{\rho}{2}\left(\frac{1}{n}\sum_{i=1}^n(e_i - \Bar{e})(y_i - \Bar{y})\right)^2. %\qquad\text{ 
+% \vspace{-1mm}
+% \end{equation}
+% where $f$ is some mapping in a hypothesis class $\H$ (e.g., linear functions or tree ensembles) that defines predicted prices $\hat{y}=f(X)$, where $X \in \R^{n\times p}$ is a matrix of $p$ features (e.g., number of bedrooms, access to transport, etc.) for $n$ different properties. After{\color{white}-}training,{\color{white}-}we aim to robustly select a well-performing weight $\rho>0$, with respect to accuracy and fairness requirements, by defining an appropriate Pareto-based selection criterion (see, e.g., \textcite{martinez2020minimax, little2022fairness}). 
+
+
+% % Let $y \in \R^n_{++}$ denote the vector of market values for these $n$ properties. Let us further define the vector of log-prices $z \in \R^n$, and the vector of log-price predictions $\hat{z} \in \R^n$, obtained via a learned mapping $f:\R^p \rightarrow \R$ applied row-wise, and the estimation of market values $\hat{y}$ through exponentiation of $\hat{z}$. Finally, we define the \emph{log residuals} as \vspace{-2mm}
+% % $$
+% % e := \hat z - z \quad \Longrightarrow \quad e_i = \log(r_i), \quad \forall i \in [n]. \vspace{-2mm}
+% % $$
+% % Let $\mathcal H$ be a predefined hypothesis class. Then (in principle) we aim to learn an optimal correlation-aware (see \cite{cho2021maximal}) regression model via a linear dependency correction term $C_n(f)^2$:
+% % \begin{equation}
+% % \label{opt:unconstrained_learner_old}
+% % \min_{f\in \H} \L_n(f) + \rho\frac{1}{2}C_n(f)^2  := \frac{1}{2n}\sum_{i=1}^n (f(x_i) - z_i)^2 + \frac{\rho}{2}\left(\frac{1}{n}\sum_{i=1}^n(e_i - \Bar{e})(y_i - \Bar{y})\right)^2. %\qquad\text{ 
+% % \end{equation}
+% We further propose different proxies for the empirical covariance term $C_n(f)$, including a separable upper bound for it. The goal of this soft-constrained problem is to reduce the regressive behavior of models while using the same function class $\H$. Thus, the penalization parameter $\rho >0$ has to be selected in an independent process by maximizing accuracy on an out-of-sample set, similar to the FairStack pipeline in \cite{little2022fairness}.
+
+% Note that since the calibration of the weight parameter can be done in an independent step of the assessors' mass appraisal workflow, it does not add complexity to the model selection step. The selection of the new parameter $\rho$ can be done in a robust way in this special case of time-dependent data, by choosing the $\rho >0$ that produces the desired tradeoffs between the accuracy and equity metrics (see \cite{martinez2020minimax}) in some aggregated sense of the performance on validation sets constructed via rolling-origin forecasting resampling \cite{tashman2000out}.
+
+% \newpage
+
+% Assessment equity is a primary concern for municipalities for taxes purposes; the major concerns being a \textit{fair assessment} level across: (a) properties of different price-levels (\textit{vertical equity}), and (b) properties with similar characteristics (\textit{horizontal equity}) \cite{quintos2014improving}. The main caveat for accurately identifying the heterogeneity of the parcels in certain region is that the unsold properties need to be assessed (unknown market prices), and these estimations need to maintain consistency; for example, similar properties in the same block/area should be assigned similar prices. Given the sensitiveness of the matter, we constraint ourselves to the standard measures for equity defined by the International Association of Assessing Officers (IAAO); who proposes a collection of metrics for both horizontal and vertical equity \cite{iaao2025ratio} (e.g. the coefficient of dispersion and the price-related differential). Most of these metrics rely on what they call the \textit{appraisal ratio}, defined in terms of the prices and its predictions \todo{I am missing something about consequences and impact of taxes here, or at least some references.}
+% $$r(PV, MV):= \frac{PV}{MV}, \qquad {MV}:= \text{market value}, \qquad PV:= \text{predicted value. }$$
+% IAAO also defines the standard for the intervals where the equity measures should lie on, which we treat as hard constraints. In general, if for the results of a predictive model the majority of low-valued properties satisfy $r > 1$ (over-predicted), while the majority of the high-values properties satisfy $r < 1$ (under-predicted), we would say that our predictive model exhibits \textit{regressivity}. In the opposite case, we will say that it exhibits \textit{progressivity}. 
+
+% \textbf{Case of Study.} We focus on the regressive behavior exhibited by the predictive models used by the Cook County Assessor's Office (CCAO). The CCAO has an extensive open-access repository \cite{ccao_data_2026} with the datasets, code, analysis, and guides through the Mass Appraisal process they use for predicting property values in the Cook County, Chicago, IL. They used linear models for prediction between the years 2009 and 2018, and transitioned towards Gradient Boosting methods since 2019. Currently, the CCAO uses the state-of-the-art Newton-like gradient boosting method LightGBM \cite{lightgbm}.
+
+% \textbf{Approach. } Let us denote $X \in \R^{n\times p}$ denote a matrix of  $p$ demographic features for $n$ different properties (e.g., number of bedrooms, accessibility to transport, etc.) Let $y \in \R^n_{++}$ denote the vector of market values for each of these $n$ properties. Let us further define the vector of log-prices $z \in \R^n_{++}$, and  log-prices predictions vector $\hat{z}$, obtained via some learned mapping $f:\R^n \rightarrow \R$, and the estimation of market values $\hat{y}$ through exponentiation of $\hat{z}$. Finally, we define the \emph{log residuals} of the estimation of log-prices is defined as
+% $$
+% e := \hat z - z = f(x) - z  \Longrightarrow e_i = \log(r_i), \quad \forall i \in [n].
+% $$
+% Let $\mathcal H$ be a predefined hypothesis class, then (in principle) we aim to learn the optimal vertical-equity aware regression problem, via linear dependency correction $C_n(f)^2$ term
+% \begin{equation}
+% \label{opt:unconstrained_learner}
+% \min_{f\in \H} \L_n(f) + \rho\frac{1}{2}C_n(f)^2  := \frac{1}{2n}\sum_{i=1}^n (f(x_i) - z_i)^2 + \frac{\rho}{2}\left(\frac{1}{n}\sum_{i=1}^n(e_i - \Bar{e})(y_i - \Bar{y})\right)^2. %\qquad\text{ 
+% \end{equation}
+% We further propose different proxy's for the empirical covariance term $C_n(f)$, including a separable upper bound for it. The goal of this soft-constrained problem is to reduce the regressive behavior of models, using their same function class $\H$. Thus, the selection of the penalization parameters $\rho >0$ has to be selected in an independent process as the maximization of accuracy in out-of-sample set.
+
+% Note that, since the calibration of the weight parameter can be done in an independent step of assessors' Mass Appraisal workflow, it does not add more complexity to the model selection step. The new parameter $\rho$ selection can be done in a robust way in this special case of time-dependent data, by selecting the $\rho >0$ that produces the desired tradeoffs between the accuracy and equity metrics in some aggregated sense of the performance on validation sets constructed via rolling-origin forecasting resampling. 
+
+\printbibliography %Prints bibliography
+
+% \newpage
+% \section{Bulletpoints}
+
+% \begin{itemize}
+%     \item \textbf{Why this problem?}
+%     \begin{enumerate}
+%         \item Mass Appraisal with ML has been recently advancing. Examples are the CCAO, 
+%         \item Mistakes on it can generate highly unfair situations in terms of taxation; specially if regressive: low-valued houses are overcharged and high-values houses are undercharged (e.g.
+%     \end{enumerate}
+
+    
+%     \item \textbf{Why this approach?}
+% \end{itemize}
+
+
+
+\end{document}

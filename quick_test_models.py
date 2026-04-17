@@ -12,9 +12,10 @@ but avoids CV and bootstrapping to stay fast and easy to read.
 
 Models
 ------
-1) LGBCovLinearPenalty in `diff` mode
-2) LGBCovPenalty in `diff` mode
-3) LGBSmoothPenalty in `diff` mode
+1) LinearRegression baseline
+2) LGBMRegressor baseline
+3) LGBCovPenalty in `diff` mode
+4) LGBSmoothPenalty in `diff` mode
 
 Outputs
 -------
@@ -36,33 +37,45 @@ From the `soft-vertical-equity-constrained-mass-appraissal/` directory:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import os
 from pathlib import Path
 import re
+import time
 from typing import Any, Dict, List, Tuple
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+from matplotlib import colors as mcolors
 import numpy as np
 import pandas as pd
 import yaml
+import lightgbm as lgb
+from sklearn.linear_model import LinearRegression
 
 from preprocessing.recipes_pipelined import build_model_pipeline
-from soft_constrained_models.boosting_models import LGBCovLinearPenalty, LGBCovPenalty, LGBSmoothPenalty
+from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty
 from utils.plotting_utils import (
     plot_ratio_vs_logprice,
     plot_residual_vs_logprice,
     plot_ratio_vs_logprediction,
     plot_residual_vs_logprediction,
 )
-from utils.motivation_utils import _build_time_block_bootstrap_indices, _compute_extended_metrics
+from utils.motivation_utils import (
+    IAAO_PRB_RANGE,
+    IAAO_PRD_RANGE,
+    IAAO_VEI_RANGE,
+    _build_time_block_bootstrap_indices,
+    _compute_extended_metrics,
+)
 
 
 _PAIRWISE_DEPENDENCE_SAMPLE_N = 1024
 _RATIO_MODES = ("diff",)
-_LINEAR_PENALTY_RHO_EXPONENT = 0.25
 _MAIN_SWEEP_FAMILIES = (
-    "LGBCovLinearPenalty[diff]",
     "LGBCovPenalty[diff]",
     "LGBSmoothPenalty[diff]",
 )
@@ -74,6 +87,15 @@ _RHO_PLOT_METRICS = [
     "ChatterjeeXi(r,logprice)",
     "nHSIC(r,logprice)_sampled",
 ]
+_TRADEOFF_FAIRNESS_METRICS = ("PRD", "PRB", "VEI")
+_TRADEOFF_TARGET_METRICS = ("R2", "COD")
+_TRADEOFF_BASELINE_FAMILIES = ("LinearRegression", "LGBMRegressor")
+_TRADEOFF_FAMILY_COLORS = {
+    "LinearRegression": "#4B5563",
+    "LGBMRegressor": "#111827",
+    "LGBCovPenalty[diff]": "#2563EB",
+    "LGBSmoothPenalty[diff]": "#DC2626",
+}
 _META_TOWNSHIP_TRIAD_COL = "meta_township_triad"
 _CHAR_CLASS_BUCKET_COL = "char_class_bucket"
 _TOWNSHIP_TRIAD_MAP = {
@@ -137,6 +159,16 @@ _CHAR_CLASS_BUCKET_MAP = {
     "297": "char_class_anomaly",
     "NA": "NA",
 }
+
+_LOG_T0 = time.perf_counter()
+
+
+def _log(message: str, **fields: Any) -> None:
+    dt = time.perf_counter() - _LOG_T0
+    suffix = ""
+    if fields:
+        suffix = " | " + " | ".join(f"{k}={v}" for k, v in fields.items())
+    print(f"[quick_test_models +{dt:7.1f}s] {message}{suffix}", flush=True)
 
 
 def _build_lgbm_params_from_files(model_params: dict, ccao_params: dict, seed: int) -> dict:
@@ -216,25 +248,31 @@ def _load_and_split_data(
       - sort by date
       - split into assess (2024), and pre-assess (<2024) then train/validate + test
     """
+    _log("loading parquet", data_path=data_path)
     df = pd.read_parquet(data_path, engine="fastparquet")
+    _log("parquet loaded", rows=int(df.shape[0]), cols=int(df.shape[1]))
     df = df[
         (~df["ind_pin_is_multicard"].astype("bool").fillna(True))
         & (~df["sv_is_outlier"].astype("bool").fillna(True))
     ].copy()
+    _log("row filters applied", rows=int(df.shape[0]))
 
     predictor_cols = list(params["model"]["predictor"]["all"])
     categorical_cols = list(params["model"]["predictor"]["categorical"])
     keep_cols = predictor_cols + [target_column, date_column]
     df = df.loc[:, keep_cols].copy()
+    _log("projected columns", kept_cols=int(len(keep_cols)))
 
     if sample_frac is not None:
         if not (0.0 < float(sample_frac) <= 1.0):
             raise ValueError("sample_frac must be in (0, 1]. Use None to disable sampling.")
         if float(sample_frac) < 1.0:
             df = df.sample(frac=float(sample_frac), random_state=int(sample_seed)).copy()
+            _log("sampling applied", sample_frac=float(sample_frac), rows=int(df.shape[0]))
 
     df[date_column] = pd.to_datetime(df[date_column])
     df = df.sort_values(date_column).reset_index(drop=True)
+    _log("date sort completed", rows=int(df.shape[0]))
 
     df_assess = df.loc[df[date_column].dt.year == 2024, :].copy()
     df_train_all = df.loc[df[date_column].dt.year < 2024, :].copy()
@@ -243,6 +281,12 @@ def _load_and_split_data(
     split_idx = int(train_prop * df_train_all.shape[0])
     df_test = df_train_all.iloc[split_idx:, :].copy()
     df_train_validate = df_train_all.iloc[:split_idx, :].copy()
+    _log(
+        "data split completed",
+        train_validate_rows=int(df_train_validate.shape[0]),
+        test_rows=int(df_test.shape[0]),
+        assess_rows=int(df_assess.shape[0]),
+    )
 
     return df_train_validate, df_test, df_assess, predictor_cols, categorical_cols
 
@@ -286,28 +330,6 @@ def _parse_float_list(values_raw: str) -> List[float]:
     if not values:
         raise ValueError("Expected at least one numeric value.")
     return values
-
-
-def _compress_linear_penalty_rho_values(rho_values: List[float]) -> List[float]:
-    """
-    Compress the shared rho grid for the linear covariance penalty only.
-
-    The current quick-test outputs show `LGBCovLinearPenalty` becomes unstable at
-    rho values where the squared-penalty models remain well behaved, so we use a
-    slower power-law increase anchored at the smallest shared rho.
-    """
-    values = [float(v) for v in rho_values]
-    if not values:
-        return []
-
-    rho_min = min(values)
-    if rho_min <= 0.0:
-        return values
-
-    return [
-        float(rho_min * ((rho_value / rho_min) ** _LINEAR_PENALTY_RHO_EXPONENT))
-        for rho_value in values
-    ]
 
 
 def _pairwise_metric_subsample(x: np.ndarray, y: np.ndarray, max_n: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -540,28 +562,32 @@ def _build_quick_test_models(
     models: List[Dict[str, Any]] = []
 
     rho_list = [float(r) for r in rho_values]
-    linear_rho_list = _compress_linear_penalty_rho_values(rho_list)
+
+    models.extend(
+        [
+            {
+                "model_name": "LinearRegression",
+                "model_family": "LinearRegression",
+                "ratio_mode": "diff",
+                "rho": np.nan,
+                "rho_group": np.nan,
+                "estimator": LinearRegression(fit_intercept=True),
+                "requires_linear_pipeline": True,
+            },
+            {
+                "model_name": "LGBMRegressor",
+                "model_family": "LGBMRegressor",
+                "ratio_mode": "diff",
+                "rho": np.nan,
+                "rho_group": np.nan,
+                "estimator": lgb.LGBMRegressor(**lgbm_params),
+                "requires_linear_pipeline": False,
+            },
+        ]
+    )
 
     for ratio_mode in _RATIO_MODES:
-        for linear_rho_value, rho_value in zip(linear_rho_list, rho_list):
-            models.append(
-                {
-                    "model_name": f"LGBCovLinearPenalty_mode_{ratio_mode}_rho_{linear_rho_value}",
-                    "model_family": f"LGBCovLinearPenalty[{ratio_mode}]",
-                    "ratio_mode": ratio_mode,
-                    "rho": float(linear_rho_value),
-                    "rho_group": np.nan,
-                    "estimator": LGBCovLinearPenalty(
-                        rho=float(linear_rho_value),
-                        ratio_mode=ratio_mode,
-                        early_stopping_rounds=early_stopping_rounds,
-                        zero_grad_tol=1e-12,
-                        lgbm_params=lgbm_params,
-                        verbose=True,
-                    ),
-                    "requires_linear_pipeline": False,
-                }
-            )
+        for rho_value in rho_list:
             models.append(
                 {
                     "model_name": f"LGBCovPenalty_mode_{ratio_mode}_rho_{rho_value}",
@@ -738,6 +764,230 @@ def _write_grouped_rho_evolution_plots(
         plt.close(fig)
 
 
+def _blend_with_white(color: Any, intensity: float) -> Tuple[float, float, float]:
+    intensity = float(np.clip(intensity, 0.0, 1.0))
+    rgb = np.asarray(mcolors.to_rgb(color), dtype=float)
+    return tuple((1.0 - intensity) + intensity * rgb)
+
+
+def _tradeoff_band(metric_name: str) -> Tuple[float, float, float] | None:
+    if metric_name == "PRD":
+        return float(IAAO_PRD_RANGE[0]), float(IAAO_PRD_RANGE[1]), 1.0
+    if metric_name == "PRB":
+        return float(IAAO_PRB_RANGE[0]), float(IAAO_PRB_RANGE[1]), 0.0
+    if metric_name == "VEI":
+        return float(IAAO_VEI_RANGE[0]), float(IAAO_VEI_RANGE[1]), 0.0
+    return None
+
+
+def _format_rho_label(value: float) -> str:
+    if not np.isfinite(value):
+        return "rho=nan"
+    if value == 0.0:
+        return "rho=0"
+    abs_val = abs(float(value))
+    if abs_val >= 1000.0 or abs_val < 0.01:
+        return f"rho={value:.1e}"
+    if abs_val >= 10.0:
+        return f"rho={value:.1f}"
+    return f"rho={value:.3g}"
+
+
+def _write_tradeoff_plot(
+    df: pd.DataFrame,
+    *,
+    split_label: str,
+    out_path: Path,
+    y_metric: str,
+) -> None:
+    if df.empty or y_metric not in df.columns or "model_family" not in df.columns:
+        return
+
+    allowed_families = set(_TRADEOFF_BASELINE_FAMILIES).union(_MAIN_SWEEP_FAMILIES)
+    plot_df = df.loc[df["model_family"].isin(allowed_families), :].copy()
+    if plot_df.empty:
+        return
+
+    numeric_cols = list(_TRADEOFF_FAIRNESS_METRICS) + [y_metric, "rho"]
+    for col in numeric_cols:
+        if col in plot_df.columns:
+            plot_df[col] = pd.to_numeric(plot_df[col], errors="coerce")
+
+    fairness_metrics = [metric for metric in _TRADEOFF_FAIRNESS_METRICS if metric in plot_df.columns]
+    if not fairness_metrics:
+        return
+
+    fig, axes = plt.subplots(1, len(fairness_metrics), figsize=(6.2 * len(fairness_metrics), 5.6), sharey=True)
+    if len(fairness_metrics) == 1:
+        axes = [axes]
+
+    for ax, fairness_metric in zip(axes, fairness_metrics):
+        ax.grid(True, linestyle=":", alpha=0.4)
+        band = _tradeoff_band(fairness_metric)
+        if band is not None:
+            lo, hi, target = band
+            ax.axvspan(min(lo, hi), max(lo, hi), color="limegreen", alpha=0.18, zorder=0)
+            ax.axvline(target, color="forestgreen", linestyle="--", linewidth=1.2, alpha=0.9, zorder=1)
+
+        for family in _TRADEOFF_BASELINE_FAMILIES:
+            family_df = plot_df.loc[plot_df["model_family"] == family, :].copy()
+            if family_df.empty:
+                continue
+            family_df = family_df.loc[np.isfinite(family_df[fairness_metric]) & np.isfinite(family_df[y_metric]), :]
+            if family_df.empty:
+                continue
+            color = _TRADEOFF_FAMILY_COLORS.get(family, "C0")
+            x_vals = family_df[fairness_metric].to_numpy(dtype=float)
+            y_vals = family_df[y_metric].to_numpy(dtype=float)
+            ax.scatter(
+                x_vals,
+                y_vals,
+                s=150,
+                marker="*",
+                color=color,
+                edgecolors="black",
+                linewidths=0.6,
+                zorder=4,
+            )
+
+        for family in _MAIN_SWEEP_FAMILIES:
+            family_df = plot_df.loc[plot_df["model_family"] == family, :].copy()
+            if family_df.empty or "rho" not in family_df.columns:
+                continue
+            family_df = family_df.loc[
+                np.isfinite(family_df["rho"])
+                & np.isfinite(family_df[fairness_metric])
+                & np.isfinite(family_df[y_metric]),
+                :,
+            ].copy()
+            if family_df.empty:
+                continue
+
+            metric_cols = [fairness_metric, y_metric]
+            if family_df["rho"].duplicated().any():
+                family_df = (
+                    family_df.groupby("rho", as_index=False)[metric_cols]
+                    .mean(numeric_only=True)
+                    .sort_values("rho")
+                )
+            else:
+                family_df = family_df.sort_values("rho")
+
+            x_vals = family_df[fairness_metric].to_numpy(dtype=float)
+            y_vals = family_df[y_metric].to_numpy(dtype=float)
+            rho_vals = family_df["rho"].to_numpy(dtype=float)
+            if x_vals.size == 0:
+                continue
+
+            base_color = _TRADEOFF_FAMILY_COLORS.get(family, "C0")
+            ax.plot(x_vals, y_vals, color=base_color, linewidth=1.8, alpha=0.8, zorder=2)
+
+            if rho_vals.size > 1:
+                log_rho = np.log10(np.maximum(rho_vals, 1e-12))
+                lo_rho = float(np.nanmin(log_rho))
+                hi_rho = float(np.nanmax(log_rho))
+                if hi_rho > lo_rho:
+                    intensities = 0.35 + 0.65 * ((log_rho - lo_rho) / (hi_rho - lo_rho))
+                else:
+                    intensities = np.full_like(log_rho, 0.85, dtype=float)
+            else:
+                intensities = np.array([0.85], dtype=float)
+
+            colors = [_blend_with_white(base_color, val) for val in intensities.tolist()]
+            ax.scatter(
+                x_vals,
+                y_vals,
+                s=48,
+                color=colors,
+                edgecolors=base_color,
+                linewidths=0.8,
+                zorder=3,
+            )
+
+            for idx in range(len(x_vals) - 1):
+                ax.annotate(
+                    "",
+                    xy=(x_vals[idx + 1], y_vals[idx + 1]),
+                    xytext=(x_vals[idx], y_vals[idx]),
+                    arrowprops=dict(
+                        arrowstyle="-|>",      # A filled arrow head usually looks cleaner than the open "->"
+                        color=base_color, 
+                        lw=0.8,                # Thinner line weight 
+                        alpha=0.5,             # Lower opacity to let the underlying line/points show
+                        shrinkA=3,             # Pulls the tail away from the starting point (in points)
+                        shrinkB=3,             # Pulls the head away from the ending point (in points)
+                        mutation_scale=10      # Controls the overall size of the arrow head (default is often too big)
+                    ),
+                    # arrowprops=dict(arrowstyle="->", color=base_color, lw=1.2, alpha=0.75),
+                    zorder=2,
+                )
+
+            ax.annotate(
+                _format_rho_label(float(rho_vals[0])),
+                xy=(x_vals[0], y_vals[0]),
+                xytext=(4, 6),
+                textcoords="offset points",
+                fontsize=7,
+                color=base_color,
+            )
+            if len(x_vals) > 1:
+                ax.annotate(
+                    _format_rho_label(float(rho_vals[-1])),
+                    xy=(x_vals[-1], y_vals[-1]),
+                    xytext=(4, -10),
+                    textcoords="offset points",
+                    fontsize=7,
+                    color=base_color,
+                )
+
+        ax.set_xlabel(fairness_metric)
+        ax.set_title(f"{fairness_metric} vs {y_metric}")
+
+    axes[0].set_ylabel(y_metric)
+    legend_handles = [
+        Patch(facecolor="limegreen", edgecolor="none", alpha=0.18, label="IAAO band"),
+        Line2D([0], [0], color="forestgreen", linestyle="--", linewidth=1.2, label="IAAO target"),
+        Line2D([0], [0], marker="*", color="w", markerfacecolor=_TRADEOFF_FAMILY_COLORS["LinearRegression"], markeredgecolor="black", markersize=12, label="LinearRegression"),
+        Line2D([0], [0], marker="*", color="w", markerfacecolor=_TRADEOFF_FAMILY_COLORS["LGBMRegressor"], markeredgecolor="black", markersize=12, label="LGBMRegressor"),
+        Line2D([0], [0], marker="o", color=_TRADEOFF_FAMILY_COLORS["LGBCovPenalty[diff]"], markerfacecolor=_TRADEOFF_FAMILY_COLORS["LGBCovPenalty[diff]"], markersize=6, linewidth=1.8, label="LGBCovPenalty"),
+        Line2D([0], [0], marker="o", color=_TRADEOFF_FAMILY_COLORS["LGBSmoothPenalty[diff]"], markerfacecolor=_TRADEOFF_FAMILY_COLORS["LGBSmoothPenalty[diff]"], markersize=6, linewidth=1.8, label="LGBSmoothPenalty"),
+    ]
+    fig.legend(
+        legend_handles,
+        [h.get_label() for h in legend_handles],
+        loc="lower center",
+        ncol=3,
+        frameon=False,
+        bbox_to_anchor=(0.5, -0.02),
+    )
+    fig.suptitle(f"{y_metric} Tradeoff vs PRD / PRB / VEI ({split_label})\nArrows indicate increasing rho")
+    fig.tight_layout(rect=(0.0, 0.08, 1.0, 0.92))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _write_tradeoff_plots(
+    df: pd.DataFrame,
+    *,
+    split_label: str,
+    out_dir: Path,
+) -> None:
+    if df.empty:
+        return
+    split_slug = _sanitize_plot_filename(split_label.lower())
+    for y_metric in _TRADEOFF_TARGET_METRICS:
+        if y_metric not in df.columns:
+            continue
+        out_path = out_dir / f"quick_test_tradeoff_{y_metric.lower()}_{split_slug}.pdf"
+        _write_tradeoff_plot(
+            df,
+            split_label=split_label,
+            out_path=out_path,
+            y_metric=y_metric,
+        )
+
+
 def _sanitize_plot_filename(name: str) -> str:
     safe = re.sub(r"[^A-Za-z0-9._-]+", "_", str(name).strip())
     return safe or "plot"
@@ -776,7 +1026,7 @@ def _write_ratio_vs_logprice_plots(
             metrics=row.to_dict(),
             group_labels=color_labels,
             group_label_name=(grouped_feature_name if color_labels is not None else None),
-            y_limits=(0.0, 3.0),
+            y_limits=(0.0, 4.0),
         )
 
 
@@ -850,7 +1100,7 @@ def _write_ratio_vs_logprediction_plots(
             metrics=row.to_dict(),
             group_labels=color_labels,
             group_label_name=(grouped_feature_name if color_labels is not None else None),
-            y_limits=(0.0, 3.0),
+            y_limits=(0.0, 4.0),
         )
 
 
@@ -903,17 +1153,40 @@ def _fit_predict_and_score(
     y_eval_log: np.ndarray,
     fairness_ratio_mode: str,
     return_prediction_log: bool = False,
+    X_in_sample: pd.DataFrame | None = None,
+    y_in_sample_log: np.ndarray | None = None,
+    return_in_sample_prediction_log: bool = False,
 ) -> Dict[str, Any]:
+    _log(
+        "model evaluation start",
+        model_name=model_name,
+        split_rows=int(len(y_eval_log)),
+        requires_linear_pipeline=bool(requires_linear_pipeline),
+    )
     if requires_linear_pipeline:
+        _log("building linear pipeline", model_name=model_name)
         pipe = linear_pipeline_builder()
         X_train_m = pipe.fit_transform(X_train, y_train_log)
         X_eval_m = pipe.transform(X_eval)
+        X_in_sample_m = None
+        if X_in_sample is not None:
+            X_in_sample_m = pipe.transform(X_in_sample)
+        _log(
+            "linear pipeline ready",
+            model_name=model_name,
+            train_matrix_shape=str(getattr(X_train_m, "shape", "")),
+            eval_matrix_shape=str(getattr(X_eval_m, "shape", "")),
+        )
     else:
         X_train_m = X_train
         X_eval_m = X_eval
+        X_in_sample_m = X_in_sample
 
+    _log("fitting model", model_name=model_name)
     estimator.fit(X_train_m, y_train_log)
+    _log("fit completed", model_name=model_name)
     y_pred_eval_log = np.asarray(estimator.predict(X_eval_m), dtype=float).reshape(-1)
+    _log("prediction completed", model_name=model_name)
     metrics = _compute_quick_test_metrics(
         y_true_log=y_eval_log,
         y_pred_log=y_pred_eval_log,
@@ -923,7 +1196,102 @@ def _fit_predict_and_score(
     out = {"model_name": model_name, **metrics}
     if bool(return_prediction_log):
         out["_y_pred_eval_log"] = y_pred_eval_log
+    if X_in_sample_m is not None and y_in_sample_log is not None:
+        y_pred_in_sample_log = np.asarray(estimator.predict(X_in_sample_m), dtype=float).reshape(-1)
+        in_sample_metrics = _compute_quick_test_metrics(
+            y_true_log=np.asarray(y_in_sample_log, dtype=float),
+            y_pred_log=y_pred_in_sample_log,
+            y_train_log=y_train_log,
+            ratio_mode=fairness_ratio_mode,
+        )
+        out["_in_sample_metrics"] = in_sample_metrics
+        if bool(return_in_sample_prediction_log):
+            out["_y_pred_in_sample_log"] = y_pred_in_sample_log
+    _log("model evaluation completed", model_name=model_name)
     return out
+
+
+def _evaluate_single_model_spec(
+    *,
+    spec: Dict[str, Any],
+    linear_pipeline_builder,
+    X_train: pd.DataFrame,
+    y_train_log: np.ndarray,
+    X_eval: pd.DataFrame,
+    y_eval_log: np.ndarray,
+    X_in_sample: pd.DataFrame | None,
+    y_in_sample_log: np.ndarray | None,
+) -> Dict[str, Any]:
+    return _fit_predict_and_score(
+        model_name=str(spec["model_name"]),
+        estimator=spec["estimator"],
+        requires_linear_pipeline=bool(spec["requires_linear_pipeline"]),
+        linear_pipeline_builder=linear_pipeline_builder,
+        X_train=X_train,
+        y_train_log=y_train_log,
+        X_eval=X_eval,
+        y_eval_log=y_eval_log,
+        fairness_ratio_mode=str(spec["ratio_mode"]),
+        return_prediction_log=True,
+        X_in_sample=X_in_sample,
+        y_in_sample_log=y_in_sample_log,
+        return_in_sample_prediction_log=True,
+    )
+
+
+def _evaluate_model_specs(
+    *,
+    model_specs: List[Dict[str, Any]],
+    linear_pipeline_builder,
+    X_train: pd.DataFrame,
+    y_train_log: np.ndarray,
+    X_eval: pd.DataFrame,
+    y_eval_log: np.ndarray,
+    X_in_sample: pd.DataFrame | None,
+    y_in_sample_log: np.ndarray | None,
+    parallel_models: bool,
+) -> List[Dict[str, Any]]:
+    if not parallel_models or len(model_specs) <= 1:
+        return [
+            _evaluate_single_model_spec(
+                spec=spec,
+                linear_pipeline_builder=linear_pipeline_builder,
+                X_train=X_train,
+                y_train_log=y_train_log,
+                X_eval=X_eval,
+                y_eval_log=y_eval_log,
+                X_in_sample=X_in_sample,
+                y_in_sample_log=y_in_sample_log,
+            )
+            for spec in model_specs
+        ]
+
+    max_workers = min(len(model_specs), max(1, int(os.cpu_count() or 1)))
+    _log(
+        "parallel model evaluation enabled",
+        n_models=int(len(model_specs)),
+        max_workers=int(max_workers),
+    )
+    rows: List[Dict[str, Any] | None] = [None] * len(model_specs)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_to_idx = {
+            executor.submit(
+                _evaluate_single_model_spec,
+                spec=spec,
+                linear_pipeline_builder=linear_pipeline_builder,
+                X_train=X_train,
+                y_train_log=y_train_log,
+                X_eval=X_eval,
+                y_eval_log=y_eval_log,
+                X_in_sample=X_in_sample,
+                y_in_sample_log=y_in_sample_log,
+            ): idx
+            for idx, spec in enumerate(model_specs)
+        }
+        for future in as_completed(future_to_idx):
+            idx = future_to_idx[future]
+            rows[idx] = future.result()
+    return [row for row in rows if row is not None]
 
 
 def run_quick_test(
@@ -943,15 +1311,24 @@ def run_quick_test(
     skip_delete_analysis: bool = True,
     n_bootstrap_validation: int = 5,
     bootstrap_block_freq: str = "M",
+    parallel_models: bool = False,
 ) -> Dict[str, str]:
     """Runs the quick test and writes the output CSV tables."""
     target_column = "meta_sale_price"
     date_column = "meta_sale_date"
+    _log(
+        "quick test start",
+        out_dir=out_dir,
+        data_path=data_path,
+        rho=rho,
+        sample_frac=sample_frac,
+    )
 
     with open("params.yaml", "r", encoding="utf-8") as f:
         params = yaml.safe_load(f)
     with open("model_params.yaml", "r", encoding="utf-8") as f:
         model_params = yaml.safe_load(f)
+    _log("configuration loaded")
 
     df_train_validate, df_test, df_assess, predictor_cols, categorical_cols = _load_and_split_data(
         data_path=data_path,
@@ -961,6 +1338,7 @@ def run_quick_test(
         sample_frac=sample_frac,
         sample_seed=seed,
     )
+    _log("data load/split finished")
     predictor_cols = list(predictor_cols)
     categorical_cols = list(categorical_cols)
 
@@ -1340,38 +1718,58 @@ def run_quick_test(
         lgbm_params=lgbm_params,
         early_stopping_rounds=early_stopping_rounds,
     )
+    _log("model specs built", n_models=int(len(models)))
     model_ratio_modes = {str(spec["model_name"]): str(spec["ratio_mode"]) for spec in models}
 
     # --- Evaluate on TEST (train on df_train_validate only; strict out-of-time).
+    _log("starting test evaluation", n_models=int(len(models)))
     test_rows = []
     test_pred_logs: Dict[str, np.ndarray] = {}
-    for spec in models:
-        row = _fit_predict_and_score(
-            model_name=str(spec["model_name"]),
-            estimator=spec["estimator"],
-            requires_linear_pipeline=bool(spec["requires_linear_pipeline"]),
-            linear_pipeline_builder=linear_pipeline_builder,
-            X_train=X_tv,
-            y_train_log=y_tv_log,
-            X_eval=X_test,
-            y_eval_log=y_test_log,
-            fairness_ratio_mode=str(spec["ratio_mode"]),
-            return_prediction_log=True,
-        )
-        row["model_family"] = str(spec["model_family"])
-        row["ratio_mode"] = str(spec["ratio_mode"])
-        row["rho"] = spec["rho"]
-        row["rho_group"] = spec.get("rho_group", np.nan)
-        row["eta"] = spec.get("eta", np.nan)
-        row["keep"] = spec.get("keep", np.nan)
+    train_test_rows = []
+    train_test_pred_logs: Dict[str, np.ndarray] = {}
+    test_eval_rows = _evaluate_model_specs(
+        model_specs=models,
+        linear_pipeline_builder=linear_pipeline_builder,
+        X_train=X_tv,
+        y_train_log=y_tv_log,
+        X_eval=X_test,
+        y_eval_log=y_test_log,
+        X_in_sample=X_tv,
+        y_in_sample_log=y_tv_log,
+        parallel_models=parallel_models,
+    )
+    for spec, row in zip(models, test_eval_rows):
+        row_meta = {
+            "model_family": str(spec["model_family"]),
+            "ratio_mode": str(spec["ratio_mode"]),
+            "rho": spec["rho"],
+            "rho_group": spec.get("rho_group", np.nan),
+            "eta": spec.get("eta", np.nan),
+            "keep": spec.get("keep", np.nan),
+        }
+        row.update(row_meta)
         test_pred_logs[str(spec["model_name"])] = np.asarray(row.pop("_y_pred_eval_log"), dtype=float).reshape(-1)
+        in_sample_metrics = dict(row.pop("_in_sample_metrics", {}))
+        if "_y_pred_in_sample_log" in row:
+            train_test_pred_logs[str(spec["model_name"])] = np.asarray(
+                row.pop("_y_pred_in_sample_log"),
+                dtype=float,
+            ).reshape(-1)
+        if in_sample_metrics:
+            train_row = {"model_name": str(spec["model_name"]), **in_sample_metrics, **row_meta}
+            train_test_rows.append(train_row)
         test_rows.append(row)
     test_df = pd.DataFrame(test_rows)
+    train_test_df = pd.DataFrame(train_test_rows)
+    _log("test evaluation finished", rows=int(test_df.shape[0]))
 
     # --- Evaluate on ASSESS (train on ALL pre-2024 sales, i.e., train_validate + test).
     assess_df = pd.DataFrame()
     assess_pred_logs: Dict[str, np.ndarray] = {}
+    train_assess_df = pd.DataFrame()
+    train_assess_pred_logs: Dict[str, np.ndarray] = {}
     if not df_assess.empty:
+        _log("starting assessment evaluation", n_models=int(len(models)))
         df_pre2024 = pd.concat([df_train_validate, df_test], ignore_index=True)
         X_pre = df_pre2024[predictor_cols].copy()
         y_pre_log = np.log(df_pre2024[target_column].to_numpy())
@@ -1379,42 +1777,63 @@ def run_quick_test(
             X_pre[c] = X_pre[c].astype("category")
 
         assess_rows = []
-        for spec in models:
-            row = _fit_predict_and_score(
-                model_name=str(spec["model_name"]),
-                estimator=spec["estimator"],
-                requires_linear_pipeline=bool(spec["requires_linear_pipeline"]),
-                linear_pipeline_builder=linear_pipeline_builder,
-                X_train=X_pre,
-                y_train_log=y_pre_log,
-                X_eval=X_assess,
-                y_eval_log=y_assess_log,
-                fairness_ratio_mode=str(spec["ratio_mode"]),
-                return_prediction_log=True,
-            )
-            row["model_family"] = str(spec["model_family"])
-            row["ratio_mode"] = str(spec["ratio_mode"])
-            row["rho"] = spec["rho"]
-            row["rho_group"] = spec.get("rho_group", np.nan)
-            row["eta"] = spec.get("eta", np.nan)
-            row["keep"] = spec.get("keep", np.nan)
+        assess_train_rows = []
+        assess_eval_rows = _evaluate_model_specs(
+            model_specs=models,
+            linear_pipeline_builder=linear_pipeline_builder,
+            X_train=X_pre,
+            y_train_log=y_pre_log,
+            X_eval=X_assess,
+            y_eval_log=y_assess_log,
+            X_in_sample=X_pre,
+            y_in_sample_log=y_pre_log,
+            parallel_models=parallel_models,
+        )
+        for spec, row in zip(models, assess_eval_rows):
+            row_meta = {
+                "model_family": str(spec["model_family"]),
+                "ratio_mode": str(spec["ratio_mode"]),
+                "rho": spec["rho"],
+                "rho_group": spec.get("rho_group", np.nan),
+                "eta": spec.get("eta", np.nan),
+                "keep": spec.get("keep", np.nan),
+            }
+            row.update(row_meta)
             assess_pred_logs[str(spec["model_name"])] = np.asarray(row.pop("_y_pred_eval_log"), dtype=float).reshape(-1)
+            in_sample_metrics = dict(row.pop("_in_sample_metrics", {}))
+            if "_y_pred_in_sample_log" in row:
+                train_assess_pred_logs[str(spec["model_name"])] = np.asarray(
+                    row.pop("_y_pred_in_sample_log"),
+                    dtype=float,
+                ).reshape(-1)
+            if in_sample_metrics:
+                train_row = {"model_name": str(spec["model_name"]), **in_sample_metrics, **row_meta}
+                assess_train_rows.append(train_row)
             assess_rows.append(row)
         assess_df = pd.DataFrame(assess_rows)
+        train_assess_df = pd.DataFrame(assess_train_rows)
+        _log("assessment evaluation finished", rows=int(assess_df.shape[0]))
 
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     test_path = out / "quick_test_metrics_test.csv"
     assess_path = out / "quick_test_metrics_assess.csv"
+    train_test_path = out / "quick_test_metrics_train_for_test.csv"
+    train_assess_path = out / "quick_test_metrics_train_for_assess.csv"
     bootstrap_val_path = out / "quick_test_metrics_validation_bootstrap_avg.csv"
     test_df.to_csv(test_path, index=False)
+    if not train_test_df.empty:
+        train_test_df.to_csv(train_test_path, index=False)
     if not assess_df.empty:
         assess_df.to_csv(assess_path, index=False)
+    if not train_assess_df.empty:
+        train_assess_df.to_csv(train_assess_path, index=False)
 
     # --- Small bootstrap summary over the quick-test split (validation-like diagnostic).
     bootstrap_rows: List[Dict[str, Any]] = []
     n_bs = max(0, int(n_bootstrap_validation))
     if n_bs > 0 and y_test_log.size > 1 and test_pred_logs:
+        _log("starting bootstrap summary", n_bootstrap=int(n_bs), n_models=int(len(test_pred_logs)))
         bs_indices = _build_time_block_bootstrap_indices(
             val_dates=pd.to_datetime(df_test[date_column]),
             n_bootstrap=n_bs,
@@ -1460,6 +1879,7 @@ def run_quick_test(
             bootstrap_rows.append(row)
     bootstrap_df = pd.DataFrame(bootstrap_rows)
     bootstrap_df.to_csv(bootstrap_val_path, index=False)
+    _log("bootstrap summary written", rows=int(bootstrap_df.shape[0]))
 
     plots_dir = out / "plots"
     rho_plots_dir = plots_dir / "rho_evolution"
@@ -1468,6 +1888,8 @@ def run_quick_test(
     residual_plots_dir = plots_dir / "residual_vs_logprice"
     ratio_pred_plots_dir = plots_dir / "ratio_vs_logprediction"
     residual_pred_plots_dir = plots_dir / "residual_vs_logprediction"
+    tradeoff_plots_dir = plots_dir / "tradeoff"
+    _log("writing plots", plots_dir=str(plots_dir))
     _write_rho_evolution_plot(
         bootstrap_df,
         split_label="Validation bootstrap average",
@@ -1477,6 +1899,11 @@ def run_quick_test(
         bootstrap_df,
         split_label="Validation bootstrap average",
         out_dir=grouped_rho_plots_dir,
+    )
+    _write_tradeoff_plots(
+        bootstrap_df,
+        split_label="Validation bootstrap average",
+        out_dir=tradeoff_plots_dir,
     )
     _write_rho_evolution_plot(
         test_df,
@@ -1488,6 +1915,22 @@ def run_quick_test(
         split_label="Test",
         out_dir=grouped_rho_plots_dir,
     )
+    _write_tradeoff_plots(
+        test_df,
+        split_label="Test",
+        out_dir=tradeoff_plots_dir,
+    )
+    if not train_test_df.empty:
+        _write_rho_evolution_plot(
+            train_test_df,
+            split_label="TrainInSample-TestFit",
+            out_path=rho_plots_dir / "quick_test_rho_evolution_train_test_fit.pdf",
+        )
+        _write_tradeoff_plots(
+            train_test_df,
+            split_label="TrainInSample-TestFit",
+            out_dir=tradeoff_plots_dir,
+        )
     if not assess_df.empty:
         _write_rho_evolution_plot(
             assess_df,
@@ -1498,6 +1941,22 @@ def run_quick_test(
             assess_df,
             split_label="Assessment",
             out_dir=grouped_rho_plots_dir,
+        )
+        _write_tradeoff_plots(
+            assess_df,
+            split_label="Assessment",
+            out_dir=tradeoff_plots_dir,
+        )
+    if not train_assess_df.empty:
+        _write_rho_evolution_plot(
+            train_assess_df,
+            split_label="TrainInSample-AssessFit",
+            out_path=rho_plots_dir / "quick_test_rho_evolution_train_assess_fit.pdf",
+        )
+        _write_tradeoff_plots(
+            train_assess_df,
+            split_label="TrainInSample-AssessFit",
+            out_dir=tradeoff_plots_dir,
         )
 
     _write_ratio_vs_logprice_plots(
@@ -1544,6 +2003,51 @@ def run_quick_test(
         else None,
         grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
     )
+    if not train_test_df.empty:
+        _write_ratio_vs_logprice_plots(
+            split_label="TrainInSample-TestFit",
+            results_df=train_test_df,
+            y_true_log=y_tv_log,
+            pred_logs=train_test_pred_logs,
+            out_dir=ratio_plots_dir,
+            grouped_feature_labels=df_train_validate[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_ratio_vs_logprediction_plots(
+            split_label="TrainInSample-TestFit",
+            results_df=train_test_df,
+            y_true_log=y_tv_log,
+            pred_logs=train_test_pred_logs,
+            out_dir=ratio_pred_plots_dir,
+            grouped_feature_labels=df_train_validate[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_residual_vs_logprice_plots(
+            split_label="TrainInSample-TestFit",
+            results_df=train_test_df,
+            y_true_log=y_tv_log,
+            pred_logs=train_test_pred_logs,
+            out_dir=residual_plots_dir,
+            grouped_feature_labels=df_train_validate[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_residual_vs_logprediction_plots(
+            split_label="TrainInSample-TestFit",
+            results_df=train_test_df,
+            y_true_log=y_tv_log,
+            pred_logs=train_test_pred_logs,
+            out_dir=residual_pred_plots_dir,
+            grouped_feature_labels=df_train_validate[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
     if not assess_df.empty:
         _write_ratio_vs_logprice_plots(
             split_label="Assessment",
@@ -1589,10 +2093,58 @@ def run_quick_test(
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
         )
+    if not train_assess_df.empty:
+        _write_ratio_vs_logprice_plots(
+            split_label="TrainInSample-AssessFit",
+            results_df=train_assess_df,
+            y_true_log=y_pre_log,
+            pred_logs=train_assess_pred_logs,
+            out_dir=ratio_plots_dir,
+            grouped_feature_labels=df_pre2024[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_ratio_vs_logprediction_plots(
+            split_label="TrainInSample-AssessFit",
+            results_df=train_assess_df,
+            y_true_log=y_pre_log,
+            pred_logs=train_assess_pred_logs,
+            out_dir=ratio_pred_plots_dir,
+            grouped_feature_labels=df_pre2024[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_residual_vs_logprice_plots(
+            split_label="TrainInSample-AssessFit",
+            results_df=train_assess_df,
+            y_true_log=y_pre_log,
+            pred_logs=train_assess_pred_logs,
+            out_dir=residual_plots_dir,
+            grouped_feature_labels=df_pre2024[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+        _write_residual_vs_logprediction_plots(
+            split_label="TrainInSample-AssessFit",
+            results_df=train_assess_df,
+            y_true_log=y_pre_log,
+            pred_logs=train_assess_pred_logs,
+            out_dir=residual_pred_plots_dir,
+            grouped_feature_labels=df_pre2024[_META_TOWNSHIP_TRIAD_COL].astype(str).to_numpy()
+            if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
+            else None,
+            grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        )
+    _log("quick test finished", plots_dir=str(plots_dir))
 
     return {
         "test_csv": str(test_path),
         "assess_csv": str(assess_path),
+        "train_test_csv": str(train_test_path),
+        "train_assess_csv": str(train_assess_path),
         "bootstrap_validation_avg_csv": str(bootstrap_val_path),
         "plots_dir": str(plots_dir),
     }
@@ -1600,7 +2152,7 @@ def run_quick_test(
 
 def _build_arg_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Quick test: covariance-regularized LightGBM models in diff mode on test (~2023) + assessment (2024).")
-    p.add_argument("--rho", type=float, default=1.0, help="Rho used for LGBCovLinearPenalty, LGBCovPenalty, and LGBSmoothPenalty.")
+    p.add_argument("--rho", type=float, default=1.0, help="Rho used for LGBCovPenalty and LGBSmoothPenalty.")
     p.add_argument(
         "--eta",
         type=float,
@@ -1617,7 +2169,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         "--rho-range",
         type=str,
         default="",
-        help="Optional comma-separated rho range for the shared sweep in the form min,max. LGBCovLinearPenalty uses a compressed version of this grid.",
+        help="Optional comma-separated rho range for LGBCovPenalty and LGBSmoothPenalty in the form min,max. If omitted, uses --rho.",
     )
     p.add_argument("--rho-count", type=int, default=5, help="Number of rho values to generate when --rho-range is provided.")
     p.add_argument(
@@ -1658,6 +2210,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default=True,
         help="Skip the temporary analysis block between the DELETE flags. Use --no-skip-delete-analysis to run it.",
     )
+    p.add_argument(
+        "--parallel-models",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Run the independent model fits in parallel. Disabled by default to preserve the current workflow.",
+    )
     p.add_argument("--sample-frac", type=float, default=None, help="Optional down-sampling fraction in (0,1].")
     p.add_argument("--seed", type=int, default=4050, help="Random seed (mirrors main.py default).")
     p.add_argument("--n-bootstrap-validation", type=int, default=5, help="Small number of bootstrap resamples for quick validation-like summary.")
@@ -1697,6 +2255,7 @@ if __name__ == "__main__":
         skip_delete_analysis=bool(args.skip_delete_analysis),
         n_bootstrap_validation=int(args.n_bootstrap_validation),
         bootstrap_block_freq=str(args.bootstrap_block_freq),
+        parallel_models=bool(args.parallel_models),
     )
     print("=" * 90)
     print("QUICK TEST COMPLETED")

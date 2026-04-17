@@ -26,7 +26,7 @@ numeric_sanity_abs_cap: 1e10
 #   Set sample_frac to a float in (0, 1) to randomly downsample the training
 #   universe before the CV.  Use null to disable (full dataset).
 # ---------------------------------------------------------------------------
-sample_frac: null #0.99 #null          # e.g. 0.40  or  null for full data
+sample_frac: 0.99 #null          # e.g. 0.40  or  null for full data
 
 
 # ---------------------------------------------------------------------------
@@ -39,11 +39,17 @@ sample_frac: null #0.99 #null          # e.g. 0.40  or  null for full data
 #   ratio_modes : extra sweep axis for rho-weighted models that support
 #                 ratio targets. Use ["diff"] to preserve the current workflow,
 #                 or ["div", "diff"] to sweep both target conventions.
-#   keep_values : list of CVaR keep fractions tried for LGBPrimalDual
+#   include_cvar_models : when true, also run CVaR-style penalty variants.
+#                         default false keeps only the 4 basic families:
+#                         LinearRegression, LGBMRegressor, LGBSmoothPenalty,
+#                         and LGBCovPenalty.
+#   keep_values : list of CVaR keep fractions, used only when
+#                 include_cvar_models is true.
 # ---------------------------------------------------------------------------
-rho_values:   [1e-1, 10.0]
+rho_values:   [1e-1, 100.0]
 rho_count:   50
-rho_scale:   "log"
+rho_scale:   "geom"
+include_cvar_models: false
 
 # rho_values_smooth: [2.043]
 # rho_count_smooth: 1
@@ -53,9 +59,9 @@ rho_scale:   "log"
 # rho_count_cov: 1
 # rho_scale_cov: "log"
 
-ratio_modes: ["diff", "div"]
+ratio_modes: ["diff"]
 
-keep_values: [0.8, 0.85, 0.9, 0.95]
+keep_values: [1] # [0.8, 0.85, 0.9, 0.95]
 # ---------------------------------------------------------------------------
 # Rolling-origin split protocol
 #
@@ -106,7 +112,7 @@ split_protocol:
 #                           "Q"  (quarterly)— use only for long val windows
 # ---------------------------------------------------------------------------
 bootstrap_protocol:
-  n_bootstrap:           10
+  n_bootstrap:           0
   bootstrap_block_freq:  "M"
 
 

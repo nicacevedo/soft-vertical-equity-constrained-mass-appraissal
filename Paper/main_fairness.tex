@@ -1,0 +1,855 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+\usepackage[a4paper, total={5in, 10in}]{geometry}
+\usepackage{xcolor}
+\usepackage{color,soul}
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Subplots
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+\title{Unfair behavior in applied regression models}
+% \author{Nicolas Acevedo Villena, Haihao Lu}
+\date{}
+
+% Set commands
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\N}{\mathcal{N}}
+
+
+\newcommand{\Expected}[1]{\mathbb{E}[#1]}
+
+% Math sets commands
+\newcommand{\R}{\mathbb{R}}
+
+
+\begin{document}
+
+% Norms
+\newcommand{\norm}[2][{}]{\left\|#2\right\|_{#1}}
+
+
+\maketitle
+
+\section*{Motivation}
+
+In real-world applications, one may encounter situations where the classical models do not produce fair results on all the individuals or groups involved. Take, for example, the use of regression models to assess the market price of real estate property: if one applies a simple linear regression, we could have fair-enough results in prediction metrics, as seen as follows. We also include an analysis, splitting the data according to three different levels of the true market value of houses; $y$. The three intervals are equally spaced in $support(y)=[\min_i\{y_i\}, \max_i\{y_i\}]$.
+
+\begin{table}[!h]
+    \centering
+    \begin{tabular}{c|c}
+       $R^2$ Training Set  & $R^2$ Validation Set \\
+       \hline
+      0.866 &   0.797
+    \end{tabular}
+    % \caption{Caption}
+    % \label{tab:placeholder}
+\end{table}
+Note that this is a simple minimization of the MSE, so there is no tuning, and hence the validation set is an unseen set. We just don't want to corrupt the analysis comparing results on the final testing set.
+
+We see now a summary of statistics of residuals, as well as an over- and under-estimation effect, on both data sets (training and validation), in the following tables.
+\vspace{-0.5cm}
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|}
+    \hline
+        ~ & Overall & Group 1 & Group 2 & Group 3 \\ \hline
+        count & 8622 & 952 & 7046 & 624 \\ \hline
+        avg real price ($\backslash$\$) & $\backslash$\$323,280.50 & $\backslash$\$54,506.82 & $\backslash$\$288,341.84 & $\backslash$\$1,127,848.28 \\ \hline
+        R2 (price) & 0.866 & -3.963 & 0.695 & 0.648 \\ \hline
+        rmse & 111460.315 & 46121.142 & 73901.332 & 326717.458 \\ \hline
+        highest overcharge ($\backslash$\%) & 2,009.50$\backslash$\% & \hl{2,009.50}$\backslash$\% & 300.70$\backslash$\% & 127.50$\backslash$\% \\ \hline
+        highest undercharge ($\backslash$\%) & -84.51$\backslash$\% & -63.14$\backslash$\% & -79.58$\backslash$\% & \hl{-84.51}$\backslash$\% \\ \hline
+        avg charge ($\backslash$\%) & 6.10$\backslash$\% & {63.25}$\backslash$\% & -0.44$\backslash$\% & -7.18$\backslash$\% \\ \hline
+        avg overcharge ($\backslash$\%) & 32.08$\backslash$\% & \hl{76.97}$\backslash$\% & {21.44}$\backslash$\% & 16.89$\backslash$\% \\ \hline
+        avg undercharge ($\backslash$\%) & -18.21$\backslash$\% & -19.03$\backslash$\% & -18.09$\backslash$\% & \hl{-19.04}$\backslash$\% \\ \hline
+        count overcharged & 4168 & 816 & 3146 & 206 \\ \hline
+        count undercharged & 4454 & 136 & 3900 & 418 \\ \hline
+    \end{tabular}
+    \caption{\textbf{Training Set} - Unfair results on Linear Regression. \vspace{-0.5cm}}
+    \label{tab1:train_summary}
+\end{table}
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|}
+    \hline
+        ~ & Overall & Group 1 & Group 2 & Group 3 \\ \hline
+        count & 1378 & 127 & 1143 & 108 \\ \hline
+        avg real price ($\backslash$\$) & $\backslash$\$417,877.38 & $\backslash$\$92,314.55 & $\backslash$\$358,694.16 & $\backslash$\$1,427,070.94 \\ \hline
+        R2 (price) & 0.797 & -0.468 & 0.525 & 0.431 \\ \hline
+        rmse & 173363.602 & 37179.638 & 102220.313 & 520834.014 \\ \hline
+        highest overcharge ($\backslash$\%) & 230.48$\backslash$\% & \hl{230.48}$\backslash$\% & 130.16$\backslash$\% & 39.75$\backslash$\% \\ \hline
+        highest undercharge ($\backslash$\%) & -89.30$\backslash$\% & -73.15$\backslash$\% & -89.30$\backslash$\% & \hl{-85.96}$\backslash$\% \\ \hline
+        avg charge ($\backslash$\%) & -8.21$\backslash$\% & \hl{7.75}$\backslash$\% & -9.64$\backslash$\% & -11.80$\backslash$\% \\ \hline
+        avg overcharge ($\backslash$\%) & 21.82$\backslash$\% & {43.38}$\backslash$\% & {18.91}$\backslash$\% & 14.53$\backslash$\% \\ \hline
+        avg undercharge ($\backslash$\%) & -24.31$\backslash$\% & -27.33$\backslash$\% & -24.15$\backslash$\% & \hl{-23.38}$\backslash$\% \\ \hline
+        count overcharged & 481 & 63 & 385 & 33 \\ \hline
+        count undercharged & 897 & 64 & 758 & 75 \\ \hline
+    \end{tabular}
+    \caption{\textbf{Validation Set} - Unfair results on Linear Regression.}
+    \label{tab2:val_summary}
+\end{table}
+
+
+
+
+% \begin{table}[!h]
+% \centering
+% \begin{tabular}{lllll}
+% \hline
+% group & Overall & Group 1 & Group 2 & Group 3 \\
+% \hline
+% count & 270852 & 29947 & 226418 & 14487 \\
+% avg real price & 328851.87 & 55526.80 & 305012.39 & 1266447.89 \\
+% rmse & 123210.61 & 42837.82 & 85302.37 & 407806.75 \\
+% mae & 66830.80 & 34126.99 & 58216.34 & 269070.78 \\
+% avg residual (\$) & \$-9,237.03 & \$30,766.37 & \$-6,457.67 & \$-135,369.33 \\
+% median residual (\$) & \$-5,149.89 & \$28,722.81 & \$-11,653.78 & \$-110,730.41 \\
+% most overcharged (\$) & \$2,776,237.25 & \$908,903.45 & \$2,574,545.27 & \$2,776,237.25 \\
+% most undercharged (\$) & \$-6,298,014.47 & \$-60,415.53 & \$-537,442.97 & \$-6,298,014.47 \\
+% highest overcharge (\%) & 2,272.26\% & 2,272.26\% & 899.63\% & 264.40\% \\
+% highest undercharge (\%) & -88.39\% & -68.65\% & -84.09\% & -88.39\% \\
+% avg overcharge (\%) & 35.07\% & 84.96\% & 22.20\% & 17.77\% \\
+% avg undercharg (\%) & -19.14\% & -18.49\% & -19.03\% & -20.96\% \\
+% count overcharged & 126769 & 26335 & 95570 & 4864 \\
+% count undercharged & 144083 & 3612 & 130848 & 9623 \\
+% total tax diff (\$) & \$-47,535,488.13 & \$17,505,849.65 & \$-27,780,523.97 & \$-37,260,813.80 \\
+% avg tax overpayment (\$) & \$1,169.01 & \$701.04 & \$1,164.92 & \$3,783.07 \\
+% avg tax underpayment (\$) & \$-1,358.45 & \$-264.70 & \$-1,063.16 & \$-5,784.23 \\
+% \hline
+% \end{tabular}
+% \caption{Summary of metrics in the Training Dataset}
+% \label{tab1:train_summary}
+% \end{table}
+% \begin{table}[!h]
+% \begin{tabular}{lllll}
+% \hline
+% group & Overall & Group 1 & Group 2 & Group 3 \\
+% \hline
+% count & 43289 & 3168 & 37710 & 2411 \\
+% avg real price & 409401.58 & 79611.52 & 365630.94 & 1527346.73 \\
+% rmse & 163867.27 & 42230.88 & 120683.14 & 501983.96 \\
+% mae & 85208.71 & 30223.11 & 75294.22 & 312529.15 \\
+% avg residual (\$) & \$-11,079.00 & \$19,484.82 & \$-6,288.56 & \$-126,165.48 \\
+% median residual (\$) & \$-13,142.87 & \$16,723.45 & \$-17,202.51 & \$-96,143.33 \\
+% most overcharged (\$) & \$4,139,225.11 & \$502,189.40 & \$4,139,225.11 & \$3,455,354.98 \\
+% most undercharged (\$) & \$-5,123,507.87 & \$-62,944.26 & \$-550,414.38 & \$-5,123,507.87 \\
+% highest overcharge (\%) & 1,099.67\% & 1,099.67\% & 653.97\% & 300.97\% \\
+% highest undercharge (\%) & -90.07\% & -55.95\% & -82.96\% & -90.07\% \\
+% avg overcharge (\%) & 25.88\% & 54.95\% & 22.14\% & 19.30\% \\
+% avg undercharg (\%) & -21.83\% & -19.10\% & -22.13\% & -19.16\% \\
+% count overcharged & 18752 & 2217 & 15645 & 890 \\
+% count undercharged & 24537 & 951 & 22065 & 1521 \\
+% total tax diff (\$) & \$-9,112,376.36 & \$1,172,830.17 & \$-4,505,692.09 & \$-5,779,514.44 \\
+% avg tax overpayment (\$) & \$1,625.72 & \$674.79 & \$1,580.12 & \$4,796.14 \\
+% avg tax underpayment (\$) & \$-1,613.80 & \$-339.83 & \$-1,324.57 & \$-6,606.23 \\
+% \hline
+% \end{tabular}
+% \caption{Summary of metrics in the Validation Dataset}
+% \label{tab2:val_summary}
+% \end{table}
+
+Looking at the results in Tables \ref{tab1:train_summary} and \ref{tab2:val_summary}, it is clear that our model is optimizing the average error, but producing an imbalance of the percentage of overcharge/undercharge between different groups. In the group with the lowest market value, the overcharging is notoriously superior to the undercharge percentage. On the other hand, the group with the highest prices has bigger undercharging percentages than overcharging ones. Note that \underline{this is just the expected behavior of a} \underline{regression model}; they regress to the mean. In other words, the utilitarian solution sacrifices the reward of some individuals to maximize the total reward; this is not just a symptom of the data.
+
+
+
+\subsection*{On the tradeoff between risk and fairness}
+
+
+We are interested in understanding the trade-off between the functions $J(\theta)$ and $F(\theta)$ when modifying the fairness bound. Assume that $J(\theta)$ is convex an differentiable in $\theta$ (e.g. MSE), and $F(\theta)$ are is some fairness measure, potentially nondifferentiable (e.g. max difference between groups' MAE). We focus first on the unconstrained form of the problem in terms of parameter $\lambda \geq 0$. That is, we are interested in solving
+\begin{align}
+    \label{eq:lagrangian_problem}
+    (L_\lambda):= \psi(\lambda)=\min_{\theta} J(\theta) + \lambda F(\theta).
+\end{align}
+Note that, for $0 \leq\tau \leq F(\theta_0)$, where $\theta_0:=\arg\min_{\theta} J(\theta)$, we can obtain an equivalent constrained problem using an appropriate $\tau\geq 0$, of the form 
+\begin{equation}
+\label{eq:constrained_problem}
+\begin{array}{rc}
+   ( P_z):= \phi(\tau)=\min_{\theta} &   J(\theta) \quad \quad \quad\\
+     s.t. & F(\theta) \leq \tau.
+\end{array}
+\end{equation}
+If the problem satisfies some condition such that that the solutions of the KKT system are optimal (e.g.: convex problem and Slater condition), then we can just set $\tau = F(\theta_{\lambda})$, where $\theta_{\lambda}$ is the optimal solution for (\ref{eq:lagrangian_problem}), which directly satisfies the given KKT conditions. \\
+
+It follows that we are interested in studying if it is possible to derive, in some efficient way, the tradeoff between error and fairness. In other words, we want to know if it is possible to compute the ratio ${\partial J(\theta)}/{\partial F(\theta)}$, or even the percentual ratio $(F(\theta_0)/J(\theta_0))({\partial J(\theta)}/{\partial F(\theta)})$, without explicitly solving (\ref{eq:lagrangian_problem}) for each $\lambda \geq 0$.\\
+
+% Note now that, in primal-dual form, $\phi(\tau)=\min_{\theta}\max_{\lambda\geq 0} J(\theta) + \lambda (F(\theta) - \tau))$, and, if the solution is achieved ($\exists$ minimum), then the dual solution $\lambda_\tau$ satisfies
+% \begin{equation*}
+%     -\lambda_{\tau} \in \partial \phi(\tau)
+% \end{equation*}
+ Since (\ref{eq:lagrangian_problem}) is an unconstrained problem, the minimum (if it's achieved) and its solution $\theta_{\lambda}$ have to satisfy the first-order condition, i.e.,
+\begin{align*}
+    0 \in \nabla J(\theta_{\lambda}) + \lambda \partial F(\theta_{\lambda}),
+\end{align*}
+where $\partial F(\theta_{\lambda})$ denotes the subgradient set of $F$ at $\theta_{\lambda}$. For simplicity, let us \textbf{assume for now that we can compute the gradients} {\color{red}(which is not true)} at the optimal solution. Let us then take the derivative of the first-order condition equation with respect to $\lambda$
+\begin{align*}
+ 0 &= \nabla J(\theta_{\lambda}) + \lambda \nabla F(\theta_{\lambda})) && \Big/ \frac{\partial}{\partial \lambda}\\
+    \Longrightarrow 0 &= \frac{\partial}{\partial \lambda} (\nabla J(\theta_{\lambda}) + \lambda \nabla F(\theta_{\lambda})) \\
+   % \iff -\nabla F(\theta_{\lambda})&= \left(\nabla^2 J(\theta_{\lambda}) + \lambda \nabla^2 F(\theta_{\lambda}) \right) \left(\frac{\partial\theta_{\lambda}}{\partial \lambda} \right) \\
+   \Longrightarrow \frac{\partial\theta_{\lambda}}{\partial \lambda}&= - H(\theta_{\lambda})^{-1} \nabla F(\theta_{\lambda}), 
+\end{align*}
+where on the last line we are assuming that $H(\theta_{\lambda}) := \nabla^2 J(\theta_{\lambda}) + \lambda \nabla^2 F(\theta_{\lambda})$ is an invertible matrix {\color{red}(also check the general case)}.
+Then, we can compute the trade-off rate for a specific $\lambda$ using the terms
+
+\begin{itemize}
+    \item $\frac{\partial F(\theta_{\lambda})}{\partial \lambda} = \nabla F(\theta_{\lambda})^{\top}\left(\frac{\partial\theta_{\lambda}}{\partial \lambda} \right )=-\nabla F(\theta_{\lambda})^{\top}H(\theta_{\lambda})^{-1} \nabla F(\theta_{\lambda})$, and
+    \item $\frac{\partial J(\theta_{\lambda})}{\partial \lambda} = \nabla J(\theta_{\lambda})^{\top}\left(\frac{\partial\theta_{\lambda}}{\partial \lambda}\right)=- \nabla J(\theta_{\lambda})^{\top}H(\theta_\lambda)^{-1} \nabla F(\theta_{\lambda})$.
+\end{itemize}
+    Again, using the relationship from the first-order condition; $\nabla J(\theta_\lambda)=-\lambda\nabla F(\theta_\lambda)$, we get that
+    \begin{align*}
+     \frac{\partial J(\theta_{\lambda})}{\partial F(\theta_\lambda)}   = \frac{\partial J(\theta_{\lambda})}{\partial \lambda}  \left(\frac{\partial F(\theta_{\lambda})}{\partial \lambda}\right)^{-1}  =&- \lambda.
+    \end{align*}
+{\color{red} (Note: check Envelope theorem for a shorter proof)} In other words, for $\lambda \in (0,1)$, as we increase $\lambda$, $F$ increases more than the amount of decrease of $J$. Further, for $\lambda \approx 0$, the increment in $J(\theta_\lambda)$ is negligible in comparison with the decrease in $F(\theta_\lambda)$.\\
+
+For a more general case, let us \textbf{assume $F$ is convex, but nondifferentiable, and that the Slater condition holds}. Let $(\theta_\tau, \lambda_\tau)$ be the primal-dual solutions. Then, the previous fact is just the differentiable version of the result
+\begin{equation*}
+ -\lambda_\tau \in \partial \phi(\tau) \quad (\phi'(\tau) = -\lambda_\tau \text{ if $F$ is differentiable}),    
+\end{equation*}
+which is easier to see from the primal-dual formulation of ($\ref{eq:constrained_problem}$), i.e.,
+$\phi(\tau)=\min_{\theta}\max_{\lambda \geq 0} J(\theta) + \lambda (F(\theta) - \tau)$, and is obtained using the Dankin's theorem {\color{red} (Note: check this again)}. \\
+
+{\color{red} Note: Since RMSE is strongly convex and L-smooth, I can make more assumptions in F and the composition of F and the predictive model to derive some bounds on $\Delta J$ and $\Delta F$, but I am not sure how useful they would be for the application. They could be useful for the academic part.} 
+
+\subsection*{Experimental view of the tradeoff}
+
+Tables \ref{tab3:train_summary} and \ref{tab4:val_summary} show the difference when solving (\ref{eq:constrained_problem}), reducing $F(\theta_0)$ in $12\%$. We can also see the tradeoff between MAE and R2 in the plots, with a reduction of $0-24\%$ in the original fairness metric. We can see that neither the training nor the validation $R^2$ was significantly reduced while constraining fairness, but it is hard to constrain and see the relationship between the log-price problem and the actual price one. Results vary, since log-price constraints ratios of prices.
+    
+\begin{figure}[h!]
+    \centering
+    % --- Start of the first subplot (Column 1) ---
+    % The width is set to slightly less than half the page width to leave room.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/r2_vs_fairness_max_abs_diff_group_mae_tradeoff.png}
+        \caption{Overall MSE v/s $\tau$ tradeoff.}
+        \label{fig:left_col}
+    \end{subfigure}
+    % \hfill % This command creates space BETWEEN the two subplots on the SAME line.
+    % --- Start of the second subplot (Column 2) ---
+    % Because there's no blank line above, this starts on the same row.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/rmse_vs_fairness_max_abs_diff_group_mae_tradeoff.png}
+        \caption{MSE by group v/s $\tau$ tradeoff.}
+        \label{fig:right_col}
+    \end{subfigure}
+    
+    % \caption{Main caption for the figure with one row and two columns.}
+    % \label{fig:one_row_two_cols}
+\end{figure}
+
+
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|}
+    \hline
+        ~ & Overall & Group 1 & Group 2 & Group 3 \\ \hline
+        count & 8622 & 952 & 7046 & 624 \\ \hline
+        avg real price ($\backslash$\$) & $\backslash$\$323,280.50 & $\backslash$\$54,506.82 & $\backslash$\$288,341.84 & $\backslash$\$1,127,848.28 \\ \hline
+        R2 (price) & 0.866 & -3.963 & 0.695 & 0.648 \\ \hline
+        rmse & 111460.315 & 46121.142 & 73901.332 & 326717.458 \\ \hline
+        highest overcharge ($\backslash$\%) & 2,009.50$\backslash$\% & 2,009.50$\backslash$\% & 300.70$\backslash$\% & 127.50$\backslash$\% \\ \hline
+        highest undercharge ($\backslash$\%) & -84.51$\backslash$\% & -63.14$\backslash$\% & -79.58$\backslash$\% & -84.51$\backslash$\% \\ \hline
+        avg charge ($\backslash$\%) & 6.10$\backslash$\% & \hl{63.25}$\backslash$\% & -0.44$\backslash$\% & -7.18$\backslash$\% \\ \hline
+        avg overcharge ($\backslash$\%) & 32.08$\backslash$\% & \hl{76.97}$\backslash$\% & \hl{21.44}$\backslash$\% & 16.89$\backslash$\% \\ \hline
+        avg undercharg ($\backslash$\%) & -18.21$\backslash$\% & -19.03$\backslash$\% & -18.09$\backslash$\% & -19.04$\backslash$\% \\ \hline
+        count overcharged & 4168 & 816 & 3146 & 206 \\ \hline
+        count undercharged & 4454 & 136 & 3900 & 418 \\ \hline
+    \end{tabular}
+\begin{tabular}{|l|l|l|l|l|}
+    \hline
+        ~ & Overall & Group 1 & Group 2 & Group 3 \\ \hline
+        count & 8622 & 952 & 7046 & 624 \\ \hline
+        avg real price ($\backslash$\$) & $\backslash$\$323,280.50 & $\backslash$\$54,506.82 & $\backslash$\$288,341.84 & $\backslash$\$1,127,848.28 \\ \hline
+        R2 (price) & 0.862 & -3.576 & 0.686 & 0.636 \\ \hline
+        rmse & 113130.441 & 44288.052 & 74934.419 & 332330.756 \\ \hline
+        highest overcharge ($\backslash$\%) & 2,044.55$\backslash$\% & 2,044.55$\backslash$\% & 280.91$\backslash$\% & 124.07$\backslash$\% \\ \hline
+        highest undercharge ($\backslash$\%) & -85.33$\backslash$\% & -65.22$\backslash$\% & -80.24$\backslash$\% & -85.33$\backslash$\% \\ \hline
+        avg charge ($\backslash$\%) & 4.73$\backslash$\% & \hl{57.07}$\backslash$\% & -1.25$\backslash$\% & -7.58$\backslash$\% \\ \hline
+        avg overcharge ($\backslash$\%) & 30.78$\backslash$\% & \hl{72.14}$\backslash$\% & \hl{21.07}$\backslash$\% & 17.20$\backslash$\% \\ \hline
+        avg undercharg ($\backslash$\%) & -18.89$\backslash$\% & -19.22$\backslash$\% & -18.82$\backslash$\% & -19.44$\backslash$\% \\ \hline
+        count overcharged & 4101 & 795 & 3104 & 202 \\ \hline
+        count undercharged & 4521 & 157 & 3942 & 422 \\ \hline
+    \end{tabular}
+    \caption{\textbf{Training Set} - Difference of results for min MAE v/s min MAE s.t. max group mean deviation (log-price) decreases a minimum of 12\%.}
+    \label{tab3:train_summary}
+\end{table}
+
+
+\begin{table}[!ht]
+    \centering
+    \begin{tabular}{|l|l|l|l|l|}
+    \hline
+        ~ & Overall & Group 1 & Group 2 & Group 3 \\ \hline
+        count & 1378 & 127 & 1143 & 108 \\ \hline
+        avg real price ($\backslash$\$) & $\backslash$\$417,877.38 & $\backslash$\$92,314.55 & $\backslash$\$358,694.16 & $\backslash$\$1,427,070.94 \\ \hline
+        R2 (price) & 0.797 & -0.468 & 0.525 & 0.431 \\ \hline
+        rmse & 173363.602 & 37179.638 & 102220.313 & 520834.014 \\ \hline
+        highest overcharge ($\backslash$\%) & 230.48$\backslash$\% & 230.48$\backslash$\% & 130.16$\backslash$\% & 39.75$\backslash$\% \\ \hline
+        highest undercharge ($\backslash$\%) & -89.30$\backslash$\% & -73.15$\backslash$\% & -89.30$\backslash$\% & -85.96$\backslash$\% \\ \hline
+        avg charge ($\backslash$\%) & -8.21$\backslash$\% & \hl{7.75}$\backslash$\% & -9.64$\backslash$\% & -11.80$\backslash$\% \\ \hline
+        avg overcharge ($\backslash$\%) & 21.82$\backslash$\% & \hl{43.38}$\backslash$\% & \hl{18.91}$\backslash$\% & 14.53$\backslash$\% \\ \hline
+        avg undercharg ($\backslash$\%) & -24.31$\backslash$\% & -27.33$\backslash$\% & -24.15$\backslash$\% & -23.38$\backslash$\% \\ \hline
+        count overcharged & 481 & 63 & 385 & 33 \\ \hline
+        count undercharged & 897 & 64 & 758 & 75 \\ \hline
+    \end{tabular}
+
+    \begin{tabular}{|l|l|l|l|l|}
+    \hline
+        ~ & Overall & Group 1 & Group 2 & Group 3 \\ \hline
+        count & 1378 & 127 & 1143 & 108 \\ \hline
+        avg real price ($\backslash$\$) & $\backslash$\$417,877.38 & $\backslash$\$92,314.55 & $\backslash$\$358,694.16 & $\backslash$\$1,427,070.94 \\ \hline
+        R2 (price) & 0.791 & -0.443 & 0.512 & 0.412 \\ \hline
+        rmse & 176115.795 & 36866.759 & 103595.879 & 529689.842 \\ \hline
+        highest overcharge ($\backslash$\%) & 223.21$\backslash$\% & 223.21$\backslash$\% & 121.65$\backslash$\% & 40.73$\backslash$\% \\ \hline
+        highest undercharge ($\backslash$\%) & -90.00$\backslash$\% & -74.08$\backslash$\% & -90.00$\backslash$\% & -86.56$\backslash$\% \\ \hline
+        avg charge ($\backslash$\%) & -9.06$\backslash$\% & \hl{4.43}$\backslash$\% & -10.24$\backslash$\% & -12.36$\backslash$\% \\ \hline
+        avg overcharge ($\backslash$\%) & 21.27$\backslash$\% & \hl{41.77}$\backslash$\% & \hl{18.63}$\backslash$\% & 14.87$\backslash$\% \\ \hline
+        avg undercharg ($\backslash$\%) & -24.90$\backslash$\% & -27.96$\backslash$\% & -24.74$\backslash$\% & -23.83$\backslash$\% \\ \hline
+        count overcharged & 473 & 59 & 382 & 32 \\ \hline
+        count undercharged & 905 & 68 & 761 & 76 \\ \hline
+    \end{tabular}
+    \caption{\textbf{Validation Set} - Difference of results for min MAE v/s min MAE s.t. max group mean deviation (log-price) decreases a minimum of 12\%.}
+    \label{tab4:val_summary}
+\end{table}
+
+
+\subsection*{Future work}
+
+I think we should forget about the application for now, and only focus on solving general risk-fair problems of the form
+
+\[
+\psi(\lambda):=\min_{t}\; g(t)+\lambda\,h(c(t)),
+\]
+Either by using proximal, ADMM, primal-dual algorithms, etc. This makes more sense to me right now than the application side of it. Derive new optimization algorithms, bounds for fairness, etc.
+% \ldots? I am not really getting a good, fair optimal solution from this. The ideal would be to have a quantity to measure how much a group/individual can improve without worsening too much the other groups/individuals. 
+
+% , i.e., we want to  $\frac{\partial J(\theta)}{\partial \tau}$ and $\frac{\partial F(\theta)}{\partial \tau}$, in order to compute $\frac{\partial J(\theta)}{\partial F(\theta)}$.
+
+
+
+
+\newpage
+\section{Introduction}
+
+We aim to understand what it means to have a fair regression model. That is, given a learning that produces the mapping $f(x;\theta)$, when trying to infer the real value $y\in \Y$, we aim not just to minimize a risk-related function, but also try to achieve a certain level of fairness in the model, with respect to the true labels of the dataset $\{y_i,x_i\}_{i=1}^n$. 
+
+One of the problems is that we do not know if the true-label vector $y \in \Y$ is really representative of the underlying structure of the set $\Y$ and its connection with the feature space $\X$. There is the exact same problem with the data matrix $X\in \X$. We will skip this problem for now, since it can be approached later with a robust regression with adversarial approach 
+\begin{equation}
+    \label{eq:robust_regression}
+    \min_{\beta}\max_{\delta \in , \Delta \in \U} g(y+\delta-(X+\Delta)\beta),
+\end{equation}
+as it is done in the regressions in the second chapter of the book \href{https://www.dynamic-ideas.com/books/machine-learning-under-a-modern-optimization-lens}{Machine Learning Under an Optimization Lens}. The main conclusion is that regularization is enough, given specific parameters, to solve an equivalent problem to the robust version of the regression of (\ref{eq:robust_regression}).
+
+Thus, in the first part, we assume the dataset $\{y_i,x_i\}_{i=1}^n$ does not have noise on it, while adding an extra term of regularization to address more general robust problems. The new issue could be that we don't have enough data to generalize sufficiently well, to generate a perfect fitting mapping $f:\X\rightarrow \Y$ at the time we do inference. The model we use could also not be sufficient to express the properties of the real function that maps $X$ to $Y$, or the features itself could be the drawback.
+
+\subsection{Minimizing risk while maintaining a fairness threshold}
+
+Let us now define the optimization problem we aim to solve when learning the mapping $f:\X\rightarrow\Y$. We aim to minimizing the risk function $J(\theta)$ or $\bar{J}(\theta)=J(\theta) + \lambda R(\theta)$, with a regularization term, while at the same time maintaining a certain level of fairness measured by $F(\theta)$. For simplicity, we keep only the objective $J(\theta)$ and aim to solve
+\begin{equation}
+\begin{array}{rc}
+   (P_z):= \min_{\theta} &   J(\theta) \quad \quad \quad\\
+     s.t. & F(\theta) \leq \tau.
+\end{array}
+\end{equation}
+Our goal is to understand the trade-off between the two functions $J(\theta)$ and $F(\theta)$ when attaining an optimal solution $\theta^*$ to $P_z$; i.e, we are interested in the functions $\frac{\partial J(\theta^*(\tau))}{\partial\tau}$ and $\frac{\partial F(\theta^*(\tau))}{\partial\tau}$. Note that this quantity only makes sense for $\tau \leq F(\theta^*_{free})$, i.e., when the fairness upper bound is lower than the fairness level attained by the unconstrained problem. A priori, we expect that the there exists a negative slope between the two quantities, unless special cases as, for example, having an ideal learner mapping $f$ that perfectly fits every $f(x_i;\theta)$ to its respective target $y_i$.
+
+\subsubsection{Three brief examples}
+\begin{itemize}
+    \item \textbf{Demographic groups fairness: pairwise upper bound}
+
+We can define an optimization problem using the risk function $J(\beta)=\norm[1]{y-X\beta}$, and defining a maximum difference for the mean absolute error of different demographic groups $d\in \D$; i.e., $F(\beta)= \max_{d,d'}\left\{\left|\frac{1}{|d|}\|y_d-X_d\beta\|_1 - \frac{1}{|d'|}\|y_{d'}-X_{d'}\beta\|_1\right|\right\}$ as the fairness metric (i.e., every demographic group $d\in \D$ should have a similar mean error). This fairness metric is just an analogous counterpart of the idea of the already studied fairness among groups constraint $\Expected{(Y-f(X))^2|D=d}=\Expected{(Y-f(X))^2|D=d'}, \forall d,d' \in \D$ (see \href{https://arxiv.org/abs/2110.15403}{Selective Regression Under Fairness Criteria}).
+
+
+The regression problem we aim to solve is then
+\[
+\begin{array}{rc}
+\displaystyle
+   (P_\tau):= \min_{\beta} &  \norm[1]{y-X\beta}\\
+     s.t. &  \max_{d,d'}\left\{\left|\frac{1}{|d|}\|y_d-X_d\beta\|_1 - \frac{1}{|d'|}\|y_{d'}-X_{d'}\beta\|_1\right|\right\}\leq \tau,
+\end{array}
+\]
+\[
+\begin{array}{rcc}
+\displaystyle
+   =\min_{\beta} &  \sum_{i=1}^n |y_i-x_i^{\top}\beta| \quad \quad \quad\\
+     s.t. & \frac{1}{|d|}\|y_d-X_d\beta\|_1 - \frac{1}{|d'|}\|y_{d'}-X_{d'}\beta\|_1\leq \tau, & \forall d,d' \in \D\\
+      & -\frac{1}{|d|}\|y_d-X_d\beta\|_1 + \frac{1}{|d'|}\|y_{d'}-X_{d'}\beta\|_1\leq \tau, & \forall d,d' \in \D
+\end{array},
+\]
+which can be linearized with a couple of auxiliary vector variables as
+\[
+\begin{array}{rcc}
+\displaystyle
+   (P_\tau)=\min_{\beta,z,b} &  \sum_{i=1}^nz_i \quad \quad \quad\\
+     s.t. & \frac{1}{|d|}\sum_{i\in d}z_i - \frac{1}{|d'|}\sum_{i\in d'}z_i\leq \tau, & \forall d,d' \in \D\\
+      & -\frac{1}{|d|}\sum_{i\in d}z_i + \frac{1}{|d'|}\sum_{i\in d'}z_i\leq \tau, & \forall d,d' \in \D\\
+      & y_i-x_i'\beta \leq z_i, & \forall i \in [n],\\ %\leq y_i-x_i'\beta %+  Mb_i, &\forall i \in [n]\\
+      & -y_i+x_i'\beta \leq z_i, & \forall i \in [n],\\%\leq -y_i+x_i'\beta, %+  M(1-b_i), &\forall i \in [n],\\
+      % & b \in \{0,1\}^n.
+\end{array}
+\]
+The first two constraints represent the maximum unfairness level, and the last two are just enforcing  $z_i \geq |y_i - x_i'\beta|$.
+
+\begin{itemize}
+    \item \textbf{Computational experiment:}
+    Using a sample of 1000 data points form the house prices assessment of Cook County (\href{https://github.com/ccao-data/model-res-avm/tree/2025-assessment-year}{CCAO repository}), $\D$ defined as 3 groups (bins), equally-spaced in the interval range of the target vector, i.e., $[\min_{i\in[n]}\{y_i\},\max_{i\in[n]}\{y_i\}]]$, we get the following results for different bounds of fairness $\tau\in[10, 10^6]$:
+
+\begin{figure}[h!]
+    \centering
+    % --- Start of the first subplot (Column 1) ---
+    % The width is set to slightly less than half the page width to leave room.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/output_mse.png}
+        \caption{Overall MSE v/s $\tau$ tradeoff.}
+        \label{fig:left_col}
+    \end{subfigure}
+    % \hfill % This command creates space BETWEEN the two subplots on the SAME line.
+    % --- Start of the second subplot (Column 2) ---
+    % Because there's no blank line above, this starts on the same row.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/output_mse_groups.png}
+        \caption{MSE by group v/s $\tau$ tradeoff.}
+        \label{fig:right_col}
+    \end{subfigure}
+    
+    % \caption{Main caption for the figure with one row and two columns.}
+    % \label{fig:one_row_two_cols}
+\end{figure}
+
+    Note that for big $\tau$ we achieve the plateau of the maximum level of unfairness (same as the unconstrained problem). For lower values of $\tau$, we reach similar levels of MSE across the three subgroups; however, two of them deteriorate, while only one group improves its MSE.
+\end{itemize}
+% \end{equation}
+% (i.e., no data point deviates too much), and multiple fairness functions that, given a partition of data points $\G$, defines $F_2(\beta)_g = \left |\frac{1}{|g|}\sum_{i\in g}\right y_| $ 
+% $$F(\beta)=\begin{pmatrix}
+%     F_1(\beta) \\ 
+%     F_2(\beta)
+% \end{pmatrix}\in \R^{|G|+1},$$
+% where  and $F_2(\beta)=$
+
+
+    \item \textbf{Demographic groups fairness: global upper bound}
+
+    We have the same setting, but we define the global fairness criteria $F(\beta)=\max_{d\in\D}\left\{\frac{1}{|d|}\|y_d-X_d\beta\|_1 \right\}$, so we can solve the regression problem
+\[
+\begin{array}{rc}
+\displaystyle
+   (P_\tau):= \min_{\beta} &  \norm[1]{y-X\beta}\\
+     s.t. &  \max_{d\in \D}\left\{\frac{1}{|d|}\|y_d-X_d\beta\|_1 \right\}\leq \tau,
+\end{array}
+\]
+which can be linearized as
+\[
+\begin{array}{rcc}
+\displaystyle
+   (P_\tau)=\min_{\beta,z,b} &  \sum_{i=1}^nz_i \quad \quad \quad\\
+     s.t. & \frac{1}{|d|}\sum_{i\in d}z_i \leq \tau, & \forall d \in \D\\
+      % & -\frac{1}{|d|}\sum_{i\in d}z_i + \frac{1}{|d'|}\sum_{i\in d'}z_i\leq \tau, & \forall d,d' \in \D\\
+      & y_i-x_i'\beta \leq z_i, & \forall i \in [n],\\ %\leq y_i-x_i'\beta %+  Mb_i, &\forall i \in [n]\\
+      & -y_i+x_i'\beta \leq z_i, & \forall i \in [n],\\%\leq -y_i+x_i'\beta, %+  M(1-b_i), &\forall i \in [n],\\
+      % & b \in \{0,1\}^n.
+\end{array}
+\]
+
+\begin{itemize}
+    \item \textbf{Computational experiment:} With the same setting as before, but $\tau\in[10^{4.8}, 10^{5.09}]$, we get the following results.
+
+    
+\begin{figure}[h!]
+    \centering
+    % --- Start of the first subplot (Column 1) ---
+    % The width is set to slightly less than half the page width to leave room.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/output_mse_2.png}
+        \caption{Overall MSE v/s $\tau$ tradeoff.}
+        \label{fig:left_col}
+    \end{subfigure}
+    % \hfill % This command creates space BETWEEN the two subplots on the SAME line.
+    % --- Start of the second subplot (Column 2) ---
+    % Because there's no blank line above, this starts on the same row.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/output_mse_groups_2.png}
+        \caption{MSE by group v/s $\tau$ tradeoff.}
+        \label{fig:right_col}
+    \end{subfigure}
+    
+    % \caption{Main caption for the figure with one row and two columns.}
+    % \label{fig:one_row_two_cols}
+\end{figure}
+
+We can see that after the different errors meet, we quickly get an infeasible problem (unlike in the pairwise approach, where we could keep going). The behaviors are similar, but less smooth and with a very constrained interval of $\tau$ in order to get proper results. Although it is easier to visualize the slope of the tradeoff in this case. In this example, we get better overall results in the tradeoff, since the majority group maintains a lower MSE while the other two groups start to meet, while in the previous apporach they are all squeezed together.
+\end{itemize}
+
+\item \textbf{Individual sample fairness}
+
+We can also impose fairness constraints that are independent of demographic attributes and that only aim to bound the error of every sample. Again, we can define $J(\beta)=\norm[1]{y-X\beta}$, and now use $F(\beta)=\norm[\infty]{y-X\beta}$, which bounds every sample error. We can then 
+which can be equivalently written as a linear optimization problem of the form
+\[
+\begin{array}{rcc}
+\displaystyle
+   (P_z):= \min_{\theta} &  \sum_{i=1}^N z_i  &\\
+     s.t. & y_i - x_i^{\top}\beta \leq z_i, & \forall i \in [n]\\
+     & -y_i + x_i^{\top}\beta \leq z_i, & \forall i \in [n]\\
+    & z_i \leq \tau, & \forall i \in [n].\\
+\end{array}
+\]
+\end{itemize}
+
+
+\subsection{Resource Allocation Fairness}
+
+In \href{https://pubsonline.informs.org/doi/10.1287/opre.1100.0865}{The Price of Fainress}, they analyze the price of a fair solution with respect to the aggregated utilitarian solution. That is, given the utility set $U\subset \R^n_+$, with $n$ agents, we get the system solution as
+\begin{align*}
+    \text{SYSTEM}(U)=\sup\{e'u | u \in U\}.
+\end{align*}
+One might design a fairness scheme mapping $\mathcal{F}:2^{\R^n_+ }\rightarrow \R^n_+$, that maps the set of utilities to a fair solution of utilities. The sum of utilities is then
+\begin{align*}
+    \text{FAIR}(U;\mathcal{F})=e'\mathcal{F}(U).
+\end{align*}
+With these, they define the price of fairness as the proportion of the aggregated utilities lost using the fair solution, i.e.,
+\begin{align*}
+    \text{POF}(U;\mathcal{F})=\frac{\text{SYSTEM}(U) - \text{FAIR}(U;\mathcal{F})}{\text{SYSTEM}(U)} \in [0,1].
+\end{align*}
+
+Further, they describe a set of axioms
+that a fairness scheme $\mathcal{F}$ should ideally satisfy: 1) Pareto Optimality, 2) Symmetry, 3) Affine Invariance, 4) Independence of Irrelevant Alternatives, and 5) Monotonicity. However, in practice, the discussed approaches: Proportional Fairness and Max-Min Fairness, only satisfy 4 of them (1-4 for the former and 1-3 and 5 for the latter). 
+
+\subsubsection{Proportional Fairness}
+
+The general idea is that a transfer of resources between two players is favorable and fair if the percentage increase in the utility of one player
+is larger than the percentage decrease in utility of the other player, but generalized to $n$ players.
+
+If $U$ is convex, then the fair allocation under proportional fairness $\mathcal{F}^{PF}(U)$ can be obtained as the unique solution of 
+\begin{align*}
+\begin{array}{rc}
+  \mathcal{F}^{PF}(U)=  \arg\max_{u} & \prod_{i=1}^n u_i \\
+    s.t. & u \in U
+\end{array} &
+\begin{array}{rc}
+    = \quad \arg\max_{u} & \sum_{i=1}^n \log u_i \\
+    s.t. & u \in U
+\end{array}
+\end{align*}
+
+\begin{itemize}
+    \item \textbf{Our setting:} In our case, we can define the players as different groups of samples (e.g. demographic groups or individual samples). One could define the utility obtained by a player in different ways.
+    \begin{itemize}
+        \item Groups: Let $d \in \D$ be the different demographic groups of the data set (a partition of $[n]$). The utility function can be defined as the average error, which can be $r_i=|y_i - x_i'\beta|$, or $r_i=(y_i - x_i'\beta)^2$, etc.
+        $$
+            u_d = \left(\frac{1}{|d|}\sum_{i\in d} r_d + \varepsilon\right)^{-1}
+        $$
+        - Individuals: This is the special case when $|d|=1, \forall d \in \D$ (i.e, $d=\{i\}$). The computations can be easier in this case, so we define
+        $$
+            u_i =  \frac{1}{r_i + \varepsilon},
+        $$
+            where $\varepsilon$ is a small constant that avoids the problem of being unbounded. We could also redefine the utility with a bounded non-decreasing function of the ratio of interest.
+    \end{itemize}
+ 
+
+    In the individual case, the problem could be formulated, for example, as
+    \begin{align*}
+        \begin{array}{rcc}
+           \min_{\beta,r}  & \sum_{i=1}^n\log(r_i + \varepsilon) \\
+             s.t. & r_i = |y_i - x_i'\beta|, &  \forall i \in [n].
+        \end{array}
+    \end{align*}
+    The drawback is that we have a nonconvex problem that highly depends on a new parameter $\varepsilon$. It is also hard to train.
+    \begin{itemize}
+        \item \underline{Pending}: Efficient implementation.
+    \end{itemize}
+\end{itemize}
+
+
+
+\subsubsection{Max-Min Fairness}
+
+One tries at the first step to maximize the lowest utility level among all the players. After ensuring that all players derive (at least) that level, the
+second lowest utility level among the players is maximized, and so on. The resulting allocation yields a distribution of utility levels among the players that has the following property: the distribution of the utility levels of any other allocation that achieves a strictly higher utility for a specific
+level is such that there exists a lower level of utility that has been strictly decreased. In other words, any other allocation can only benefit the rich at the expense of the poor (in terms of utility).
+
+The problem is solved via Lexicographic Min-Max
+Optimization.
+
+\begin{itemize}
+    \item Pending: Read and implement from \href{https://link.springer.com/chapter/10.1007/11751595_85}{On Direct Methods for Lexicographic Min-Max Optimization}.
+\end{itemize}
+
+
+\newpage
+\section{The Price of Fairness}
+
+Following the root idea of the definition of \href{https://pubsonline.informs.org/doi/10.1287/opre.1100.0865}{The Price of Fairness}, i.e. the percentage change in error when aiming for a fair solution. Let $\theta^*=\arg\min_{\theta} J(\theta)$, and let $\theta^F$ be a fair solution, obtained through some fairness increasing mechanism. We define the price of fairness (POF) as  
+\begin{equation}
+    \text{POF}(\theta^*, \theta^F):= \frac{J(\theta^F) - J(\theta^*)}{J(\theta^*)}.
+\end{equation}
+
+\subsection{Bounds on the price of fairness}
+
+
+\subsection{Linear model}
+
+    First, we analyze the linear model bounds for risk and fairness when $f(x_i,\theta)=X'\theta$, and $r_i=y_i-f(x_i,\theta)$. 
+
+
+
+\subsubsection{Mean Squared Error risk}
+
+    For this part, let the risk function be the Mean Squared Error; $J(\theta)=\frac{1}{n}\sum_{i=1}^nr_i^2$.
+
+\begin{enumerate}
+    \item \textbf{Simple bound between risk and fairness}
+
+       \begin{itemize}
+        \item  Let $F(\theta)=\max_{g,g'}\{|\mu_g - \mu_g'|\}$, where $\mu_g = \frac{1}{n_g}\sum_{i\in g}|r_i|$.
+        
+        Note also that $F(\theta)=\max_g \mu_g - \min \mu_{g'}\leq \max_g \mu_g = \mu_{\bar{g}}$. Also, $\mu_g^2 \leq J_g(\theta), \forall g\in G$. Then, $nJ(\theta) = \sum_{g\in G}n_g J_g(\theta) \geq \sum_{g\in G}n_g \mu_g^2 \geq n_{\bar{g}} \mu_{\bar{g}}
+        ^2 \geq \min_g{n_g} F(\theta)^2$. Thus, we have that
+        \begin{align}
+            \min_g\frac{n_g}{n}F(\theta)^2 &\leq J(\theta),& \forall \theta \in \R^m.
+        \end{align}
+        In other words, the smaller the groups (or the smallest group), the more similar $J(\theta)$ can behave to $F(\theta)$, which can be inferred before this calculation. This also implies that, if we had a perfect model that fits $\theta^*$ such that $J(\theta^*)=0$
+    \end{itemize}
+
+    \item \textbf{Further bounds between risk and fairness}
+    
+Note that, if $X'X \succ 0$, then $J$ is a $m$-strongly convex function, at least with $0<m\leq 2\lambda_{\min}(X'X)/n$. Further, it is an $L$-Smooth function, with at least $L\geq 2\lambda_{\max}(X'X)/n$. Hence, we have that 
+        \begin{align}
+         \nonumber
+        \frac{m}{2} \norm[]{\theta - \theta^*}^2 &\leq J(\theta) - J(\theta^*) \leq \frac{L}{2}\norm[]{\theta - \theta^*}^2, & \forall \theta \in \R^m\\
+        \label{eq:mse_bound}
+        \Rightarrow \frac{1}{n}\lambda_{\min} \norm[]{\theta - \theta^*}^2 &\leq J(\theta) - J(\theta^*) \leq \frac{1}{n}\lambda_{\max}\norm[]{\theta - \theta^*}^2, & \forall \theta \in \R^m.
+        \end{align}
+        This bound is only telling us: 1) for a sufficiently small $\epsilon >0$, every solution $\theta \in B(\theta^*, \epsilon)\subset \R^m$, a neighborhood ball centered in $\theta$, the risk $J(\theta)$ is near optimal, 2) as we increase the sample size $n \gg 0$ towards $\infty$, the radius of that near-optimal ball $B(\theta^*, \epsilon)$ can be larger, approaching $\infty$ {\color{red} (here I could write the exact rates)}, and 3) if the matrix $X'X$ is well-conditioned ($\lambda_{\max} \approx  \lambda_{\min}$, i.e. low multicollinearity in $X$), then we have more confidence on the approximate change of the optimal cost, and the opposite if ill-conditioned ($\lambda_{\max} \gg  \lambda_{\min}$, i.e. high multicollinearity in $X$). 
+
+        \textbf{Bounding with specific fairness measures}
+
+        \begin{itemize}
+            \item  Let $F(\theta)=\max_{g,g'}\{|\mu_g - \mu_g'|\}$, where $\mu_g = \frac{1}{n_g}\sum_{i\in g}|r_i|$.
+
+            Note that $F(\theta)$ is $L_F$-Lipschitz function, since the following operations preserve the Lipschitz continuity: maximum, absolute value of the difference, and sum of Lipschitz functions. Further, the Lipschitz constant is at least $L_F\geq 2\max_{i}\norm[]{x_i}$, i.e.,
+            \begin{equation*}
+                |F(\theta) - F(\theta^*)| \leq 2\max_{i}\norm[]{x_i} \norm[]{\theta - \theta^*}, 
+            \end{equation*}
+            which together with the lower bound of (\ref{eq:mse_bound}) leads to 
+            \begin{equation}
+                \frac{1}{4n}\left(\frac{\lambda_{\min}}{\max_{i}\norm[]{x_i}^2}\right)(F(\theta) - F(\theta^*))^2 \leq  J(\theta) - J(\theta^*),
+            \end{equation}
+        \end{itemize}
+where, again, tells us that increasing the sample size $n$, we can move from $\theta^*$ to $\theta$, which makes the solution more fair, and we would have to pay, potentially, almost no penalty in the cost. The new insight in this equation is that the larger the term $\max_{i}\norm[]{x_i}^2$ (the largest norm of the rows in $X$), the less we have to pay, at least, in terms of optimal cost. However, any change to a given row $x_i$ of $X$ would also change the solutions $\theta$ and $\theta^*$, and hence it is not obvious that solely increasing the norm of a row would have a positive effect on the price of fairness.
+
+\end{enumerate}
+
+{\color{red} NOTE: These bounds are too weak by themselves. We need to use them in smarter ways.}
+
+
+Recall the LP of our fairness constrained problem.
+\[
+\begin{array}{rcc}
+\displaystyle
+   (P_\tau)=\min_{\beta,z,u,\ell} &  \sum_{i=1}^nz_i^2 \quad \quad \quad\\
+       s.t.  & y_i-x_i'\beta \leq z_i, & \forall i \in [n],\\ %\leq y_i-x_i'\beta %+  Mb_i, &\forall i \in [n]\\
+      & -y_i+x_i'\beta \leq z_i, & \forall i \in [n],\\%\leq -y_i+x_i'\beta, %+  M(1-b_i), &\forall i \in [n],\\
+      % & b \in \{0,1\}^n.
+     & \frac{1}{|d|}\sum_{i\in d}z_i \leq u, & \forall d \in \D\\
+& \frac{1}{|d|}\sum_{i\in d}z_i \geq \ell, & \forall d \in \D\\
+      & u - \ell\leq \tau, &
+\end{array}
+\]
+
+Defining $\eta$ the dual corresponding to the last regression, the changes in the cost with respect to $\tau$ are $\frac{\partial J(\theta_\tau)}{\partial \tau}=-\eta$, and hence $J(\theta^* + \Delta) - J(\theta^*) \approx -\eta^* (F(\theta^* + \Delta) - F(\theta^*))$.
+
+\begin{itemize}
+    \item \textbf{Lower bound from linear and quadratic approximations of fairness and risk}
+
+    Let $J(\theta)=MSE(\theta)$ and  $F(\theta)=\max_{g\in \G} J_g(\theta)$. Then, we can compute $\nabla J(\theta)$, $\nabla ^2J(\theta)$, and $\partial F(\theta)$. Note that, being the maximum of strongly convex and L-smooth functions, $F(\theta)$ is also strongly convex and L-smooth. Therefore, it satisfies
+    $$F(\theta_0 + \Delta \theta)\geq F(\theta_0) + g'\Delta \theta + \frac{m}{2}\norm[]{\Delta \theta}^2, \quad \forall g \in \partial F(\theta_0).$$
+    In particular, a very loose lower bound on the changes in the fairness with respect to the OLS solution $\theta^*$ is 
+    $$
+    F(\theta^* + \Delta \theta)- F(\theta^*) \geq g'\Delta \theta, \quad \forall g \in \partial F(\theta^*). 
+    $$
+
+    {\color{red} (We can try to do it with the strongly convex bound, but not sure if it is possible)}
+
+    We can also define a quadratic approximation of $J(\theta + \Delta \theta)$, which is also a strongly convex and L-smooth function. Let us consider small changes $\Delta \theta$, and write the second-order Taylor expansion of this function as 
+    $J(\theta_0 + \Delta \theta) - J(\theta_0) = \nabla J(\theta_0)'
+    \Delta \theta + \frac{1}{2} \norm[\nabla^2J(\theta^0)]{\Delta \theta}^2= \frac{1}{2} \norm[\nabla^2J(\theta^0)]{\Delta \theta}^2$.
+    
+    Our solutions for fairness and MSE with the small change come from solving
+    \[
+\begin{array}{rc}
+\displaystyle
+   \min_{\theta} &  J(\theta)\\
+     s.t. &  \max_{g\in \G}\left\{J_g(\theta)\right\}\leq \tau,
+\end{array}
+\]
+hence, a loose bound for the price on the error w.r.t $\theta^*$ can be computed by solving 
+    \[
+\begin{array}{rc}
+\displaystyle
+   \min_{\theta} &  \frac{1}{2} \norm[\nabla^2J(\theta^*)]{\Delta \theta}^2 \\
+     s.t. &  g'\Delta \theta =-\delta_\tau,
+\end{array}
+\]
+where $-\delta_\tau=\tau - F(\theta^*)$. The solution is just minus the gradient in the normal cone of the hyperplane; i.e., $-\nabla g(\Delta\theta^*)\in \N(\Delta\theta^*) \iff - \nabla J(\theta^*)\Delta \theta = \lambda g \iff \Delta \theta = -\lambda\nabla J(\theta^*)^{-1} g $, for some $\lambda \in \R$. We can get the value of $\lambda$ from the feasibility constraint $\lambda g'\nabla J(\theta^*)^{-1} g =\delta_\tau \iff \lambda={\delta_\tau}({ g'\nabla J(\theta^*)^{-1} g})^{-1}$, and therefore 
+$$
+\Delta \theta = - \frac{\delta_\tau\nabla J(\theta^*)^{-1} g  }{ g'\nabla J(\theta^*)^{-1} g},
+$$
+and therefore $J(\theta^*+\Delta \theta )-J(\theta^*) = \frac{1}{2} \norm[\nabla^2J(\theta^*)]{\Delta \theta}^2 \geq \frac{\delta_\tau^2}{2}\frac{1}{ g'\nabla J(\theta^*)^{-1} g}. $
+Recall that $g \in \partial F(\theta^*)$, hence, all of the terms of this lower bound only depend on the solution $\theta^*$.
+
+% \newpage
+\textbf{Visualization of the lower bound}
+
+
+
+\begin{figure}[h!]
+    \centering
+    % --- Start of the first subplot (Column 1) ---
+    % The width is set to slightly less than half the page width to leave room.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/mse_vs_percentages.jpg}
+        \caption{MSE v/s Fairness Measure}
+        \label{fig:left_col}
+    \end{subfigure}
+    % \hfill % This command creates space BETWEEN the two subplots on the SAME line.
+    % --- Start of the second subplot (Column 2) ---
+    % Because there's no blank line above, this starts on the same row.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/pof_vs_percentages.jpg}
+        \caption{Price of Fairness v/s \% Improv. in F}
+        \label{fig:right_col}
+    \end{subfigure}
+    
+    % \caption{Main caption for the figure with one row and two columns.}
+    % \label{fig:one_row_two_cols}
+\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.5\linewidth]{motiva}
+%     \caption{Caption}
+%     \label{fig:placeholder}
+% \end{figure}
+
+
+
+
+\begin{figure}[h!]
+    \centering
+    % --- Start of the first subplot (Column 1) ---
+    % The width is set to slightly less than half the page width to leave room.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/mse_vs_percentages_2.jpg}
+        \caption{MSE v/s Fairness Measure}
+        \label{fig:left_col}
+    \end{subfigure}
+    % \hfill % This command creates space BETWEEN the two subplots on the SAME line.
+    % --- Start of the second subplot (Column 2) ---
+    % Because there's no blank line above, this starts on the same row.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/pof_vs_percentages_2.jpg}
+        \caption{Price of Fairness v/s \% Improv. in F}
+        \label{fig:right_col}
+    \end{subfigure}
+    
+    % \caption{Main caption for the figure with one row and two columns.}
+    % \label{fig:one_row_two_cols}
+\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.5\linewidth]{motiva}
+%     \caption{Caption}
+%     \label{fig:placeholder}
+% \end{figure}
+
+\item \textbf{Upper bound from quadratic approximations of fairness and risk}
+
+Now, we try to start with an upper bound on $F(\theta)$. The second-order approximation would be
+\begin{align*}
+    F(\theta^* + \Delta \theta) = &F(\theta^*) + \max_{g\in \G_A} \nabla J_g(\theta^*)'\Delta \theta + \frac{1}{2}\Delta \theta' \nabla^2J_g(\theta^*) \Delta \theta\\
+    \leq & F(\theta^*) + \max_{g} \nabla J_g(\theta^*)'\Delta \theta + \frac{\norm[]{\Delta \theta}^2}{2}\max_g {\lambda_{\max}}(\nabla^2J_g(\theta^*)),  
+\end{align*}
+which is a conservative bound on the changes of fairness.
+Since the bound value depends on $\Delta \theta$, we can assume $\Delta \theta = -t d$, with $t>0$ and $d$ some unitary direction vector. Therefore, they must satisfy the fairness constraint 
+\begin{align*}
+\max_{g} \nabla J_g(\theta^*)'\Delta \theta + \frac{\norm[]{\Delta \theta}^2}{2}\max_g {\lambda_{\max}}(\nabla^2J_g(\theta^*))&\leq -\delta_\tau \\   
+\max_{g} -t\nabla J_g(\theta^*)'d + \frac{t^2}{2}\max_g {\lambda_{\max}}(\nabla^2J_g(\theta^*))&\leq -\delta_\tau, 
+\end{align*}
+which can be solved using the roots equation, and we can define some $d$ following the same direction as in the lower bound, as a starting point.  
+
+\newpage
+
+\textbf{Visualization of lower and upper bound on POF}
+
+\begin{figure}[h!]
+    \centering
+    % --- Start of the first subplot (Column 1) ---
+    % The width is set to slightly less than half the page width to leave room.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/mse_vs_percentages_3.jpg}
+        \caption{MSE v/s Fairness Measure}
+        \label{fig:left_col}
+    \end{subfigure}
+    % \hfill % This command creates space BETWEEN the two subplots on the SAME line.
+    % --- Start of the second subplot (Column 2) ---
+    % Because there's no blank line above, this starts on the same row.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/pof_vs_percentages_3.jpg}
+        \caption{Price of Fairness v/s \% Improv. in F}
+        \label{fig:right_col}
+    \end{subfigure}
+    
+    % \caption{Main caption for the figure with one row and two columns.}
+    % \label{fig:one_row_two_cols}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    % --- Start of the first subplot (Column 1) ---
+    % The width is set to slightly less than half the page width to leave room.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/mse_vs_percentages_4.jpg}
+        \caption{MSE v/s Fairness Measure}
+        \label{fig:left_col}
+    \end{subfigure}
+    % \hfill % This command creates space BETWEEN the two subplots on the SAME line.
+    % --- Start of the second subplot (Column 2) ---
+    % Because there's no blank line above, this starts on the same row.
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Fairness Price/img/motivation/pof_vs_percentages_4.jpg}
+        \caption{Price of Fairness v/s \% Improv. in F}
+        \label{fig:right_col}
+    \end{subfigure}
+    
+    % \caption{Main caption for the figure with one row and two columns.}
+    % \label{fig:one_row_two_cols}
+\end{figure}
+
+\end{itemize}
+
+{\color{red} NOTE: I need to do an analysis of the changes in POF in terms of a regularized term, since it seems to be improving/worsening POF, and more obviously generalizing it better to new datasets.}
+
+\end{document}

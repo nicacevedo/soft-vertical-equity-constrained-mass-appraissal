@@ -1,0 +1,967 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+% \documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+% \usepackage[a4paper, total={5in, 10in}]{geometry}
+% \usepackage{xcolor}
+% \usepackage{color,soul}
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Subplots
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+% colored area
+\usepackage{tcolorbox}
+\usepackage{xcolor} % Required for defining custom colors
+\definecolor{lightgray}{gray}{0.9} % Define a light gray color
+
+% Highlights
+\usepackage{color,soul}
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+
+\title{The Price of Fairness on Regression Models}
+% \author{(Draft)}
+\date{\today}
+
+% theorem envs
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\prox}{\mathrm{prox}}
+\newcommand{\argmin}{\mathop{\mathrm{arg\,min}}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\ip}[2]{\left\langle #1,#2 \right\rangle}
+\newcommand{\1}{\mathbf{1}}
+
+
+
+% Set commands
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\A}{\mathcal{A}}
+\renewcommand{\L}{\mathcal{L}}
+
+\renewcommand{\t}{^{\top}}
+\newcommand{\qt}[1]{``#1''}
+
+\newcommand{\Expected}[1]{\mathbb{E}[#1]}
+
+% Math sets commands
+\renewcommand{\R}{\mathbb{R}}
+
+
+\begin{document}
+\maketitle
+
+% \begin{abstract}
+% We present a rigorous optimization framework for fairness-aware regression
+% where fairness is quantified through the \emph{pairwise mean residual gap}:
+% the maximum absolute difference between average residuals across demographic groups.
+% This fairness functional induces a nonsmooth, piecewise-linear penalty.
+% We derive the full optimization formulation, algorithms, and trade-off analysis:
+% proximal and primal–dual methods for solving the problem,
+% envelope identities connecting fairness and accuracy,
+% and sensitivity bounds describing how solutions evolve with the regularization weight~$\lambda$.
+% \end{abstract}
+
+
+\section*{Motivation}
+
+\indent We are interested in characterizing the tradeoffs between fairness and predictive power in regression models. These models try to find the best approximation function $f_\theta:\X \rightarrow \Y$, to map the elements of a feature space $\X$ to the elements of an objective space $\Y$. One potential harm of trying to find the best approximation $f_\theta$ for a given dataset $\{y_i, x_i\}_{i=1}^n$, is that usually the measure of error that is optimized (e.g. Mean Squared Error), only focuses on the average, and thus this solutions are usually myopic to disparities; for example, the variance among samples, disparities on the error of different demographic rules, etc. We will refer to the presence of these disparities as unfairness in the regression model. 
+
+It is expected that, if we observe a certain level of fairness (for a given fairness measure) associated with the minimum-error approximation function, and we try to decrease the unfairness of it, then we would probably get a suboptimal solution in terms of the error objective. In other words, it is expected that there exists a \textit{tradeoff} between the level of fairness and the quality of the approximation. Given this, if the unfairness of our model is not acceptable for our goals (e.g. high level of discrimination of our approximation based on gender, race, etc.), then our model does not really serve any purpose; i.e., a good quality of the approximation does not always guarantee a well-suited model. We will focus then on answering the following questions of interest.  
+
+\begin{itemize}
+    \item \textbf{Q1:} Can we measure how much approximation error we sacrifice if we want to achieve a certain level of fairness? 
+    \item \textbf{Q2:} How much of the approximation quality are we willing to sacrifice to achieve a certain level of fairness in our model? \label{Q1}
+
+\end{itemize}
+
+To answer these questions, we need to be able to quantify the exact \textit{tradeoffs} that exist between given measures of fairness and approximation quality. For that, we need to further answer the following.
+\begin{itemize}
+    \item \textbf{Q3:} Can we derive a closed-form expression for the \textit{tradeoff} between fairness and predictive power of our model?
+    \item \textbf{Q4:} If no closed-form expression exists, can we derive good-enough approximations for the \textit{tradeoff} between fairness and predictive power of our model?
+\end{itemize}
+
+\section{Introduction}
+
+\subsection{Regression models in terms of approximation error and fairness}
+
+To address our questions, we first need to define measures for approximation error and the level of fairness or unfairness. Let us denote the general measure of approximation error of a given $f_\theta$ as the scalar mapping $J:\Theta \rightarrow \R$ (e.g., MSE, MAE, etc.), and, likewise, the general measure of unfairness level as $F:\Theta \rightarrow \R$ (e.g., maximum error of a group, difference between maximum and minimum error of two groups, etc.), where $\Theta$ defines our hypothesis space that supports all the possible functions $f_\theta$ that approximate $y\in \Y$, given our assumptions on the structure of $\Y$. In the general regression approach, one aims to choose the best possible set of parameters $\theta \in \Theta$ to minimize the approximation error $J(\theta)$, . In other words, regression models solve the optimization problem
+\begin{align}
+    \label{opt:unconstrained_regression}
+    \begin{array}{rc}
+       \displaystyle (P_0):= \min_{\theta} & J(\theta) \\
+        s.t. & \theta \in  \Theta,
+    \end{array}
+\end{align}
+where the solution $\theta_0$ produces $f_{\theta_0}$, the approximation with the least approximation error, $J(\theta_0)$. This problem also gives us the baseline unfairness level $F(\theta_0)$. Any improvement $\delta>0$ on fairness that we wish to achieve has to produce a lower level of $F$. This can be achieved by solving the fairness-constrained optimization problem  
+\begin{align}
+\label{opt:fairness_constrained_regression}
+    \begin{array}{rcr}
+       \displaystyle (P_\delta):=  \min_{\theta} & J(\theta) - J(\theta_0) \\
+        s.t. & F(\theta)-F(\theta_0) \leq -\delta\\
+        & \theta \in  \Theta
+    \end{array},
+\end{align}
+where $J(\theta_0)$ is just a constant for this problem. Note that we could also write the constraint on the fairness with equality, to that exact level of change, but we set the upper bound for now.  Here, the \textit{tradeoff} structure is clear, since we are decreasing $F(\theta_0)$ by at least $\delta$, and, because the feasible region of $P_\delta$ is a subset of the feasible region of $P_0$, then $J(\theta_\delta) \geq J(\theta_0)$.
+
+\subsection{The price of fairness in terms of approximation error}
+
+The problem with trying to set a goal for the fairness level for $F(\theta_\delta)$, and trying to identify the sacrifice of that level in terms of the difference of approximation error $\Delta J_\delta = J(\theta_\delta) - J(\delta_0)$, is that this depends on the magnitude of the measures. For example, solving $(P_0)$ with the error metric $J_1$ and solving it with the metric $J_2 = 2J_1$ gives us the same solution set for $\theta_0$, but the price that we pay in $\Delta J_\delta$ is the double for the latter. We need to define an extra metric that is independent of scaling transformations, so we use an equivalent of the price of fairness discussed by \href{https://pubsonline.informs.org/doi/10.1287/opre.1100.0865}{Bertsimas et al. (2011)}, i.e., we define the Price Of Fairness (POF) obtained via solving $P_\delta$ as
+\begin{equation}
+\text{POF}(\theta_\delta, \theta_0) := \frac{J(\theta_\delta) - J(\theta_0)}{J(\theta_0)},
+\end{equation}
+which is simply the percentual change in $J$ given the fair solution $\theta_\delta$, with respect to the minimum approximation error solution $\theta_0$. Following a similar scheme, we can also define the Percentual Fairness Gain (PFG) obtained with $\theta_\delta$ as 
+\begin{equation}
+\text{PFG}(\theta_\delta, \theta_0) := \frac{F(\theta_0) - F(\theta_\delta)}{F(\theta_0)},
+\end{equation}
+which is, again, the percentual change in $F$ after setting the maximum unfairness level in $P_\delta$. Note that both metrics are nonnegative, and that we can either use the original difference or these new metrics to study the \textit{tradeoff} between approximation error and fairness.
+
+
+\subsection{On the tradeoff between approximation error and fairness}
+
+
+
+Note that this setting encompasses a broad diversity of models (e.g., linear regression, regression trees, neural network regression, etc.), approximation error measures, and also fairness measures. Each model, approximation error measure, and fairness measure behaves differently, and the interactions between them are even more diverse. Therefore, we don't expect to define a universal method to derive the \textit{tradeoff} between our two measure, but instead define schemes that can help answer this questions in the most common and/or most relevant settings.
+
+In general, to be able to answer \textbf{Q1}, we need to be able to compute $\Delta J_\delta / \Delta F_\delta$, for any improvement in fairness $\delta$ as the threshold of problem $P_\delta$ (\ref{opt:fairness_constrained_regression}). One straightforward way of doing this is to solve $P_\delta$ and compute each change term $\Delta J_\delta$ and $\Delta F_\delta$. The problem with this approach is that we do not know a priori what the price of fairness is before solving $P_\delta$. Given that this optimization problem can be hard-to-solve (or even not possible to solve), this approach is not efficient (or even feasible) in practice. In some situation, one may be able to compute the exact optimal of $P_\delta$, and thus get the \textit{tradeoff} directly by computing the solutions, but those are not the most common cases. Hence, we are going to explore ways of computing this tradeoff or approximations of it for different cases in the sections that follow.
+
+
+\section{Relevant Measures}
+
+\subsection{Approximation Error Measures}
+
+Three common approximation errors for these kinds of models are Mean Squared Error (MSE), Mean Absolute Error (MAE), and Huber Loss. We are mainly going to focus on models that minimize the MSE, for simplicity for our analysis and because of its properties, i.e., our approximation error function would be $$J(\beta):=\frac{1}{n}\sum_{i=1}^n(y_i-f_\theta(x_i))^2,$$ where $\{(x_i, y_i)\}_{i=1}^n$ is a given dataset of $n$ samples that lie in $\X\times \Y$.
+
+\subsection{Fairness Level Measures}
+
+
+We explore different alternatives for fairness measures. Let $\G$ be a partition of the indices $I = \{1,\ldots,n\}$ that represents the split of the data according to some sensible attribute (e.g., data grouped by gender, race, or even each sample by themselves). Let $J_g(\theta)$ be the approximation error of the group $g\in \G$, i.e., $J_g(\theta)=\frac{1}{|g|}\sum_{i\in g}(y_i - f_\theta(x_i))^2$, then we define the following metrics to measure the level of unfairness.
+
+\begin{enumerate}
+    \item \textbf{Maximum approximation error:} The maximum level of approximation error that a group $g \in \G$ achieves in the solution $\theta$. 
+    \begin{equation}
+    \label{eq:max_error_fairness}
+        F(\theta)=\max_{g\in \G} J_g(\theta)
+    \end{equation}
+    \item \textbf{Maximum approximation error difference:} The maximum distance on the level of approximation error between two groups $g,g' \in \G$ in the solution $\theta$. 
+    \begin{equation}
+        F(\theta)=\max_{g\in \G} |J_g(\theta) - J_{g'}(\theta)|
+    \end{equation}
+    \item \textbf{Maximum approximation error squared difference:} The maximum distance on the level of approximation error between two groups $g,g' \in \G$ in the solution $\theta$. 
+    \begin{equation}
+        F(\theta)=\max_{g\in \G} (J_g(\theta) - J_{g'}(\theta))^2
+    \end{equation}
+\end{enumerate}
+
+Further metrics can be considered, but our analysis will focus on these commonly used ones.
+
+
+\section{Approximation Models}
+
+\subsection{Linear Approximation Models}
+
+In this section, we explore the hypothesis space of the linear models, which depend on the parameters $\beta \in \R^p$, i.e., the approximation function is defined as $f_\beta(x)=x^{\top}\beta,$ where $x\in \R^p$. In this case, the approximation error function is $$J(\beta)=\frac{1}{n}\sum_{i=1}^n(y_i-x_i^{\top}\beta)^2 =\frac{1}{n}(y-X^{\top}\beta)^{\top}(y-X^{\top}\beta).$$  These models have a closed-form solution for $\beta_0$, when the matrix $X^{\top}X$ is invertible, so we don't even need to solve the original problem $P_0$ (\ref{opt:unconstrained_regression}) in this case.  This is not necessarily the case when we add the fairness constraints and try to solve the problem $P_\delta$ (\ref{opt:fairness_constrained_regression}). 
+
+
+\subsubsection{Tradeoff between approximation error and fairness}
+
+Note that, in this case, our approximation error is quadratic and twice differentiable. Let $v_0 = \nabla J(\beta_0)=0$ (first-order condition) and $H_0 = \nabla^2 J(\beta_0)$ be its gradient and the Hessian at $\beta_0$, respectively, and let $\norm{u}_{A}=u\t A u$ be the norm induced by some positive semidefinite matrix $A\succeq 0$. Since $J$ is a quadratic function, we have the exact expression for changes in it from the second-order Taylor expansion, i.e., $J(\beta_0 + \Delta \beta)-J(\beta_0)=v_0\t\Delta \beta + \frac{1}{2}\norm{\Delta \beta}^2_{H_0}= \frac{1}{2}\norm{\Delta \beta}^2_{H_0}$, for all $ \Delta \beta$ in $\R^p$. We can then write problem $P_\delta$ (\ref{opt:fairness_constrained_regression})  for this case as
+\begin{equation}
+\label{opt:intermediate_P_delta}
+    \begin{array}{cc}
+      \displaystyle  \min_{\Delta \beta} &  \frac{1}{2}\norm{\Delta \beta}^2_{H_0} \\
+        s.t. & F(\beta_0 + \Delta \beta)-F(\beta_0) \leq -\delta. %\\
+        % & \beta \in  \beta
+    \end{array}
+\end{equation}
+
+\noindent \textbf{Lower bound on the tradeoff.} If  $F(\beta)=\max_{g\in \G} J_g(\beta)$, then it is the maximum among convex functions, so it is also a convex function. The only detail to be considered is that it is not differentiable everywhere, and thus we have the convexity inequality holding with the subgradients, i.e.,  
+    \begin{equation}
+    \label{ineq:fairness_lower_bound_1}
+    F(\beta_0 + \Delta \beta) \geq F(\beta_0 ) + a_0\t\Delta \beta   ,\quad \forall \Delta \beta \in \R^p, \forall a_0\in \partial F(\beta_0),    
+    \end{equation}
+    where $\partial F(\beta_0)$ is the subdifferential set of $F$ in $\beta_0$, i.e., letting $\A_0=\{g \in  \arg \max_{g\in \G} J_g(\beta_0)\}$ be the active set of groups that achieve the maximum error, then $\partial F(\beta_0)=\text{conv}(\{\nabla J_g(\beta_0): g\in \A_0 \})$ is the convex combination of all the gradients of the groups in the active set $\A_0$. 
+
+    Let $a_0\in \partial F(\beta_0)$ be an arbitrary subgradient of $F$ at $\beta_0$. We can now write a relaxed version of problem (\ref{opt:intermediate_P_delta}) using the lower bound for $\Delta F_\delta$ using (\ref{ineq:fairness_lower_bound_1}). Since it is a relaxed version of the fairness-constrained problem (\ref{opt:intermediate_P_delta}), it defines a lower bound on the objective, $\Delta J_\delta$. Thus, we are interested in solving 
+\begin{equation}
+\label{opt:lower_bound_1}
+    \begin{array}{cc}
+      \displaystyle  \min_{\Delta \beta} & \frac{1}{2}\norm{\Delta \beta}^2_{H_0} \\
+        s.t. & a_0\t\Delta \beta \leq -\delta. %\\
+        % & \beta_0\in  \beta
+    \end{array}
+\end{equation}
+Let us denote the objective $g(\Delta \beta)= \frac{1}{2}\norm{\Delta \beta}^2_{H_0}$ and the constraint function $h(\Delta \beta)=a_0\t\Delta \beta +\delta$. Since $g$ is a convex differentiable function and $h$ is an affine function, this is a convex problem. Thus, we can use the first-order condition to get an optimal solution.
+\begin{align*}
+    -\nabla g(\Delta \beta) \in \N_C(\Delta \beta) &\iff -H_0 \Delta \beta \in \{\lambda a_0 : \lambda \geq 0\},    
+\end{align*}
+where $\N_C(\Delta \beta)$ denotes the normal cone of $C=\{\Delta \beta : h(\Delta \beta)= 0\}$. Thus, $\Delta \beta = -\lambda H_0^{-1} a_0 $ , for some $\lambda \geq 0$. Since $\Delta \beta\in C$ (not useful other way), then $\lambda = {\delta}/{(a_0\t H_0^{-1} a_0) }=\delta/\norm{a_0}_{H_0^{-1}}^2$, and therefore \begin{equation}
+\label{eq:beta_lb}
+    \boxed{\Delta \beta^* ={-\delta H_0^{-1} a_0} / \norm{a_0}_{H_0^{-1}}^2}
+\end{equation} is the optimal solution to the relaxed problem (\ref{opt:lower_bound_1}), for any $a_0 \in \partial F(\beta_0)$. Note that this is the optimal direction of change in the lower bound of $\Delta F_\delta$ (\ref{ineq:fairness_lower_bound_1}), for $\Delta J_\delta$ to be minimal. However, the lower bound (\ref{ineq:fairness_lower_bound_1}) is the first-order approximation of the maximum of quadratic functions, which for an infinitesimal change in the direction $\Delta\beta_{LB}$ matches the function itself, i.e., for sufficiently small $t >0$, $F(\beta_0 + t\Delta \beta^* ) - F(\beta_0 + t\Delta \beta^* ) = a_0\t t\Delta \beta^*$ (directional derivative). Given this, for now, we can focus on changes only in the direction $\Delta \beta ^*$.
+
+Let us derive now the amount of change in the optimal cost along $\Delta \beta^*$, for a given $a_0 \in \partial F(\beta_0)$, i.e., 
+\begin{equation}
+\boxed{J(\beta_0 + \Delta \beta^*)-J(\beta_0)= \frac{1}{2}\norm{\Delta \beta^*}^2_{H_0} = {\delta^2}/ \left({2}\norm{a_0}^2_{H_0^{-1}}\right).     }
+\end{equation}
+Recalling that this is the cost change of the relaxed problem (\ref{opt:lower_bound_1}), then these are \textbf{lower bounds} on the actual $\Delta J_\delta$ obtained via (\ref{opt:intermediate_P_delta}). Since the constraint is setting the same level $-\delta$ for each lower bound, to get the most efficient directions we can select the subgradient $a_0\in \partial F(\beta_0)$ that produces the least possible error difference, i.e., $\overline{a_0}=\arg\max_{a_0 \in \delta F(\beta_0)} {\norm{a_0}^2_{H_0^{-1}}}$.
+
+
+\begin{tcolorbox}[
+    colback=lightgray, % Set background color to light gray
+    width=\linewidth, % Make the box span the full line width
+    sharp corners=all % Ensure sharp corners
+]
+\textbf{Special Case: A single group achieves the maximum error.} If  $|\A_0|=1$, i.e., $\exists!\, g \in \G$ such that $F(\beta_0)=J_g(\beta_0)$, then $\partial F(\beta_0)=\{\nabla J_g(\beta_0)\}$. There is only one choice for $a_0=\nabla J_g(\beta_0)$, to be used when defining the lower bound for $\Delta J_\delta$.
+\end{tcolorbox}
+
+% We can further try to derive a  tighter bound on 
+
+\medskip
+
+\noindent \textbf{Upper bound on the tradeoff.} Similarly, we can now derive an upper bound for the change in the cost. Recall that $F$ is the maximum of the quadratic functions $J_g$, which can be computed via Taylor expansion, i.e., letting $v_g^0$ and $H_g^0$ be the gradient and the Hessian of $J_g$ at $\beta_0$, respectively, we have that
+\begin{align*}
+    F(\beta_0 + \Delta \beta) - F(\beta_0)&= \max_{g\in \G} J_g(\beta_0 + \Delta \beta) - F(\beta_0) \\
+    &= \max_{g\in \G} J_g(\beta_0 ) +{v_g^0}\t \Delta \beta + \frac{1}{2}\norm{\Delta \beta}_{H_g^0}^2 - F(\beta_0)\\
+    &\leq  \max_{g\in \G} {v_g^0}\t \Delta \beta + \max_{g\in \G} \frac{1}{2}\norm{\Delta \beta}_{H_g^0}^2.
+\end{align*}
+As we did in the lower bound, we could try to solve the problem 
+\begin{equation*}
+\label{opt:upper_bound_1}
+    \begin{array}{cc}
+      \displaystyle  \min_{\Delta \beta} & \frac{1}{2}\norm{\Delta \beta}^2_{H_0} \\
+        s.t. &  \max_{g\in \G} {v_g^0}\t \Delta \beta + \max_{g\in \G} \frac{1}{2}\norm{\Delta \beta}_{H_g^0}^2 \leq -\delta, %\\
+        % & \beta_0\in  \beta
+    \end{array}
+\end{equation*}
+but this is not a problem with a straightforward solution. Instead, we could just choose to move in the direction $\Delta \beta^*$ (\ref{eq:beta_lb}) derived previously, and solve the problem by choosing how much we want to move in that direction, i.e., we solve the problem for $\Delta \beta = t \Delta\beta^*$;
+\begin{equation*}
+\label{opt:upper_bound_1}
+    \begin{array}{cc}
+      \displaystyle  \min_{t\in \R_{\geq 0}} & \frac{t^2}{2}\norm{ \Delta \beta^*}^2_{H_0} \\
+        s.t. &  t \max_{g\in \G} {v_g^0}\t \Delta \beta^* + \frac{t^2}{2}\max_{g\in \G} \norm{\Delta \beta^*}_{H_g^0}^2 \leq -\delta, %\\
+        % & \beta_0\in  \beta
+    \end{array}
+\end{equation*}
+which is a single-variable convex problem. Since the terms in the objectives are nonnegative, we can solve the quadratic equation of the constraint, with equality, and then choose the minimum nonnegative $t$. In other words, we get 
+\begin{align*}
+    t^*=\arg\min_{t \geq 0} \left\{\frac{-\max_{g\in \G} {v_g^0}\t \Delta \beta^* + s \sqrt{(\max_{g\in \G} {v_g^0}\t \Delta \beta^*)^2- 2\max_{g\in \G} \norm{\Delta \beta^*}_{H_g^0}^2 \delta}  }{\max_{g\in \G} \norm{\Delta \beta^*}_{H_g^0}^2} : s\in{\{-1,1\}}\right\},
+\end{align*}
+which replacing in the objective, gets us something of the form 
+\begin{equation}
+    \boxed{J(\beta_0 + t^*\Delta \beta^*) - J(\beta_0)= \frac{{t^*}^2}{2}\norm{ \Delta \beta^*}^2_{H_0} = \frac{{t^*}^2}{2}\norm{ a_0}^2_{H_0^{-1}}},
+\end{equation}
+where every term of $t^*$ is pre-computable, and we don't need to solve the optimization problem again to get this \textbf{upper bound} on $\Delta J_\delta$. 
+
+\begin{itemize}
+    \item \textbf{Q4:} When are these bounds tight? How close are they to the actual difference in error $\Delta J_\delta$?
+\end{itemize}
+\medskip
+
+{\color{red} [PENDING] Reason: It can be done at any time.}
+
+\subsection{Generalized Linear Approximation (GLM's)}
+
+In this section, we explore the hypothesis space of the generalized linear models (GLM's), which depend on the parameters $\beta \in \R^p$ in the form $f_\beta(x)=g(x^{\top}\beta),$ where $x\in \R^p$, and $g$ is a convex function. Examples include linear regression, logistic regression, and Poisson regression, among others. Defining $\ell(y_i;x_i,\beta)$ as the loss term of a given generalized linear model, the empirical risk function can be written as the average of these loss terms, i.e., we define the \textbf{empirical risk loss function} as the regularized negative log-likelihood
+$$
+\L(\beta):= \frac{1}{n}\sum_{i=1}^n \ell(y_i;x_i,\beta) =\frac{1}{n}\sum_{i=1}^n (\psi(x_i\t\beta) - y_i(x_i\t\beta)),
+$$ where $\psi$ is the function that defines the canonical-link generalized linear models that we are going to analyze, i.e., $\psi'(X\t \beta)=\Expected{y|X;\beta}$ (e.g., $\psi(z)={z^2}/{2}$ for linear regression). In general, these models \underline{do not} have a closed-form solution for $\beta_0$ (linear regression is a special case), so we do need to at least solve the original problem $P_0$ (\ref{opt:unconstrained_regression}) in these cases. Also, note that we are not focusing on the tradeoff between the loss function $\L$ and the (un)fairness function $F$, but we really want to measure the tradeoff between the empirical risk $J$ and the (un)fairness function $F$. For this, we need to also define the \textbf{mean squared residual} in general form as
+$$
+J(\beta):= \frac{1}{n}\sum_{i=1}^n r_i^2 = \frac{1}{n}\sum_{i=1}^n \left(y_i - \psi'(x_i\t\beta)\right)^2,
+$$
+where $f_\beta(x_i)=\psi'(x_i\t\beta)$ is our approximation function for the value $y_i \in \Y$. This is also a convex function for the different GLMs. 
+
+Note that, in the case of the linear regression, minimizing $J$ and minimizing $\L$ are equivalent optimization problems. Although, this is not generally true for GLMs. From the first-order condition of minimizing $\L$ we get that
+\begin{align*}
+\nabla \L(\beta) &= \frac{1}{n} \sum_{i=1}^n \left( \psi'(x_i\t\beta) - y_i \right)x_i = 0.
+\end{align*}
+Thus, if we have a perfect approximation (i.e., $J(\beta)=0$), the first order condition for the empirical risk is satisfied as a consequence of the zero-approximation error. The converse is not true {\color{red} CONTINUE...} 
+
+\subsubsection{Tradeoff between approximation error and fairness}
+
+In this case, the loss function is convex and twice differentiable, but it is not quadratic in general (e.g., logistic regression, Poisson regression). Nevertheless, the first-order condition still holds in the unconstrained case, so we still define $v_0 = \nabla \L(\beta_0)=0$ and $H_0 = \nabla^2 \L(\beta_0) \succ 0$ to be its gradient and the Hessian at $\beta_0$, respectively. 
+
+
+
+Note that, with the regularization term, $L$ is an $m$-strongly convex function, for some $m>0$ that depends on the GLM, and so we have the following
+\begin{align*}
+L(\beta_0 + \Delta \beta)-L(\beta_0)&\geq v_0\t\Delta \beta + \frac{m}{2}\norm{\Delta \beta}^2_{2},& \quad \forall \Delta \beta \in \R^p    \\ 
+\iff J(\beta_0 + \Delta \beta) - J(\beta_0) + \lambda \norm{\beta_0+\Delta \beta}_2^2 - \lambda \norm{\beta_0}_2^2  &\geq \frac{m}{2}\norm{\Delta \beta}^2_{2},& \quad \forall \Delta \beta \in \R^p.    
+\end{align*}
+Thus, we can only write a lower bound for problem $P_\delta$ (\ref{opt:fairness_constrained_regression}) with this fact (using the loss function $L$), instead of an exact expression, but we still can recover a lower bound on $\Delta J_\delta$ from its solution, i.e, we aim to solve
+\begin{equation}
+% \label{opt:intermediate_P_delta}
+    \begin{array}{ccc}
+      \displaystyle  \min_{\Delta \beta} &  \frac{m}{2}\norm{\Delta \beta}^2_{2} & \leq \\
+        s.t. & F(\beta_0 + \Delta \beta)-F(\beta_0) \leq -\delta. %\\
+        % & \beta \in  \beta
+    \end{array} \begin{array}{cc}
+      \displaystyle  \min_{\Delta \beta} & L(\beta_0 + \Delta \beta)-L(\beta_0)  \\
+        s.t. & F(\beta_0 + \Delta \beta)-F(\beta_0) \leq -\delta. %\\
+        % & \beta \in  \beta
+    \end{array}
+\end{equation}
+
+\noindent \textbf{Lower bound on the tradeoff.} Again, $F(\beta)=\max_{g\in \G} J_g(\beta)$ is the maximum among convex functions, thus convex. We still have that
+    \begin{equation}
+    % \label{ineq:fairness_lower_bound_1}
+    F(\beta_0 + \Delta \beta) \geq F(\beta_0 ) + a_0\t\Delta \beta   ,\quad \forall \Delta \beta \in \R^p, \forall a_0\in \partial F(\beta_0).    
+    \end{equation}
+    % where $\partial F(\beta_0)$ is the subdifferential set of $F$ in $\beta_0$, i.e., letting $\A_0=\{g \in  \arg \max_{g\in \G} J_g(\beta_0)\}$ be the active set of groups that achieve the maximum error, then $\partial F(\beta_0)=\text{conv}(\{\nabla J_g(\beta_0): g\in \A_0 \})$ is the convex combination of all the gradients of the groups in the active set $\A_0$. 
+    We can then solve the relaxed version of the lower bound problem, similar as before, i.e.,
+    % Let $a_0\in \partial F(\beta_0)$ be an arbitrary subgradient of $F$ at $\beta_0$. We can now write a relaxed version of problem (\ref{opt:intermediate_P_delta}) using the lower bound for $\Delta F_\delta$ using s(\ref{ineq:fairness_lower_bound_1}). Since it is a relaxed version of the fairness-constrained problem (\ref{opt:intermediate_P_delta}), it defines a lower bound on the objective, $\Delta J_\delta$. Thus, we are interested in solving 
+\begin{equation}
+% \label{opt:lower_bound_1}
+    \begin{array}{cc}
+      \displaystyle  \min_{\Delta \beta} & \frac{m}{2}\norm{\Delta \beta}^2_{2} \\
+        s.t. & a_0\t\Delta \beta \leq -\delta. %\\
+        % & \beta_0\in  \beta
+    \end{array}
+\end{equation}
+% Let us denote the objective $g(\Delta \beta)= \frac{1}{2}\norm{\Delta \beta}^2_{H_0}$ and the constraint function $h(\Delta \beta)=a_0\t\Delta \beta +\delta$. Since $g$ is a convex differentiable function and $h$ is an affine function, this is a convex problem.
+We use the same first-order condition to get an optimal solution, from $- (m\Delta \beta ) = \theta a_0 \iff \Delta \beta = -\frac{\theta}{m}a_0$, for some $\theta \geq 0$. Imposing the equality on the constraint, we have $\theta77 = {m \delta}/\norm{a_0}_2^2$, and therefore \begin{equation}
+\label{eq:beta_lb}
+    \boxed{\Delta \beta^* ={-\delta a_0} / \norm{a_0}_{2}^2}
+\end{equation} is the optimal solution to the relaxed lower bound problem, for any $a_0 \in \partial F(\beta_0)$. Thus, a lower bound on the change in the optimal cost, for a given $a_0 \in \partial F(\beta_0)$, is 
+\begin{align}
+L(\beta_0 + \Delta \beta^*)-L(\beta_0) &\geq \frac{m}{2}\norm{\Delta \beta^*}^2_{2} \nonumber \\
+\iff J(\beta_0 + \Delta \beta^*)-J(\beta_0) &\geq  \frac{m\delta^2}{2 \norm{a_0}^2_{2}} -\lambda \norm{\beta_0+\Delta \beta^*}_2^2 + \lambda \norm{\beta_0}_2^2  
+\end{align}
+\begin{equation}
+    \label{ineq:lower_bound_J_for_GLM}
+    \iff \boxed{J(\beta_0 + \Delta \beta^*)-J(\beta_0) \geq  \frac{m\delta^2}{2 \norm{a_0}^2_{2}} -\lambda \norm{\beta_0-\frac{\delta a_0}{\norm{a_0}_{2}^2}}_2^2 + \lambda \norm{\beta_0}_2^2}
+\end{equation}
+% Recalling that this is the cost change of the relaxed problem (\ref{opt:lower_bound_1}), then these are \textbf{lower bounds} on the actual $\Delta J_\delta$ obtained via (\ref{opt:intermediate_P_delta}). 
+Again, since the constraint is setting the same level $-\delta$ for each lower bound, to get the most efficient direction $\Delta \beta^*$ we can select the subgradient $a_0\in \partial F(\beta_0)$ that produces the least possible error difference, i.e., $\overline{a_0}=\arg\max_{a_0 \in \delta F(\beta_0)} {\norm{a_0}^2_{2}}$.
+
+
+
+\begin{tcolorbox}[
+    colback=lightgray, % Set background color to light gray
+    width=\linewidth, % Make the box span the full line width
+    sharp corners=all % Ensure sharp corners
+]
+\textbf{Special Case: $J_g(\beta)$ are $m_g$-strongly convex.} In this case, we can further try to get a tighter bound in the same direction $\Delta \beta^*$, using the $m_g$-strong convexity of each group's loss, i.e., \begin{align*}
+  F(\beta_0+\Delta t\beta^*)-F(\beta_0) &\geq t{\nabla J_g(\beta_0)}\t\Delta \beta^* + \frac{m_gt^2}{2} \norm{\Delta \beta^*}_2^2 ,\quad \forall t > 0, \forall g\in \A_0\\
+\Rightarrow  F(\beta_0+\Delta t\beta^*)-F(\beta_0) &\geq t{a_0}\t\Delta \beta^* + \frac{m_0t^2}{2} \norm{\Delta \beta^*}_2^2 ,\quad \forall t > 0, \forall a_0\in \partial F(\beta_0),
+\end{align*}
+% $$F(\beta_0+\Delta t\beta^*)-F(\beta_0) \geq t{\nabla J_g(\beta_0)}\t\Delta \beta^* + \frac{m_gt^2}{2} \norm{\Delta \beta^*}_2^2 ,\quad \forall t > 0, \forall g\in \A_0$$
+% \textit{Note: Last meeting I used a Taylor expansion for small $\delta$, which got me $\Delta J_\delta \leq \frac{{t^*}^2}{2}\norm{a_0}_{ H_0^{-1}} $}
+% Given training data $\{(x_i,y_i,g_i)\}_{i=1}^n$ with group membership $g_i\in\{1,\dots,G\}$,
+% a parametric regressor $f(x_i;t)$ yields predictions $\hat y_i(t)$.
+% Define residuals $r_i(t)=\hat y_i(t)-y_i$.
+and we can define a tighter lower bound problem of the form
+\begin{equation}
+% \label{opt:lower_bound_1}
+    \begin{array}{cc}
+      \displaystyle  \min_{t} & \frac{mt^2}{2}\norm{\Delta \beta^*}^2_{2} \\
+        s.t. & t a_0\t\Delta \beta^* +  \frac{m_0t^2}{2} \norm{\Delta \beta^*}_2^2 \leq -\delta, %\\
+        % & \beta_0\in  \beta
+    \end{array}
+\end{equation}
+which we can solve setting $a_0\t\Delta \beta^* +  \frac{m_0t^2}{2} \norm{\Delta \beta^*}_2^2 +\delta = 0$, and hence $t^*=\frac{-a_0\t\Delta \beta^* - \sqrt{(a_0\t\Delta \beta^*)^2- 4(\frac{m_0}{2} \norm{\Delta \beta^*}_2^2)\delta}}{2(\frac{m_0}{2} \norm{\Delta \beta^*}_2^2)}$ $=\frac{\delta - \sqrt{\delta^2 - {2m_0 \delta^3}/{ \norm{a_0}_2^2} }}{m_0\delta^2/{ \norm{a_0}_2^2}} = \frac{1 - \sqrt{1 - {2m_0 \delta}/{ \norm{a_0}_2^2} }}{m_0\delta/{ \norm{a_0}_2^2}}$. Thus, using this, we get a tighter bound of the form
+\begin{equation}
+\boxed{J(\beta_0 + t^*\Delta \beta^*)-J(\beta_0) \geq \frac{m}{2}\norm{t^*\Delta \beta^*}^2_{2} = \frac{m\delta^2}{2 \norm{a_0}^2_{2}} \left(\frac{1 - \sqrt{1 - {2m_0 \delta}/{ \norm{a_0}_2^2} }}{m_0\delta/{ \norm{a_0}_2^2}}\right)^2.}
+\end{equation}
+Thus, if $t^* > 1$, we clearly get a tighter lower bound compared to the previous bound on (\ref{ineq:lower_bound_J_for_GLM}).
+\end{tcolorbox}
+
+\medskip
+
+\noindent \textbf{Upper bound on the tradeoff.} The upper bound is trickier in this case, since every loss function behaves differently in the canonical link cases of GLM. Linear regression is a quadratic loss, Poisson is an exponential loss (not even L-smooth), etc. One question that motivates the approach that comes next is 
+
+\begin{center}
+\textbf{Q:} \textit{Can we approximate the loss functions by a quadratic function or a well-behaved function in some neighborhood of $\beta_0$?}
+\end{center}
+
+One way a function can behave like a quadratic one in a neighborhood is by constructing an ellipsoid around the given point and analyzing the behavior of the Hessian. In other words, we are interested in knowing whether the function is \textbf{self-concordant} or not. Some common cases of the canonical link family are indeed self-concordant, but others do not. However, they satisfy a condition very similar to that of a self-concordant function, i.e., they are part of the \textbf{generalized self-concordant} function family (see \href{https://arxiv.org/pdf/1703.04599}{Sun \& Tran-Dinh (2018)}), which satisfy \begin{align}
+    |\varphi'''(t)|\leq M_{\varphi} \varphi''(t)^{v/2}, & \quad\forall t \in \mathbf{dom}(\varphi),
+\end{align}
+for some $v>0$ and $M_{\varphi}\geq0$. 
+To see this, first let us consider a GLM with a canonical link $\eta_i = x_i\t \beta, \forall i \in [n]$, then the error metric {\color{red}(without regularization)} we are interested in minimizing is of the form
+\[
+J(\beta)\;=\;\frac{1}{n}\sum_{i=1}^n \big(\psi(\eta_i)-y_i\eta_i\big),
+\qquad \eta_i = x_i^\top \beta,
+\]
+where $\psi:\mathbb{R}\to\mathbb{R}$ is convex, $C^3$. Let us define then $
+\phi(t)\;:=\;J(\beta_0+t d)$. We want to check {\color{red} (ideally prove, but pending)} that it satisfies some generalized self-concordant condition. Let us check first the three most common cases.
+
+\begin{tcolorbox}[
+    colback=lightgray, % Set background color to light gray
+    width=\linewidth, % Make the box span the full line width
+    sharp corners=all % Ensure sharp corners
+]
+\begin{itemize}
+    \item \textbf{Linear Regression:} In this case, $\psi(z)=\frac{z^2}{2}$, thus $\psi'(z)=z$, $\psi''(z)=1$, and $\psi'''(z)=0$, so it is sufficient to set $M_{\psi}\geq 0$ and $v>0$. 
+
+    \item \textbf{Logistic Regression:} Here, $\psi(z)={log(1+e^z)}$, thus $\psi'(z)=\frac{e^z}{1+e^z}$, $\psi''(z)=\frac{e^z}{(1+e^z)^2}$, and $\psi'''(z)=\frac{e^z}{(1+e^z)^2} \frac{(1-e^z)}{(1+e^z)}$. Noting that $\frac{(1-e^z)}{(1+e^z)}\leq 1$, then it is sufficient to set $M_{\psi}=1$ and $v = 2$. 
+
+    \item \textbf{Poisson Regression:} Now, $\psi(z)={e^z}$, thus $\psi'(z)=\psi''(z)=\psi'''(z)=e^z$, and thus it is sufficient to set $M_{\psi}=1$ and $v = 2$. 
+\end{itemize}
+\textit{*Note that in the three cases we can set $v=2$, so that } $|\varphi'''(t)|\leq M_{\varphi} \varphi''(t),\forall t \in \mathbf{dom}(\varphi)$
+\end{tcolorbox}
+Let us assume now that $\psi(z)$ is a generalized self-concordant function with $M_\psi\geq0$, and $v=2$. It follows that, letting $\eta_i(t)=x_i\t(\beta_0+td)$, $$\phi'(t)=\frac{1}{n}\sum_{i=1}^n \psi'(\eta_i(t))(x_i\t d) - y_i(x_i\t d), \quad \phi''(t)=\frac{1}{n}\sum_{i=1}^n \psi''(\eta_i(t))(x_i\t d)^2, \quad  \phi'''(t)=\frac{1}{n}\sum_{i=1}^n \psi'''(\eta_i(t))(x_i\t d)^3,$$ 
+and thus we can get the self-concordant condition for $\phi(t)$ using $\psi$ as,
+\begin{align*}
+|\phi'''(t)|&=\frac{1}{n}\left|\sum_{i=1}^n \psi'''(\eta_i(t))(x_i\t d)^3\right|\\
+&\leq\frac{1}{n}\sum_{i=1}^n \left|\psi'''(\eta_i(t))(x_i\t d)^3\right| \\
+&\leq \frac{1}{n}\sum_{i=1}^n \left|\psi'''(\eta_i(t))\right| (x_i\t d)^2 |x_i\t d|\\
+&\leq \max_{j\in[n]}{|x_j\t d|}\frac{1}{n}\sum_{i=1}^n \left|\psi'''(\eta_i(t)) \right|(x_i\t d)^2 \\
+% &\leq \frac{1}{n}\sum_{i=1}^n \left|\psi'''(\eta_i(t))\right| (x_i\t d)^2 \\
+&\leq M_{\psi}\max_{j\in[n]}{|x_j\t d|}\frac{1}{n}\sum_{i=1}^n \psi''(\eta_i(t)) (x_i\t d)^2 & \text{(self-concordance)} \\
+% &\leq M_\psi \frac{1}{n}\sum_{i=1}^n \psi''(\eta_i(t))x_i\t d)^2 \\
+&= M_\phi \phi''(t),
+\end{align*}
+and thus $\phi(t)$ is also a generalized self-concordant function with the same constant (in terms of $t$) $M_\phi=M_\psi\max_{j\in[n]}{|x_j\t d|}\geq0$ and $v=2$. Now, we can focus on trying to integrate this differential inequation using the auxiliary function $u(t)=\phi''(t)$, i.e.,
+\begin{align*}
+   -M_\phi u(t)\leq&  u'(t)\leq M_\phi u(t), \forall t >0&\\
+    u(0) e^{-M_{\phi}t} \leq& u(t) \leq u(0) e^{M_{\phi}t} \quad \text{(Grönwall's inequality)}\\
+    u(0) \int_{0}^t e^{-M_{\phi}s}ds \leq& \int_{0}^t u(s) ds\leq u(0) \int_{0}^t e^{M_{\phi}s}ds\\
+    % -u(0) \frac{e^{-M_\phi t} - 1}{M_\phi} \leq \phi'(t)-\phi'(0)\leq u(0)\frac{e^{M_\phi t} - 1}{M_\phi}\\
+    \phi'(0)-u(0) \frac{e^{-M_\phi t} - 1}{M_\phi} \leq& \phi'(t)\leq \phi'(0)+ u(0)\frac{e^{M_\phi t} - 1}{M_\phi} & \text{\hspace{-2cm}} \Big/ \int_{0}^t \cdot \;ds\\
+    % \text{(integrate on }[0,t]),\\
+    % \Rightarrow \phi'(t)\leq \phi'(0) + u(0) \frac{e^{M_\phi t} - 1}{M_\phi} \\
+    \phi'(0)t+u(0) \frac{e^{-M_\phi t} - 1+M_\phi t}{M_\phi^2} \leq& \phi(t)-\phi(0)\leq \phi'(0)t+ u(0)\frac{e^{M_\phi t} - 1-M_\phi t}{M_\phi^2}\\
+    t\nabla J(\beta)\t d+ \frac{d'\nabla^2J(\beta)d}{M_\phi^2} \left({e^{-M_\phi t} - 1+M_\phi t}\right) \leq& J(\beta+td)-J(\beta)\leq t\nabla J(\beta)\t d+ \frac{d'\nabla^2J(\beta)d}{M_\phi^2} \left(e^{M_\phi t} - 1-M_\phi t\right).\\
+    % \text{(integrate again on }[0,t]),\\
+    % \ldots,\\
+    % \Rightarrow \phi(t) \leq \phi(0) +
+\end{align*}
+Remembering that $\nabla J(\beta_0)=0$, we get two bounds (lower and upper) on $\Delta J_\delta$, of the form 
+\begin{align}
+\label{ineq:exponential_LB}
+\boxed{J(\beta_0+t \Delta \beta)- J(\beta_0)\;\ge\; \frac{\norm{\Delta\beta}_{H_0}^2}{M_\phi^2}\Big(e^{-M_\phi t}+M_\phi t - 1\Big)}\\
+\label{ineq:exponential_UB}
+ \boxed{J(\beta_0+t \Delta \beta)- J(\beta_0)\;\le\; \frac{\norm{\Delta\beta}_{H_0}^2}{M_\phi^2}\Big(e^{M_\phi t}\;-M_\phi t\; - 1\Big)}
+\end{align}
+\textit{Note: There are multiple choices of $M_{\phi}$ that secure the self-concordance property, but the terms that depend on it are closer (tighter bounds) as $M_\phi \rightarrow 0$, and hence we should choose the minimum feasible value for it to get the tightest possible bounds.} 
+\begin{tcolorbox}[
+    colback=lightgray, % Set background color to light gray
+    width=\linewidth, % Make the box span the full line width
+    sharp corners=all % Ensure sharp corners
+]
+\begin{itemize}
+    \item \textbf{Linear Regression:} In this case, we can choose $M_\psi=0\Rightarrow M_\phi=0$, and (in the limit) recover the quadratic difference equality: $J(\beta_0+t \Delta \beta)- J(\beta_0) = \frac{t^2}{2}\norm{\Delta\beta}_{H_0}^2$. 
+
+    \item \textbf{Linear Regression/Logistic Regression/Poisson Regression:} We can set $M_\phi=  \max_{j\in[n]}\{|x_j\t \Delta \beta|\}$, and use the bounds above.
+    % , as $$
+    % {\norm{\Delta\beta}_{H_0}^2}\Big(e^{-t}+t - 1\Big) \leq J(\beta_0+t \Delta \beta)- J(\beta_0) \leq {\norm{\Delta\beta}_{H_0}^2}\Big(e^{t}\;- t\; - 1\Big).
+    % $$
+\end{itemize}
+\end{tcolorbox}
+
+
+
+
+
+{\color{red} Note: It depends on a exponential over $t$, so it may be a very loose bound. Since we are working with a family of models, this could be good enough anyway. We can also apply this bound on each $g\in \G$, and use the same direction $\Delta \beta^*$ from a lower bound. I'm going to run some numerical experiments after deriving it properly and verify that it is correct.}
+
+
+\subsubsection{Bounds on the \textit{tradeoff} between $J$ and $F$ (independent of strong convexity)}
+
+
+Again, to get an approximately good direction $\Delta \beta^*$ to work with in the first place, we aim for the solution of the Taylor approximation (1st order for $F$ and 2nd order for $J$)  problem  $\min_{\Delta \beta } \left\{\frac{1}{2} \norm{\Delta \beta}_{H_0}^2 \;:\; a_0\t \Delta \beta \leq -\delta \right\}$, where $a_0 \in \partial F(\beta_0)$. As in {\color{red} (ref.)}, we get the direction $\Delta \beta^* = -\delta H_0^{-1}a_0/\norm{a_0}^2_{H_0^{-1}}$; which we can now use to get the valid bounds from (\ref{ineq:exponential_LB}) and (\ref{ineq:exponential_UB}).
+% That is, $\widehat{\Delta \beta^*}= -\delta H_0^{-1}a_0/\left(\max_{j\in[n]}\norm{x_j}_2\norm{a_0}^2_{H_0^{-1}}\right)$, which means the change in $J$ is also bounded below by a similar term as in {\color{red} (ref.)}. 
+% $C_\phi^{LB}(t) = (e^{-tM_\phi}+tM_\phi-1 )/M_\phi^2$ (i.e., setting $t=1)$
+% \begin{align}
+%     \boxed{J(\beta_0 + {\Delta \beta^*}) - J(\beta_0) \geq \frac{C_\phi^{LB}(1)\delta^2}{\norm{a_0}_{H_0^{-1}}^2}}. 
+% \end{align}
+\begin{itemize}
+    \item \noindent \textbf{Lower bound on the \textit{tradeoff}.}
+We use (\ref{ineq:exponential_LB}) to lower bound both $\Delta J_\delta$ and $\Delta F_\delta$. Let us define $C_{\phi,I}^{LB}(t,d) = (e^{-tM_\psi \max_{i\in I}|x_i'd|}+t(M_\psi\max_{i\in I}|x_i'd|)-1 )/(M_\psi\max_{i\in I}|x_i'd|)^2$. We are interested in solving the lower bound problem \begin{equation}
+\min_{t\geq 0} \left\{ C_{\phi,[n]}^{LB}(t, \Delta \beta^*)\|{\Delta \beta^*}\|_{H_0}^2  \;:\; t(a_{\partial F_0}\t {\Delta \beta^*}) + C_{\phi,\bar{g}}^{LB}(t, \Delta \beta^*)\|{\Delta \beta^*}\|_{H_{\partial^2 F_0}}^2 \leq -\delta \right\},    
+\end{equation}
+ where $a_{\partial F_0} \in \partial F(\beta_0)$, $H_{\delta^2F_0} \in \partial^2F(\beta_0)$ (second-order subdifferential), and $\bar{g}$ represents the combination of groups $g\in \G$ that leads to both $a_{\partial F_0}$ and $H_{\partial^2 F_0}$, so that we get the proper $M_{\phi}$. Although this problem is very dense in notation, solving it is just finding the roots of the exponential equation of the constraint, and choosing the one that produces the minimum cost. 
+\end{itemize}
+% We can get a tighter approximation by resolving the problem using a quadratic lower bound constraint instead of the linear one, moving $t\geq 0$ in the direction $d=\Delta\beta^*$. In other words, we solve $\min_{t\geq 0} \left\{ \norm{\Delta \beta}_{H_0}^2(e^{-M_\phi}+M_\phi-1 )/M_\phi^2 \;:\; a_0\t \Delta \beta \leq -\delta \right\}$, where $a_0 \in \partial F(\beta_0)$
+
+\textbf{Upper bound (independent of $L$-smoothness)}
+
+Again, we can just see how much we need to advance in the direction $\Delta \beta^*$, by solving the problem $\min_{t \geq 0 } \left\{C_\phi^{UB} t^2\norm{\Delta \beta^*}_{H_0}^2 \;:\;  C_\phi^{UB_g}t^2 \norm{\Delta \beta^*}_{H_0}^2 \leq -\delta \right\}$, where $C_\phi^{UB}=(e^{M_\phi}-M_\phi-1 )/M_\phi^2$, and similar for each group, b2ut 
+
+\begin{align}
+    \boxed{J(\beta_0 + \Delta \beta^*) - J(\beta_0) \leq \frac{C_\phi^{UB}\delta^2}{\norm{a_0}_{H_0^{-1}}^2}} 
+\end{align}
+
+
+
+\subsection{Redefining the (un)fairness level}
+
+We start this section by noting something we were initially ignoring. That is, the fact that, for general GLMs, the loss function does not necessarily represent the approximation error. The approximation function for a general GLM is the expected value of the assumed variable $y\in\Y$, given some $x\in \X$ and the fitted parameter $\beta$, i.e., $$y_i \approx \Expected{y_i|x_i;\beta}=\mu(x_i\t \beta)=\psi'(x_i\t \beta), \quad \forall i \in [n].$$
+ From this expression, we can define some approximation error as a function of the distance between the data vector $y$ and the approximation function. As a simile to the approximation error of linear regression (MSE), we are going to work in this case with the sum of squared residuals $r_i(\beta):=\psi'(x_i\t \beta)-y_i$, i.e.,
+ \begin{align*}
+     R(\beta)=\frac{1}{n}\sum_{i=1}^nr_i(\beta)^2=\frac{1}{n}\sum_{i=1}^n\left(\psi'(x_i\t \beta)-y_i\right)^2,
+ \end{align*}
+ which is not a straightforward transformation of the loss function $J$, and thus cannot be represented via the group version of $J$. Furthermore, this function is \underline{not even convex} in general. Note that the same function can be defined for every partition of indices, and so we define $R_g(\beta):=\frac{1}{n_g}\sum_{i\in g}r_i(\beta)^2, \forall g\in \G$. From this, we can also define the updated (\underline{nonconvex}) version of the fairness function as
+ \begin{align*}
+     F(\beta)=\max_{g\in \G} R_g(\beta),
+ \end{align*}
+which raises the following natural question for tradeoff purposes.\\
+{\color{red} \textbf{CORRECTION:} Instead of using the nonconvex squared residuals, we should instead use the proper convex measure of distance between our approximation $\psi'(x\t\beta)$ and the true $y$. The loss functions of GLMs are just the Bregman Divergence in terms of their respective link. In other words, we could rewrite the objective loss functions directly using the Bregman Divergence average. This is a nonnegative discrepancy measure, and we will see that it is zero when the approximation is perfect. That is
+ \begin{align*}
+     J(\beta)=\frac{1}{n}\sum_{i=1}^n D_{\psi}(\eta_{y_i}, x_i\t\beta)=\frac{1}{n}\sum_{i=1}^n\left(\psi(x_i\t \beta)-\psi(\eta_{y_i})-\psi'(\eta_{y_i})(x_i\t\beta - \eta_{y_i}) \right), \quad \text{where } \eta_{y_i} = {\psi'}^{-1}(y_i).
+ \end{align*}
+ This is a convex function over $\beta$, since $\psi$ is convex and the rest of the terms are linear on $\beta$. From this, we can define and recover the convexity of our (un)fairness measure, just letting each group partition of indices have their own term defined in the same way as originally discussed. 
+\medskip\\
+ Furthermore, let us observe the gradient and Hessian of this loss function.
+\begin{align*}
+   \nabla J(\beta) = \frac{1}{n}\sum_{i=1}^n  \left(\psi'(x_i\t \beta)-\psi'(\eta_{y_i}) \right)x_i = \frac{1}{n}\sum_{i=1}^n  \left(\psi'(x_i\t \beta)-y_i \right)x_i, \end{align*}
+   and thus note that we satisfy the first order condition if $\psi'(x_i\t\beta)=y_i, \forall i \in [n]$. Further, with this condition, the loss function becomes zero. The Hessian is the same as in any loss of GLMs, i.e,
+   \begin{align*}
+      \nabla^2 J(\beta) = \frac{1}{n}\sum_{i=1}^n  \psi''(x_i\t \beta) x_ix_i\t =\frac{1}{n} X\t\textbf{diag}\left(\psi''(x_1\t\beta),\ldots, \psi''(x_n\t\beta) \right)X,
+\end{align*}
+Hence, we recover a convex loss function and a convex fairness metric, since we define it as the maximum of these convex function, i.e, $F(\beta)=\max_{g\in \G}\{J_g(\beta)\}$.
+
+
+
+\begin{tcolorbox}[
+    colback=lightgray, % Set background color to light gray
+    width=\linewidth, % Make the box span the full line width
+    sharp corners=all % Ensure sharp corners
+]
+\begin{itemize}
+    \item \textbf{Linear Regression:} We recover an MSE transformation, given that $\psi(z)=\frac{z^2}{2}$, and so $D_\psi(\eta_i,x_i\t\beta)=\frac{1}{2}(x_i\t\beta - y_i)^2 \Rightarrow J(\beta)=\frac{1}{2n}\sum_{i=1}^n (x_i\t\beta - y_i)^2$. 
+    \item \textbf{Logistic Regression:} We recover the cross-entropy, since $\psi(z)=\log{(1+e^z)}$, and also from the Bregman divergence relationship with the convex conjugate we have that  $D_\psi(\eta_i,x_i\t\beta)=D_{\psi^*}(\psi'(x_i\t\beta), y_i)=-\psi'(x_i\t\beta)\log(y_i)-(1-\psi'(x_i\t\beta))\log(1-y_i).$
+    \item \textbf{Poisson Regression:} 
+\end{itemize}
+\end{tcolorbox}
+
+}
+
+\begin{center}
+\textbf{Q:} \textit{Can we analyze or derive bounds for the tradeoff between $J$ and $F$ in this general setting for GLMs?}   
+\end{center}
+To answer this question, we first make use of the definitions of relative strong convexity and relative smoothness described in \href{https://arxiv.org/pdf/1610.05708}{Lu, Freund, \& Nesterov (2017)}. Let $h(\cdot)$ be any differentiable convex function on some set $Q$, which we call the \qt{reference function}. We have the following two definitions.
+\begin{itemize}
+    \item \textbf{Relative Smoothness:} $f(\cdot)$ is $L$-smooth relative to $h(\cdot)$ on $Q$ $\iff \forall x,y\in \textbf{int}(Q), \;\exists L >0$, such that $$f(y)\leq f(x)+\ip{\nabla f(x)}{y-x} + L D_h(y,x).$$
+    \item \textbf{Relative Smoothness:} $f(\cdot)$ is $\mu$-strongly convex relative to $h(\cdot)$ on $Q$ $\iff \forall x,y\in \textbf{int}(Q),\; \exists \mu \geq 0$, such that $$f(y)\geq f(x)+\ip{\nabla f(x)}{y-x} + \mu D_h(y,x).$$
+\end{itemize}
+If $f(\cdot)$ is twice differentiable, then we can also make use of the equivalent definitions
+\begin{align*}
+    \mu \nabla^2h(x)\preceq \nabla f(x) \preceq L \nabla^2h(x), \quad \forall x,y \in \textbf{int}(Q).
+\end{align*}
+\textbf{Relative strong convexity of $F$.} Let us derive the Hessian matrix for $J(\beta)$ and $R(\beta)$, i.e.
+\begin{align*}
+% \nabla^2J(\beta)\;&=\;\frac{1}{n}\sum_{i=1}^n \nabla^2 \big(\psi(x_i\t\beta)-y_i(x_i\t\beta)\big)\\
+ \nabla^2J(\beta) &=\;\frac{1}{n}\sum_{i=1}^n \psi''(x_i\t\beta)x_ix_i\t\\
+&=\;\frac{1}{n} X\t\textbf{diag}\left(\psi''(x_1\t\beta),\ldots, \psi''(x_n\t\beta) \right)X, 
+\end{align*}
+\begin{align*}
+\nabla^2R(\beta)\;&=\;\frac{1}{n}\sum_{i=1}^n \nabla^2 \big(\psi'(x_i\t\beta)-y_i\big)^2\\
+% &=\;\frac{2}{n}\sum_{i=1}^n \nabla \big(\psi'(x_i\t\beta)-y_i\big)\psi''(x_i\t\beta)x_i\\
+&=\;\frac{2}{n}\sum_{i=1}^n  \left(\psi''(x_i\t\beta)^2  + (\psi'(x_i\t\beta)-y_i\big)\psi'''(x_i\t\beta)\right) x_ix_i\t\\
+ % \nabla^2R(\beta) &=\;\frac{1}{n}\sum_{i=1}^n \psi''(x_i\t\beta)x_ix_i\t\\
+&=\;\frac{2}{n} X\t\textbf{diag}\left(\psi''(x_i\t\beta)^2 + (\psi'(x_i\t\beta)-y_i\big)\psi'''(x_i\t\beta)\right)X. 
+\end{align*}
+Thus, if we had that $\frac{L}{2}\psi''(x_i\t\beta) \geq \psi''(x_i\t\beta)^2 + (\psi'(x_i\t\beta)-y_i\big)\psi'''(x_i\t\beta) \geq \frac{\mu}{2}\psi''(x_i\t\beta), \forall i \in [n]$, for some $\mu \geq 0$ and $L>0$, we would have relatively $\mu$-strong convexity and relatively $L$-smoothness. We can analyze further this term, {\color{red} assuming} that $\exists M \gg 0$, sufficiently large such that $x_i\t\beta \in [-M,M]$, for all {\color{red} practical solutions} $\beta \in \R^p$. Hence, $\psi''(x_i\t\beta) > 0$ for all $\beta$ of interest. We then rewrite the conditions as
+\begin{align*}
+   \frac{L}{2}\psi''(x_i\t\beta) \geq \psi''(x_i\t\beta)^2 + (\psi'(x_i\t\beta)-y_i\big)\psi'''(x_i\t\beta)& \geq \frac{\mu}{2}\psi''(x_i\t\beta), & \forall i \in [n]\\
+  \iff  \frac{L}{2} \geq \psi''(x_i\t\beta) + (\psi'(x_i\t\beta)-y_i\big)\frac{\psi'''(x_i\t\beta)}{\psi''(x_i\t\beta)}& \geq \frac{\mu}{2}, & \forall i \in [n].
+\end{align*}
+\begin{tcolorbox}[
+    colback=lightgray, % Set background color to light gray
+    width=\linewidth, % Make the box span the full line width
+    sharp corners=all % Ensure sharp corners
+]
+\begin{itemize}
+    \item \textbf{Linear Regression:} In this case, $\psi''(z)=1 \;\wedge\; \psi'''(z)=0$, and thus we can just choose any $L\geq2$ and $\mu \leq 2$, and we recover the standard definitions. Note that we don't even need the assumption. 
+
+    \item \textbf{Logistic Regression:} Here, note that $\psi'(z)\in [0,1]$ and $y\in[0,1]$, so $r_i \in [-1,1]$, and also $\frac{\psi'''(z)}{\psi''(z)}= \frac{(1-e^z)}{(1+e^z)} \in [-1,1]$. Further $\psi''(z)\leq \frac{1}{4}$. Thus, for \textbf{relative smoothness}, we only need to check $${L}\geq 1/2 + 2 = \frac{5}{2}.$$
+    Note now that $\psi''(z)=\psi'(z)/(1+e^z)$, and therefore we can rewrite the condition for \textbf{relative strong convexity} as
+    $$
+    \frac{\psi'(x_i\t\beta)}{(1+e^{x_i\t\beta})} + (\psi'(x_i\t\beta)-y_i\big)\frac{(1-e^{x_i\t\beta})}{(1+e^{x_i\t\beta})} \geq \frac{\mu}{2}.
+    $$
+    Since $x_i\t\beta \in [-M,M]$, for some $M\gg0$, then $\frac{1}{4}\geq\psi''(x_i\t\beta)\geq \varepsilon_2$, for some $1\gg \varepsilon_2 > 0$ ($\varepsilon_2 \approx 0$), and $\varepsilon_1 \leq \psi'(x_i\t\beta)\leq 1-\varepsilon_1$, for some $\varepsilon_1 >0$ ($\varepsilon_1\approx0)$. 
+    \item \textbf{Poisson Regression:} In this case, $\psi(z)=\psi'(z)=\psi''(z)=\psi'''(z)$, so 
+\end{itemize}
+\end{tcolorbox}
+
+
+
+% $   \iff  \frac{L}{2} \geq \psi''(x_i\t\beta) + (\psi'(x_i\t\beta)-y_i\big)\frac{(1-exp(x)}{(1+exp(x)}& \geq \frac{\mu}{2}, & \forall i \in [n].\\$
+Note that the relatively $L$-smoothness is straightforward, since 
+
+
+
+\newpage
+Blank
+\newpage 
+
+%========================  SELF-CONCORDANT FAIRNESS UPPER BOUNDS  ========================%
+% Copy-pasteable LaTeX (standalone section). Replace X, y, groups as needed.
+% \section{Self–Concordant Upper Bounds for the Fairness–Risk Tradeoff in GLMs}
+% \subsection{Setup}
+% Let $\{(x_i,y_i)\}_{i=1}^n$ and a partition of indices into groups $\mathcal{G}=\{g\}$ with $n_g=|\{i\in g\}|$.
+ For each group $g\in \G$, we define the same error metric
+$
+J_g(\beta)\;=\;\frac{1}{n_g}\sum_{i\in g} \big(\psi(\eta_i)-y_i\eta_i\big),
+$
+and, again, the maximum of them is the fairness $
+F(\beta)\;=\;\max_{g\in\mathcal{G}} J_g(\beta).
+$. Let us forget about the regularization part to begin with, and redefine
+\[
+H_0\;=\;\nabla^2 J(\beta_0)=\frac{1}{n}X^\top W_0 X,\qquad
+H_{0,g}\;=\;\nabla^2 J_g(\beta_0)=\frac{1}{n_g}X_g^\top W_{0,g} X_g,
+\]
+with $W_0=\operatorname{diag}(\psi''(\eta_i(\beta_0)))$, and similarly $W_{0,g}$ restricted to group $g$.
+
+\subsection{Generalized self–concordance (Bach-type) along a ray}
+Assume the \emph{generalized SC} condition:
+\begin{equation}
+\label{eq:gsc}
+|\psi'''(z)| \;\le\; M\,\psi''(z)\qquad\text{for all }z\in\mathbb{R},
+\end{equation}
+with a model-dependent constant $M\ge 0$ (Gaussian: $M=0$; logistic/Poisson: $M=1$).
+
+Fix a direction $d\in\mathbb{R}^p$ and define the 1D restriction
+\[
+\phi(t)\;:=\;J(\beta_0+t d).
+\]
+Let
+\[
+Q\;:=\;d^\top H_0 d\;=\;\phi''(0),\qquad
+\rho\;:=\;M\,\max_{i}|x_i^\top d|\;>0.
+\]
+\paragraph{Lemma (ray-wise envelope for $J$).}
+Under \eqref{eq:gsc}, for all $t\ge 0$,
+\begin{equation}
+\label{eq:global-envelope-J}
+J(\beta_0+t d)\;\le\; J(\beta_0)+\nabla J(\beta_0)^\top (t d)
+\;+\;\frac{Q}{\rho^2}\Big(e^{\rho t}-\rho t - 1\Big).
+\end{equation}
+\emph{Proof sketch.}
+Set $y(t)=\phi''(t)$. Using \eqref{eq:gsc} and $\zeta_i:=x_i^\top d$,
+$|\phi'''(t)| \le \sum_i |\psi'''(\eta_i(t))|\,|\zeta_i|^3/n
+\le M(\max_i|\zeta_i|)\sum_i \psi''(\eta_i(t))\zeta_i^2/n
+= \rho\,\phi''(t)$.
+Thus $-\rho y\le y'\le \rho y$, and Grönwall implies
+$y(0)e^{-\rho t}\le y(t)\le y(0)e^{\rho t}$.
+Integrate twice:
+$\phi'(t)\le \phi'(0)+y(0)(e^{\rho t}-1)/\rho$ and
+$\phi(t)\le \phi(0)+\phi'(0)t + y(0)(e^{\rho t}-\rho t-1)/\rho^2$.
+Since $y(0)=Q$ and $\phi'(0)=\nabla J(\beta_0)^\top d$, we get \eqref{eq:global-envelope-J}. \qed
+
+\paragraph{Groupwise envelopes.}
+For each group $g$, define
+\[
+A_g\;:=\;\nabla J_g(\beta_0)^\top d,\qquad
+Q_g\;:=\;d^\top H_{0,g} d,\qquad
+\rho_g\;:=\;M_g\,\max_{i\in g}|x_i^\top d|,
+\]
+where $M_g$ satisfies $|\psi_g'''|\le M_g \psi_g''$ for that group/model.
+Then for all $t\ge 0$,
+\begin{equation}
+\label{eq:group-envelope}
+J_g(\beta_0-t d)\;\le\; J_g(\beta_0)\;-\;A_g t\;+\;\frac{Q_g}{\rho_g^2}\Big(e^{\rho_g t}-\rho_g t - 1\Big).
+\end{equation}
+
+\subsection{Feasible step for a fairness tightening \texorpdfstring{$\delta$}{delta}}
+Fix a target $\delta>0$ and a direction $d$. Define the groupwise convex functions
+\begin{equation}
+\label{eq:fg}
+f_g(t)\;:=\;-\;A_g\,t\;+\;\frac{Q_g}{\rho_g^2}\Big(e^{\rho_g t}-\rho_g t -1\Big),\qquad t\ge 0.
+\end{equation}
+They satisfy
+\[
+f_g(0)=0,\qquad f_g'(t)=-A_g+\frac{Q_g}{\rho_g}\big(e^{\rho_g t}-1\big),\qquad
+f_g''(t)=Q_g e^{\rho_g t}>0,
+\]
+hence each $f_g$ is strictly convex and has a unique minimizer at
+\begin{equation}
+\label{eq:t0g}
+t_{0,g}=\frac{1}{\rho_g}\log\!\Big(1+\frac{A_g\rho_g}{Q_g}\Big)\quad(\text{provided }A_g>0).
+\end{equation}
+Using \eqref{eq:group-envelope}, the fairness constraint
+\[
+F(\beta_0-t d)=\max_g J_g(\beta_0-t d)\ \le\ F(\beta_0)-\delta
+\]
+is \emph{sufficiently} enforced if and only if
+\begin{equation}
+\label{eq:all-g-ineq}
+f_g(t)\ \le\ -\delta\qquad\text{for all groups }g.
+\end{equation}
+For each $g$, let $t_g(\delta)$ be the smallest root of $f_g(t)=-\delta$
+(which lies in $[0,t_{0,g}]$ whenever feasible). Then the \emph{minimal feasible step along $d$} is
+\begin{equation}
+\label{eq:tstar}
+t^\star(d,\delta)\;=\;\max_{g} t_g(\delta).
+\end{equation}
+
+\paragraph{Practical computation of $t_g(\delta)$.}
+Define $h_g(t):=f_g(t)+\delta$.
+Then $h_g(0)=\delta>0$, $h_g'(0)=-A_g<0$, and $h_g$ is strictly convex.
+A safe upper bracket follows from $e^{x}\ge 1+x+\tfrac12 x^2$:
+\[
+h_g(t)\ \ge\ \frac{1}{2}Q_g t^2 - A_g t + \delta,
+\]
+whose smallest positive root is
+\begin{equation}
+\label{eq:tquad}
+t^{\text{quad}}_g(\delta)\;=\;\frac{A_g-\sqrt{A_g^2-2Q_g \delta}}{Q_g}.
+\end{equation}
+Since $h_g\ge$ (quadratic), the true root satisfies $t_g(\delta)\le t^{\text{quad}}_g(\delta)$.
+A (projected) Newton step converges rapidly:
+\[
+t \;\leftarrow\; \Pi_{[0,\,t^{\text{quad}}_g]}\!\Big(t-\frac{h_g(t)}{h_g'(t)}\Big),
+\qquad
+h_g'(t)= -A_g + \frac{Q_g}{\rho_g}\big(e^{\rho_g t}-1\big).
+\]
+For very small $\delta$, the initialization $t_g^{(0)}=\delta/A_g$ is excellent, and the second-order expansion is
+\begin{equation}
+\label{eq:tg-expansion}
+t_g(\delta)\;=\;\frac{\delta}{A_g}+\frac{Q_g}{2A_g^3}\,\delta^2 + O(\delta^3).
+\end{equation}
+
+\subsection{Risk upper bound once \texorpdfstring{$t^\star$}{t*} is known}
+Apply the envelope \eqref{eq:global-envelope-J} with $Q=d^\top H_0 d$ and $\rho=M\max_i |x_i^\top d|$:
+\begin{equation}
+\label{eq:DeltaJ-UB}
+\Delta J\ :=\ J(\beta_0-t^\star d)-J(\beta_0)
+\ \le\ \nabla J(\beta_0)^\top (-t^\star d)\ +\ \frac{Q}{\rho^2}\Big(e^{\rho t^\star}-\rho t^\star - 1\Big).
+\end{equation}
+If $\beta_0$ is a stationary point of $J$ (e.g., the unconstrained GLM fit), the linear term vanishes:
+\begin{equation}
+\label{eq:DeltaJ-UB-stationary}
+\boxed{\quad
+\Delta J\ \le\ \frac{Q}{\rho^2}\Big(e^{\rho t^\star}-\rho t^\star - 1\Big).
+\quad}
+\end{equation}
+
+\paragraph{Small–$\delta$ expansion (consistency with quadratic theory).}
+From \eqref{eq:tg-expansion}, $t^\star=\max_g t_g(\delta)=\frac{\delta}{A_{\min}}+O(\delta^2)$ with
+$A_{\min}(d):=\min_g A_g$. Using $e^{\rho t}-\rho t-1=\tfrac12(\rho t)^2+O(t^3)$,
+\[
+\Delta J \;\le\; \frac{Q}{2}\,(t^\star)^2 + O((t^\star)^3)
+\;=\; \frac{1}{2}\frac{Q}{A_{\min}^2}\,\delta^2 + O(\delta^3).
+\]
+If $d$ is chosen as the optimal local direction $d=H_0^{-1}a^\star$ with
+\[
+a^\star \in \arg\min_{a\in\partial F(\beta_0)} a^\top H_0^{-1} a,\qquad
+\partial F(\beta_0)=\operatorname{co}\{\nabla J_g(\beta_0): g\in\arg\max J_g(\beta_0)\},
+\]
+then $Q=d^\top H_0 d=a^{\star\top}H_0^{-1}a^\star$ and $A_{\min}(d)=a^{\star\top}d=Q$,
+so the leading coefficient equals the sharp lower-bound constant:
+\[
+\Delta J\ \le\ \frac{\delta^2}{2\,a^{\star\top}H_0^{-1}a^\star}\ +\ O(\delta^3),
+\qquad
+\Delta J\ \ge\ \frac{\delta^2}{2\,a^{\star\top}H_0^{-1}a^\star}\ +\ o(\delta^2).
+\]
+
+\subsection{Special cases and remarks}
+\begin{itemize}
+\item \textbf{Gaussian (OLS).} $M=0\Rightarrow \rho=0$ and \eqref{eq:group-envelope} reduces to
+$f_g(t)=-A_g t + \tfrac12 Q_g t^2$, giving the closed-form
+$t_g(\delta)=\dfrac{A_g-\sqrt{A_g^2-2Q_g\delta}}{Q_g}$ and
+$\Delta J=\tfrac12 Q (t^\star)^2$.
+\item \textbf{Logistic / Poisson.} $M=1$; take $\rho_g=\max_{i\in g}|x_i^\top d|$, $\rho=\max_i |x_i^\top d|$.
+\item \textbf{Ridge GLM.} If $J_\gamma=J+\tfrac{\gamma}{2}\|\beta\|^2$, then replace $H_0$ by $H_0+\gamma I$
+in $Q,Q_g$, which improves curvature and makes global LBs possible.
+\item \textbf{Feasibility test.} For each $g$, feasibility along $d$ requires
+$\delta \le - f_g(t_{0,g})$, with $t_{0,g}$ as in \eqref{eq:t0g};
+if violated for some $g$, no $t\ge 0$ can satisfy \eqref{eq:all-g-ineq} along that fixed $d$.
+\end{itemize}
+
+\subsection{Algorithmic summary (one line per step)}
+\begin{enumerate}
+\item Choose a direction $d$ (e.g., $d=H_0^{-1}a^\star$ for the optimal local tradeoff).
+\item For each group $g$, compute $A_g,Q_g,\rho_g$ and solve $f_g(t)=-\delta$ using Newton
+with the safe bracket $[0,\,t_g^{\text{quad}}(\delta)]$ in \eqref{eq:tquad}.
+\item Set $t^\star=\max_g t_g(\delta)$ and evaluate the risk UB via \eqref{eq:DeltaJ-UB-stationary}.
+\end{enumerate}
+%========================================================================================%
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+
+Blank
+
+\newpage
+
+\paragraph{Group residual means.}
+For each group $g$, let
+\[
+\overline{r}_g(t)=\frac{1}{|G_g|}\sum_{i\in G_g} r_i(t)
+= \frac{1}{|G_g|}\sum_{i\in G_g} \big(f(x_i;t)-y_i\big).
+\]
+
+\paragraph{Pairwise mean residual gap.}
+Fairness is measured by the maximum difference in mean residuals:
+\begin{equation}\label{eq:pairwise-gap}
+h(t)=\max_{g,g'} \big|\overline{r}_g(t)-\overline{r}_{g'}(t)\big|
+= \norm{K S (\hat y(t)-y)}_\infty,
+\end{equation}
+where $S\in\R^{G\times n}$ computes group averages,
+and $K\in\R^{m\times G}$ (with $m=\tfrac{1}{2}G(G-1)$) encodes all signed pairwise differences.
+For example, each row of $K$ equals $e_g-e_{g'}$ for some $(g,g')$ pair.
+
+\paragraph{Optimization problem.}
+We minimize prediction error subject to this fairness penalty:
+\begin{equation}\label{eq:main}
+\min_{t\in\R^p} \quad F_\lambda(t)=
+g(t)+\lambda\,h(t)
+\quad\text{with}\quad
+g(t)=\frac{1}{n}\sum_{i=1}^n \ell(f(x_i;t),y_i),
+\end{equation}
+where $\ell$ is differentiable (e.g.\ squared loss) and $\lambda\ge0$.
+
+\section{Structure and Algorithmic Regime}
+Equation~\eqref{eq:main} takes the composite form
+\[
+F_\lambda(t)=g(t)+\lambda\,h(c(t)),\qquad
+c(t)=K S (\hat y(t)-y).
+\]
+Here $g$ is smooth and $h(u)=\|u\|_\infty$ is convex but nonsmooth.
+This is \emph{Case~B} (output-composite): the fairness penalty acts on a smooth transformation of parameters.
+We employ the \textbf{prox-linear} method with a \textbf{primal–dual inner solver}.
+
+\subsection{Linearization and Inner Subproblem}
+
+At iterate $t^k$, linearize $c(t)$:
+\[
+c(t)\approx c(t^k)+J_c(t^k)(t-t^k),
+\]
+where $J_c(t^k)=K S J_{\hat y}(t^k)$ is the Jacobian of the residual aggregation.
+Define $q^k=t^k-\alpha\nabla g(t^k)$ and form
+\begin{equation}\label{eq:proxlin-sub}
+t^{k+1}\in
+\argmin_t
+\Big\{
+\frac{1}{2\alpha}\norm{t-q^k}^2
++ \lambda\big\|A^k t+b^k\big\|_\infty
+\Big\},
+\quad
+A^k=J_c(t^k),\; b^k=c(t^k)-A^k t^k.
+\end{equation}
+This subproblem is convex and quadratic-plus-$\ell_\infty$.
+Its dual form yields simple proximal operators for the conjugate $h^*(y)=\iota_{\{\|y\|_1\le1\}}(y)$,
+enabling efficient \emph{Chambolle–Pock} iterations.
+
+\subsection{Inner Primal–Dual Steps}
+Let $\sigma,\tau>0$ satisfy $\tau\sigma\norm{A^k}^2<1$.
+The updates are
+\begin{align*}
+y^{\ell+1} &= \operatorname{proj}_{\|\,\cdot\,\|_1\le\lambda}
+   \big(y^\ell+\sigma(A^k \bar t^\ell + b^k)\big),\\
+t^{\ell+1} &= \frac{1}{1+\tau/\alpha}
+   \Big(t^\ell - \tau (A^k)^\top y^{\ell+1} + (\tau/\alpha) q^k\Big),\\
+\bar t^{\ell+1} &= t^{\ell+1}+\theta(t^{\ell+1}-t^\ell).
+\end{align*}
+The projection onto the $\ell_1$-ball is standard: sort, threshold, and rescale.
+
+\subsection{Outer Loop}
+Repeat the prox-linear step with backtracking until the proximal gradient mapping
+$\frac{1}{\alpha}\norm{t^{k+1}-t^k}$ falls below a tolerance.
+Under convexity, convergence is guaranteed; if $g$ is $\mu$-strongly convex, rates are linear.
+
+\section{Fairness–Accuracy Trade-off Geometry}
+
+Define the penalized and constrained value functions:
+\[
+\psi(\lambda)=\min_t g(t)+\lambda h(t),\qquad
+\phi(\tau)=\min_t g(t)\ \text{s.t. } h(t)\le\tau.
+\]
+
+\begin{proposition}[Envelope relationships]
+\begin{align}
+\psi'(\lambda)&=h(t_\lambda), &&\text{(attained fairness level)}\\
+\phi'(\tau)&=-\lambda^\star_\tau, &&\text{(optimal Lagrange multiplier)}
+\end{align}
+whenever derivatives exist. The quantities are subgradients otherwise.
+\end{proposition}
+
+Hence the slope of $\psi$ equals the fairness at the solution,
+while the negative slope of $\phi$ equals the dual multiplier, representing
+the marginal increase in prediction error per unit of fairness relaxation.
+
+\subsection{Lipschitz Sensitivity}
+If $g$ is $\mu$-strongly convex and $h$ is $G$-Lipschitz ($G=1$ here), then
+\[
+\norm{t_\lambda-t_{\lambda'}}\le \frac{M}{\mu}|\lambda-\lambda'|,
+\qquad
+|h(t_\lambda)-h(t_{\lambda'})|\le \frac{M^2}{\mu}|\lambda-\lambda'|,
+\]
+where $M=\sup_t\|J_c(t)\|$ (controlled by model Jacobian and group averaging).
+These bounds quantify how solutions and fairness change with~$\lambda$.
+
+\section{Implementation for Regression Models}
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{Group operators.} Build $S$ and $K$ once from group memberships.
+\item \textbf{Automatic differentiation.} Implement vector–Jacobian and Jacobian–vector products for $t\mapsto \hat y(t)$.
+\item \textbf{Outer step size.} $\alpha\approx1/L_g$ estimated by backtracking on~$g$.
+\item \textbf{Inner steps.} Choose $\tau,\sigma$ with $\tau\sigma\norm{A^k}^2<1$ (estimate $\|A^k\|$ via a few power iterations).
+\item \textbf{Continuation in $\lambda$.} Solve for a grid or use bisection to reach target fairness~$\tau$.
+\item \textbf{Dual variable.} The inner dual $y$ approximates the gradient of $\phi$; its norm indicates the marginal cost of fairness.
+\end{enumerate}
+
+\section{Experimental Protocol}
+
+\begin{itemize}[leftmargin=2em]
+\item \textbf{Metrics.} Report $\mathrm{MSE}(t)$, $h(t)$, and per-group residual means~$\overline{r}_g(t)$.
+\item \textbf{Pareto curve.} Plot $(h(t_\lambda),g(t_\lambda))$ as $\lambda$ varies.
+Include theoretical slope $\frac{dg^\star}{d\tau}=-\lambda^\star_\tau$ from the dual variable.
+\item \textbf{Certification.} Inner primal–dual gap $<\epsilon_{\rm in}$ bounds fairness error; outer stationarity bounds error on $g$.
+\end{itemize}
+
+\section{Discussion and Outlook}
+
+The pairwise mean residual gap fairness \eqref{eq:pairwise-gap}
+is convex and piecewise linear, enabling exact nonsmooth optimization.
+Our analysis clarifies:
+\begin{itemize}[leftmargin=2em]
+\item The natural method is \textbf{prox-linear} (outer) with \textbf{primal–dual} (inner);
+\item Dual variables directly quantify the fairness–accuracy slope;
+\item Lipschitz bounds control sensitivity of both loss and fairness to~$\lambda$;
+\item In nonlinear (e.g.\ neural) models, weak convexity suffices for convergence to critical points.
+\end{itemize}
+Extensions include fairness constraints on absolute residuals,
+robust formulations under distribution shift,
+and bilevel calibration of~$\lambda$ to match desired fairness levels.
+
+\section*{Conclusion}
+We have unified modeling, algorithms, and theory for regression models regularized
+by the pairwise mean residual gap.
+This functional captures disparities in systematic over- or under-prediction across groups,
+and its convex yet nonsmooth structure fits seamlessly into the composite optimization framework.
+The resulting pipeline—prox-linear outer iterations with primal–dual inner solves—
+provides not only effective training but also analytical insight into how predictive accuracy
+and fairness interact.
+
+\end{document}

@@ -172,6 +172,70 @@ def _format_metric(value):
     return f"{value:.4f}"
 
 
+def _scientific_tick_label(significand, exponent):
+    significand = float(significand)
+    exponent = int(exponent)
+    if np.isclose(significand, 1.0):
+        return rf"$10^{{{exponent}}}$"
+    if np.isclose(significand, round(significand)):
+        significand_str = str(int(round(significand)))
+    else:
+        significand_str = f"{significand:.1f}".rstrip("0").rstrip(".")
+    return rf"${significand_str}\times10^{{{exponent}}}$"
+
+
+def _apply_log10_style_ticks(ax, axis="x"):
+    """
+    Relabel natural-log axes using powers of ten, so log-price style plots read
+    like standard price magnitudes without changing the underlying data scale.
+    """
+    if axis == "x":
+        axis_min, axis_max = ax.get_xlim()
+    elif axis == "y":
+        axis_min, axis_max = ax.get_ylim()
+    else:
+        raise ValueError("axis must be 'x' or 'y'")
+
+    if not (np.isfinite(axis_min) and np.isfinite(axis_max)):
+        return
+    if axis_min == axis_max:
+        return
+    if axis_min > axis_max:
+        axis_min, axis_max = axis_max, axis_min
+
+    value_min = np.exp(axis_min)
+    value_max = np.exp(axis_max)
+    if not (np.isfinite(value_min) and np.isfinite(value_max)):
+        return
+    if value_min <= 0:
+        return
+
+    exponent_min = int(np.floor(np.log10(value_min)))
+    exponent_max = int(np.ceil(np.log10(value_max)))
+    significands = (1.0, 2.0, 5.0)
+    ticks = []
+    labels = []
+    for exponent in range(exponent_min, exponent_max + 1):
+        for significand in significands:
+            value = significand * (10.0 ** exponent)
+            tick = np.log(value)
+            if axis_min <= tick <= axis_max:
+                ticks.append(tick)
+                labels.append(_scientific_tick_label(significand, exponent))
+
+    if not ticks:
+        return
+
+    if axis == "x":
+        ax.set_xticks(ticks)
+        ax.set_xticklabels(labels)
+        ax.set_xlim(axis_min, axis_max)
+    else:
+        ax.set_yticks(ticks)
+        ax.set_yticklabels(labels)
+        ax.set_ylim(axis_min, axis_max)
+
+
 def plot_vertical_equity_lowess(
     y_log,
     ratios,
@@ -245,6 +309,7 @@ def plot_vertical_equity_lowess(
 
     ax.set_ylabel("Assessment Ratio (AV / MV)")
     ax.set_xlabel("Log Market Value")
+    _apply_log10_style_ticks(ax, axis="x")
     if model_label:
         ax.set_title(str(model_label))
     ax.legend(loc="upper right")
@@ -378,6 +443,7 @@ def plot_ratio_vs_logprice(
 
     ax.set_xlabel("Log Sale Price")
     ax.set_ylabel("Predicted Price / Sale Price")
+    _apply_log10_style_ticks(ax, axis="x")
 
     if y_limits is None:
         q_lo, q_hi = np.quantile(y_plot, [0.01, 0.99])
@@ -515,6 +581,7 @@ def plot_residual_vs_logprice(
 
     ax.set_xlabel("Log Sale Price")
     ax.set_ylabel("Residual (log prediction - log sale price)")
+    _apply_log10_style_ticks(ax, axis="x")
 
     if y_limits is None:
         q_lo, q_hi = np.quantile(y_plot, [0.01, 0.99])

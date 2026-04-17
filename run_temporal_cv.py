@@ -13,7 +13,9 @@ It also writes held-out test artifacts under:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
+import os
 from pathlib import Path
 import time
 from typing import Any, Dict, List, Optional, Tuple
@@ -81,6 +83,84 @@ def _read_json_if_exists(path: Path) -> Dict[str, Any]:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return {}
+
+
+def _estimate_dataframe_bytes(df: pd.DataFrame) -> int:
+    try:
+        return int(df.memory_usage(index=True, deep=True).sum())
+    except Exception:
+        try:
+            return int(df.memory_usage(index=True).sum())
+        except Exception:
+            return 0
+
+
+def _available_memory_bytes() -> Optional[int]:
+    try:
+        page_size = int(os.sysconf("SC_PAGE_SIZE"))
+        avail_pages = int(os.sysconf("SC_AVPHYS_PAGES"))
+    except (AttributeError, OSError, ValueError):
+        return None
+    if page_size <= 0 or avail_pages <= 0:
+        return None
+    return int(page_size * avail_pages)
+
+
+def _resolve_held_out_worker_count(
+    *,
+    pending_models: int,
+    parallel_enabled: bool,
+    parallel_cpu_fraction: float,
+    parallel_max_workers: Optional[int],
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_train_log: np.ndarray,
+    y_test_log: np.ndarray,
+) -> Dict[str, Any]:
+    if (not parallel_enabled) or int(pending_models) <= 1:
+        return {
+            "workers": 1,
+            "cpu_limit": 1,
+            "memory_limit": 1,
+            "safe_cap": 1,
+            "estimated_bytes_per_worker": 0,
+            "available_memory_bytes": _available_memory_bytes(),
+        }
+
+    cpu_count = max(1, int(os.cpu_count() or 1))
+    cpu_limit = max(1, int(np.floor(cpu_count * max(float(parallel_cpu_fraction), 1e-9))))
+    if parallel_max_workers is not None:
+        cpu_limit = min(cpu_limit, max(1, int(parallel_max_workers)))
+    cpu_limit = min(cpu_limit, int(pending_models))
+
+    shared_bytes = (
+        _estimate_dataframe_bytes(X_train)
+        + _estimate_dataframe_bytes(X_test)
+        + int(np.asarray(y_train_log).nbytes)
+        + int(np.asarray(y_test_log).nbytes)
+    )
+    # Conservative per-worker estimate: one extra working copy plus model/prediction buffers.
+    estimated_bytes_per_worker = max(512 * 1024 * 1024, int(max(shared_bytes, 1) * 2.0))
+
+    available_bytes = _available_memory_bytes()
+    if available_bytes is None:
+        memory_limit = min(cpu_limit, 2)
+    else:
+        usable_bytes = max(0, int(available_bytes * 0.5))
+        memory_limit = max(1, usable_bytes // estimated_bytes_per_worker)
+        memory_limit = min(memory_limit, cpu_limit)
+
+    # Additional hard cap to avoid oversubscribing large machines in the held-out stage.
+    safe_cap = 8
+    workers = max(1, min(cpu_limit, memory_limit, safe_cap))
+    return {
+        "workers": int(workers),
+        "cpu_limit": int(cpu_limit),
+        "memory_limit": int(max(1, memory_limit)),
+        "safe_cap": int(safe_cap),
+        "estimated_bytes_per_worker": int(estimated_bytes_per_worker),
+        "available_memory_bytes": available_bytes,
+    }
 
 
 def _first_bad_numeric_value(payload: Dict[str, Any], *, abs_cap: float) -> Optional[Dict[str, Any]]:
@@ -257,6 +337,278 @@ def _build_lgbm_params_from_files(
     }
 
 
+def _sample_uniform_value(bounds: List[float], rng: np.random.Generator) -> float:
+    lo, hi = float(bounds[0]), float(bounds[1])
+    if hi < lo:
+        raise ValueError(f"Invalid bounds: {bounds}")
+    return float(rng.uniform(lo, hi))
+
+
+def _sample_int_value(bounds: List[float], rng: np.random.Generator) -> int:
+    lo = int(np.ceil(float(bounds[0])))
+    hi = int(np.floor(float(bounds[1])))
+    if hi < lo:
+        raise ValueError(f"Invalid integer bounds: {bounds}")
+    return int(rng.integers(lo, hi + 1))
+
+
+def _sample_log10_value(bounds: List[float], rng: np.random.Generator) -> float:
+    return float(10.0 ** _sample_uniform_value(bounds, rng))
+
+
+def _sample_baseline_lgbm_candidate(
+    *,
+    hp_range: Dict[str, List[float]],
+    base_lgbm_params: Dict[str, Any],
+    rng: np.random.Generator,
+) -> Dict[str, Any]:
+    num_leaves = _sample_int_value(hp_range["num_leaves"], rng)
+    add_to_linked_depth = _sample_int_value(hp_range["add_to_linked_depth"], rng)
+    max_depth = int(np.floor(np.log2(max(num_leaves, 2))) + add_to_linked_depth)
+
+    candidate = dict(base_lgbm_params)
+    candidate.update(
+        {
+            "n_estimators": _sample_int_value(hp_range["num_iterations"], rng),
+            "learning_rate": _sample_log10_value(hp_range["learning_rate"], rng),
+            "max_bin": _sample_int_value(hp_range["max_bin"], rng),
+            "num_leaves": int(num_leaves),
+            "max_depth": int(max_depth),
+            "colsample_bytree": _sample_uniform_value(hp_range["feature_fraction"], rng),
+            "min_split_gain": _sample_log10_value(hp_range["min_gain_to_split"], rng),
+            "min_child_samples": _sample_int_value(hp_range["min_data_in_leaf"], rng),
+            "max_cat_threshold": _sample_int_value(hp_range["max_cat_threshold"], rng),
+            "min_data_per_group": _sample_int_value(hp_range["min_data_per_group"], rng),
+            "cat_smooth": _sample_uniform_value(hp_range["cat_smooth"], rng),
+            "cat_l2": _sample_log10_value(hp_range["cat_l2"], rng),
+            "reg_alpha": _sample_log10_value(hp_range["lambda_l1"], rng),
+            "reg_lambda": _sample_log10_value(hp_range["lambda_l2"], rng),
+        }
+    )
+    return candidate
+
+
+def _build_baseline_search_candidates(
+    *,
+    hp_range: Dict[str, List[float]],
+    base_lgbm_params: Dict[str, Any],
+    n_random_trials: int,
+    seed: int,
+) -> List[Dict[str, Any]]:
+    candidates: List[Dict[str, Any]] = [dict(base_lgbm_params)]
+    seen = {json.dumps(base_lgbm_params, sort_keys=True)}
+    rng = np.random.default_rng(int(seed))
+
+    while len(candidates) < (1 + max(0, int(n_random_trials))):
+        candidate = _sample_baseline_lgbm_candidate(
+            hp_range=hp_range,
+            base_lgbm_params=base_lgbm_params,
+            rng=rng,
+        )
+        key = json.dumps(candidate, sort_keys=True)
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(candidate)
+
+    return candidates
+
+
+def _run_baseline_lgbm_search(
+    *,
+    result_root: str,
+    params: dict,
+    df_train_validate: pd.DataFrame,
+    predictor_cols: List[str],
+    categorical_cols: List[str],
+    linear_pipeline_builder,
+    split_protocol: Dict[str, Any],
+    parquet_engine: str,
+    parallel_enabled: bool,
+    parallel_cpu_fraction: float,
+    parallel_max_workers: Optional[int],
+    numeric_sanity_abs_cap: float,
+    base_lgbm_params: Dict[str, Any],
+    data_signature: Dict[str, Any],
+    seed: int,
+    n_random_trials: Optional[int],
+    date_col: str,
+    target_col: str,
+    fairness_ratio_mode: str,
+) -> Dict[str, Any]:
+    hp_range = dict(params["model"]["hyperparameter"]["range"])
+    random_trials = params.get("cv", {}).get("initial_set", 20) if n_random_trials is None else int(n_random_trials)
+    if int(random_trials) < 0:
+        raise ValueError("baseline_search_trials must be >= 0.")
+
+    candidates = _build_baseline_search_candidates(
+        hp_range=hp_range,
+        base_lgbm_params=base_lgbm_params,
+        n_random_trials=int(random_trials),
+        seed=int(seed),
+    )
+
+    search_specs: List[Dict[str, Any]] = []
+    candidate_rows: List[Dict[str, Any]] = []
+    for trial_idx, candidate_params in enumerate(candidates):
+        candidate_params = dict(candidate_params)
+        config_id = _stable_hash({"model_name": "LGBMRegressor", "config": candidate_params})
+        search_specs.append(
+            {
+                "name": "LGBMRegressor",
+                "config": candidate_params,
+                "requires_linear_pipeline": False,
+                "factory": (lambda candidate_params=candidate_params: lgb.LGBMRegressor(**dict(candidate_params))),
+            }
+        )
+        candidate_rows.append(
+            {
+                "search_trial_idx": int(trial_idx),
+                "is_default_baseline": bool(trial_idx == 0),
+                "config_id": str(config_id),
+                **candidate_params,
+            }
+        )
+
+    search_root = str(Path(result_root) / "baseline_lgbm_search")
+    _log(
+        "starting baseline-only LGBM search",
+        search_root=search_root,
+        candidates=int(len(search_specs)),
+        random_trials=int(random_trials),
+    )
+    search_out = run_robust_rolling_origin_cv(
+        df_train_validate=df_train_validate,
+        date_col=date_col,
+        target_col=target_col,
+        predictor_cols=predictor_cols,
+        categorical_cols=categorical_cols,
+        model_specs=search_specs,
+        linear_pipeline_builder=linear_pipeline_builder,
+        result_root=search_root,
+        data_signature={**data_signature, "mode": "baseline_lgbm_search"},
+        split_protocol=split_protocol,
+        bootstrap_protocol={"n_bootstrap": 0, "block_freq": "M", "seed": int(seed)},
+        fairness_ratio_mode=fairness_ratio_mode,
+        predict_store=False,
+        parquet_engine=parquet_engine,
+        log_progress=True,
+        parallel_enabled=parallel_enabled,
+        parallel_cpu_fraction=parallel_cpu_fraction,
+        parallel_max_workers=parallel_max_workers,
+        parallel_backend="loky",
+        numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
+    )
+
+    run_records = search_out.get("run_records", pd.DataFrame())
+    failed_records = search_out.get("failed_records", pd.DataFrame())
+    flagged_config_ids = {str(x) for x in search_out.get("flagged_config_ids", [])}
+    fold_count = int(search_out["fold_count"])
+    failed_counts: Dict[str, int] = {}
+    if isinstance(failed_records, pd.DataFrame) and (not failed_records.empty) and ("config_id" in failed_records.columns):
+        failed_counts = failed_records["config_id"].astype(str).value_counts().to_dict()
+
+    summary_rows: List[Dict[str, Any]] = []
+    for candidate_row in candidate_rows:
+        config_id = str(candidate_row["config_id"])
+        candidate_runs = run_records.loc[run_records["config_id"].astype(str) == config_id, :].copy() if isinstance(run_records, pd.DataFrame) and (not run_records.empty) else pd.DataFrame()
+        completed_folds = int(candidate_runs.shape[0])
+        mean_rmse = float(candidate_runs["RMSE"].mean()) if ("RMSE" in candidate_runs.columns and completed_folds > 0) else np.nan
+        std_rmse = float(candidate_runs["RMSE"].std(ddof=0)) if ("RMSE" in candidate_runs.columns and completed_folds > 0) else np.nan
+        flagged = bool(config_id in flagged_config_ids)
+        failed_fold_count = int(failed_counts.get(config_id, 0))
+        eligible = bool((completed_folds == fold_count) and (failed_fold_count == 0) and (not flagged) and np.isfinite(mean_rmse))
+        summary_rows.append(
+            {
+                **candidate_row,
+                "completed_folds": int(completed_folds),
+                "expected_folds": int(fold_count),
+                "failed_folds": int(failed_fold_count),
+                "numeric_guard_flagged": bool(flagged),
+                "mean_validation_rmse": mean_rmse,
+                "std_validation_rmse": std_rmse,
+                "eligible_for_selection": bool(eligible),
+                "selection_objective": mean_rmse if eligible else np.inf,
+            }
+        )
+
+    summary_df = pd.DataFrame(summary_rows).sort_values(
+        ["selection_objective", "search_trial_idx"],
+        ascending=[True, True],
+        na_position="last",
+    ).reset_index(drop=True)
+
+    search_analysis_dir = Path(search_root) / "analysis" / f"data_id={search_out['data_id']}" / f"split_id={search_out['split_id']}"
+    summary_path = search_analysis_dir / "baseline_lgbm_search_summary.csv"
+    best_params_path = search_analysis_dir / "baseline_lgbm_best_params.json"
+    metadata_path = search_analysis_dir / "baseline_lgbm_search_metadata.json"
+
+    _write_csv_atomic(summary_df, summary_path)
+
+    best_row = summary_df.loc[summary_df["eligible_for_selection"].fillna(False), :].head(1)
+    fallback_used = bool(best_row.empty)
+    if fallback_used:
+        best_params = dict(base_lgbm_params)
+        best_config_id = str(_stable_hash({"model_name": "LGBMRegressor", "config": best_params}))
+        best_mean_validation_rmse = np.nan
+        _log("baseline-only LGBM search fallback", reason="no_eligible_candidate", config_id=best_config_id)
+    else:
+        best_record = best_row.iloc[0].to_dict()
+        best_config_id = str(best_record["config_id"])
+        best_mean_validation_rmse = float(best_record["mean_validation_rmse"])
+        best_params = {
+            key: best_record[key]
+            for key in base_lgbm_params.keys()
+            if key in best_record
+        }
+        _log(
+            "baseline-only LGBM search selected best config",
+            config_id=best_config_id,
+            mean_validation_rmse=f"{best_mean_validation_rmse:.6f}",
+        )
+
+    _write_json_atomic(
+        best_params_path,
+        {
+            "search_enabled": True,
+            "fallback_used": bool(fallback_used),
+            "best_config_id": str(best_config_id),
+            "best_mean_validation_rmse": best_mean_validation_rmse,
+            "best_lgbm_params": best_params,
+        },
+    )
+    _write_json_atomic(
+        metadata_path,
+        {
+            "search_root": str(search_root),
+            "data_id": str(search_out["data_id"]),
+            "split_id": str(search_out["split_id"]),
+            "fold_count": int(fold_count),
+            "n_candidates": int(len(candidates)),
+            "n_random_trials": int(random_trials),
+            "best_config_id": str(best_config_id),
+            "best_mean_validation_rmse": best_mean_validation_rmse,
+            "summary_csv": str(summary_path),
+            "best_params_json": str(best_params_path),
+            "fallback_used": bool(fallback_used),
+        },
+    )
+
+    return {
+        "best_lgbm_params": best_params,
+        "search_root": str(search_root),
+        "search_summary_csv": str(summary_path),
+        "best_params_json": str(best_params_path),
+        "search_metadata_json": str(metadata_path),
+        "search_data_id": str(search_out["data_id"]),
+        "search_split_id": str(search_out["split_id"]),
+        "search_n_candidates": int(len(candidates)),
+        "search_best_config_id": str(best_config_id),
+        "search_best_mean_validation_rmse": best_mean_validation_rmse,
+        "search_fallback_used": bool(fallback_used),
+    }
+
+
 def _load_and_split_data(
     *,
     data_path: str,
@@ -397,8 +749,10 @@ def _build_model_specs(
     keep_values: List[float],
     ratio_modes: List[str],
     fairness_ratio_mode: str,
+    include_cvar_models: bool = False,
 ) -> List[Dict[str, Any]]:
     specs: List[Dict[str, Any]] = []
+    lgbm_base_config_id = _stable_hash({"lgbm_params": lgbm_params})
 
     # Baselines
     specs.append(
@@ -412,14 +766,13 @@ def _build_model_specs(
     specs.append(
         {
             "name": "LGBMRegressor",
-            "config": {},
+            "config": {"lgbm_base_config_id": lgbm_base_config_id},
             "requires_linear_pipeline": False,
             "factory": lambda: lgb.LGBMRegressor(**dict(lgbm_params)),
         }
     )
 
     # Soft penalty variants (rho sweep)
-    keep_sweep = [float(k) for k in keep_values] if keep_values else [1.0]
     ratio_mode_sweep = [str(m) for m in ratio_modes] if ratio_modes else [str(fairness_ratio_mode)]
     for ratio_mode in ratio_mode_sweep:
         for rho in rho_values_smooth:
@@ -427,7 +780,7 @@ def _build_model_specs(
             specs.append(
                 {
                     "name": "LGBSmoothPenalty",
-                    "config": {"rho": r, "ratio_mode": ratio_mode},
+                    "config": {"rho": r, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
                     "metric_ratio_mode": ratio_mode,
                     "requires_linear_pipeline": False,
                     "factory": (
@@ -441,51 +794,53 @@ def _build_model_specs(
                     ),
                 }
             )
-            for keep in keep_sweep:
-                k = float(keep)
-                specs.append(
-                    {
-                        "name": "LGBSmoothPenaltyCVaR",
-                        "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
-                        "metric_ratio_mode": ratio_mode,
-                        "requires_linear_pipeline": False,
-                        "factory": (
-                            lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBSmoothPenaltyCVaR(
-                                rho=rho,
-                                mse_keep=keep,
-                                ratio_mode=ratio_mode,
-                                zero_grad_tol=1e-12,
-                                lgbm_params=dict(lgbm_params),
-                                verbose=False,
-                            )
-                        ),
-                    }
-                )
-                specs.append(
-                    {
-                        "name": "LGBSmoothPenaltyCVaRTotal",
-                        "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
-                        "metric_ratio_mode": ratio_mode,
-                        "requires_linear_pipeline": False,
-                        "factory": (
-                            lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBSmoothPenaltyCVaRTotal(
-                                rho=rho,
-                                keep=keep,
-                                ratio_mode=ratio_mode,
-                                zero_grad_tol=1e-12,
-                                lgbm_params=dict(lgbm_params),
-                                verbose=False,
-                            )
-                        ),
-                    }
-                )
+            if bool(include_cvar_models):
+                keep_sweep = [float(k) for k in keep_values] if keep_values else [1.0]
+                for keep in keep_sweep:
+                    k = float(keep)
+                    specs.append(
+                        {
+                            "name": "LGBSmoothPenaltyCVaR",
+                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                            "metric_ratio_mode": ratio_mode,
+                            "requires_linear_pipeline": False,
+                            "factory": (
+                                lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBSmoothPenaltyCVaR(
+                                    rho=rho,
+                                    mse_keep=keep,
+                                    ratio_mode=ratio_mode,
+                                    zero_grad_tol=1e-12,
+                                    lgbm_params=dict(lgbm_params),
+                                    verbose=False,
+                                )
+                            ),
+                        }
+                    )
+                    specs.append(
+                        {
+                            "name": "LGBSmoothPenaltyCVaRTotal",
+                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                            "metric_ratio_mode": ratio_mode,
+                            "requires_linear_pipeline": False,
+                            "factory": (
+                                lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBSmoothPenaltyCVaRTotal(
+                                    rho=rho,
+                                    keep=keep,
+                                    ratio_mode=ratio_mode,
+                                    zero_grad_tol=1e-12,
+                                    lgbm_params=dict(lgbm_params),
+                                    verbose=False,
+                                )
+                            ),
+                        }
+                    )
 
         for rho in rho_values_cov:
             r = float(rho)
             specs.append(
                 {
                     "name": "LGBCovPenalty",
-                    "config": {"rho": r, "ratio_mode": ratio_mode},
+                    "config": {"rho": r, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
                     "metric_ratio_mode": ratio_mode,
                     "requires_linear_pipeline": False,
                     "factory": (
@@ -499,44 +854,46 @@ def _build_model_specs(
                     ),
                 }
             )
-            for keep in keep_sweep:
-                k = float(keep)
-                # specs.append( # NOTE: This variant is not stable, since its just one side of the loss. It has overflow issues.
-                #     {
-                #         "name": "LGBCovPenaltyCVaR",
-                #         "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
-                #         "metric_ratio_mode": ratio_mode,
-                #         "requires_linear_pipeline": False,
-                #         "factory": (
-                #             lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBCovPenaltyCVaR(
-                #                 rho=rho,
-                #                 mse_keep=keep,
-                #                 ratio_mode=ratio_mode,
-                #                 zero_grad_tol=1e-12,
-                #                 lgbm_params=dict(lgbm_params),
-                #                 verbose=False,
-                #             )
-                #         ),
-                #     }
-                # )
-                specs.append(
-                    {
-                        "name": "LGBCovPenaltyCVaRTotal",
-                        "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
-                        "metric_ratio_mode": ratio_mode,
-                        "requires_linear_pipeline": False,
-                        "factory": (
-                            lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBCovPenaltyCVaRTotal(
-                                rho=rho,
-                                mse_keep=keep,
-                                ratio_mode=ratio_mode,
-                                zero_grad_tol=1e-12,
-                                lgbm_params=dict(lgbm_params),
-                                verbose=False,
-                            )
-                        ),
-                    }
-                )
+            if bool(include_cvar_models):
+                keep_sweep = [float(k) for k in keep_values] if keep_values else [1.0]
+                for keep in keep_sweep:
+                    k = float(keep)
+                    # specs.append( # NOTE: This variant is not stable, since its just one side of the loss. It has overflow issues.
+                    #     {
+                    #         "name": "LGBCovPenaltyCVaR",
+                    #         "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode},
+                    #         "metric_ratio_mode": ratio_mode,
+                    #         "requires_linear_pipeline": False,
+                    #         "factory": (
+                    #             lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBCovPenaltyCVaR(
+                    #                 rho=rho,
+                    #                 mse_keep=keep,
+                    #                 ratio_mode=ratio_mode,
+                    #                 zero_grad_tol=1e-12,
+                    #                 lgbm_params=dict(lgbm_params),
+                    #                 verbose=False,
+                    #             )
+                    #         ),
+                    #     }
+                    # )
+                    specs.append(
+                        {
+                            "name": "LGBCovPenaltyCVaRTotal",
+                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                            "metric_ratio_mode": ratio_mode,
+                            "requires_linear_pipeline": False,
+                            "factory": (
+                                lambda rho=r, keep=k, ratio_mode=ratio_mode: LGBCovPenaltyCVaRTotal(
+                                    rho=rho,
+                                    mse_keep=keep,
+                                    ratio_mode=ratio_mode,
+                                    zero_grad_tol=1e-12,
+                                    lgbm_params=dict(lgbm_params),
+                                    verbose=False,
+                                )
+                            ),
+                        }
+                    )
 
     # # Primal-dual (CVaR-like) variants (rho × keep sweep)
     # for rho in rho_values:
@@ -569,6 +926,9 @@ def _evaluate_models_on_test_set(
     analysis_dir: Path,
     parquet_engine: str,
     numeric_sanity_abs_cap: float,
+    parallel_enabled: bool,
+    parallel_cpu_fraction: float,
+    parallel_max_workers: Optional[int],
     invalid_config_ids: Optional[List[str]] = None,
 ) -> Dict[str, str]:
     """
@@ -718,7 +1078,29 @@ def _evaluate_models_on_test_set(
         total_models=int(len(spec_jobs)),
     )
 
-    for job in pending_jobs:
+    worker_plan = _resolve_held_out_worker_count(
+        pending_models=int(len(pending_jobs)),
+        parallel_enabled=parallel_enabled,
+        parallel_cpu_fraction=parallel_cpu_fraction,
+        parallel_max_workers=parallel_max_workers,
+        X_train=X_tv,
+        X_test=X_test,
+        y_train_log=y_tv_log,
+        y_test_log=y_test_log,
+    )
+    _log(
+        "held-out parallel plan",
+        parallel_enabled=bool(parallel_enabled),
+        workers=int(worker_plan["workers"]),
+        cpu_limit=int(worker_plan["cpu_limit"]),
+        memory_limit=int(worker_plan["memory_limit"]),
+        safe_cap=int(worker_plan["safe_cap"]),
+        estimated_bytes_per_worker=int(worker_plan["estimated_bytes_per_worker"]),
+        available_memory_bytes=worker_plan["available_memory_bytes"],
+        bootstrap_applied=False,
+    )
+
+    def _run_single_held_out_job(job: Dict[str, Any]) -> None:
         model_start = time.perf_counter()
         spec = job["spec"]
         model_name = str(job["model_name"])
@@ -862,6 +1244,15 @@ def _evaluate_models_on_test_set(
             )
             raise
 
+    if int(worker_plan["workers"]) <= 1 or len(pending_jobs) <= 1:
+        for job in pending_jobs:
+            _run_single_held_out_job(job)
+    else:
+        with ThreadPoolExecutor(max_workers=int(worker_plan["workers"])) as executor:
+            futures = [executor.submit(_run_single_held_out_job, job) for job in pending_jobs]
+            for future in as_completed(futures):
+                future.result()
+
     write_start = time.perf_counter()
     test_metric_frames: List[pd.DataFrame] = []
     pred_rows: List[pd.DataFrame] = []
@@ -989,6 +1380,9 @@ def run_full_pipeline(
     parquet_engine: str,
     use_ccao_fallback: bool = False,
     numeric_sanity_abs_cap: float = 1e6,
+    baseline_search: bool = False,
+    baseline_search_trials: Optional[int] = None,
+    include_cvar_models: bool = False,
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -1036,27 +1430,6 @@ def run_full_pipeline(
         id_vars=params["model"]["predictor"]["id"],
     )
 
-    model_setup_start = time.perf_counter()
-    lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed, use_ccao_fallback=use_ccao_fallback)
-    smooth_rhos = [float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)]
-    cov_rhos = [float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)]
-    model_specs = _build_model_specs(
-        lgbm_params=lgbm_params,
-        rho_values_smooth=smooth_rhos,
-        rho_values_cov=cov_rhos,
-        keep_values=keep_values,
-        ratio_modes=ratio_modes,
-        fairness_ratio_mode=fairness_ratio_mode,
-    )
-    _log(
-        "model specs built",
-        n_models=int(len(model_specs)),
-        n_smooth_rhos=int(len(smooth_rhos)),
-        n_cov_rhos=int(len(cov_rhos)),
-        n_ratio_modes=int(len(ratio_modes)),
-        elapsed_sec=f"{time.perf_counter() - model_setup_start:.2f}",
-    )
-
     data_signature = {
         "data_path": str(data_path),
         "target_col": target_col,
@@ -1068,6 +1441,52 @@ def run_full_pipeline(
         "sample_seed": int(seed),
         "split_prop_pre2024": float(params["cv"]["split_prop"]),
     }
+
+    model_setup_start = time.perf_counter()
+    lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed, use_ccao_fallback=use_ccao_fallback)
+    baseline_search_artifacts: Dict[str, Any] = {}
+    if bool(baseline_search):
+        baseline_search_artifacts = _run_baseline_lgbm_search(
+            result_root=result_root,
+            params=params,
+            df_train_validate=df_train_validate,
+            predictor_cols=predictor_cols,
+            categorical_cols=categorical_cols,
+            linear_pipeline_builder=linear_pipeline_builder,
+            split_protocol=split_protocol,
+            parquet_engine=parquet_engine,
+            parallel_enabled=parallel_enabled,
+            parallel_cpu_fraction=parallel_cpu_fraction,
+            parallel_max_workers=parallel_max_workers,
+            numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
+            base_lgbm_params=lgbm_params,
+            data_signature=data_signature,
+            seed=int(seed),
+            n_random_trials=baseline_search_trials,
+            date_col=date_col,
+            target_col=target_col,
+            fairness_ratio_mode=fairness_ratio_mode,
+        )
+        lgbm_params = dict(baseline_search_artifacts["best_lgbm_params"])
+    smooth_rhos = [float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)]
+    cov_rhos = [float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)]
+    model_specs = _build_model_specs(
+        lgbm_params=lgbm_params,
+        rho_values_smooth=smooth_rhos,
+        rho_values_cov=cov_rhos,
+        keep_values=keep_values,
+        ratio_modes=ratio_modes,
+        fairness_ratio_mode=fairness_ratio_mode,
+        include_cvar_models=bool(include_cvar_models),
+    )
+    _log(
+        "model specs built",
+        n_models=int(len(model_specs)),
+        n_smooth_rhos=int(len(smooth_rhos)),
+        n_cov_rhos=int(len(cov_rhos)),
+        n_ratio_modes=int(len(ratio_modes)),
+        elapsed_sec=f"{time.perf_counter() - model_setup_start:.2f}",
+    )
 
     cv_start = time.perf_counter()
     _log(
@@ -1124,6 +1543,9 @@ def run_full_pipeline(
         analysis_dir=analysis_dir,
         parquet_engine=parquet_engine,
         numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
+        parallel_enabled=parallel_enabled,
+        parallel_cpu_fraction=parallel_cpu_fraction,
+        parallel_max_workers=parallel_max_workers,
         invalid_config_ids=[str(x) for x in cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", []))],
     )
     _log("held-out test evaluation finished", elapsed_sec=f"{time.perf_counter() - test_eval_start:.2f}")
@@ -1148,6 +1570,9 @@ def run_full_pipeline(
         "n_folds": int(cv_out["fold_count"]),
         "n_flagged_configs": int(len(cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])))),
         "n_invalid_configs": int(len(cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])))),
+        "baseline_search_enabled": bool(baseline_search),
+        "include_cvar_models": bool(include_cvar_models),
+        **baseline_search_artifacts,
     }
 
 
@@ -1244,7 +1669,17 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         choices=["linear", "log", "geom"],
         help="Optional rho_scale override for --rho-values-cov.",
     )
-    p.add_argument("--keep-values", type=str, default=default_keep, help="Comma-separated keep values for primal-dual models.")
+    p.add_argument("--keep-values", type=str, default=default_keep, help="Comma-separated keep values for CVaR-style variants when enabled.")
+    p.add_argument(
+        "--include-cvar-models",
+        action=argparse.BooleanOptionalAction,
+        default=bool(cfg.get("include_cvar_models", False)),
+        help=(
+            "When enabled, also evaluate CVaR-style penalty variants. "
+            "By default, only the four basic families are run: LinearRegression, "
+            "LGBMRegressor, LGBSmoothPenalty, and LGBCovPenalty."
+        ),
+    )
     p.add_argument(
         "--ratio-modes",
         type=str,
@@ -1299,6 +1734,26 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         help=(
             "Absolute-value cap for numeric sanity checks in CV/test metrics. "
             "If any metric exceeds this cap or is non-finite, the corresponding results are saved but flagged."
+        ),
+    )
+    p.add_argument(
+        "--baseline-search",
+        action=argparse.BooleanOptionalAction,
+        default=bool(cfg.get("baseline_search", False)),
+        help=(
+            "Opt-in baseline-only LightGBM hyperparameter search using rolling-origin CV. "
+            "When enabled, the selected best baseline parameters are reused as the base configuration "
+            "for the later penalized-model sweeps."
+        ),
+    )
+    p.add_argument(
+        "--baseline-search-trials",
+        type=int,
+        default=cfg.get("baseline_search_trials", None),
+        help=(
+            "Number of random baseline-LGBM candidates to evaluate when --baseline-search is enabled. "
+            "The current baseline configuration is always included as an additional candidate. "
+            "Defaults to params.yaml cv.initial_set when omitted."
         ),
     )
     return p
@@ -1373,6 +1828,9 @@ if __name__ == "__main__":
         parquet_engine=str(args.parquet_engine),
         use_ccao_fallback=bool(args.use_ccao_params_fallback),
         numeric_sanity_abs_cap=float(args.numeric_sanity_abs_cap),
+        baseline_search=bool(args.baseline_search),
+        baseline_search_trials=(None if args.baseline_search_trials is None else int(args.baseline_search_trials)),
+        include_cvar_models=bool(args.include_cvar_models),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")
@@ -1381,3 +1839,6 @@ if __name__ == "__main__":
     print(f"analysis_dir={out['analysis_dir']}")
     print(f"test_metrics_csv={out['test_metrics_csv']}")
     print(f"test_predictions_parquet={out['test_predictions_parquet']}")
+    if bool(out.get("baseline_search_enabled", False)):
+        print(f"baseline_search_summary_csv={out['search_summary_csv']}")
+        print(f"baseline_search_best_params_json={out['best_params_json']}")

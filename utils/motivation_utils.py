@@ -1694,18 +1694,45 @@ IAAO_PRB_UNACCEPTABLE_RANGE: Tuple[float, float] = (-0.10, 0.10)
 # VEI acceptable point-estimate range
 IAAO_VEI_RANGE: Tuple[float, float] = (-10.0, 10.0)  # percent
 
-# COD guidance ranges (Table 7). Choose the closest match to your use-case.
+# # COD guidance ranges (Table 7). Choose the closest match to your use-case.
+# IAAO_COD_RANGES: Dict[str, Tuple[float, float]] = {
+#     "Residential Improved": (5.0, 15.0),
+#     "Newer/Homogeneous Residential": (5.0, 10.0),
+#     "Rural/Seasonal/Mobile Homes": (5.0, 20.0),
+#     "Multi-Family": (5.0, 20.0),
+#     "Rural Jurisdictions": (5.0, 25.0),
+#     "Commercial/Industrial": (5.0, 25.0),
+#     "Commercial/Industrial Condominiums": (5.0, 15.0),
+#     "Less Active/Small Sample": (5.0, 30.0),
+#     "Vacant Land": (5.0, 20.0),
+#     "Vacant Land Less Active/Small Sample": (5.0, 25.0),
+#     "Agricultural Land": (5.0, 25.0),
+# }
+
+
+# COD guidance ranges (IAAO 2025 Exposure Draft, Table 7)
+# These are guidance ranges for ratio studies, not hard legal thresholds.
 IAAO_COD_RANGES: Dict[str, Tuple[float, float]] = {
+    # Residential
     "Residential Improved": (5.0, 15.0),
-    "Newer/Homogeneous Residential": (5.0, 10.0),
+    "Newer/Homogeneous Residential Including Condominiums": (5.0, 10.0),
     "Rural/Seasonal/Mobile Homes": (5.0, 20.0),
+
+    # Multi-family
     "Multi-Family": (5.0, 20.0),
-    "Rural Jurisdictions": (5.0, 25.0),
+    "Multi-Family Rural Jurisdictions": (5.0, 25.0),
+
+    # Commercial / industrial
     "Commercial/Industrial": (5.0, 25.0),
     "Commercial/Industrial Condominiums": (5.0, 15.0),
-    "Less Active/Small Sample": (5.0, 30.0),
+    "Commercial/Industrial Less Active/Small Sample": (5.0, 30.0),
+
+    # Vacant land
     "Vacant Land": (5.0, 20.0),
     "Vacant Land Less Active/Small Sample": (5.0, 25.0),
+    "Vacant Land Rural Jurisdictions": (5.0, 30.0),
+
+    # Agricultural
     "Agricultural Land": (5.0, 25.0),
 }
 

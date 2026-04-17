@@ -1,9 +1,9 @@
 LGBMRegressor:
   boosting_type: "gbdt"
-  num_leaves: 31
+  num_leaves: 1209 # 31
   max_depth: 15
-  learning_rate: 1e-1
-  n_estimators: 500
+  learning_rate: 0.012806 # 1e-1
+  n_estimators: 500 #1668 #500
   subsample_for_bin: 200000
   objective: "mse" # To be updated inside of custom models
   class_weight: null
@@ -18,3 +18,18 @@ LGBMRegressor:
   # verbosity:-2,
   # verbose_eval:False,
   # verbosity_eval:False,
+  max_bin: 322
+  min_split_gain: 0.023317
+
+
+
+
+# num_leaves = 
+# max_depth = 15
+# max_bin = 
+# min_child_samples = 173
+# min_split_gain = 
+# colsample_bytree = 0.498246
+# reg_alpha = 3.185473
+# reg_lambda = 5.24066
+

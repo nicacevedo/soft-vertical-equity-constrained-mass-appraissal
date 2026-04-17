@@ -1,0 +1,1002 @@
+\documentclass[11pt]{article}
+% \usepackage[margin=1in]{geometry}
+\usepackage[a4paper, total={6in, 11in}]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+% \documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{hyperref}
+% \usepackage[a4paper, total={5in, 10in}]{geometry}
+% \usepackage{xcolor}
+% \usepackage{color,soul}
+\usepackage{listings}
+\usepackage{booktabs}
+
+% Citations
+% \usepackage{natbib}
+% Use the biblatex package, specifying the backend (biber is recommended)
+\usepackage[style=numeric, sorting=nyt]{biblatex}
+% Import your bibliography file (omit the .bib extension here)
+\addbibresource{references.bib}
+
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% Subplots
+\usepackage{graphicx}
+\usepackage{subcaption}
+
+% colored area
+\usepackage{tcolorbox}
+\usepackage{xcolor} % Required for defining custom colors
+\definecolor{lightgray}{gray}{0.9} % Define a light gray color
+
+% Highlights
+\usepackage{color,soul}
+
+% TODOs
+\usepackage{todonotes}
+
+% 
+% \documentclass{book} % Use the book or report class
+
+
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+
+\title{Soft Vertical Equity Constraints for Mass Appraisal Models:\\ Regressivity Correction in Machine Learning Settings \vspace{-2mm}}
+\author{Nicolas Acevedo Villena, Haihao Lu}
+\date{
+% \today
+\vspace{-10mm}
+}
+
+% theorem envs
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\prox}{\mathrm{prox}}
+\newcommand{\argmin}{\mathop{\mathrm{arg\,min}}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\ip}[2]{\left\langle #1,#2 \right\rangle}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\Var}{\text{Var}}
+
+
+% Set commands
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\J}{\mathcal{J}}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\M}{\mathcal{M}}
+\renewcommand{\L}{\mathcal{L}}
+\renewcommand{\H}{\mathcal{H}}
+\renewcommand{\P}{\mathcal{P}}
+\renewcommand{\R}{\mathbb{R}}
+
+\newcommand{\muBold}{\boldsymbol{\mu}}
+\renewcommand{\t}{^{\top}}
+\newcommand{\qt}[1]{``#1''}
+
+\newcommand{\Expected}[1]{\mathbb{E}[#1]}
+\newcommand{\Prob}[1]{\mathbb{P}(#1)}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+
+% Math sets commands
+
+\begin{document}
+\maketitle
+% \tableofcontents
+
+% \newpage
+
+% \chapter{Methodology}
+
+% \section{Motivation}
+
+% \subsection{}
+
+% % Refs:
+% \begin{enumerate}
+%     \item \href{https://www.nyc.gov/assets/finance/jump/property-data-maps/docs/quintos_equity_in_mass_appraisal.pdf?utm_source=perplexity}{Improving Assessment Equity in Mass Appraisal Models}
+%     \item \href{https://www.iaao.org/about/board-of-directors/governing-documents/ratio-studies-exposure-draft/}{IAAO Ratio Stuudies 2025}
+% \end{enumerate}
+
+Assessment equity is a primary concern for municipalities for taxes purposes; the major concerns being a \textit{fair assessment} level across: (a) properties of different price-levels (\textit{vertical equity}), and (b) properties with similar characteristics (\textit{horizontal equity}) \cite{quintos2014improving}. The main caveat for accurately identifying the heterogeneity of the parcels in certain region is that the unsold properties need to be assessed (unknown market prices), and these estimations need to maintain consistency; for example, similar properties in the same block/area should be assigned similar prices. Given the sensitiveness of the matter, we constraint ourselves to the standard measures for equity defined by the International Association of Assessing Officers (IAAO); who proposes a collection of metrics for both horizontal and vertical equity \cite{iaao2025ratio} (e.g. the coefficient of dispersion and the price-related differential). Most of these metrics rely on what they call the \textit{appraisal ratio}, defined in terms of the prices and its predictions
+$$r(PV, MV):= \frac{PV}{MV}, \qquad {MV}:= \text{market value}, \qquad PV:= \text{predicted value. }$$
+In a general sense, if for the results of a predictive model the majority of low-valued properties satisfy $r > 1$ (over-predicted), while the majority of the high-values properties satisfy $r < 1$ (under-predicted), we would say that our predictive model exhibits \textit{regressivity}. In the opposite case, we will say that it exhibits \textit{progressivity}. 
+
+\textbf{Case of Study.} We focus on the regressive behavior exhibited by the predictive models used by the Cook County Assessor's Office (CCAO). The CCAO has an extensive open-access repository \cite{ccao_data_2026} with the datasets, code, analysis, and guides through the Mass Appraisal process they use for predicting property values in the Cook County, Chicago, IL. They used linear models for prediction between the years 2009 and 2018, and transitioned towards Gradient Boosting methods since 2019. Currently, they use the state-of-the-art Newton-like gradient boosting method LightGBM \cite{lightgbm}.
+
+\textbf{Approach. } 
+ % \todo{Add something about interpretability, legal problems, tracktability of assessment for the payers, etc.}
+
+
+
+
+% Case of Study: Cook County Assessors Office 
+
+% \section{Data}
+
+\printbibliography %Prints bibliography
+
+\todo{I am missing something about consequences and impact of taxes here, or at least some references.}
+
+
+\subsection{Case of Study: Cook County Assessor's Office}
+
+Although powerful tools for inference, machine learning models are usually black boxes, which makes their inference results hard to interpret, specially in sensitive context as the mass appraisal problem \red{(ref)}. Furthermore, given the nature of the problem, these problems usually aim only to improve performance in prediction error terms, which makes them adjust to the average values and where the majority of the mass of data-points is concentrates, resulting in models that over-predict low-value properties while under-predicting high-valued ones, which is a vertical inequity behavior (also known as regressivity). An example of this behavior on the dataset used by CCAO on 2023 \red{check} and using LightGBM as the predictive model is shown in Figure \ref{fig:regressive_example}, which shows the comparison of log-prices ($\log(Y)$) of the properties versus the ratio-over-assessments, defined as
+$$
+RtA(X, Y) = \frac{A(X)}{Y},
+$$
+where $A(X)$ is our prediction of the property values, and $Y$ is the real market value of the same properties (assuming we already have access to that data). In a perfect model (or an over-fitted one), that achieves $A(X)=Y$, $RtA$ is always equal to one. However, one can observe in the real example on the Figure, that the linear tendency (red line) is not constant $RtA=1$, but it has a negative slope (decreasing tendency). This is, the low-value houses are indeed being under-predicted in average ($RtA>1$) while higher-value properties are being under-predicted in average $RtA<1$), which is what we call a regressive behavior.
+
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Fairness Price/img/motivation/log_ratio_LGBMRegressor.png}
+    \caption{Example of regressive behavior of LightGBM regressor results in test set \red{(Change it to a simpler one with names)}.}
+    \label{fig:regressive_example}
+\end{figure}
+
+The statistical and financial consequences of this regressive behavior for the same dataset/model are summarized in Listing~\ref{lst:log}. The report is structured in three main blocks:
+
+\begin{itemize}
+    \item \textbf{Model accuracy (price scale + log scale):} This block reports standard predictive accuracy metrics (MAE, RMSE, MAPE) in the original dollar scale, alongside error summaries in log-ratio space. These quantify overall predictive performance, but by themselves do not diagnose systematic price-related bias.
+
+    \item \textbf{IAAO-style ratio study metrics (Pred/Actual as AV/SP):} This block evaluates assessment quality through the lens of ratio studies, where the basic object is the ratio $A/Y$. The \emph{median ratio} and \emph{weighted mean ratio} summarize the overall assessment level (how close assessments are to market values in aggregate). In the baseline, both are within the broad level range $[0.90,1.10]$, suggesting that the system is not dramatically mis-scaled overall. However, the equity indicators point to substantial problems: COD is $21.73\%$ (above the 5--15\% IAAO range), indicating large dispersion of ratios even after controlling for the general assessment level (horizontal inequity). More importantly for this work, PRD is $1.0795$ (above the 0.98--1.03 range) and VEI is $-29.02\%$ (outside the $[-10,10]\%$ range), both indicating a strong regressive tendency. \red{(Explain more the table)}
+
+    \item \textbf{Diagnostics by price quantile:} This block makes the source of regressivity explicit by stratifying properties into quantiles of the \emph{actual} price $Y$. The first quantile (lowest-value homes) has mean ratio $1.189$ and median ratio $1.097$, while the highest quantile has mean ratio $0.891$ and median ratio $0.875$. This monotone decline in ratios across price groups is the empirical signature that drives PRD/VEI away from their acceptable ranges.
+\end{itemize}
+
+
+\lstset{
+  basicstyle=\ttfamily\tiny,    % Smaller than \small
+  frame=single, backgroundcolor=\color{gray!10},
+  % numbers=left, numberstyle=\tiny\color{gray},
+  breaklines=true
+}
+
+\begin{figure}[!h]
+\centering
+\begin{lstlisting}[language=Python, caption={Statistical and Financial Report - Baseline LightGBM}, label=lst:log]
+=========================================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================================
+Metric               Value  IAAO expected                    Interpretation
+------------------------------------------------------------------------------
+Count               53,139              -                Valid observations
+Mean Price ($)  402,970.13              -                Scale of target
+MAE ($)          72,971.19              -                Lower is better
+RMSE ($)        136,718.52              -                Lower is better
+MAPE (%)             21.18              -                Lower is better
+MdAPE (%)            15.24              -                Robust to outliers
+Bias ($)        -32,873.04              -                Near 0 is better
+MAE(LogRatio)       0.2094              -                Median-like scale for log errors
+RMSE(LogRatio)      0.2838              -                Lower is better
+Bias(LogRatio)     -0.0502              -                Near 0 is better
+=========================================================================================
+=======================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+======================================================================================================
+Metric                           Value  IAAO expected                             Interpretation
+------------------------------------------------------------------------------------------------------
+Median Ratio                    0.9346   [0.90, 1.10]  Within 0.90-1.10 level
+Weighted Mean Ratio             0.9184   [0.90, 1.10]  Within 0.90-1.10 level
+COD (%) [Residential Improved]   21.73    [5.0, 15.0]  Above Table 7 range
+PRD                             1.0795   [0.98, 1.03]  Regressive tendency (>1.03)
+VEI (%)                         -29.02     [-10, 10]%  Regressive beyond +/-10 (test significance)
+COV(Ratio)                      0.3275              -  Lower is better (no fixed std)
+IQR(Ratio)                      0.2699              -  Smaller = tighter ratios
+======================================================================================================
+VEI details: k=10, groups_used=10, firstPG_median=1.1534, lastPG_median=0.8822
+======================================================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+======================================================================================================
+             Min ($)       Max ($)  Mean Error ($)  MAPE (%)  Mean Ratio  Median Ratio    COD   PRD
+Quantile
+1         15,000.000   220,000.000      13,970.960    36.800       1.189         1.097 32.743 1.086
+2        220,001.000   315,000.000     -12,333.658    16.986       0.955         0.944 17.278 1.000
+3        315,002.000   460,000.000     -26,600.147    14.180       0.931         0.922 13.516 1.001
+4        460,500.000 8,000,000.000    -107,068.232    16.734       0.891         0.875 14.818 1.024
+======================================================================================================
+\end{lstlisting}
+\end{figure}
+
+% \subsection{Approach, and why this approach?}
+
+
+
+\section{Methodology}
+
+
+
+\subsection{Setting and scale mappings}
+
+% \subsubsection{Targets, predictions, and residuals}
+Let us denote $X \in \R^{n\times p}$ denote a matrix of  $p$ demographic features for $n$ different properties (e.g., number of bedrooms, accessibility to transport, distance to schools, etc.) Let $y \in \R^n$ denote the vector of market values for each of these $n$ properties; that is, these properties have been sold in the past and we have access to the transaction values. We consider only those observations with strictly positive values; i.e., \(y_i>0, \forall i \in [n]\). Let us further define the notation for the log-prices vector $z$, the estimator of log-prices $\hat{z}$ via some learned mapping $f:\R^n \rightarrow \R$ (to be defined), and the estimation of market values $\hat{y}$ through exponentiation of $\hat{z}$; that is
+\[
+z := \log y, 
+\qquad \hat z := f(x),
+\qquad \hat y := \exp(\hat z).
+\]
+The \emph{log residuals} of the estimation of log-prices is defined as
+\[
+e := \hat z - z = f(x) - z.
+\]
+
+
+% Let $\D = \{(x_i,y_i)\}_{i=1}^n$ denote the dataset including all the $n$ observations of features and market values. 
+
+
+
+\subsubsection{Additive-error and multiplicative-error mapping}
+The predictions are made in the log-prices space because of the {\todo{Add references for this} highly skewed distributions of the real prices (close to log-normal)}. Nonetheless, the metrics of interest still lie on the original scale space. For the original scale, let us define the \textit{assessment ratio} (multiplicative error) as
+\[
+r_i := \frac{\hat y_i}{y_i}, \quad \forall i \in [n].
+\]
+Then, the following identities hold
+\[
+r = \exp(\hat z - z) = \exp(e),
+\qquad \log r = e.
+\]
+Thus, any statement about log residuals \(e\) is equivalently a statement about log-ratios \(\log( r)\). In other words, the log-space learning process is naturally aligned with ratio-based dispersion and equity senses, given the monotonicity of the logarithm. Further, if we look at the first-order Taylor expansion of the assessment ratios, for $e_i\approx 0$, we get that $\exp(e_i) = r\approx 1 + e_i \iff {\hat{y_i}}/{y_i} - 1 \approx e_i$, and so, with a mapping that achieves a sufficiently small level log residuals, minimizing the log residuals magnitudes is equivalent to minimizing the distance between the assessment ratios and 1.   
+
+
+\subsection{Objective Function}
+
+\subsubsection{Unconstrained Objective}
+
+% Given the data $\{(x_i,y_i)\}_{i=1}^n$ with $y_i=\log(P_i)$, 
+
+Let $\mathcal H$ be a predefined hypothesis class, and let $f\in\mathcal H$ be a learned mapping that outputs the log-prediction $\hat z_i:=f(x_i)$ given the feature vector $x_i$. We define the general learning optimization problem for a population as 
+% \subsection{Population objective}
+% A canonical population objective is
+\[
+\min_{f\in \H} \L(f) := \min_{f\in \H} \E\!\left[\ell(z,f(x)) \right] + \Omega(f),%+ \frac{\rho}{2}\,\Cov(e,z)^2,
+\]
+where \(\ell\) is some measure of prediction loss and $\Omega$ is a complexity-regularizer term for $f$. The focus of this work would be mainly in the squared loss in log-space $\ell(z,f)=\frac{1}{2}(z-f)^2$. 
+\medskip
+
+Defining $\D:=\{(x_i, z_i)\}_{i=1}^n$ as the dataset sample of observations we have access to, we can further define the regularized empirical risk minimization problem as  
+% \]
+% \subsection{Sample objective and scaling conventions}
+% On a sample \(\{(x_i,z_i)\}_{i=1}^n\), define
+\begin{equation}
+\label{opt:unconstrained_learner}
+\min_{f\in \H} \L_n(f) := \min_{f\in \H}  J_n(f) + \Omega(f) = \frac{1}{2n}\sum_{i=1}^n (f(x_i) - z_i)^2 + \Omega(f), %\qquad\text{ 
+\end{equation}
+% where the  }J_n(f) :=
+% + \frac{\rho}{2}\,c(f)^2,
+% \qquad c(f)=\frac{1}{n}\sum_{i=1}^n z_{c,i}(f_i-z_i).
+% \]
+% \paragraph{Important note on scaling.}
+% Different software systems place constants like \(1/n\) in different places (loss, gradients, or learning rate). In these notes we carry explicit \(1/n\) factors in the objective; when connecting to a particular library, you may absorb these constants into \(\rho\) and the learning rate \(\eta\). The \emph{structural} results (rank-1 curvature, leaf updates, split effects) are unchanged.
+
+
+
+
+\subsubsection{Vertical Equity-Aware Objective: Covariance Penalty}
+
+To incorporate vertical-equity awareness to the unconstrained learning problem in (\ref{opt:unconstrained_learner}), we add a covariance-regularization term between the log residuals $e = \log(r)$ and the log-price $z$, as a soft constraint. That is, given some penalty weight $\rho>0$,  we solve 
+\begin{align}
+    {\everymath{\displaystyle}
+    \begin{array}{ccccccc}
+    (VE_{\rho}):= &  \min_{f\in \H}  &  \L_n(f) + \frac{\rho}{2} C_n(f)^2 
+    \end{array}
+    }
+    \label{opt:general_learner_penalized}
+\end{align}
+where $C_{n}(f):={\text{Cov}}(e ,z)$ denotes the empirical covariance between the log residuals (assessment ratios proxy) and the log-prices vector $z$ (original prices proxy). Letting $f_{\rho}$ and $e_{\rho}$ be the solution and resultant residuals of ($VE_{\rho}$), respectively, we have that while $\rho \rightarrow \infty$, the covariance term approaches zero, i.e., $$\lim_{\rho \rightarrow \infty} {\Cov}(e_{\rho},z) = 0 \iff  \lim_{\rho \rightarrow \infty} {\Cov}(f_{\rho}(X),z) = {\Var}(z).
+$$ 
+% $= \Cov(f(X)-z,\ z)=$
+% Let $\bar y:=\frac1n\sum_{i=1}^n y_i$ be the average log-price, let $g(\hat y_i,y_i)$ be some proxy of the ratios between assessments (predictions) and the real prices, and let $C_{g}(f):=\widehat{\text{Cov}}(g(\hat y_i,y_i), y)$ denote the empirical variance between the ratios proxy $g((\hat y_i,y_i)$ and the log-prices $y$ vectors. Let us also define the regularized baseline loss function $\mathcal{L}(f):=\frac{1}{2n}\|y-f(X)\|_2^2 + \Omega(f)$, where $\Omega$ is a model-dependent complexity regularizer of $f$.  
+% We are interested in solving a vertical equity (VE) aware problem, which makes the goal of our model a multi-objective one; we want to achieve the minimal loss value while maximizing the VE in some sense. As a first proxy of the VE, \todo{add references} and closely related to the IAAO metrics and definitions of VE, we solve the VE-aware covariance-constrained problem 
+% \begin{align}
+%     {\everymath{\displaystyle}
+%     \begin{array}{cccccc}
+%     (VE_{\varepsilon}):= &  \min_{f\in \H}  &  \L(f,y;X) & \text{s.t.} & C_g(f)^2 \leq \varepsilon,
+%     \end{array}
+%     }
+%     \label{opt:general_learner_constrained}
+% \end{align}
+% or the unconstrained penalized version of the problem  
+% \begin{align}
+%     {\everymath{\displaystyle}
+%     \begin{array}{ccccccc}
+%     (VE_{\rho}):= &  \min_{f\in \H}  &  \L(f,y;X) + \frac{\rho}{2} C_g(f)^2,
+%     \end{array}
+%     }
+%     \label{opt:general_learner_penalized}
+% \end{align}
+% where the equivalence between the two definitions depends on choosing the appropriate pair $(\varepsilon, \rho)$ that correspond to each other's solution.
+% with $y_i=\log(P_i)$, let $\mathcal H$ be a hypothesis class and
+% $f\in\mathcal H$ be the mapping that outputs the log-predictions $\hat y_i:=f(x_i)$. Let $\bar y:=\frac1n\sum_{i=1}^n y_i$ be the average log-price, let $g(\hat y_i,y_i)$ be some proxy of the ratios between assessments (predictions) and the real prices, and let $C_{g}(f):=\widehat{\text{Cov}}(g(\hat y_i,y_i), y)$ denote the empirical variance between the ratios proxy $g((\hat y_i,y_i)$ and the log-prices $y$ vectors. Let us also define the regularized baseline loss function $\mathcal{L}(f):=\frac{1}{2n}\|y-f(X)\|_2^2 + \Omega(f)$, where $\Omega$ is a model-dependent complexity regularizer of $f$.  
+% In theory, given a mapping $f:\X \rightarrow \Y$ that lies into some hypothesis space $\H$, and a loss function $\L:\H \times \R^n \times \R^{n\times p} \rightarrow \R$ that consist of the sum of an empirical risk measure $J$ and a complexity regularizer mapping $\Omega$ (i.e., $\L(f,y;X) := J(f,y;X) + \Omega(f)$), we are interested in solving the general learning problem of minimizing the loss function with $\varepsilon$-constrained vertical equity (EV) as
+% \begin{align}
+%     {\everymath{\displaystyle}
+%     \begin{array}{crlcccc}
+%     (VE_{\varepsilon}):= &  \min_{f\in \H}  &  \L(f,y;X) & s.t. & \left|\widehat{\text{Cov}}(g(r), y)\right| \leq \varepsilon,
+%     \end{array}
+%     }
+%     \label{opt:general_learner}
+% % \end{align}
+% where \todo{to be defined properly in the options div/diff} $g(r)$ is some transformation of the ratios between the estimated vector $f(X)$ components and the real price vector $y$ components (i.e., $r_i = f(X)_i/y_i$), and  where we use the empirical covariance defined as $\widehat{\text{Cov}}(r,y) = \frac{1}{n}\sum_{i=1}^n (r_i - \Bar{r})(y_i - \Bar{y})= \frac{1}{n}\sum_{i=1}^n r_i(y_i - \Bar{y})$. We can define the transformation $g:\R^n \rightarrow \R^n$ in many ways, but for simplicity {\todo{Should I mention the empirical point?}(and because of its empirical performance)} we are going to constraint ourselves to the cases: (1) $g(r)_i=f(X)_i / y_i$, the direct ratio, and (2) $g(r)=f(X) - y$, that aims to constraint the the real prices ratios in cases where we are fitting the model in the log-price space. 
+% \subsection{Two ratio moments used in practice: division of log-prices and difference of log-prices}
+% \label{sec:diff_div}
+% \paragraph{Difference of log-prices (log assessment ratio).} 
+% Let the assessment ratios proxy $g$ in (\ref{opt:general_learner_constrained}) and (\ref{opt:general_learner_penalized}) be of the form
+% \begin{equation}
+% \label{eq:g_diff}
+% g_{\texttt{diff}}(\hat y,y):=\hat y-y=\log(\hat P/P),
+% \end{equation}
+% where $\hat{P}/P$ is the real price assessment ratio. 
+% Then 
+% \todo{Note I am omitting the average term canceled-out}
+% \begin{equation}
+% \label{eq:cov_diff} 
+% C_{\texttt{diff}}(f)
+% =\frac{1}{n}\sum_{i=1}^n (\hat y_i-y_i)\,(y_i - \Bar{y})=
+% \frac{1}{n}\sum_{i=1}^n \hat y_i\,(y_i - \Bar{y}) - \widehat{\mathrm{Var}}(y)=\widehat{\text{Cov}}(\hat{y}, y) - \widehat{\mathrm{Var}}(y),
+% \end{equation}
+% where the empirical covariance of the log-price is defined as $\widehat{\mathrm{Var}}(y):=\frac{1}{n}\sum_{i=1}^n (y_i - \Bar{y})^2$. 
+Thus, the model 
+% successfully imposes $C_{\texttt{diff}}(f)\approx 0$, then it 
+is naturally enforcing a second moment control on the solution $f_\rho$.
+% Further, this implies that, if fitting a simple linear regression $\hat{y} = \beta_0 + \beta_1 y + \epsilon$, then the fitted slope would satisfy $\hat \beta_1 =\widehat{\mathrm{Cov}}(\hat y,y)/\widehat{\mathrm{Var}}(y) \approx 1$ (assuming $\widehat{\mathrm{Var}}(y)>0$), which is exactly the first-order behavior we aim to achieve with the EV-awareness problem.
+% \paragraph{Division of the log-prices (normalized log prediction).}
+% Let us assume the prices satisfy $P > 1$, thus $y>0$. Let the assessment ratios proxy $g$ in (\ref{opt:general_learner_constrained}) and (\ref{opt:general_learner_penalized}) in this case be
+% \begin{equation}
+% \label{eq:g_div}
+% g_{\texttt{div}}(\hat y,y):=\frac{\hat y}{y}.
+% \end{equation}
+% \todo{Create a notation for  the centered $y_c$, to use everywhere} Then
+% % with small $\epsilon>0$ (stability). Then 
+% \begin{equation}
+% \label{eq:cov_div}
+% C_{\texttt{div}}(f)
+% =\frac{1}{n}\sum_{i=1}^n \frac{\hat y_i}{y_i}\,(y_i - \Bar{y}) 
+% =\frac{1}{n}\langle  r, y_c \rangle,
+% \qquad \text{ with } r_i:=\frac{\hat{y}_i}{y_i}.
+% \end{equation}
+% Thus $g_{\texttt{div}}$ imposes linear independency between the assessed ratios and the centered log-price vector $y_c$, a homogeneous moment (a single projection of $\hat{ y}$). That is, if $C_{\texttt{div}}(f)\approx 0$, we are enforcing orthogonality between $\hat{y}$ and the vector of weights $w^{\texttt{div}}$,  which gives more attention to: (1) those samples far away from the mean, but even more if the prices are low (where the general mass of data points is). 
+
+% \medskip
+
+% \subsubsection{}
+
+% \subsubsection
+\paragraph{Global-coupling structure.}
+% \subsubsubsection{Global-coupling structure.}
+%
+% \begin{table}[htbp]
+%     \centering
+%     \resizebox{\textwidth}{!}{%
+% \begin{tabular}{llrrrrrrrrrrrrrrrrrrr}
+% \toprule
+% Model & r & R2 & R2 (log) & RMSE & MAE & MAPE & MdAPE & Corr(r,price) & Corr(r,logprice) & Slope(r\~logy) & Var ratio & Median ratio & Mean ratio & W. Mean ratio & COD & COV\_IAAO & VEI & PRD & PRB & MKI \\
+% \midrule
+% LinearRegression & NaN & 0.804 & 0.768 & 164356.857 & 86546.470 & 0.236 & 18.015 & -0.045 & -0.116 & -0.059 & 0.124 & 0.958 & 0.990 & 0.976 & 24.319 & 0.356 & 5.947 & 1.014 & 0.039 & 1.010 \\
+% LGBMRegressor & NaN & 0.856 & 0.835 & 141258.354 & 75401.582 & 0.211 & 16.440 & -0.255 & -0.464 & -0.218 & 0.105 & 0.925 & 0.986 & 0.912 & 21.523 & 0.329 & -32.440 & 1.081 & -0.106 & 0.890 \\
+% ExplainableBoostingRegressor & NaN & 0.850 & 0.817 & 144167.625 & 77819.258 & 0.244 & 14.679 & -0.233 & -0.441 & -0.253 & 0.157 & 1.059 & 1.132 & 1.049 & 22.452 & 0.350 & -31.412 & 1.079 & -0.100 & 0.904 \\
+% \bottomrule
+% \end{tabular}
+%      }
+%     \caption{Results for val}
+%     \label{tab:results_val}
+% \end{table}
+%
+As one can note, $C_n(f)$ is a scalar term that couples the changes of every observation in the dataset $\D$, i.e., it is a global-coupling structured regularization term. Specifically, letting $z_c = (z - \Bar{z}\textbf{1})$, the gradient of the regularized loss function is 
+\begin{align}
+\label{def:loss_gradient}
+g_f:=\nabla_f J_n(f) =& \frac{1}{n}  e + \frac{\rho}{n}   C_n(f)   z_c.
+% \nabla^2_f J_n(f) =& \frac{1}{n}  I +  \frac{\rho }{n^2} z_c z_c\t  
+\end{align}
+% {Behavioral meaning.}
+The penalty adds a global feedback term proportional to \(z_c\), that is also dependent on the global covariance term $C_n(f)$. If \(C_n(f)>0\), then samples with \((z_{c})_k>0\) (above-average log-price) have increased gradient and are pushed downward in a gradient-descent step, while \((z_{c})_k<0\) are pushed upward, steering \(C_n(f)\) toward zero. 
+
+{\todo{add a reference for this} In many nonlinear regression models one would ideally aim to have a separable objective (no global-coupling). For instance, in a general setting, separability allows for re-weighting of samples, when using Neural Networks it allows for parallelization of batches when using Stochastic Gradient Descent, when using Newton-based Gradient Boosting the modern libraries (XGBoost or LightGBM) assume the Hessian is a diagonal term, etc. However, in the covariance-penalized objective we already saw that this condition is not satisfied. Further, the Hessian of the objective is 
+\begin{align}
+\label{def:loss_hessian}
+    H_f:=\nabla^2_f J_n(f) =& \frac{1}{n}  I +  \frac{\rho }{n^2} z_c z_c\t,  
+\end{align}
+which is not a diagonal matrix, but the sum of a diagonal matrix and a rank-1 matrix. To deal with this drawback we propose three solution approaches:
+\begin{enumerate}
+    \item (Non-separable) {Diagonal Hessian approximation:} On each iteration of the learning algorithm, compute the gradient and the hessian coordinates assuming that the objective is a function of each sample only. That is, approximate $H_f$ as diagonal matrix (instance-wise Hessian).
+
+    \item (Separable) Surrogate Covariance Objective: Instead of penalizing the Covariance term $C_n(f)$, replace it with an upper bound surrogate function using triangle inequality. That is, $Cov(e, z_c)^2 \leq \frac{1}{n^2}\sum_{i=1}^n e_i^2(z_i - \Bar{z})^2 $; and let us denote it by $S_n(f)$. This leads to a separable objective, thus we can plug it as a custom objective to existing libraries.
+
+    \item (Non-separable) {Sherman-Morrison update:} The true curvature has dense coupling, but only through a single direction \( z_c\), which allows efficient \emph{exact} Newton updates at the leaf level via Sherman--Morrison inverse of $H_f$. 
+    
+    \textit{Note: This method needs a completely custom boosting algorithm for implementation, so its left as future work.}
+\end{enumerate}
+% \paragraph{Why this matters.}
+
+
+
+
+ 
+% % The problem is,  in the general learner case, we would like to have no interaction (no coupling) of the gradients and hessians of the loss function; specially when enforcing constraints}. Relevant examples of this are Gradient Boosting methods and Neural Networks.
+% Thus, we revise the nature of $C_g(f)$ and propose three variations of it:
+% \begin{enumerate}
+%     \item Diagonal Hessian  
+% \end{enumerate}
+
+% The following statement formalizes why the penalty is compatible with boosting and neural networks.
+% Define the lemma environment
+% \newtheorem{lemma}{Lemma} 
+% \begin{lemma}[Affine in-prediction moments yield a rank-one coupling]
+% \label{lem:rank_one}
+% Assume $g(\hat y,y)=a(y)\hat y+b(y)$ for some functions $a,b$. Define weights
+% $w_i:=a(y_i)\,y_{c,i}$. Then
+% \begin{equation}
+% \label{eq:linear_form}
+% c_g(f)=\frac{1}{n}\sum_{i=1}^n w_i \hat y_i \;+\; \underbrace{\frac{1}{n}\sum_{i=1}^n b(y_i)\,y_{c,i}}_{\text{constant w.r.t. }f}.
+% \end{equation}
+% For the squared penalty $\frac{\rho}{2}c_g(f)^2$, the gradient in prediction space is
+% \begin{equation}
+% \label{eq:grad_general}
+% \frac{\partial}{\partial \hat y_i}\Bigl(\frac{\rho}{2}c_g(f)^2\Bigr)
+% =\frac{\rho}{n}\,c_g(f)\,w_i,
+% \end{equation}
+% and the (prediction-space) Hessian equals the dense rank-one matrix
+% \begin{equation}
+% \label{eq:hess_general}
+% \nabla^2_{\hat{\mathbf y}}\Bigl(\frac{\rho}{2}c_g(f)^2\Bigr)=\frac{\rho}{n^2}\,\mathbf w\mathbf w^\top.
+% \end{equation}
+% \end{lemma}
+
+% \noindent
+% \emph{Instantiation.}
+% For \texttt{diff}, $a(y)\equiv 1$ and $b(y)=-y$, so $w_i=y_{c,i}$ and the constant term in
+% \eqref{eq:linear_form} equals $-\widehat{\mathrm{Var}}(y)$, recovering \eqref{eq:cov_diff}.
+% For \texttt{div}, $a(y)=1/y^\dagger$ and $b(y)\equiv 0$, yielding $w_i=y_{c,i}/y_i^\dagger$ and
+% \eqref{eq:cov_div}.
+
+% \hrule
+
+
+
+
+
+
+% \subsubsection{The covariance penalty \texorpdfstring{\(\Cov(e,z)\)}{Cov(e,z)}}
+
+% \subsubsection{Centered log-price and the covariance moment}
+% Let \(z_c := z - \E[z]\) (population) or \(z_{c,i}:=z_i-\bar z\) (sample), with \(\bar z = \frac{1}{n}\sum_i z_i\). Define the moment
+% \[
+% \Cov(e,z) = \E[e z_c].
+% \]
+% When using sample averages, we will write
+% \[
+% c(f) := \Cov_n(e,z) := \frac{1}{n}\sum_{i=1}^n z_{c,i} e_i,
+% \qquad e_i = f_i - z_i,
+% \qquad f_i := f(x_i).
+% \]
+
+% \subsection{Useful identity and regression interpretation}
+% Since \(e = f(x) - z\),
+% \[
+% \Cov(e,z) = \Cov(f(x)-z,\ z)=\Cov(f(x),z) - \Var(z).
+% \]
+% A particularly interpretable quantity is the best linear slope of \(e\) on \(z\):
+% \[
+% \beta_{e\sim z} = \frac{\Cov(e,z)}{\Var(z)}.
+% \]
+% Driving \(\Cov(e,z)\to 0\) forces \(\beta_{e\sim z}\to 0\): \emph{no systematic linear trend of log residuals across log-price.} Using \(\log r = e\), this is also \(\Cov(\log r,\log y)=0\), a natural multiplicative ``no-regressivity'' moment.
+
+% % \section{Objectives: population and sample}
+
+% % \subsection{Population objective}
+% % A canonical population objective is
+% % \[
+% % J(f) = \E\!\left[\ell(z,f(x))\right] + \frac{\rho}{2}\,\Cov(e,z)^2,
+% % \]
+% % where \(\ell\) is a prediction loss. The focus here is squared loss in log-space:
+% % \[
+% % \ell(z,f)=\frac{1}{2}(z-f)^2.
+% % \]
+
+% % \subsection{Sample objective and scaling conventions}
+% % On a sample \(\{(x_i,z_i)\}_{i=1}^n\), define
+% % \[
+% % J_n(f) = \frac{1}{2n}\sum_{i=1}^n (f_i - z_i)^2 + \frac{\rho}{2}\,c(f)^2,
+% % \qquad c(f)=\frac{1}{n}\sum_{i=1}^n z_{c,i}(f_i-z_i).
+% % \]
+% % \paragraph{Important note on scaling.}
+% % Different software systems place constants like \(1/n\) in different places (loss, gradients, or learning rate). In these notes we carry explicit \(1/n\) factors in the objective; when connecting to a particular library, you may absorb these constants into \(\rho\) and the learning rate \(\eta\). The \emph{structural} results (rank-1 curvature, leaf updates, split effects) are unchanged.
+
+% \section{Exact gradients and Hessian structure}
+
+% Treat \(\bm f=(f_1,\dots,f_n)^\top\in\R^n\) as the vector of current predictions and \(\bm e = \bm f - \bm z\).
+
+% \subsection{Gradient with respect to a single prediction}
+% For the log-MSE term,
+% \[
+% \frac{\partial}{\partial f_k}\left(\frac{1}{2n}\sum_i e_i^2\right) = \frac{1}{n}e_k.
+% \]
+% Since
+% \[
+% c(f)=\frac{1}{n}\sum_i z_{c,i}e_i
+% \quad\Rightarrow\quad 
+% \frac{\partial c}{\partial f_k} = \frac{1}{n}z_{c,k},
+% \]
+% we obtain the full gradient
+% \[
+% g_k := \frac{\partial J_n}{\partial f_k}
+% =
+% \frac{1}{n}e_k + \rho\,c(f)\,\frac{1}{n}z_{c,k}.
+% \]
+% \paragraph{Behavioral meaning.}
+% The penalty adds a global feedback term proportional to \(z_c\). If \(c(f)>0\), then examples with \(z_{c,k}>0\) (above-average log-price) have increased gradient and are pushed downward in a Newton step, while \(z_{c,k}<0\) are pushed upward, steering \(c(f)\) toward zero.
+
+% \subsection{Hessian: diagonal plus rank-1}
+% The second derivative of the log-MSE term is \((1/n)\) on the diagonal. For the penalty,
+% \[
+% \frac{\partial^2}{\partial f_k\partial f_\ell}\left(\frac{\rho}{2}c(f)^2\right)
+% =
+% \rho\,\frac{\partial c}{\partial f_k}\frac{\partial c}{\partial f_\ell}
+% =
+% \rho\,\frac{z_{c,k}z_{c,\ell}}{n^2}.
+% \]
+% Hence the Hessian is
+% \[
+% \bm H
+% =
+% \frac{1}{n}\bm I
+% +
+% \frac{\rho}{n^2}\,\bm z_c \bm z_c^\top,
+% \]
+% where \(\bm z_c=(z_{c,1},\dots,z_{c,n})^\top\). This is a \emph{diagonal plus rank-1} matrix.
+
+% \paragraph{Why this matters.}
+% Many boosting implementations approximate \(\bm H\) as diagonal (instance-wise Hessians). Here, the true curvature has dense coupling, but only through a single direction \(\bm z_c\), which allows efficient \emph{exact} Newton updates at the leaf level via Sherman--Morrison.
+
+\subsection{Robust Variations of Covariance Penalty}
+
+\begin{align}
+    {\everymath{\displaystyle}
+    \begin{array}{cclcccc}
+    (R_{\L}-VE_{\rho}):= &  \min_{f\in \H}   & \max_{\I_s \subseteq \I}\left\{ \L_{I_s}(f)\right\} + \frac{\rho}{2} S_n(f)^2 \\
+    & \min_{f\in \H}   & \max_{\I_s \subseteq \I}\left\{ \frac{1}{2|\I_s|}\sum_{i \in \I_s}(f(x_i)-z_i)^2\right\} + \Omega(f) + \frac{\rho}{2} S_n(f)^2 ,
+    \end{array}
+    }
+    \label{opt:robust_model_1}
+\end{align}
+
+\begin{align}
+    {\everymath{\displaystyle}
+    \begin{array}{cclcccc}
+    (R_{obj}-VE_{\rho}):= &  \min_{f\in \H}   & \max_{\I_s \subseteq \I}\left\{ \L_{I_s}(f) + \frac{\rho}{2} S_{I_s}(f)^2\right\} \\
+    & \min_{f\in \H}   & \max_{\I_s \subseteq \I}\left\{ \frac{1}{2|\I_s|}\sum_{i \in \I_s}(f(x_i)-z_i)^2 + \frac{\rho}{2n^2} \sum_{i \in \I_s} e_i^2(y_i - \Bar{y})^2 \right\} + \Omega(f)  ,
+    \end{array}
+    }
+    \label{opt:robust_model_2}
+\end{align}
+
+
+\subsection{Model Selection: Robust \& Fair Stacking of Learners }
+
+Let   $\H_{M}:=\{f_{1}, f_2 ,\ldots, f_M\} \subset \H$ be a finite collection of models learned by solving problem (\ref{opt:general_learner_penalized}) using a training dataset $\D_{train}=\{(X_{train}, y_{train})\}$; either by setting different configurations of hyperparameters associated with the hypothesis $\H$ and different values of the penalty $\rho\geq 0$, or even by choosing different Hypothesis spaces (i.e. $\H = \cup_i\H_i)$. Given that a single penalized model cannot secure any clear level of vertical equity in out-of-sample, due to the uncertainty in future data (out-of-sample) when training the models, we seek to account for this uncertainty by solving a robustified model selection using the learned information from a Cross-Validation setting. 
+
+\subsubsection{Fair Stack of Learners}
+
+First, let us define the single-fold fair stacking of mappings. That is, let $\D_{val}= \{(X_{val}, y_{val})\}$ be some validation (out-of-sample) dataset. Let $\L_{val}$ be the loss defined in \todo{(?)} \ldots , measuring the loss on the validation set, and let $\F_{val}:\H \rightarrow \R$ be some fairness or equity measure (e.g. PRD, VEI). Let $[l,u]$ be the required interval for the values of $\F_{val}$ for it to be considered fair (e.g. PRD $\in [0.98, 1.03]$). Then, we define the \todo{talk about some references} Fair Stack of learners problem as
+{\everymath{\displaystyle}
+\begin{equation}
+\label{opt:fair_stacking}
+    \begin{array}{rrl}
+    (FS_{\H_M}):=   \min_{w \in \R^M}  & \L_{val}\left(\sum_{m=1}^M w_m f_m \right)\\
+        s.t. &  l \leq \F_{val}\left(\sum_{m=1}^M w_mf_m\right)& \leq  u,\\
+        & \sum_{m=1}^M w_m& =1, \\
+       &  w \in [0,1]^M
+    \end{array}
+\end{equation}
+}
+\hspace{-3.3mm} where $\L_m$ is just empirical error, without any extra regularization. Note that this is not necessarily a convex problem over the weights vector $w$, even if $\L_{val}$ is convex over it, since the candidate vertical equity measures for $\F_{val}$ are usually non-convex in terms of the predicted vector $\hat{y}$. Nonetheless, we can still get an exact optimal solution (\ref{opt:fair_stacking}) re-writing it as a convex optimization problem for some of the fairness metrics of interest. We show some examples in what follows.
+
+\medskip
+
+\noindent \textbf{PRD as the fairness measure.} Let $\F_{val}$ be the Price-Related Differential ratio, defined as \todo{definition here or before?} $$PRD(\hat{y}, y):=\left(\sum_{i=1}^n \frac{\hat{y_i}}{y_i} \right)\cdot \left(\frac{\sum_{i=1}^n {y_i}}{\sum_{i=1}^n \hat{y_i}} \right),$$ and let $\L_{val}$ be the Mean Squared Error of the prediction. We can then write (\ref{opt:fair_stacking}) as second-order optimization problem 
+% \begin{equation}
+\[
+\everymath{\displaystyle}
+% \label{opt:fair_stacking_PRD}
+    \begin{array}{rcl}
+       \min_{w \in \R^M, z\in \R}  & z \\
+        s.t. &  \left\| y_{val} - \sum_{m=1}^M w_m f_m(X_{val})  \right\|_2 &\leq z \\
+        &l \sum_{i=1}^n \sum_{m=1}^M w_m f_m(x_{val(i)}) \leq \left( \sum_{i=1}^n y_i \right) \frac{1}{n}\sum_{i=1}^n \frac{1}{y_i} \sum_{m=1}^M w_m f_m(x_{val(i)})& \leq  u \sum_{i=1}^n\sum_{m=1}^M w_m f_m(x_{val(i)}),\\
+        & \sum_{m=1}^M w_m& =1, \\
+       &  w \in [0,1]^M.
+    \end{array}
+% \end{equation}
+\]
+This formulation secures the desired level of vertical equity in the PRD sense on that specific validation set, while maximizing the accuracy on it. The problem is, this still does not secure any feasibility of that level of fairness nor the accuracy obtained through the optimal solution. We then make use of the information obtained from the performance of the different folds of the rolling-origin cross validation, to produce a robustified version of (\ref{opt:fair_stacking}).
+
+
+\subsubsection{Robust \& Fair Stack Optimization}
+
+Lets us now consider the performance evaluation metrics on the different pairs of train-validation $K$ folds created with rolling-origin, $\{\D_{1}, \D_2, \ldots , \D_K\}$, where the first dataset consists of the oldest samples, while the subsequent ones include more and more information about recent dates. We define the metrics $\L^k$ and $\F^k$ for all $k\in [K]$, as their respective validation set performance. We are interested in considering a robust approach to the fairness constraint, i.e. $l \leq \F^k(f) \leq u, \forall k\in [K]$, while considering some aggregated measure of accuracy over the folds as the objective. We formulate the robust \& fair stack of learners problem as
+{\everymath{\displaystyle}
+\begin{equation}
+\label{opt:robust_fair_stacking}
+    \begin{array}{rclr}
+    (RFS_{\H_M}):=   \min_{w \in \R^M}  & \Phi\left(\L^1\left(\sum_{m=1}^M  w_m f_m\right),\ldots , \L^k\left(\sum_{m=1}^M  w_m f_m \right)\right)\\
+        s.t. &  l \leq \F^k\left(\sum_{m=1}^M w_mf_m\right)\leq  u, &  &  \forall k = 1,\ldots, K\\
+        & \sum_{m=1}^M w_m =1, \\
+       &  w \in [0,1]^M,
+    \end{array}
+\end{equation}
+}
+\hspace{-3.3mm} where $\Phi:\R^k \rightarrow \R$ is some aggregation mapping that summarizes the performance approach we want to achieve; it could be either average-fold loss, worst-fold loss, time-decay sum, etc. Note that we could also define another sense of robustness, not just the single worst-fold $\F^k$, but some sense of conditional value at risk (CVaR), or some other aggregated measure.
+% Let $\Phi(\L_{})$  
+
+
+% Further than that, there are two main caveats to the proposed method, which are related to the generalization $\ldots$
+
+
+% \subsubsection{Robust modeling of the Stack of Learners}
+
+% \textbf{CVaR Approaches.} 
+
+\newpage
+
+
+% Definitions for PRB/PRD and the interpretation of PRB thresholds are aligned with International Association of Assessing Officers materials. 
+% The VEI definition and its quantile-mean-ratio construction follow the standard “QMR-based VEI” description used in assessment/AVM literature. 
+
+
+
+
+
+% ```tex
+\subsection{Model Selection: Scenario-Robust \& Fair Stacking of Learners}
+
+Let $\H_{M}:=\{f_{1}, f_2 ,\ldots, f_M\}\subset \H$ be a finite collection of \emph{learner configurations} (e.g., different hyperparameters, different values of $\rho\ge 0$, or even different hypothesis spaces, i.e. $\H=\cup_i \H_i$). In a rolling-origin cross-validation procedure we obtain $K$ train--validation folds
+\[
+\{(\D^k_{\mathrm{train}},\D^k_{\mathrm{val}})\}_{k=1}^K,
+\]
+where $\D^1_{\mathrm{train}}$ contains the oldest samples and subsequent folds include increasingly more recent information. For each fold $k$ and each learner $m$, we fit a fold-specific mapping
+\[
+f_m^{\,k} \in \H
+\quad\text{using}\quad \D^k_{\mathrm{train}},
+\]
+and we evaluate performance on $\D^k_{\mathrm{val}}$. (This fold-specific fitting is essential to avoid leakage when using cross-validation information for model selection.)
+
+Given that a single penalized model cannot secure a clear level of vertical equity out-of-sample due to uncertainty in future data, we seek to account for this uncertainty by solving a scenario-robust model selection problem using the fold-wise (out-of-sample) information.
+
+\subsubsection{Fair Stack of Learners}
+
+We start with a \emph{single-fold} fair stacking problem. Let $\D_{\mathrm{val}}=\{(X_{\mathrm{val}},y_{\mathrm{val}})\}$ be a validation dataset. Let $\L_{\mathrm{val}}$ be an empirical loss on $\D_{\mathrm{val}}$ (no additional regularization), and let $\F_{\mathrm{val}}:\H\to\R$ be a fairness/vertical-equity measure (e.g., PRD, PRB, VEI). Let $[l,u]$ be the required interval for $\F_{\mathrm{val}}$ to be considered fair (e.g. PRD$\in[0.98,1.03]$). We define the Fair Stack of Learners problem as
+{\everymath{\displaystyle}
+\begin{equation}
+\label{opt:fair_stacking}
+\begin{array}{rcl}
+(FS_{\H_M}):= \min\limits_{w\in\R^M} & \L_{\mathrm{val}}\!\left(\sum_{m=1}^M w_m f_m \right)\\
+\text{s.t.} & l \le \F_{\mathrm{val}}\!\left(\sum_{m=1}^M w_m f_m\right)\le u,\\
+& \sum_{m=1}^M w_m =1,\\
+& w\in[0,1]^M.
+\end{array}
+\end{equation}
+}
+In general, (\ref{opt:fair_stacking}) need not be convex in $w$ because common vertical-equity measures can be non-convex in the prediction vector. Nonetheless, \emph{in some cases} (e.g. PRD, and other ratio- or regression-based measures under mild assumptions), one can obtain an exact convex reformulation. We illustrate below.
+
+\medskip
+\noindent \textbf{PRD as the fairness measure.}
+Assume $y_i>0$ and that all candidate predictions are positive on $\D_{\mathrm{val}}$ (so that sums of predictions are positive under $w\in[0,1]^M$). Let
+\[
+\hat y_i(w):=\sum_{m=1}^M w_m f_m(x_{\mathrm{val}(i)}),
+\qquad
+PRD(\hat y,y):=\left(\sum_{i=1}^n \frac{\hat y_i}{y_i} \right)\cdot\left(\frac{\sum_{i=1}^n y_i}{\sum_{i=1}^n \hat y_i}\right),
+\]
+and take $\L_{\mathrm{val}}$ as MSE. Introducing $z\in\R$, we can write (\ref{opt:fair_stacking}) as
+\[
+\everymath{\displaystyle}
+\begin{array}{rcl}
+\min\limits_{w\in\R^M,\, z\in\R} & z\\
+\text{s.t.} & \left\|y_{\mathrm{val}}-\hat y(w)\right\|_2 \le z,\\[1mm]
+& l \sum_{i=1}^n \hat y_i(w)\ \le\ \left(\sum_{i=1}^n y_i\right)\left(\sum_{i=1}^n \frac{\hat y_i(w)}{y_i}\right)\ \le\ u \sum_{i=1}^n \hat y_i(w),\\
+& \sum_{m=1}^M w_m =1,\quad w\in[0,1]^M.
+\end{array}
+\]
+The PRD constraints above are linear in $w$ after clearing denominators (since $y_i$ are fixed), while the objective constraint is second-order representable. This secures the desired PRD fairness level on the given validation set while maximizing accuracy on it.
+
+\medskip
+\noindent \textbf{PRB (regression-slope form) as the fairness measure.}
+Let $r_i(w):=\hat y_i(w)/y_i$ be the ratio (well-defined for $y_i>0$), and let $x_i$ be a fixed value proxy on the validation set (e.g., $x_i=\log y_i$ or $x_i=y_i$), with $\bar x := \frac{1}{n}\sum_{i=1}^n x_i$ and $S_{xx}:=\sum_{i=1}^n (x_i-\bar x)^2>0$. Consider the regression-slope measure
+\[
+\beta_{\mathrm{val}}(w):=\frac{1}{S_{xx}} \sum_{i=1}^n (x_i-\bar x)\, r_i(w).
+\]
+Since $r_i(w)$ is affine in $w$ (division by fixed $y_i$), $\beta_{\mathrm{val}}(w)$ is affine in $w$. Hence the fairness constraint
+\[
+l \le \beta_{\mathrm{val}}(w) \le u
+\]
+is a pair of linear inequalities in $w$, and (\ref{opt:fair_stacking}) is convex whenever $\L_{\mathrm{val}}$ is convex in $\hat y(w)$.
+
+\medskip
+\noindent \textbf{VEI (quantile-mean-ratio form) as the fairness measure.}
+    Let $\{Q_j\}_{j=1}^{10}$ denote a partition of the validation indices into ten equal-count quantiles according to increasing $y_i$ (or an equivalent value proxy). Define the quantile mean ratios (QMRs)
+\[
+QMR_j(w):=\frac{1}{|Q_j|}\sum_{i\in Q_j} r_i(w),
+\qquad
+\overline{QMR}(w):=\frac{1}{10}\sum_{j=1}^{10} QMR_j(w),
+\]
+and define the vertical equity index
+\[
+VEI_{\mathrm{val}}(w):=100\cdot \frac{\max_{j\in[10]} QMR_j(w)-\min_{j\in[10]} QMR_j(w)}{\overline{QMR}(w)}.
+\]
+Assuming $\overline{QMR}(w)>0$, an upper-bound fairness requirement $VEI_{\mathrm{val}}(w)\le u$ is equivalent to
+\[
+\max_{j\in[10]} QMR_j(w)-\min_{j\in[10]} QMR_j(w)\ \le\ \frac{u}{100}\,\overline{QMR}(w),
+\]
+which is convex in $w$ (the left-hand side is convex as a sum of $\max$ and $-\min$, and the right-hand side is affine). In contrast, a two-sided interval $l\le VEI_{\mathrm{val}}(w)\le u$ introduces a non-convex lower bound.
+
+\noindent Note: in practice one typically enforces an upper bound for VEI since smaller values indicate better vertical equity.
+
+\subsubsection{Robust \& Fair Stack Optimization}
+
+We now use the $K$ rolling-origin folds $\{(\D^k_{\mathrm{train}},\D^k_{\mathrm{val}})\}_{k=1}^K$ as \emph{scenarios}. For each fold $k$, define the validation loss and fairness metrics by
+\[
+\L^{k}(w):=\L_{\mathrm{val}}^{k}\!\left(\sum_{m=1}^M w_m f_m^{\,k}\right),
+\qquad
+\F^{k}(w):=\F_{\mathrm{val}}^{k}\!\left(\sum_{m=1}^M w_m f_m^{\,k}\right),
+\]
+i.e., they are computed on $\D^k_{\mathrm{val}}$ using fold-fitted learners $\{f_m^{\,k}\}_{m=1}^M$.
+
+We are interested in robust fairness across scenarios, e.g. $l\le \F^k(w)\le u$ for all $k$, while optimizing an aggregated notion of accuracy across folds. We formulate the Robust \& Fair Stack of Learners problem as
+{\everymath{\displaystyle}
+\begin{equation}
+\label{opt:robust_fair_stacking}
+\begin{array}{rcl}
+(RFS_{\H_M}):= \min\limits_{w\in\R^M} &
+\Phi\!\Big(\L^{1}(w),\ldots,\L^{K}(w)\Big)\\
+\text{s.t.} & l \le \F^{k}(w)\le u, &\qquad \forall k=1,\ldots,K,\\
+& \sum_{m=1}^M w_m=1,\\
+& w\in[0,1]^M,
+\end{array}
+\end{equation}
+}
+\hspace{-3.3mm} where $\Phi:\R^{K}\to\R$ aggregates fold-wise losses according to the desired robustness notion. Desired choices include:
+(i) average-fold loss; (ii) worst-fold loss; (iii) a time-decay weighted sum (emphasizing recent folds); and (iv) a tail-risk objective such as $\mathrm{CVaR}_\alpha$ over $\{\L^k(w)\}_{k=1}^K$.
+
+\medskip
+\noindent \textbf{Alternative robustness notions (extensions).}
+Beyond the hard scenario-wise fairness constraints in (\ref{opt:robust_fair_stacking}), one may also consider: (a) tail-risk (CVaR-type) constraints on fairness violations across folds; and/or (b) split each fold's validation set into different temporal block sampling to add awareness of the uncertainty on each fold.
+
+\medskip
+\noindent \textbf{Further extensions (regularization over $w$).}
+If desired, one can add stability/complexity control on the stacking weights without changing the core formulation, e.g. an $\ell_2$ penalty on $w$, an entropy-type penalty, or additional constraints such as $w_m\le w_{\max}$ to prevent overly concentrated solutions.
+
+\newpage
+```
+
+
+
+\newpage 
+
+
+
+
+\subsection{Gradient boosting decision trees with the penalty}
+
+Gradient boosting models based on decision trees (GBDT) are additive models of the form
+\begin{align*}
+    f_T(x) = \sum_{t=1}^T \eta h_t(x),
+\end{align*}
+where each on each iteration we update the general mapping $f_t$, using a weaker learner $h_t$ to predict the residuals of the previous iterations; in other words, we use the update rule
+\[
+f_{t}(x) = f_{t-1}(x) + \eta\, h_t(x),
+\]
+where \(h_t\) is a regression tree and \(\eta\in(0,1]\) is the learning rate.
+
+At iteration \(t\), the tree learner uses gradients (and optionally Hessians) evaluated at current predictions \(\{f_i\}\), to approximate the residuals error using a Taylor expansion of it; a term that is known as \todo{confirm the name} pseudo-residuals. For the penalized objective, the gradient is 
+(\ref{def:loss_gradient}), and the full Hessian is diagonal plus rank-1 in (\ref{def:loss_hessian}).
+
+\subsubsection{Diagonal Hessian approximation}
+A common approximation is to use only the diagonal of the true Hessian instead of the dense matrix, as a proxy of $H_f$, i.e.,
+\[
+(H_f)_{ii} = \frac{1}{n} + \rho\frac{(z_{c})_i^2}{n^2}, \quad \forall i\in[n], \qquad 
+(H_f)_{ij} = 0, \quad \forall i\neq j.
+\]
+This is easy to integrate into ``custom objective'' APIs. It is not exact (the true Hessian has off-diagonals), but often captures the dominant effect when the coupling direction \(\bm z_c\) is not too aligned with leaf indicator vectors.
+
+\subsection{Exact leaf-wise Newton updates (recommended when feasible)}
+A stronger approach is:
+\begin{enumerate}[leftmargin=*]
+\item Build the tree structure using standard split search (possibly with modified gradients).
+\item Given the fixed tree structure (leaf partition), compute \emph{exact} Newton-optimal leaf values under the penalized objective using the rank-1 structure.
+\end{enumerate}
+This preserves the main benefit of Newton boosting while keeping computational cost low.
+
+\section{Exact Newton leaf values and curvature effects}
+
+Assume a tree partitions the training set into leaves \(L=1,\dots,m\). Each leaf adds a constant increment \(\gamma_L\) to the predictions of points in that leaf.
+
+\subsection{Per-leaf aggregates}
+Define
+\[
+G_L := \sum_{i\in L} e_i,
+\qquad
+H_L := \sum_{i\in L} 1 = |L|,
+\qquad
+Z_L := \sum_{i\in L} z_{c,i}.
+\]
+Also recall the current global moment
+\[
+c=\frac{1}{n}\sum_{i=1}^n z_{c,i}e_i.
+\]
+
+\subsection{How the covariance moment changes under a leaf update}
+If leaf \(L\) receives an increment \(\gamma\), then residuals in that leaf shift as \(e_i\leftarrow e_i+\gamma\) for \(i\in L\), implying
+\[
+c_{\text{new}} = c + \frac{1}{n}\sum_{i\in L} z_{c,i}\gamma = c + \frac{Z_L}{n}\gamma.
+\]
+
+\subsection{Exact one-leaf optimum (useful for intuition and coordinate-style updates)}
+Holding other leaves fixed, the exact objective restricted to \(\gamma\) is quadratic:
+\[
+Q_L(\gamma) =
+\underbrace{G_L\gamma + \frac{1}{2}H_L\gamma^2}_{\text{log-MSE contribution}}
+\;+\;
+\frac{\rho}{2}\left(c + \frac{Z_L}{n}\gamma\right)^2.
+\]
+Differentiating and setting to zero yields
+\[
+\boxed{
+\gamma_L^\star
+=
+-\frac{
+G_L + \rho c\,\frac{Z_L}{n}
+}{
+H_L + \rho\frac{Z_L^2}{n^2}
+}
+}.
+\]
+\paragraph{Interpretation.}
+Compared to the standard Newton leaf value \(-G_L/H_L\), the penalty adds:
+\begin{itemize}[leftmargin=*]
+\item a \emph{global coupling bias term} in the numerator (\(\rho c Z_L/n\)), steering \(c\) toward \(0\);
+\item an \emph{extra curvature / shrinkage} term in the denominator (\(\rho Z_L^2/n^2\)), damping leaves whose samples are heavily skewed toward high or low \(z\).
+\end{itemize}
+
+\subsection{Exact multi-leaf optimum for a whole tree}
+When optimizing all leaf values jointly, the penalty couples them through \(c + \sum_L (Z_L/n)\gamma_L\). Let
+\[
+\bm\gamma=(\gamma_1,\dots,\gamma_m)^\top,\quad
+\bm G=(G_1,\dots,G_m)^\top,\quad
+\bm a=\left(\frac{Z_1}{n},\dots,\frac{Z_m}{n}\right)^\top,\quad
+\bm D=\mathrm{diag}(H_1,\dots,H_m).
+\]
+Then the per-tree quadratic objective is
+\[
+Q(\bm\gamma)=\bm G^\top\bm\gamma + \frac{1}{2}\bm\gamma^\top\bm D\bm\gamma
++ \frac{\rho}{2}\left(c + \bm a^\top\bm\gamma\right)^2.
+\]
+Stationarity gives a rank-1 linear system:
+\[
+(\bm D + \rho\,\bm a\bm a^\top)\bm\gamma = -\bm G - \rho c\,\bm a.
+\]
+This can be solved exactly in \(O(m)\) time using Sherman--Morrison:
+\[
+(\bm D+\rho\bm a\bm a^\top)^{-1} =
+\bm D^{-1} - \frac{\rho\,\bm D^{-1}\bm a\bm a^\top \bm D^{-1}}{1+\rho\,\bm a^\top \bm D^{-1}\bm a}.
+\]
+Thus,
+\[
+\boxed{
+\bm\gamma^\star
+=
+-\left(\bm D^{-1} - \frac{\rho\,\bm D^{-1}\bm a\bm a^\top \bm D^{-1}}{1+\rho\,\bm a^\top \bm D^{-1}\bm a}\right)
+(\bm G+\rho c\,\bm a)
+}.
+\]
+This is the exact Newton-optimal set of leaf values for the fixed tree structure.
+
+\section{Split scoring / gain under the penalty}
+
+Standard second-order split gain compares parent vs children using per-leaf \(G\) and \(H\). With the covariance penalty, leaf contributions behave as if they had modified gradient and curvature:
+\[
+\tilde G_L := G_L + \rho c\,\frac{Z_L}{n},
+\qquad
+\tilde H_L := H_L + \rho\frac{Z_L^2}{n^2}.
+\]
+A penalty-aware split proxy is
+\[
+\mathrm{Gain}_\rho \propto
+\frac{\tilde G_L^2}{\tilde H_L} + \frac{\tilde G_R^2}{\tilde H_R} - \frac{\tilde G_P^2}{\tilde H_P}.
+\]
+\paragraph{Consequences.}
+Splits that isolate predominantly high-\(z\) or low-\(z\) samples produce large \(|Z_L|\), inflating curvature and reducing gain. This discourages value-stratified leaves that would create regressivity patterns. Conversely, splits that help correct the current sign of \(c\) can be favored.
+
+\section{Tradeoffs and solution-path behavior in \texorpdfstring{\(\rho\)}{rho}}
+
+The regularization parameter \(\rho\) controls the tradeoff between:
+\begin{itemize}[leftmargin=*]
+\item \textbf{log-space fit:} minimizing \(\frac{1}{2n}\sum e_i^2\);
+\item \textbf{equity moment:} minimizing \(c(f)^2 = \Cov_n(e,z)^2\), i.e., removing value-dependent residual trends.
+\end{itemize}
+
+\subsection{Small-\(\rho\) regime}
+When \(\rho\) is small, the solution is close to standard log-MSE boosting. The penalty mainly nudges updates to reduce the residual-vs-value slope.
+
+\subsection{Large-\(\rho\) regime}
+As \(\rho\to\infty\), the estimator approaches the constrained solution
+\[
+\Cov_n(e,z)=0,
+\]
+i.e., the model is forced to eliminate linear dependence between log residuals and log price. In leaf updates, curvature inflation \(\rho Z_L^2/n^2\) can strongly damp value-skewed leaves, and the coupling term \(\rho c Z_L/n\) acts as a global controller that continually drives the moment toward zero.
+
+\subsection{When can accuracy improve? When can it degrade?}
+\begin{itemize}[leftmargin=*]
+\item If the unconstrained model exhibits systematic shrinkage/regressivity due to misspecification (e.g., missing covariates or limited tree depth), the penalty can reduce bias patterns and \emph{improve} out-of-sample performance on ratio/dispersion metrics and sometimes even on dollar metrics via tail error reduction.
+\item If the residual-vs-value trend reflects genuine structure not captured by available features, forcing \(\Cov(e,z)\approx 0\) can over-correct and degrade fit.
+\end{itemize}
+
+\section{Comparing penalties across scales}
+
+\subsection{\texorpdfstring{\(\Cov(e,z)\)}{Cov(e,z)} is additive and stable}
+This penalty operates in log units: it controls \(\Cov(\log r,\log y)\). The curvature is quadratic with a rank-1 structure, enabling exact Newton leaf updates and interpretable behavior (bias correction and shrinkage tied to \(Z_L\)).
+
+\subsection{\texorpdfstring{\(\Cov(r,y)\)}{Cov(r,y)} is nonlinear and tail-sensitive}
+Since \(r=\exp(e)\) and \(y=\exp(z)\),
+\[
+\Cov(r,y)=\Cov(\exp(e),\exp(z)).
+\]
+This is much more sensitive to tails (large \(z\) and large positive \(e\)). It can directly target dollar-scale blowups but is typically harder to optimize and more unstable unless carefully smoothed or upper-bounded by separable surrogates.
+
+\section{Retransformation bias and fairness moments}
+
+If \(z\mid x\) is approximately normal with conditional variance \(\sigma^2(x)\), then
+\[
+\E[y\mid x] = \exp\!\left(\E[z\mid x] + \frac{1}{2}\sigma^2(x)\right).
+\]
+Thus \(\exp(\hat z)\) targets the conditional median under lognormality, while a correction \(\exp(\hat z+\hat\sigma^2/2)\) targets the conditional mean.
+
+If you apply a multiplicative correction \(\hat y_{\mathrm{corr}}=\exp(\hat z)\,c(x)\), then
+\[
+\log\left(\frac{\hat y_{\mathrm{corr}}}{y}\right)=e+\log c(x),
+\]
+so covariance moments can change depending on how \(\log c(x)\) correlates with \(z\). For fairness constraints, one should specify whether the moment is enforced on the raw \(\exp(\hat z)\) predictor or on the corrected predictor.
+
+\section{Implementation patterns (practical)}
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Custom objective (easy):} use exact gradients and a diagonal Hessian approximation (library-friendly).
+\item \textbf{Exact leaf Newton values (strong):} build tree structure in the usual way; then compute leaf values using the exact rank-1 formulas (single-leaf for intuition, multi-leaf Sherman--Morrison for the exact per-tree optimum).
+\item \textbf{Constraint generalization:} estimate/monitor the covariance moment on a validation set while fitting on training to avoid overfitting the constraint.
+\end{enumerate}
+
+\section*{Quick summary}
+Penalizing \(\Cov(e,z)^2\) in log-space boosting:
+\begin{itemize}[leftmargin=*]
+\item removes linear dependence of log residuals \(e\) with log price \(z\) (equivalently, removes dependence of log-ratio with log price),
+\item introduces diagonal + rank-1 curvature, enabling cheap exact Newton updates at the leaf level,
+\item yields leaf updates with a global coupling correction and value-skew-dependent shrinkage,
+\item creates a tunable tradeoff (\(\rho\)) between log-fit and vertical-equity/dispersion behavior, with clear effects across scales.
+\end{itemize}
+
+
+
+\end{document}
