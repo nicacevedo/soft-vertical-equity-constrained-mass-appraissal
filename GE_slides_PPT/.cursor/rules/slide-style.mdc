@@ -1,0 +1,20 @@
+---
+description: "Slide writing and layout standards for this deck"
+alwaysApply: true
+---
+
+- Every slide must have a takeaway title, not a topic title.
+- One main idea per slide.
+- Keep on-slide text minimal.
+- Prefer diagrams, comparisons, and annotated figures over bullet-heavy slides.
+- Do not add generic fairness-in-ML material unless explicitly requested.
+- Use assessor-facing language.
+- Keep the preliminaries section focused on mass appraisal, taxation, vertical equity, regressivity, and the LR vs LightGBM tension.
+- Use current paper numbers if the beamer and paper disagree.
+- Do not create a new layout for every slide; reuse a small layout set.
+- Never leave placeholder text on final slides.
+- Never render raw LaTeX syntax as visible slide text (e.g., no `\approx`, `\text{}`, `\widehat{P}`, `\times`).
+- Prefer current paper over old beamer when numbers differ.
+- Use clean assessment-ratio notation r = P̂ / P (Unicode, not LaTeX).
+- For preliminaries, the equity slide (7) and the regressivity-plot slide (9) must contain real visuals drawn by the generator or loaded from assets, not descriptions of visuals.
+- The Cook County case-study slide (6) must distinguish the pre-2024 modeling sample (349,661 verified sales over 2016–2023) from the 2024 assessment year.

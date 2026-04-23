@@ -1,0 +1,707 @@
+====================================================================================================
+
+Split: Test
+
+Model: LinearRegression
+
+Fitting:  LinearRegression()
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.7623              —  Closer to 1 is better      
+OOS R2              0.8959              —  Closer to 1 is better      
+R2 (log)            0.7854              —  Closer to 1 is better      
+MAE ($)          86,256.88              —  Lower is better            
+RMSE ($)        176,156.56              —  Lower is better            
+MPE (%)               5.06              —  Signed average percent bias
+MAPE (%)             25.03              —  Lower is better            
+MdAPE (%)            17.66              —  Robust to outliers         
+=========================================================================
+
+=====================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=====================================================================================
+Metric                            Value  IAAO expected              Interpretation
+-------------------------------------------------------------------------------------
+Median Ratio                     1.0005   [0.90, 1.10]  Within 0.90–1.10 level    
+Weighted Mean Ratio              1.0114   [0.90, 1.10]  Within 0.90–1.10 level    
+COD (%) [Residential Improved]    25.01    [5.0, 15.0]  Above Table 7 range       
+PRD                              1.0387   [0.98, 1.03]  Regressive tendency       
+PRB                             -0.0109  [-0.05, 0.05]  Regressive tendency       
+VEI (%)                          -13.47     [-10, 10]%  Regressive beyond guidance
+=====================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.1147         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.2529         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.2647         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.0916         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.0638         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828          6,329          12.72  51,375    36.13     1.1272       1.0367              1.0379 1.0860 -0.1035
+2        11,625             26.4 255,300   402,990         325,123         -1,715          -0.70  65,005    20.16     0.9930       0.9789              0.9947 0.9983  0.7314
+3        11,656             60.0 403,000 6,500,000         736,763          9,403           3.12 142,424    18.74     1.0312       1.0025              1.0128 1.0182  0.1069
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.0342, weighted_ratio_drop=0.0252, mean_error_gap=3,073.27, MPE_gap=-9.59 pts, MAPE_gap=-17.39 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        8,796              8.8  12,000   220,000         142,834         11,686          18.26  48,292    39.67     1.1826       1.0903              1.0818 1.0932 -0.1110
+2        8,694             16.6 220,400   324,900         272,836         -7,008          -2.69  61,376    22.70     0.9731       0.9514              0.9743 0.9988  0.9410
+3        8,738             23.5 324,999   467,500         385,055          4,127           1.00  70,910    18.49     1.0100       0.9971              1.0107 0.9993  0.8187
+4        8,739             51.2 467,770 6,500,000         838,059          9,806           3.53 164,567    19.14     1.0353       1.0014              1.0117 1.0234  0.1113
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.0889, weighted_ratio_drop=0.0701, mean_error_gap=-1,879.64, MPE_gap=-14.73 pts, MAPE_gap=-20.53 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        6,999              6.2  12,000   194,000         126,129         17,062          24.08  45,609    42.59     1.2408       1.1521              1.1353 1.0930 -0.1055
+2        7,010             11.8 194,500   282,000         241,429         -8,883          -3.74  59,672    24.98     0.9626       0.9327              0.9632 0.9994  1.0079
+3        6,972             15.8 282,150   367,000         323,613         -1,639          -0.57  64,944    20.13     0.9943       0.9823              0.9949 0.9993  1.0554
+4        6,995             21.2 367,250   528,000         433,154          7,591           1.69  76,571    17.73     1.0169       1.0029              1.0175 0.9994  0.8006
+5        6,991             45.1 528,500 6,500,000         923,398          9,269           3.82 184,555    19.67     1.0382       0.9988              1.0100 1.0279  0.1180
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1533, weighted_ratio_drop=0.1252, mean_error_gap=-7,793.14, MPE_gap=-20.26 pts, MAPE_gap=-22.92 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.
+
+====================================================================================================
+
+Split: Test
+
+Model: LGBMRegressor
+
+Fitting:  LGBMRegressor(cat_l2=1.0, cat_smooth=82.0, learning_rate=0.012806, max_bin=322,
+              max_cat_threshold=165, max_depth=15, min_child_samples=30,
+              min_data_per_group=300, min_split_gain=0.023317, n_estimators=500,
+              n_jobs=1, num_leaves=1209, objective='mse', random_state=2025,
+              reg_alpha=0.001, reg_lambda=0.01, verbosity=-1)
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.8867              —  Closer to 1 is better      
+OOS R2              0.9504              —  Closer to 1 is better      
+R2 (log)            0.8283              —  Closer to 1 is better      
+MAE ($)          71,336.86              —  Lower is better            
+RMSE ($)        121,613.65              —  Lower is better            
+MPE (%)               1.60              —  Signed average percent bias
+MAPE (%)             22.11              —  Lower is better            
+MdAPE (%)            15.86              —  Robust to outliers         
+=========================================================================
+
+=====================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=====================================================================================
+Metric                            Value  IAAO expected              Interpretation
+-------------------------------------------------------------------------------------
+Median Ratio                     0.9427   [0.90, 1.10]  Within 0.90–1.10 level    
+Weighted Mean Ratio              0.9390   [0.90, 1.10]  Within 0.90–1.10 level    
+COD (%) [Residential Improved]    22.74    [5.0, 15.0]  Above Table 7 range       
+PRD                              1.0819   [0.98, 1.03]  Regressive tendency       
+PRB                             -0.1139  [-0.05, 0.05]  Regressive tendency       
+VEI (%)                          -36.81     [-10, 10]%  Regressive beyond guidance
+=====================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.2465         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.4765         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.4685         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.1372         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.1462         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828         14,421          19.06  47,005    35.81     1.1906       1.0775              1.0864 1.0959 -0.2068
+2        11,625             26.4 255,300   402,990         325,123        -19,273          -5.80  48,970    15.14     0.9420       0.9275              0.9407 1.0014  0.5316
+3        11,656             60.0 403,000 6,500,000         736,763        -70,137          -8.54 118,039    15.34     0.9146       0.9003              0.9048 1.0108  0.0435
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1772, weighted_ratio_drop=0.1816, mean_error_gap=-84,557.71, MPE_gap=-27.60 pts, MAPE_gap=-20.48 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        8,796              8.8  12,000   220,000         142,834         21,680          26.37  47,565    41.36     1.2637       1.1581              1.1518 1.0971 -0.1843
+2        8,694             16.6 220,400   324,900         272,836        -12,229          -4.37  45,465    16.83     0.9563       0.9403              0.9552 1.0011  0.7604
+3        8,738             23.5 324,999   467,500         385,055        -27,280          -7.01  55,815    14.49     0.9299       0.9158              0.9292 1.0008  0.6342
+4        8,739             51.2 467,770 6,500,000         838,059        -82,281          -8.80 136,522    15.63     0.9120       0.8975              0.9018 1.0113  0.0469
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.2607, weighted_ratio_drop=0.2500, mean_error_gap=-103,960.24, MPE_gap=-35.16 pts, MAPE_gap=-25.72 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        6,999              6.2  12,000   194,000         126,129         27,839          33.41  47,462    46.04     1.3341       1.2411              1.2207 1.0929 -0.1554
+2        7,010             11.8 194,500   282,000         241,429         -7,587          -3.01  45,423    19.10     0.9699       0.9519              0.9686 1.0014  0.8437
+3        6,972             15.8 282,150   367,000         323,613        -18,941          -5.81  48,171    14.93     0.9419       0.9290              0.9415 1.0004  0.9109
+4        6,995             21.2 367,250   528,000         433,154        -34,271          -7.85  63,643    14.68     0.9215       0.9055              0.9209 1.0006  0.6278
+5        6,991             45.1 528,500 6,500,000         923,398        -91,965          -8.80 152,024    15.79     0.9120       0.8989              0.9004 1.0129  0.0463
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.3422, weighted_ratio_drop=0.3203, mean_error_gap=-119,803.75, MPE_gap=-42.21 pts, MAPE_gap=-30.25 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.
+
+====================================================================================================
+
+Split: Test
+
+Model: LGBCovPenalty_mode_diff_rho_0.0
+
+Fitting:  <soft_constrained_models.boosting_models.LGBCovPenalty object at 0x14f34cdd1b80>
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.8796              —  Closer to 1 is better      
+OOS R2              0.9473              —  Closer to 1 is better      
+R2 (log)            0.8233              —  Closer to 1 is better      
+MAE ($)          73,641.25              —  Lower is better            
+RMSE ($)        125,389.91              —  Lower is better            
+MPE (%)               0.69              —  Signed average percent bias
+MAPE (%)             22.48              —  Lower is better            
+MdAPE (%)            16.59              —  Robust to outliers         
+=========================================================================
+
+=====================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=====================================================================================
+Metric                            Value  IAAO expected              Interpretation
+-------------------------------------------------------------------------------------
+Median Ratio                     0.9311   [0.90, 1.10]  Within 0.90–1.10 level    
+Weighted Mean Ratio              0.9256   [0.90, 1.10]  Within 0.90–1.10 level    
+COD (%) [Residential Improved]    23.09    [5.0, 15.0]  Above Table 7 range       
+PRD                              1.0878   [0.98, 1.03]  Regressive tendency       
+PRB                             -0.1241  [-0.05, 0.05]  Regressive tendency       
+VEI (%)                          -40.27     [-10, 10]%  Regressive beyond guidance
+=====================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.2583         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.4936         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.4854         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.1426         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.1575         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828         13,894          19.02  46,722    35.83     1.1902       1.0761              1.0833 1.0987 -0.2242
+2        11,625             26.4 255,300   402,990         325,123        -23,130          -6.98  50,387    15.56     0.9302       0.9164              0.9289 1.0015  0.5364
+3        11,656             60.0 403,000 6,500,000         736,763        -82,214         -10.05 123,823    15.98     0.8995       0.8842              0.8884 1.0125  0.0389
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1919, weighted_ratio_drop=0.1949, mean_error_gap=-96,108.33, MPE_gap=-29.07 pts, MAPE_gap=-19.85 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        8,796              8.8  12,000   220,000         142,834         21,585          26.56  47,253    41.41     1.2656       1.1593              1.1511 1.0995 -0.2019
+2        8,694             16.6 220,400   324,900         272,836        -14,993          -5.37  45,954    16.99     0.9463       0.9278              0.9450 1.0013  0.7656
+3        8,738             23.5 324,999   467,500         385,055        -31,828          -8.20  57,834    15.02     0.9180       0.9047              0.9173 1.0007  0.6396
+4        8,739             51.2 467,770 6,500,000         838,059        -96,832         -10.45 143,551    16.34     0.8955       0.8795              0.8845 1.0125  0.0434
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.2798, weighted_ratio_drop=0.2667, mean_error_gap=-118,416.44, MPE_gap=-37.01 pts, MAPE_gap=-25.08 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        6,999              6.2  12,000   194,000         126,129         27,943          33.76  47,320    46.23     1.3376       1.2465              1.2215 1.0950 -0.1729
+2        7,010             11.8 194,500   282,000         241,429         -9,517          -3.78  45,305    19.03     0.9622       0.9415              0.9606 1.0017  0.8472
+3        6,972             15.8 282,150   367,000         323,613        -22,816          -7.01  49,608    15.36     0.9299       0.9179              0.9295 1.0005  0.9146
+4        6,995             21.2 367,250   528,000         433,154        -39,506          -9.06  65,896    15.20     0.9094       0.8938              0.9088 1.0007  0.6316
+5        6,991             45.1 528,500 6,500,000         923,398       -108,462         -10.53 160,123    16.53     0.8947       0.8789              0.8825 1.0138  0.0433
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.3676, weighted_ratio_drop=0.3390, mean_error_gap=-136,404.82, MPE_gap=-44.29 pts, MAPE_gap=-29.69 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.
+
+====================================================================================================
+
+Split: Test
+
+Model: LGBSmoothPenalty_mode_diff_rho_0.0
+
+Fitting:  <soft_constrained_models.boosting_models.LGBSmoothPenalty object at 0x14f34cdd1bb0>
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.8796              —  Closer to 1 is better      
+OOS R2              0.9473              —  Closer to 1 is better      
+R2 (log)            0.8233              —  Closer to 1 is better      
+MAE ($)          73,641.25              —  Lower is better            
+RMSE ($)        125,389.91              —  Lower is better            
+MPE (%)               0.69              —  Signed average percent bias
+MAPE (%)             22.48              —  Lower is better            
+MdAPE (%)            16.59              —  Robust to outliers         
+=========================================================================
+
+=====================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=====================================================================================
+Metric                            Value  IAAO expected              Interpretation
+-------------------------------------------------------------------------------------
+Median Ratio                     0.9311   [0.90, 1.10]  Within 0.90–1.10 level    
+Weighted Mean Ratio              0.9256   [0.90, 1.10]  Within 0.90–1.10 level    
+COD (%) [Residential Improved]    23.09    [5.0, 15.0]  Above Table 7 range       
+PRD                              1.0878   [0.98, 1.03]  Regressive tendency       
+PRB                             -0.1241  [-0.05, 0.05]  Regressive tendency       
+VEI (%)                          -40.27     [-10, 10]%  Regressive beyond guidance
+=====================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.2583         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.4936         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.4854         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.1426         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.1575         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828         13,894          19.02  46,722    35.83     1.1902       1.0761              1.0833 1.0987 -0.2242
+2        11,625             26.4 255,300   402,990         325,123        -23,130          -6.98  50,387    15.56     0.9302       0.9164              0.9289 1.0015  0.5364
+3        11,656             60.0 403,000 6,500,000         736,763        -82,214         -10.05 123,823    15.98     0.8995       0.8842              0.8884 1.0125  0.0389
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1919, weighted_ratio_drop=0.1949, mean_error_gap=-96,108.33, MPE_gap=-29.07 pts, MAPE_gap=-19.85 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        8,796              8.8  12,000   220,000         142,834         21,585          26.56  47,253    41.41     1.2656       1.1593              1.1511 1.0995 -0.2019
+2        8,694             16.6 220,400   324,900         272,836        -14,993          -5.37  45,954    16.99     0.9463       0.9278              0.9450 1.0013  0.7656
+3        8,738             23.5 324,999   467,500         385,055        -31,828          -8.20  57,834    15.02     0.9180       0.9047              0.9173 1.0007  0.6396
+4        8,739             51.2 467,770 6,500,000         838,059        -96,832         -10.45 143,551    16.34     0.8955       0.8795              0.8845 1.0125  0.0434
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.2798, weighted_ratio_drop=0.2667, mean_error_gap=-118,416.44, MPE_gap=-37.01 pts, MAPE_gap=-25.08 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        6,999              6.2  12,000   194,000         126,129         27,943          33.76  47,320    46.23     1.3376       1.2465              1.2215 1.0950 -0.1729
+2        7,010             11.8 194,500   282,000         241,429         -9,517          -3.78  45,305    19.03     0.9622       0.9415              0.9606 1.0017  0.8472
+3        6,972             15.8 282,150   367,000         323,613        -22,816          -7.01  49,608    15.36     0.9299       0.9179              0.9295 1.0005  0.9146
+4        6,995             21.2 367,250   528,000         433,154        -39,506          -9.06  65,896    15.20     0.9094       0.8938              0.9088 1.0007  0.6316
+5        6,991             45.1 528,500 6,500,000         923,398       -108,462         -10.53 160,123    16.53     0.8947       0.8789              0.8825 1.0138  0.0433
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.3676, weighted_ratio_drop=0.3390, mean_error_gap=-136,404.82, MPE_gap=-44.29 pts, MAPE_gap=-29.69 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.
+
+====================================================================================================
+
+Split: Test
+
+Model: LGBCovPenalty_mode_diff_rho_2.98
+
+Fitting:  <soft_constrained_models.boosting_models.LGBCovPenalty object at 0x14f34cdd16a0>
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.8892              —  Closer to 1 is better      
+OOS R2              0.9515              —  Closer to 1 is better      
+R2 (log)            0.8222              —  Closer to 1 is better      
+MAE ($)          71,871.32              —  Lower is better            
+RMSE ($)        120,254.16              —  Lower is better            
+MPE (%)               2.09              —  Signed average percent bias
+MAPE (%)             22.39              —  Lower is better            
+MdAPE (%)            15.92              —  Robust to outliers         
+=========================================================================
+
+=====================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=====================================================================================
+Metric                            Value  IAAO expected              Interpretation
+-------------------------------------------------------------------------------------
+Median Ratio                     0.9496   [0.90, 1.10]  Within 0.90–1.10 level    
+Weighted Mean Ratio              0.9597   [0.90, 1.10]  Within 0.90–1.10 level    
+COD (%) [Residential Improved]    23.06    [5.0, 15.0]  Above Table 7 range       
+PRD                              1.0638   [0.98, 1.03]  Regressive tendency       
+PRB                             -0.0848  [-0.05, 0.05]  Regressive tendency       
+VEI (%)                          -25.83     [-10, 10]%  Regressive beyond guidance
+=====================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.1951         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.4185         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.4112         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.1153         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.1214         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828         13,117          17.85  47,585    35.78     1.1785       1.0692              1.0786 1.0926 -0.1655
+2        11,625             26.4 255,300   402,990         325,123        -18,943          -5.75  51,327    15.87     0.9425       0.9249              0.9417 1.0009  0.5729
+3        11,656             60.0 403,000 6,500,000         736,763        -43,754          -5.90 116,709    15.46     0.9410       0.9225              0.9406 1.0004  0.0772
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1468, weighted_ratio_drop=0.1380, mean_error_gap=-56,871.17, MPE_gap=-23.76 pts, MAPE_gap=-20.31 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        8,796              8.8  12,000   220,000         142,834         20,285          24.91  47,918    41.14     1.2491       1.1444              1.1420 1.0937 -0.1373
+2        8,694             16.6 220,400   324,900         272,836        -13,086          -4.70  47,394    17.52     0.9530       0.9338              0.9520 1.0010  0.7947
+3        8,738             23.5 324,999   467,500         385,055        -24,553          -6.35  58,013    15.08     0.9365       0.9202              0.9362 1.0003  0.6793
+4        8,739             51.2 467,770 6,500,000         838,059        -48,864          -5.68 134,189    15.67     0.9432       0.9254              0.9417 1.0016  0.0821
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.2190, weighted_ratio_drop=0.2003, mean_error_gap=-69,148.79, MPE_gap=-30.59 pts, MAPE_gap=-25.47 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        6,999              6.2  12,000   194,000         126,129         26,219          31.64  47,607    45.62     1.3164       1.2262              1.2079 1.0898 -0.1057
+2        7,010             11.8 194,500   282,000         241,429         -8,526          -3.39  47,008    19.75     0.9661       0.9457              0.9647 1.0014  0.8735
+3        6,972             15.8 282,150   367,000         323,613        -18,706          -5.76  50,564    15.66     0.9424       0.9256              0.9422 1.0002  0.9443
+4        6,995             21.2 367,250   528,000         433,154        -29,371          -6.77  65,356    15.09     0.9323       0.9149              0.9322 1.0002  0.6746
+5        6,991             45.1 528,500 6,500,000         923,398        -52,178          -5.31 148,863    15.79     0.9469       0.9284              0.9435 1.0036  0.0834
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.2978, weighted_ratio_drop=0.2644, mean_error_gap=-78,396.62, MPE_gap=-36.95 pts, MAPE_gap=-29.83 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.
+
+====================================================================================================
+
+Split: Test
+
+Model: LGBSmoothPenalty_mode_diff_rho_2.98
+
+Fitting:  <soft_constrained_models.boosting_models.LGBSmoothPenalty object at 0x14f34cdd10d0>
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.8860              —  Closer to 1 is better      
+OOS R2              0.9501              —  Closer to 1 is better      
+R2 (log)            0.8057              —  Closer to 1 is better      
+MAE ($)          73,321.65              —  Lower is better            
+RMSE ($)        121,975.85              —  Lower is better            
+MPE (%)              -1.75              —  Signed average percent bias
+MAPE (%)             21.88              —  Lower is better            
+MdAPE (%)            16.44              —  Robust to outliers         
+=========================================================================
+
+=====================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=====================================================================================
+Metric                            Value  IAAO expected              Interpretation
+-------------------------------------------------------------------------------------
+Median Ratio                     0.9350   [0.90, 1.10]  Within 0.90–1.10 level    
+Weighted Mean Ratio              0.9388   [0.90, 1.10]  Within 0.90–1.10 level    
+COD (%) [Residential Improved]    22.50    [5.0, 15.0]  Above Table 7 range       
+PRD                              1.0465   [0.98, 1.03]  Regressive tendency       
+PRB                             -0.0327  [-0.05, 0.05]  Regressive tendency       
+VEI (%)                          -13.00     [-10, 10]%  Regressive beyond guidance
+=====================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.1523         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.3017         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.3237         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.0866         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.0973         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828           -309           6.96  48,849    33.11     1.0696       0.9897              0.9981 1.0716 -0.0325
+2        11,625             26.4 255,300   402,990         325,123        -18,995          -5.88  56,053    17.44     0.9412       0.9283              0.9416 0.9997  0.6492
+3        11,656             60.0 403,000 6,500,000         736,763        -55,945          -6.38 115,080    15.05     0.9362       0.9187              0.9241 1.0131  0.0427
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.0710, weighted_ratio_drop=0.0741, mean_error_gap=-55,635.46, MPE_gap=-13.35 pts, MAPE_gap=-18.06 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        8,796              8.8  12,000   220,000         142,834          5,186          11.58  46,574    36.33     1.1158       1.0322              1.0363 1.0768 -0.0147
+2        8,694             16.6 220,400   324,900         272,836        -17,518          -6.47  54,905    20.36     0.9353       0.9199              0.9358 0.9995  0.8805
+3        8,738             23.5 324,999   467,500         385,055        -21,464          -5.57  59,601    15.55     0.9443       0.9321              0.9443 1.0001  0.7167
+4        8,739             51.2 467,770 6,500,000         838,059        -66,631          -6.67 132,284    15.18     0.9333       0.9149              0.9205 1.0139  0.0424
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1173, weighted_ratio_drop=0.1158, mean_error_gap=-71,817.10, MPE_gap=-18.26 pts, MAPE_gap=-21.15 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD    PRB
+Quantile                                                                                                                                                                  
+1        6,999              6.2  12,000   194,000         126,129         10,302          16.37  43,685    38.51     1.1637       1.0819              1.0817 1.0759 0.0051
+2        7,010             11.8 194,500   282,000         241,429        -16,436          -6.84  55,587    23.35     0.9316       0.9164              0.9319 0.9997 0.9609
+3        6,972             15.8 282,150   367,000         323,613        -18,552          -5.75  55,405    17.20     0.9425       0.9309              0.9427 0.9998 0.9929
+4        6,995             21.2 367,250   528,000         433,154        -25,349          -5.83  64,998    15.04     0.9417       0.9259              0.9415 1.0002 0.6912
+5        6,991             45.1 528,500 6,500,000         923,398        -75,348          -6.74 146,971    15.27     0.9326       0.9143              0.9184 1.0155 0.0394
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1676, weighted_ratio_drop=0.1633, mean_error_gap=-85,649.70, MPE_gap=-23.11 pts, MAPE_gap=-23.23 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.
+
+====================================================================================================
+
+Split: Test
+
+Model: LGBCovPenalty_mode_diff_rho_5.96
+
+Fitting:  <soft_constrained_models.boosting_models.LGBCovPenalty object at 0x14f34cdd18b0>
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.8855              —  Closer to 1 is better      
+OOS R2              0.9498              —  Closer to 1 is better      
+R2 (log)            0.8203              —  Closer to 1 is better      
+MAE ($)          72,297.17              —  Lower is better            
+RMSE ($)        122,292.50              —  Lower is better            
+MPE (%)               2.48              —  Signed average percent bias
+MAPE (%)             22.44              —  Lower is better            
+MdAPE (%)            15.84              —  Robust to outliers         
+=========================================================================
+
+=====================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=====================================================================================
+Metric                            Value  IAAO expected              Interpretation
+-------------------------------------------------------------------------------------
+Median Ratio                     0.9566   [0.90, 1.10]  Within 0.90–1.10 level    
+Weighted Mean Ratio              0.9707   [0.90, 1.10]  Within 0.90–1.10 level    
+COD (%) [Residential Improved]    23.08    [5.0, 15.0]  Above Table 7 range       
+PRD                              1.0557   [0.98, 1.03]  Regressive tendency       
+PRB                             -0.0711  [-0.05, 0.05]  Regressive tendency       
+VEI (%)                          -21.55     [-10, 10]%  Regressive beyond guidance
+=====================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.1725         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.3895         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.3949         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.1079         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.1189         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828         12,843          17.30  47,986    35.72     1.1730       1.0665              1.0770 1.0892 -0.1392
+2        11,625             26.4 255,300   402,990         325,123        -17,523          -5.33  51,794    16.03     0.9467       0.9283              0.9461 1.0007  0.5882
+3        11,656             60.0 403,000 6,500,000         736,763        -31,332          -4.59 117,120    15.52     0.9541       0.9332              0.9575 0.9965  0.0893
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1333, weighted_ratio_drop=0.1195, mean_error_gap=-44,174.13, MPE_gap=-21.89 pts, MAPE_gap=-20.19 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        8,796              8.8  12,000   220,000         142,834         19,674          24.07  48,248    40.97     1.2407       1.1458              1.1377 1.0905 -0.1103
+2        8,694             16.6 220,400   324,900         272,836        -12,241          -4.39  48,093    17.78     0.9561       0.9371              0.9551 1.0010  0.8088
+3        8,738             23.5 324,999   467,500         385,055        -22,337          -5.78  58,230    15.13     0.9422       0.9263              0.9420 1.0002  0.6927
+4        8,739             51.2 467,770 6,500,000         838,059        -33,216          -4.15 134,648    15.73     0.9585       0.9389              0.9604 0.9981  0.0939
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.2069, weighted_ratio_drop=0.1774, mean_error_gap=-52,889.43, MPE_gap=-28.22 pts, MAPE_gap=-25.24 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                   
+1        6,999              6.2  12,000   194,000         126,129         25,390          30.56  47,804    45.31     1.3056       1.2187              1.2013 1.0868 -0.0771
+2        7,010             11.8 194,500   282,000         241,429         -7,913          -3.14  47,645    20.02     0.9686       0.9507              0.9672 1.0014  0.8834
+3        6,972             15.8 282,150   367,000         323,613        -17,467          -5.38  51,224    15.87     0.9462       0.9286              0.9460 1.0002  0.9589
+4        6,995             21.2 367,250   528,000         433,154        -26,162          -6.04  65,537    15.12     0.9396       0.9215              0.9396 1.0000  0.6893
+5        6,991             45.1 528,500 6,500,000         923,398        -33,798          -3.62 149,318    15.84     0.9638       0.9431              0.9634 1.0004  0.0954
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.2756, weighted_ratio_drop=0.2379, mean_error_gap=-59,188.37, MPE_gap=-34.18 pts, MAPE_gap=-29.46 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.
+
+====================================================================================================
+
+Split: Test
+
+Model: LGBSmoothPenalty_mode_diff_rho_5.96
+
+Fitting:  <soft_constrained_models.boosting_models.LGBSmoothPenalty object at 0x14f34cdd1a00>
+
+====================================================================================================
+
+=========================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+=========================================================================
+Metric               Value  IAAO expected               Interpretation
+-------------------------------------------------------------------------
+Count               34,967              —  Valid observations         
+Mean Price ($)  409,437.91              —  Scale of target            
+R2                  0.8854              —  Closer to 1 is better      
+OOS R2              0.9498              —  Closer to 1 is better      
+R2 (log)            0.7944              —  Closer to 1 is better      
+MAE ($)          73,995.04              —  Lower is better            
+RMSE ($)        122,324.36              —  Lower is better            
+MPE (%)              -2.34              —  Signed average percent bias
+MAPE (%)             22.11              —  Lower is better            
+MdAPE (%)            16.74              —  Robust to outliers         
+=========================================================================
+
+=================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+=================================================================================
+Metric                            Value  IAAO expected          Interpretation
+---------------------------------------------------------------------------------
+Median Ratio                     0.9357   [0.90, 1.10]  Within 0.90–1.10 level
+Weighted Mean Ratio              0.9414   [0.90, 1.10]  Within 0.90–1.10 level
+COD (%) [Residential Improved]    22.76    [5.0, 15.0]  Above Table 7 range   
+PRD                              1.0375   [0.98, 1.03]  Regressive tendency   
+PRB                             -0.0124  [-0.05, 0.05]  Regressive tendency   
+VEI (%)                           -8.97     [-10, 10]%  Within guidance       
+=================================================================================
+
+=======================================================================================================
+PRICE-DEPENDENCE DIAGNOSTICS
+=======================================================================================================
+Metric                      Value  IAAO expected                                      Interpretation
+-------------------------------------------------------------------------------------------------------
+Corr(r,price)             -0.1231         Near 0  Negative suggests underprediction at higher prices
+Corr(r,logprice)          -0.2493         Near 0  Negative suggests underprediction at higher prices
+dCor(r,logprice)           0.3021         Near 0  Lower is better                                   
+ChatterjeeXi(r,logprice)   0.0864         Near 0  Lower is better                                   
+nHSIC(r,logprice)          0.1008         Near 0  Lower is better                                   
+=======================================================================================================
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=3)
+===========================================================================
+          Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD     PRB
+Quantile                                                                                                                                                                    
+1        11,686             13.6  12,000   255,000         166,828         -4,805           3.76  50,547    33.24     1.0376       0.9551              0.9712 1.0684 -0.0008
+2        11,625             26.4 255,300   402,990         325,123        -17,224          -5.41  58,957    18.41     0.9459       0.9346              0.9470 0.9988  0.6859
+3        11,656             60.0 403,000 6,500,000         736,763        -50,039          -5.37 112,502    14.64     0.9463       0.9285              0.9321 1.0152  0.0356
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.0266, weighted_ratio_drop=0.0391, mean_error_gap=-45,233.73, MPE_gap=-9.13 pts, MAPE_gap=-18.60 pts, mean_actual_multiple=4.42x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD    PRB
+Quantile                                                                                                                                                                  
+1        8,796              8.8  12,000   220,000         142,834            454           7.85  46,922    35.71     1.0785       0.9937              1.0032 1.0751 0.0104
+2        8,694             16.6 220,400   324,900         272,836        -18,976          -7.08  59,795    22.20     0.9292       0.9102              0.9304 0.9986 0.9232
+3        8,738             23.5 324,999   467,500         385,055        -16,839          -4.40  60,005    15.70     0.9560       0.9454              0.9563 0.9998 0.7338
+4        8,739             51.2 467,770 6,500,000         838,059        -60,820          -5.81 129,360    14.76     0.9419       0.9240              0.9274 1.0157 0.0347
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.0697, weighted_ratio_drop=0.0758, mean_error_gap=-61,274.83, MPE_gap=-13.65 pts, MAPE_gap=-20.95 pts, mean_actual_multiple=5.87x | Interpretation: regressive tilt if ratio drop stays positive.
+
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=5)
+===========================================================================
+         Count Actual Share (%) Min ($)   Max ($) Mean Actual ($) Mean Error ($) Mean Error (%) MAE ($) MAPE (%) Mean Ratio Median Ratio Weighted Mean Ratio    PRD    PRB
+Quantile                                                                                                                                                                  
+1        6,999              6.2  12,000   194,000         126,129          5,434          12.20  43,073    37.22     1.1220       1.0343              1.0431 1.0756 0.0242
+2        7,010             11.8 194,500   282,000         241,429        -19,476          -8.16  60,464    25.39     0.9184       0.8955              0.9193 0.9990 1.0056
+3        6,972             15.8 282,150   367,000         323,613        -16,959          -5.29  58,768    18.27     0.9471       0.9383              0.9476 0.9995 1.0162
+4        6,995             21.2 367,250   528,000         433,154        -19,383          -4.45  63,728    14.77     0.9555       0.9395              0.9553 1.0003 0.6941
+5        6,991             45.1 528,500 6,500,000         923,398        -69,706          -5.98 143,980    14.88     0.9402       0.9221              0.9245 1.0170 0.0324
+===========================================================================
+Low-vs-high strata contrast: median_ratio_drop=0.1122, weighted_ratio_drop=0.1186, mean_error_gap=-75,139.92, MPE_gap=-18.18 pts, MAPE_gap=-22.34 pts, mean_actual_multiple=7.32x | Interpretation: regressive tilt if ratio drop stays positive.

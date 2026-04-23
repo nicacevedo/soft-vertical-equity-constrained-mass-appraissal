@@ -19,10 +19,12 @@ Models
 
 Outputs
 -------
-Writes 2 CSV tables under `--out-dir`:
+Writes CSV tables and text reports under `--out-dir`:
   - quick_test_metrics_test.csv
   - quick_test_metrics_assess.csv
   - quick_test_metrics_validation_bootstrap_avg.csv
+  - quick_test_report_test.txt
+  - quick_test_report_assess.txt
 
 Each table contains accuracy + vertical equity metrics computed with the same
 metric routine used elsewhere in this repo (`_compute_extended_metrics`).
@@ -65,15 +67,20 @@ from utils.plotting_utils import (
     plot_residual_vs_logprediction,
 )
 from utils.motivation_utils import (
+    IAAO_COD_RANGES,
+    IAAO_LEVEL_RANGE,
     IAAO_PRB_RANGE,
     IAAO_PRD_RANGE,
     IAAO_VEI_RANGE,
     _build_time_block_bootstrap_indices,
     _compute_extended_metrics,
+    prb,
+    prd,
 )
 
 
 _PAIRWISE_DEPENDENCE_SAMPLE_N = 1024
+_QUANTILE_ANALYSIS_COUNTS = (3, 4, 5)
 _RATIO_MODES = ("diff",)
 _MAIN_SWEEP_FAMILIES = (
     "LGBCovPenalty[diff]",
@@ -448,64 +455,225 @@ def _compute_logprice_dependence_metrics(
     }
 
 
-def _compute_quantile_block_error_metrics(
+def _in_range(value: float, bounds: Tuple[float, float]) -> bool:
+    return bool(np.isfinite(value) and (float(bounds[0]) <= float(value) <= float(bounds[1])))
+
+
+def _interp_prd(value: float) -> str:
+    if not np.isfinite(value):
+        return "—"
+    if value > float(IAAO_PRD_RANGE[1]):
+        return "Regressive tendency"
+    if value < float(IAAO_PRD_RANGE[0]):
+        return "Progressive tendency"
+    return "Within guidance"
+
+
+def _interp_prb(value: float) -> str:
+    if not np.isfinite(value):
+        return "—"
+    if value < 0.0:
+        return "Regressive tendency"
+    if value > 0.0:
+        return "Progressive tendency"
+    return "No bias"
+
+
+def _interp_vei(value: float) -> str:
+    if not np.isfinite(value):
+        return "—"
+    if _in_range(value, IAAO_VEI_RANGE):
+        return "Within guidance"
+    if value < float(IAAO_VEI_RANGE[0]):
+        return "Regressive beyond guidance"
+    return "Progressive beyond guidance"
+
+
+def _interp_level(value: float) -> str:
+    if not np.isfinite(value):
+        return "—"
+    if _in_range(value, IAAO_LEVEL_RANGE):
+        return "Within 0.90–1.10 level"
+    if value < float(IAAO_LEVEL_RANGE[0]):
+        return "Below 0.90 level"
+    return "Above 1.10 level"
+
+
+def _interp_cod(value: float, *, property_class: str = "Residential Improved") -> str:
+    bounds = IAAO_COD_RANGES.get(str(property_class))
+    if not np.isfinite(value):
+        return "—"
+    if bounds is None:
+        return "Lower is better"
+    if _in_range(value, bounds):
+        return "Within Table 7 range"
+    if value < float(bounds[0]):
+        return "Below Table 7 range"
+    return "Above Table 7 range"
+
+
+def _fmt_num(value: Any, digits: int = 4, *, comma: bool = False) -> str:
+    if isinstance(value, (bool, np.bool_)):
+        return str(bool(value))
+    if value is None:
+        return "—"
+    if isinstance(value, (int, np.integer)):
+        return f"{int(value):,}" if comma else f"{int(value)}"
+    try:
+        val = float(value)
+    except (TypeError, ValueError):
+        return str(value)
+    if not np.isfinite(val):
+        return "—"
+    fmt = f",.{digits}f" if comma else f".{digits}f"
+    return format(val, fmt)
+
+
+def _fmt_range(bounds: Tuple[float, float] | None, digits: int = 2, *, pct: bool = False) -> str:
+    if bounds is None:
+        return "—"
+    lo, hi = float(bounds[0]), float(bounds[1])
+    if pct:
+        return f"[{lo:.{digits}f}, {hi:.{digits}f}]%"
+    return f"[{lo:.{digits}f}, {hi:.{digits}f}]"
+
+
+def _render_metric_table(rows: List[Tuple[str, str, str, str]], *, title: str) -> str:
+    col_names = ("Metric", "Value", "IAAO expected", "Interpretation")
+    cols = list(zip(*([col_names] + rows)))
+    widths = [max(len(str(v)) for v in col) for col in cols]
+
+    def _line(ch: str = "-") -> str:
+        return ch * (sum(widths) + 3 * (len(widths) - 1))
+
+    lines = [_line("="), title, _line("=")]
+    header = "  ".join(
+        [
+            f"{col_names[i]:<{widths[i]}}" if i == 0 else f"{col_names[i]:>{widths[i]}}"
+            for i in range(len(widths))
+        ]
+    )
+    lines.append(header)
+    lines.append(_line("-"))
+    for metric, value, expected, interp in rows:
+        lines.append(
+            "  ".join(
+                [
+                    f"{metric:<{widths[0]}}",
+                    f"{value:>{widths[1]}}",
+                    f"{expected:>{widths[2]}}",
+                    f"{interp:<{widths[3]}}",
+                ]
+            )
+        )
+    lines.append(_line("="))
+    return "\n".join(lines)
+
+
+def _compute_quantile_diagnostic_tables(
     *,
     y_true_log: np.ndarray,
     y_pred_log: np.ndarray,
-    quantile_counts: Tuple[int, ...] = (3, 5),
-) -> Dict[str, Any]:
-    """
-    Compute per-quantile accuracy summaries on equal-count bins formed from the
-    actual target price.
-
-    Because log is strictly increasing on positive prices, quantile bins on y and
-    log(y) induce the same row partition. We bin on y for direct interpretability.
-    """
+    quantile_counts: Tuple[int, ...] = _QUANTILE_ANALYSIS_COUNTS,
+) -> Dict[int, pd.DataFrame]:
     y_true = np.exp(np.asarray(y_true_log, dtype=float).reshape(-1))
     y_pred = np.exp(np.asarray(y_pred_log, dtype=float).reshape(-1))
 
-    mask = np.isfinite(y_true) & np.isfinite(y_pred)
+    mask = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0.0) & (y_pred > 0.0)
     y_true = y_true[mask]
     y_pred = y_pred[mask]
 
-    metrics: Dict[str, Any] = {}
+    tables: Dict[int, pd.DataFrame] = {}
     if y_true.size == 0:
         for q in quantile_counts:
-            metrics[f"effective_bins_q{q}"] = 0
-            for bin_idx in range(1, int(q) + 1):
-                metrics[f"MAE_q{q}_bin{bin_idx}"] = np.nan
-                metrics[f"MAPE_q{q}_bin{bin_idx}"] = np.nan
-                metrics[f"MdAPE_q{q}_bin{bin_idx}"] = np.nan
-                metrics[f"MeanPred_q{q}_bin{bin_idx}"] = np.nan
-                metrics[f"MedianPred_q{q}_bin{bin_idx}"] = np.nan
-        return metrics
+            tables[int(q)] = pd.DataFrame()
+        return tables
 
-    y_true_s = pd.Series(y_true)
-    abs_err = np.abs(y_pred - y_true)
-    eps_y_true = np.maximum(np.abs(y_true), 1e-12)
-    eps_y_pred = np.maximum(np.abs(y_pred), 1e-12)
-    ape = abs_err / eps_y_true
-    dape_repo = np.abs((y_true / eps_y_pred) - 1.0)
-
+    df = pd.DataFrame(
+        {
+            "Actual": y_true,
+            "Predicted": y_pred,
+        }
+    )
+    df["Ratio"] = df["Predicted"] / df["Actual"]
+    df["Error"] = df["Predicted"] - df["Actual"]
+    df["AbsError"] = df["Error"].abs()
+    df["PEFrac"] = df["Error"] / df["Actual"]
+    df["APEFrac"] = df["AbsError"] / df["Actual"]
+    df["DAPERepoPct"] = 100.0 * np.abs((df["Actual"] / df["Predicted"]) - 1.0)
+    total_actual = float(df["Actual"].sum())
     for q in quantile_counts:
         q_int = int(q)
         try:
-            bins = pd.qcut(y_true_s, q=q_int, labels=False, duplicates="drop")
+            bins = pd.qcut(df["Actual"], q=q_int, labels=False, duplicates="drop")
         except ValueError:
-            bins = pd.Series(np.zeros(y_true_s.shape[0], dtype=int), index=y_true_s.index)
+            bins = pd.Series(np.zeros(df.shape[0], dtype=int), index=df.index)
 
-        bin_codes = pd.to_numeric(pd.Series(bins, index=y_true_s.index), errors="coerce")
-        code_arr = np.full(y_true.shape[0], -1, dtype=int)
-        valid_mask = bin_codes.notna().to_numpy(dtype=bool)
-        if np.any(valid_mask):
-            code_arr[valid_mask] = bin_codes.loc[valid_mask].astype(int).to_numpy(dtype=int)
-        effective_bins = int(np.unique(code_arr[code_arr >= 0]).size)
+        bin_codes = pd.to_numeric(pd.Series(bins, index=df.index), errors="coerce")
+        valid_codes = sorted(int(code) for code in bin_codes.dropna().unique().tolist())
+        rows: List[Dict[str, Any]] = []
+        for code in valid_codes:
+            group = df.loc[bin_codes == code, :].copy()
+            if group.empty:
+                continue
+            ratios = group["Ratio"].to_numpy(dtype=float)
+            actual = group["Actual"].to_numpy(dtype=float)
+            predicted = group["Predicted"].to_numpy(dtype=float)
+            rows.append(
+                {
+                    "Quantile": int(code + 1),
+                    "Count": int(group.shape[0]),
+                    "Actual Share (%)": float(100.0 * group["Actual"].sum() / total_actual) if total_actual > 0.0 else np.nan,
+                    "Min ($)": float(group["Actual"].min()),
+                    "Max ($)": float(group["Actual"].max()),
+                    "Mean Actual ($)": float(group["Actual"].mean()),
+                    "Mean Pred ($)": float(group["Predicted"].mean()),
+                    "Median Pred ($)": float(group["Predicted"].median()),
+                    "Mean Error ($)": float(group["Error"].mean()),
+                    "Mean Error (%)": float(100.0 * group["PEFrac"].mean()),
+                    "MAE ($)": float(group["AbsError"].mean()),
+                    "MAPE (%)": float(100.0 * group["APEFrac"].mean()),
+                    "MdAPE (%)": float(group["DAPERepoPct"].median()),
+                    "Mean Ratio": float(np.mean(ratios)),
+                    "Median Ratio": float(np.median(ratios)),
+                    "Weighted Mean Ratio": float(predicted.sum() / actual.sum()) if float(actual.sum()) > 0.0 else np.nan,
+                    "PRD": float(prd(predicted, actual, na_rm=True)),
+                    "PRB": float(prb(predicted, actual, na_rm=True)),
+                }
+            )
+
+        table = pd.DataFrame(rows)
+        if not table.empty:
+            table = table.sort_values("Quantile").set_index("Quantile")
+        tables[q_int] = table
+
+    return tables
+
+
+def _quantile_table_to_metric_dict(
+    quantile_tables: Dict[int, pd.DataFrame],
+    *,
+    quantile_counts: Tuple[int, ...] = _QUANTILE_ANALYSIS_COUNTS,
+) -> Dict[str, Any]:
+    metrics: Dict[str, Any] = {}
+    for q in quantile_counts:
+        q_int = int(q)
+        table = quantile_tables.get(q_int, pd.DataFrame())
+        effective_bins = int(table.shape[0]) if table is not None else 0
         metrics[f"effective_bins_q{q_int}"] = effective_bins
-
-        for bin_idx in range(q_int):
-            in_bin = code_arr == bin_idx if effective_bins > 0 else np.zeros(y_true.shape[0], dtype=bool)
-            col_suffix = f"q{q_int}_bin{bin_idx + 1}"
-            if not np.any(in_bin):
+        for bin_idx in range(1, q_int + 1):
+            col_suffix = f"q{q_int}_bin{bin_idx}"
+            if table is None or table.empty or bin_idx not in table.index:
+                metrics[f"Count_{col_suffix}"] = np.nan
+                metrics[f"ActualSharePct_{col_suffix}"] = np.nan
+                metrics[f"MeanActual_{col_suffix}"] = np.nan
+                metrics[f"MeanError_{col_suffix}"] = np.nan
+                metrics[f"MPE_{col_suffix}"] = np.nan
+                metrics[f"MeanRatio_{col_suffix}"] = np.nan
+                metrics[f"MedianRatio_{col_suffix}"] = np.nan
+                metrics[f"WeightedMeanRatio_{col_suffix}"] = np.nan
+                metrics[f"PRD_{col_suffix}"] = np.nan
+                metrics[f"PRB_{col_suffix}"] = np.nan
                 metrics[f"MAE_{col_suffix}"] = np.nan
                 metrics[f"MAPE_{col_suffix}"] = np.nan
                 metrics[f"MdAPE_{col_suffix}"] = np.nan
@@ -513,13 +681,261 @@ def _compute_quantile_block_error_metrics(
                 metrics[f"MedianPred_{col_suffix}"] = np.nan
                 continue
 
-            metrics[f"MAE_{col_suffix}"] = float(np.mean(abs_err[in_bin]))
-            metrics[f"MAPE_{col_suffix}"] = float(np.mean(ape[in_bin]))
-            metrics[f"MdAPE_{col_suffix}"] = float(100.0 * np.median(dape_repo[in_bin]))
-            metrics[f"MeanPred_{col_suffix}"] = float(np.mean(y_pred[in_bin]))
-            metrics[f"MedianPred_{col_suffix}"] = float(np.median(y_pred[in_bin]))
-
+            row = table.loc[bin_idx]
+            metrics[f"Count_{col_suffix}"] = int(row["Count"])
+            metrics[f"ActualSharePct_{col_suffix}"] = float(row["Actual Share (%)"])
+            metrics[f"MeanActual_{col_suffix}"] = float(row["Mean Actual ($)"])
+            metrics[f"MeanError_{col_suffix}"] = float(row["Mean Error ($)"])
+            metrics[f"MPE_{col_suffix}"] = float(row["Mean Error (%)"]) / 100.0
+            metrics[f"MeanRatio_{col_suffix}"] = float(row["Mean Ratio"])
+            metrics[f"MedianRatio_{col_suffix}"] = float(row["Median Ratio"])
+            metrics[f"WeightedMeanRatio_{col_suffix}"] = float(row["Weighted Mean Ratio"])
+            metrics[f"PRD_{col_suffix}"] = float(row["PRD"])
+            metrics[f"PRB_{col_suffix}"] = float(row["PRB"])
+            metrics[f"MAE_{col_suffix}"] = float(row["MAE ($)"])
+            metrics[f"MAPE_{col_suffix}"] = float(row["MAPE (%)"]) / 100.0
+            metrics[f"MdAPE_{col_suffix}"] = float(row["MdAPE (%)"])
+            metrics[f"MeanPred_{col_suffix}"] = float(row["Mean Pred ($)"])
+            metrics[f"MedianPred_{col_suffix}"] = float(row["Median Pred ($)"])
     return metrics
+
+
+def _render_quantile_contrast(table: pd.DataFrame) -> str:
+    if table is None or table.empty or table.shape[0] < 2:
+        return "Low-vs-high quantile contrast unavailable."
+
+    low = table.iloc[0]
+    high = table.iloc[-1]
+    median_ratio_drop = float(low["Median Ratio"] - high["Median Ratio"])
+    weighted_ratio_drop = float(low["Weighted Mean Ratio"] - high["Weighted Mean Ratio"])
+    mean_error_gap = float(high["Mean Error ($)"] - low["Mean Error ($)"])
+    mpe_gap = float(high["Mean Error (%)"] - low["Mean Error (%)"])
+    mape_gap = float(high["MAPE (%)"] - low["MAPE (%)"])
+    mean_actual_multiple = (
+        float(high["Mean Actual ($)"] / low["Mean Actual ($)"])
+        if np.isfinite(low["Mean Actual ($)"]) and float(low["Mean Actual ($)"]) > 0.0
+        else np.nan
+    )
+    direction = "regressive" if median_ratio_drop > 0.0 else ("progressive" if median_ratio_drop < 0.0 else "flat")
+    return (
+        "Low-vs-high strata contrast: "
+        f"median_ratio_drop={_fmt_num(median_ratio_drop, 4)}, "
+        f"weighted_ratio_drop={_fmt_num(weighted_ratio_drop, 4)}, "
+        f"mean_error_gap={_fmt_num(mean_error_gap, 2, comma=True)}, "
+        f"MPE_gap={_fmt_num(mpe_gap, 2)} pts, "
+        f"MAPE_gap={_fmt_num(mape_gap, 2)} pts, "
+        f"mean_actual_multiple={_fmt_num(mean_actual_multiple, 2)}x | "
+        f"Interpretation: {direction} tilt if ratio drop stays positive."
+    )
+
+
+def _render_quantile_table(table: pd.DataFrame, *, n_quantiles: int) -> str:
+    title = f"DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles={int(n_quantiles)})"
+    if table is None or table.empty:
+        return "\n".join(["=" * 75, title, "=" * 75, "(empty)", "=" * 75])
+
+    display_df = table.loc[
+        :,
+        [
+            "Count",
+            "Actual Share (%)",
+            "Min ($)",
+            "Max ($)",
+            "Mean Actual ($)",
+            "Mean Error ($)",
+            "Mean Error (%)",
+            "MAE ($)",
+            "MAPE (%)",
+            "Mean Ratio",
+            "Median Ratio",
+            "Weighted Mean Ratio",
+            "PRD",
+            "PRB",
+        ],
+    ].copy()
+
+    formatters = {
+        "Count": lambda x: f"{int(x):,}",
+        "Actual Share (%)": lambda x: _fmt_num(x, 1),
+        "Min ($)": lambda x: _fmt_num(x, 0, comma=True),
+        "Max ($)": lambda x: _fmt_num(x, 0, comma=True),
+        "Mean Actual ($)": lambda x: _fmt_num(x, 0, comma=True),
+        "Mean Error ($)": lambda x: _fmt_num(x, 0, comma=True),
+        "Mean Error (%)": lambda x: _fmt_num(x, 2),
+        "MAE ($)": lambda x: _fmt_num(x, 0, comma=True),
+        "MAPE (%)": lambda x: _fmt_num(x, 2),
+        "Mean Ratio": lambda x: _fmt_num(x, 4),
+        "Median Ratio": lambda x: _fmt_num(x, 4),
+        "Weighted Mean Ratio": lambda x: _fmt_num(x, 4),
+        "PRD": lambda x: _fmt_num(x, 4),
+        "PRB": lambda x: _fmt_num(x, 4),
+    }
+
+    lines = ["=" * 75, title, "=" * 75, display_df.to_string(formatters=formatters), "=" * 75]
+    lines.append(_render_quantile_contrast(display_df))
+    return "\n".join(lines)
+
+
+def _render_price_dependence_table(metrics_row: Dict[str, Any]) -> str:
+    corr_price = float(metrics_row.get("Corr(r,price)", np.nan))
+    corr_logprice = float(metrics_row.get("Corr(r,logprice)", np.nan))
+    dcor = float(metrics_row.get("dCor(r,logprice)_sampled", np.nan))
+    xi = float(metrics_row.get("ChatterjeeXi(r,logprice)", np.nan))
+    nhsic = float(metrics_row.get("nHSIC(r,logprice)_sampled", np.nan))
+
+    rows = [
+        (
+            "Corr(r,price)",
+            _fmt_num(corr_price, 4),
+            "Near 0",
+            "Negative suggests underprediction at higher prices" if np.isfinite(corr_price) and corr_price < -0.02 else "Closer to 0 is better",
+        ),
+        (
+            "Corr(r,logprice)",
+            _fmt_num(corr_logprice, 4),
+            "Near 0",
+            "Negative suggests underprediction at higher prices" if np.isfinite(corr_logprice) and corr_logprice < -0.02 else "Closer to 0 is better",
+        ),
+        (
+            "dCor(r,logprice)",
+            _fmt_num(dcor, 4),
+            "Near 0",
+            "Lower is better",
+        ),
+        (
+            "ChatterjeeXi(r,logprice)",
+            _fmt_num(xi, 4),
+            "Near 0",
+            "Lower is better",
+        ),
+        (
+            "nHSIC(r,logprice)",
+            _fmt_num(nhsic, 4),
+            "Near 0",
+            "Lower is better",
+        ),
+    ]
+    return _render_metric_table(rows, title="PRICE-DEPENDENCE DIAGNOSTICS")
+
+
+def _build_model_report_text(
+    *,
+    split_label: str,
+    model_name: str,
+    estimator_repr: str,
+    metrics_row: Dict[str, Any],
+    y_true_log: np.ndarray,
+    y_pred_log: np.ndarray,
+) -> str:
+    property_class = "Residential Improved"
+    cod_range = IAAO_COD_RANGES.get(property_class)
+    median_ratio = float(metrics_row.get("Median ratio", np.nan))
+    weighted_mean_ratio = float(metrics_row.get("W. Mean ratio", np.nan))
+    cod_value = float(metrics_row.get("COD", np.nan))
+    prd_value = float(metrics_row.get("PRD", np.nan))
+    prb_value = float(metrics_row.get("PRB", np.nan))
+    vei_value = float(metrics_row.get("VEI", np.nan))
+
+    accuracy_rows = [
+        ("Count", _fmt_num(metrics_row.get("val_rows", len(y_true_log)), 0, comma=True), "—", "Valid observations"),
+        ("Mean Price ($)", _fmt_num(np.mean(np.exp(y_true_log)), 2, comma=True), "—", "Scale of target"),
+        ("R2", _fmt_num(metrics_row.get("R2", np.nan), 4), "—", "Closer to 1 is better"),
+        ("OOS R2", _fmt_num(metrics_row.get("OOS R2", np.nan), 4), "—", "Closer to 1 is better"),
+        ("R2 (log)", _fmt_num(metrics_row.get("R2 (log)", np.nan), 4), "—", "Closer to 1 is better"),
+        ("MAE ($)", _fmt_num(metrics_row.get("MAE", np.nan), 2, comma=True), "—", "Lower is better"),
+        ("RMSE ($)", _fmt_num(metrics_row.get("RMSE", np.nan), 2, comma=True), "—", "Lower is better"),
+        ("MPE (%)", _fmt_num(100.0 * float(metrics_row.get("MPE", np.nan)), 2), "—", "Signed average percent bias"),
+        ("MAPE (%)", _fmt_num(100.0 * float(metrics_row.get("MAPE", np.nan)), 2), "—", "Lower is better"),
+        ("MdAPE (%)", _fmt_num(metrics_row.get("MdAPE", np.nan), 2), "—", "Robust to outliers"),
+    ]
+    fairness_rows = [
+        ("Median Ratio", _fmt_num(median_ratio, 4), _fmt_range(IAAO_LEVEL_RANGE, 2), _interp_level(median_ratio)),
+        ("Weighted Mean Ratio", _fmt_num(weighted_mean_ratio, 4), _fmt_range(IAAO_LEVEL_RANGE, 2), _interp_level(weighted_mean_ratio)),
+        (
+            f"COD (%) [{property_class}]",
+            _fmt_num(cod_value, 2),
+            _fmt_range(cod_range, 1) if cod_range is not None else "—",
+            _interp_cod(cod_value, property_class=property_class),
+        ),
+        ("PRD", _fmt_num(prd_value, 4), _fmt_range(IAAO_PRD_RANGE, 2), _interp_prd(prd_value)),
+        ("PRB", _fmt_num(prb_value, 4), _fmt_range(IAAO_PRB_RANGE, 2), _interp_prb(prb_value)),
+        ("VEI (%)", _fmt_num(vei_value, 2), _fmt_range(IAAO_VEI_RANGE, 0, pct=True), _interp_vei(vei_value)),
+    ]
+
+    quantile_tables = _compute_quantile_diagnostic_tables(
+        y_true_log=y_true_log,
+        y_pred_log=y_pred_log,
+        quantile_counts=_QUANTILE_ANALYSIS_COUNTS,
+    )
+
+    parts = [
+        "=" * 100,
+        f"Split: {split_label}",
+        f"Model: {model_name}",
+        f"Fitting:  {estimator_repr}",
+        "=" * 100,
+        _render_metric_table(accuracy_rows, title="MODEL ACCURACY (PRICE SCALE + LOG SCALE)"),
+        _render_metric_table(fairness_rows, title="IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)"),
+        _render_price_dependence_table(metrics_row),
+    ]
+    for q in _QUANTILE_ANALYSIS_COUNTS:
+        parts.append(_render_quantile_table(quantile_tables.get(int(q), pd.DataFrame()), n_quantiles=int(q)))
+    return "\n\n".join(parts)
+
+
+def _write_split_report(
+    *,
+    split_label: str,
+    results_df: pd.DataFrame,
+    y_true_log: np.ndarray,
+    pred_logs: Dict[str, np.ndarray],
+    model_specs_by_name: Dict[str, Dict[str, Any]],
+    out_path: Path,
+) -> None:
+    if results_df.empty or y_true_log.size == 0 or not pred_logs:
+        return
+
+    parts: List[str] = []
+    for _, row in results_df.iterrows():
+        model_name = str(row.get("model_name", "model"))
+        y_pred_log = pred_logs.get(model_name)
+        if y_pred_log is None:
+            continue
+        spec = model_specs_by_name.get(model_name, {})
+        estimator_repr = repr(spec.get("estimator", model_name))
+        parts.append(
+            _build_model_report_text(
+                split_label=split_label,
+                model_name=model_name,
+                estimator_repr=estimator_repr,
+                metrics_row=row.to_dict(),
+                y_true_log=np.asarray(y_true_log, dtype=float),
+                y_pred_log=np.asarray(y_pred_log, dtype=float),
+            )
+        )
+
+    if not parts:
+        return
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text("\n\n".join(parts) + "\n", encoding="utf-8")
+
+
+def _compute_quantile_block_error_metrics(
+    *,
+    y_true_log: np.ndarray,
+    y_pred_log: np.ndarray,
+    quantile_counts: Tuple[int, ...] = _QUANTILE_ANALYSIS_COUNTS,
+) -> Dict[str, Any]:
+    quantile_tables = _compute_quantile_diagnostic_tables(
+        y_true_log=y_true_log,
+        y_pred_log=y_pred_log,
+        quantile_counts=quantile_counts,
+    )
+    return _quantile_table_to_metric_dict(
+        quantile_tables,
+        quantile_counts=quantile_counts,
+    )
 
 
 def _compute_quick_test_metrics(
@@ -535,6 +951,13 @@ def _compute_quick_test_metrics(
         y_train_log=y_train_log,
         ratio_mode=ratio_mode,
     )
+    y_true = np.exp(np.asarray(y_true_log, dtype=float).reshape(-1))
+    y_pred = np.exp(np.asarray(y_pred_log, dtype=float).reshape(-1))
+    mask = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0.0)
+    if np.any(mask):
+        metrics["MPE"] = float(np.mean((y_pred[mask] - y_true[mask]) / y_true[mask]))
+    else:
+        metrics["MPE"] = np.nan
     metrics.update(
         _compute_logprice_dependence_metrics(
             y_true_log=y_true_log,
@@ -1720,6 +2143,7 @@ def run_quick_test(
     )
     _log("model specs built", n_models=int(len(models)))
     model_ratio_modes = {str(spec["model_name"]): str(spec["ratio_mode"]) for spec in models}
+    model_specs_by_name = {str(spec["model_name"]): spec for spec in models}
 
     # --- Evaluate on TEST (train on df_train_validate only; strict out-of-time).
     _log("starting test evaluation", n_models=int(len(models)))
@@ -1821,6 +2245,10 @@ def run_quick_test(
     train_test_path = out / "quick_test_metrics_train_for_test.csv"
     train_assess_path = out / "quick_test_metrics_train_for_assess.csv"
     bootstrap_val_path = out / "quick_test_metrics_validation_bootstrap_avg.csv"
+    test_report_path = out / "quick_test_report_test.txt"
+    assess_report_path = out / "quick_test_report_assess.txt"
+    train_test_report_path = out / "quick_test_report_train_for_test.txt"
+    train_assess_report_path = out / "quick_test_report_train_for_assess.txt"
     test_df.to_csv(test_path, index=False)
     if not train_test_df.empty:
         train_test_df.to_csv(train_test_path, index=False)
@@ -1828,6 +2256,42 @@ def run_quick_test(
         assess_df.to_csv(assess_path, index=False)
     if not train_assess_df.empty:
         train_assess_df.to_csv(train_assess_path, index=False)
+
+    _write_split_report(
+        split_label="Test",
+        results_df=test_df,
+        y_true_log=y_test_log,
+        pred_logs=test_pred_logs,
+        model_specs_by_name=model_specs_by_name,
+        out_path=test_report_path,
+    )
+    if not train_test_df.empty:
+        _write_split_report(
+            split_label="TrainInSample-TestFit",
+            results_df=train_test_df,
+            y_true_log=y_tv_log,
+            pred_logs=train_test_pred_logs,
+            model_specs_by_name=model_specs_by_name,
+            out_path=train_test_report_path,
+        )
+    if not assess_df.empty:
+        _write_split_report(
+            split_label="Assessment",
+            results_df=assess_df,
+            y_true_log=y_assess_log,
+            pred_logs=assess_pred_logs,
+            model_specs_by_name=model_specs_by_name,
+            out_path=assess_report_path,
+        )
+    if not train_assess_df.empty:
+        _write_split_report(
+            split_label="TrainInSample-AssessFit",
+            results_df=train_assess_df,
+            y_true_log=y_pre_log,
+            pred_logs=train_assess_pred_logs,
+            model_specs_by_name=model_specs_by_name,
+            out_path=train_assess_report_path,
+        )
 
     # --- Small bootstrap summary over the quick-test split (validation-like diagnostic).
     bootstrap_rows: List[Dict[str, Any]] = []
@@ -2146,6 +2610,10 @@ def run_quick_test(
         "train_test_csv": str(train_test_path),
         "train_assess_csv": str(train_assess_path),
         "bootstrap_validation_avg_csv": str(bootstrap_val_path),
+        "test_report_txt": str(test_report_path),
+        "assess_report_txt": str(assess_report_path),
+        "train_test_report_txt": str(train_test_report_path),
+        "train_assess_report_txt": str(train_assess_report_path),
         "plots_dir": str(plots_dir),
     }
 

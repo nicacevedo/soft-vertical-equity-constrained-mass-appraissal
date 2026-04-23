@@ -160,6 +160,99 @@ def _summary_text(stats: Dict[str, float], style: str) -> str:
     )
 
 
+def _quantile_shape_metrics(values: np.ndarray, n_points: int = 1001) -> Dict[str, float]:
+    q = np.linspace(0.001, 0.999, n_points, dtype=float)
+    q_values = np.quantile(values, q)
+    scale = max(float(np.std(q_values, ddof=0)), 1e-12)
+    normalized_curve = (q_values - float(np.median(q_values))) / scale
+    first_diff = np.diff(normalized_curve)
+    second_diff = np.diff(normalized_curve, n=2)
+    denom = max(float(np.mean(np.abs(first_diff))), 1e-12)
+    roughness = float(np.mean(np.abs(second_diff)) / denom) if second_diff.size else 0.0
+    smoothness = float(1.0 / (1.0 + roughness))
+    return {
+        "quantile_roughness": roughness,
+        "quantile_smoothness": smoothness,
+    }
+
+
+def _compute_center_difference_metrics(
+    values: np.ndarray,
+    *,
+    center_name: str,
+    center_value: float,
+) -> Dict[str, float | str]:
+    diffs = np.asarray(values, dtype=float) - float(center_value)
+    rel_diffs = diffs / float(center_value)
+    below_mask = diffs < 0.0
+    above_mask = diffs > 0.0
+    at_center_mask = ~(below_mask | above_mask)
+
+    below_gaps = -diffs[below_mask]
+    above_gaps = diffs[above_mask]
+    rel_below_gaps = -rel_diffs[below_mask]
+    rel_above_gaps = rel_diffs[above_mask]
+
+    mean_below_gap = float(np.mean(below_gaps)) if below_gaps.size else np.nan
+    mean_above_gap = float(np.mean(above_gaps)) if above_gaps.size else np.nan
+    median_below_gap = float(np.median(below_gaps)) if below_gaps.size else np.nan
+    median_above_gap = float(np.median(above_gaps)) if above_gaps.size else np.nan
+    mean_rel_below_gap = float(np.mean(rel_below_gaps)) if rel_below_gaps.size else np.nan
+    mean_rel_above_gap = float(np.mean(rel_above_gaps)) if rel_above_gaps.size else np.nan
+    median_rel_below_gap = float(np.median(rel_below_gaps)) if rel_below_gaps.size else np.nan
+    median_rel_above_gap = float(np.median(rel_above_gaps)) if rel_above_gaps.size else np.nan
+
+    return {
+        "center_name": center_name,
+        "center_value": float(center_value),
+        "function_mean": float(np.mean(diffs)),
+        "function_median": float(np.median(diffs)),
+        "relative_function_mean": float(np.mean(rel_diffs)),
+        "relative_function_median": float(np.median(rel_diffs)),
+        "share_below_center": float(np.mean(below_mask)),
+        "share_above_center": float(np.mean(above_mask)),
+        "share_at_center": float(np.mean(at_center_mask)),
+        "crossing_percentile": float(100.0 * np.mean(values <= center_value)),
+        "mean_gap_below": mean_below_gap,
+        "mean_gap_above": mean_above_gap,
+        "median_gap_below": median_below_gap,
+        "median_gap_above": median_above_gap,
+        "mean_relative_gap_below": mean_rel_below_gap,
+        "mean_relative_gap_above": mean_rel_above_gap,
+        "median_relative_gap_below": median_rel_below_gap,
+        "median_relative_gap_above": median_rel_above_gap,
+        "gap_ratio_mean": float(mean_above_gap / mean_below_gap) if np.isfinite(mean_below_gap) and mean_below_gap > 0.0 else np.nan,
+        "gap_ratio_median": float(median_above_gap / median_below_gap) if np.isfinite(median_below_gap) and median_below_gap > 0.0 else np.nan,
+        "relative_gap_ratio_mean": float(mean_rel_above_gap / mean_rel_below_gap) if np.isfinite(mean_rel_below_gap) and mean_rel_below_gap > 0.0 else np.nan,
+        "relative_gap_ratio_median": float(median_rel_above_gap / median_rel_below_gap) if np.isfinite(median_rel_below_gap) and median_rel_below_gap > 0.0 else np.nan,
+    }
+
+
+def _difference_summary_text(
+    *,
+    stats: Dict[str, float],
+    shape_metrics: Dict[str, float],
+    mean_metrics: Dict[str, float | str],
+    median_metrics: Dict[str, float | str],
+    text_style: str,
+) -> str:
+    return "\n".join(
+        [
+            f"mean = {_format_value(stats['mean'], text_style)}",
+            f"median = {_format_value(stats['median'], text_style)}",
+            f"std = {_format_value(stats['std'], text_style)}",
+            f"skewness = {stats['skewness']:.3f}",
+            f"quantile smoothness = {shape_metrics['quantile_smoothness']:.3f}",
+            f"F(mean) = {float(mean_metrics['crossing_percentile']):.1f}%",
+            f"F(median) = {float(median_metrics['crossing_percentile']):.1f}%",
+            f"avg gap below/above mean = {_format_value(float(mean_metrics['mean_gap_below']), text_style)} / {_format_value(float(mean_metrics['mean_gap_above']), text_style)}",
+            f"avg gap below/above median = {_format_value(float(median_metrics['mean_gap_below']), text_style)} / {_format_value(float(median_metrics['mean_gap_above']), text_style)}",
+            f"median[y - mean(y)] = {_format_value(float(mean_metrics['function_median']), text_style)}",
+            f"mean[y - median(y)] = {_format_value(float(median_metrics['function_mean']), text_style)}",
+        ]
+    )
+
+
 def _add_reference_lines(ax: plt.Axes, mean: float, median: float, std: float) -> None:
     line_specs = [
         (mean, "#C1121F", "-", 2.2, "Mean"),
@@ -196,7 +289,7 @@ def _write_histogram(
     std = stats["std"]
     n_bins = _bounded_hist_bin_count(values)
 
-    fig, ax = plt.subplots(figsize=(14, 8))
+    fig, ax = plt.subplots(figsize=(8, 5))
     ax.hist(
         values,
         bins=n_bins,
@@ -233,6 +326,87 @@ def _write_histogram(
 
     _log("histogram written", path=str(out_path), bins=n_bins, rows=int(stats["count"]))
     return stats
+
+
+def _write_difference_function_plot(
+    *,
+    values: np.ndarray,
+    out_path: Path,
+    title: str,
+    subtitle: str,
+    x_label: str,
+    text_style: str,
+    scale_name: str,
+) -> List[Dict[str, float | str]]:
+    stats = _summary_stats(values)
+    shape_metrics = _quantile_shape_metrics(values)
+    mean_metrics = _compute_center_difference_metrics(values, center_name="mean", center_value=stats["mean"])
+    median_metrics = _compute_center_difference_metrics(values, center_name="median", center_value=stats["median"])
+
+    q = np.linspace(0.001, 0.999, 1200, dtype=float)
+    q_values = np.quantile(values, q)
+
+    mean_center = stats["mean"]
+    median_center = stats["median"]
+    mean_centered = q_values - mean_center
+    median_centered = q_values - median_center
+    mean_centered_rel = mean_centered / mean_center
+    median_centered_rel = median_centered / median_center
+
+    fig, axes = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
+
+    axes[0].plot(q_values, mean_centered, color="#C1121F", linewidth=2.2, label="y - mean(y)")
+    axes[0].plot(q_values, median_centered, color="#003049", linewidth=2.2, label="y - median(y)")
+    axes[0].axhline(0.0, color="#4B5563", linewidth=1.2, alpha=0.8)
+    axes[0].axvline(mean_center, color="#C1121F", linestyle="--", linewidth=1.3, alpha=0.7)
+    axes[0].axvline(median_center, color="#003049", linestyle="--", linewidth=1.3, alpha=0.7)
+    axes[0].set_ylabel("Centered difference")
+    axes[0].grid(alpha=0.25, linewidth=0.8)
+    axes[0].legend(loc="upper left", frameon=True)
+
+    axes[1].plot(q_values, mean_centered_rel, color="#C1121F", linewidth=2.2, label="(y - mean(y)) / mean(y)")
+    axes[1].plot(q_values, median_centered_rel, color="#003049", linewidth=2.2, label="(y - median(y)) / median(y)")
+    axes[1].axhline(0.0, color="#4B5563", linewidth=1.2, alpha=0.8)
+    axes[1].axvline(mean_center, color="#C1121F", linestyle="--", linewidth=1.3, alpha=0.7)
+    axes[1].axvline(median_center, color="#003049", linestyle="--", linewidth=1.3, alpha=0.7)
+    axes[1].set_ylabel("Relative centered difference")
+    axes[1].set_xlabel(x_label)
+    axes[1].grid(alpha=0.25, linewidth=0.8)
+    axes[1].legend(loc="upper left", frameon=True)
+
+    if scale_name == "original_sale_price":
+        abs_linthresh = max(stats["std"] * 0.03, 1_000.0)
+        rel_linthresh = max(float(np.nanstd(mean_centered_rel)) * 0.08, 0.02)
+        axes[0].set_yscale("symlog", linthresh=abs_linthresh)
+        axes[1].set_yscale("symlog", linthresh=rel_linthresh)
+        for ax in axes:
+            ax.xaxis.set_major_formatter(FuncFormatter(lambda x, _: f"${x:,.0f}"))
+
+    axes[0].set_title(f"{title}\n{subtitle}", fontsize=15, pad=12)
+    fig.text(
+        0.985,
+        0.5,
+        _difference_summary_text(
+            stats=stats,
+            shape_metrics=shape_metrics,
+            mean_metrics=mean_metrics,
+            median_metrics=median_metrics,
+            text_style=text_style,
+        ),
+        ha="right",
+        va="center",
+        fontsize=10,
+        bbox={"boxstyle": "round,pad=0.45", "facecolor": "white", "edgecolor": "#D9D9D9", "alpha": 0.96},
+    )
+    fig.tight_layout(rect=(0.0, 0.0, 0.8, 1.0))
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+    _log("difference plot written", path=str(out_path), scale=scale_name)
+    return [
+        {"scale": scale_name, **shape_metrics, **mean_metrics},
+        {"scale": scale_name, **shape_metrics, **median_metrics},
+    ]
 
 
 def _build_split_summary(
@@ -323,20 +497,23 @@ def run_eda(
             f"train/validate={int(df_train_validate.shape[0]):,}",
             f"test={int(df_test.shape[0]):,}",
             f"assess={int(df_assess.shape[0]):,}",
-            f"total={int(df_all.shape[0]):,}",
+            # f"total={int(df_all.shape[0]):,}",
         ]
     )
 
-    original_plot_path = eda_path / "sale_price_distribution_original.png"
-    log_plot_path = eda_path / "sale_price_distribution_log.png"
+    original_plot_path = eda_path / "sale_price_distribution_original.pdf"
+    log_plot_path = eda_path / "sale_price_distribution_log.pdf"
+    original_diff_plot_path = eda_path / "sale_price_difference_functions_original.pdf"
+    log_diff_plot_path = eda_path / "sale_price_difference_functions_log.pdf"
     stats_csv_path = eda_path / "sale_price_distribution_summary.csv"
     split_csv_path = eda_path / "sale_price_split_summary.csv"
+    diff_csv_path = eda_path / "sale_price_difference_function_summary.csv"
 
     raw_stats = _write_histogram(
         values=sale_prices,
         out_path=original_plot_path,
         title="CCAO Sale Price Distribution",
-        subtitle=f"Original sale prices after the same cleaning used by quick_test_models.py. {split_counts_text}",
+        subtitle=f"{split_counts_text}",
         x_label="Sale price",
         text_style="currency",
     )
@@ -344,9 +521,32 @@ def run_eda(
         values=sale_prices_log,
         out_path=log_plot_path,
         title="CCAO Log Sale Price Distribution",
-        subtitle=f"Natural-log target used by the predictive models. {split_counts_text}",
+        subtitle=f"{split_counts_text}",
         x_label="log(sale price)",
         text_style="number",
+    )
+    diff_rows: List[Dict[str, float | str]] = []
+    diff_rows.extend(
+        _write_difference_function_plot(
+            values=sale_prices,
+            out_path=original_diff_plot_path,
+            title="CCAO Sale Price Difference Functions",
+            subtitle=f"{split_counts_text}",
+            x_label="Sale Price P",
+            text_style="currency",
+            scale_name="original_sale_price",
+        )
+    )
+    diff_rows.extend(
+        _write_difference_function_plot(
+            values=sale_prices_log,
+            out_path=log_diff_plot_path,
+            title="CCAO Log Sale Price Difference Functions",
+            subtitle=f"{split_counts_text}",
+            x_label="Log Sale Price y = log(P)",
+            text_style="number",
+            scale_name="log_sale_price",
+        )
     )
 
     summary_df = pd.DataFrame(
@@ -355,17 +555,27 @@ def run_eda(
             {"distribution": "log_sale_price", **log_stats},
         ]
     )
+    diff_summary_df = pd.DataFrame(diff_rows)
     summary_df.to_csv(stats_csv_path, index=False)
     split_summary.to_csv(split_csv_path, index=False)
-    _log("summary tables written", stats_csv=str(stats_csv_path), split_csv=str(split_csv_path))
+    diff_summary_df.to_csv(diff_csv_path, index=False)
+    _log(
+        "summary tables written",
+        stats_csv=str(stats_csv_path),
+        split_csv=str(split_csv_path),
+        diff_csv=str(diff_csv_path),
+    )
     _log("eda finished", eda_dir=str(eda_path))
 
     return {
         "eda_dir": str(eda_path),
         "original_plot": str(original_plot_path),
         "log_plot": str(log_plot_path),
+        "original_difference_plot": str(original_diff_plot_path),
+        "log_difference_plot": str(log_diff_plot_path),
         "stats_csv": str(stats_csv_path),
         "split_csv": str(split_csv_path),
+        "difference_csv": str(diff_csv_path),
     }
 
 

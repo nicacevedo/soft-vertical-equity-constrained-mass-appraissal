@@ -1,0 +1,18 @@
+---
+description: "Workflow for building this research presentation deck"
+alwaysApply: true
+---
+
+- Work in this order: brief.md -> storyboard.yaml -> deck.json -> src/generate_deck.js.
+- Do not generate slides directly from chat unless asked.
+- Prefer editing files over dumping long answers in chat.
+- For this project, treat current paper text as source of truth when numbers differ across files.
+- Keep preliminaries to the agreed 9-slide sequence (title slide + 8 content slides).
+- Separate story decisions from rendering decisions.
+- When changing slide content, update storyboard.yaml first.
+- When changing layout/rendering, update deck.json or src/generate_deck.js, not brief.md.
+- Do not invent statistics, splits, or metric values.
+- For factual slide corrections, update storyboard.yaml and deck.json before touching generate_deck.js.
+- For rendering-only fixes, modify generate_deck.js only after the content spec is correct.
+- Do not invent or infer dataset counts beyond the current paper.
+- If a figure is referenced in the paper or beamer, try to insert the real asset rather than describing it in text.

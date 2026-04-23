@@ -514,7 +514,7 @@ def plot_residual_vs_logprice(
             x_plot,
             y_plot,
             facecolors="none",
-            edgecolors="#4C2A85",
+            edgecolors="#2563EB",
             s=32,
             alpha=0.32,
             linewidths=0.7,
@@ -523,7 +523,7 @@ def plot_residual_vs_logprice(
     else:
         labels_plot = pd.Series(labels_plot, dtype="object").where(pd.notna(labels_plot), "NA").astype(str).to_numpy()
         unique_labels = list(pd.unique(labels_plot))
-        cmap = plt.cm.get_cmap("Dark2", max(len(unique_labels), 1))
+        cmap = plt.cm.get_cmap("Blues", max(len(unique_labels) + 2, 3))
         for idx_label, label in enumerate(unique_labels):
             label_mask = labels_plot == label
             if not np.any(label_mask):
@@ -533,7 +533,7 @@ def plot_residual_vs_logprice(
                 y_plot[label_mask],
                 s=28,
                 alpha=0.45,
-                color=cmap(idx_label),
+                color=cmap(idx_label + 2),
                 edgecolors="none",
                 label=label,
             )
@@ -789,7 +789,7 @@ def plot_residual_vs_logprediction(
             x_plot,
             y_plot,
             facecolors="none",
-            edgecolors="#4C2A85",
+            edgecolors="#2563EB",
             s=32,
             alpha=0.32,
             linewidths=0.7,
@@ -798,7 +798,7 @@ def plot_residual_vs_logprediction(
     else:
         labels_plot = pd.Series(labels_plot, dtype="object").where(pd.notna(labels_plot), "NA").astype(str).to_numpy()
         unique_labels = list(pd.unique(labels_plot))
-        cmap = plt.cm.get_cmap("Dark2", max(len(unique_labels), 1))
+        cmap = plt.cm.get_cmap("Blues", max(len(unique_labels) + 2, 3))
         for idx_label, label in enumerate(unique_labels):
             label_mask = labels_plot == label
             if not np.any(label_mask):
@@ -808,7 +808,7 @@ def plot_residual_vs_logprediction(
                 y_plot[label_mask],
                 s=28,
                 alpha=0.45,
-                color=cmap(idx_label),
+                color=cmap(idx_label + 2),
                 edgecolors="none",
                 label=label,
             )
@@ -1487,5 +1487,4 @@ def plotting_dict_of_models_results(results, r_list, source="train", n_jobs=1, s
 ###########################################
 # Code for post-inference computations
 ###########################################
-
 

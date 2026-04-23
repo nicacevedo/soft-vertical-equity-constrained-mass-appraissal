@@ -1,0 +1,45 @@
+====================================================================================================
+Fitting:  LGBMRegressor(max_depth=15, min_child_samples=30, n_estimators=200, n_jobs=1,
+              objective='mse', random_state=42, reg_alpha=0.001,
+              reg_lambda=0.01)
+====================================================================================================
+==============================================================================
+MODEL ACCURACY (PRICE SCALE + LOG SCALE)
+==============================================================================
+Metric               Value  IAAO expected                    Interpretation
+------------------------------------------------------------------------------
+Count               53,139              —  Valid observations
+Mean Price ($)  402,970.13              —  Scale of target
+MAE ($)          72,971.19              —  Lower is better
+RMSE ($)        136,718.52              —  Lower is better
+MAPE (%)             21.18              —  Lower is better
+MdAPE (%)            15.24              —  Robust to outliers
+Bias ($)        -32,873.04              —  Near 0 is better
+MAE(LogRatio)       0.2094              —  Median-like scale for log errors
+RMSE(LogRatio)      0.2838              —  Lower is better
+Bias(LogRatio)     -0.0502              —  Near 0 is better
+==============================================================================
+===================================================================================================
+IAAO-STYLE RATIO STUDY METRICS (Pred/Actual as AV/SP)
+===================================================================================================
+Metric                           Value  IAAO expected                             Interpretation
+---------------------------------------------------------------------------------------------------
+Median Ratio                    0.9346   [0.90, 1.10]  Within 0.90–1.10 level
+Weighted Mean Ratio             0.9184   [0.90, 1.10]  Within 0.90–1.10 level
+COD (%) [Residential Improved]   21.73    [5.0, 15.0]  Above Table 7 range
+PRD                             1.0795   [0.98, 1.03]  Regressive tendency (>1.03)
+VEI (%)                         -29.02     [-10, 10]%  Regressive beyond ±10 (test significance)
+COV(Ratio)                      0.3275              —  Lower is better (no fixed std)
+IQR(Ratio)                      0.2699              —  Smaller = tighter ratios
+===================================================================================================
+VEI details: k=10, groups_used=10, firstPG_median=1.1534, lastPG_median=0.8822
+===========================================================================
+DIAGNOSTICS BY PRICE QUANTILE (by Actual; n_quantiles=4)
+===========================================================================
+             Min ($)       Max ($)  Mean Error ($)  MAPE (%)  Mean Ratio  Median Ratio    COD   PRD
+Quantile
+1         15,000.000   220,000.000      13,970.960    36.800       1.189         1.097 32.743 1.086
+2        220,001.000   315,000.000     -12,333.658    16.986       0.955         0.944 17.278 1.000
+3        315,002.000   460,000.000     -26,600.147    14.180       0.931         0.922 13.516 1.001
+4        460,500.000 8,000,000.000    -107,068.232    16.734       0.891         0.875 14.818 1.024
+====================================================================================================

@@ -1,0 +1,2089 @@
+\documentclass[aspectratio=169,12pt,]{beamer}
+
+% -------------------- Theme & styling --------------------
+\usetheme{Madrid}
+\usecolortheme{default}
+\usefonttheme{professionalfonts}
+\setbeamertemplate{navigation symbols}{}
+
+\definecolor{MITred}{RGB}{163,31,52}
+\definecolor{Dark}{RGB}{30,30,30}
+\definecolor{Light}{RGB}{248,248,248}
+% \definecolor{Mid}{RGB}{120,120,120}
+% \definecolor{MITred}{RGB}{163,31,52}
+\definecolor{Ink}{RGB}{30,34,44}
+\definecolor{Panel}{RGB}{248,249,251}
+\definecolor{Mid}{RGB}{115,121,132}
+\definecolor{LineGray}{RGB}{203,208,217}
+\definecolor{Good}{RGB}{36,132,75}
+\definecolor{Bad}{RGB}{188,54,54}
+\definecolor{MethodBlue}{RGB}{45,103,190}
+\definecolor{Warm}{RGB}{242,173,68}
+
+\setbeamercolor{title}{fg=MITred}
+\setbeamercolor{frametitle}{fg=white}
+\setbeamercolor{structure}{fg=MITred}
+\setbeamercolor{block title}{bg=MITred!12, fg=Dark}
+\setbeamercolor{block body}{bg=Light, fg=Dark}
+\setbeamercolor{itemize item}{fg=MITred}
+\setbeamercolor{itemize subitem}{fg=MITred!80}
+
+% -------------------- Packages --------------------
+\usepackage{amsmath, amssymb, bm}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric}
+\usepackage{siunitx}
+\usepackage{multicol}
+
+\usepackage{soul}
+
+
+% In the preamble:
+% \usepackage{booktabs}
+\usepackage{makecell} % for multi-line cells
+% \usepackage{xcolor}   % for coloring deltas
+\usepackage[table]{xcolor}
+
+
+
+% ------------- Emojis -------------------------  
+\usepackage{emoji}
+% \usepackage{twemojis}
+
+
+% -------------------- Macros --------------------
+
+\usepackage[most]{tcolorbox}
+
+% Color macros (match your plot colors)
+\newcommand{\cRMSE}{blue!70!black}
+\newcommand{\cCORR}{red!75!black}
+\newcommand{\cCOD}{green!60!black}
+
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Corr}{\operatorname{Corr}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\MV}{\mathrm{MV}}
+\newcommand{\AV}{\mathrm{AV}}
+\newcommand{\yh}{\hat y}
+\newcommand{\ybar}{\bar y}
+\newcommand{\gh}{\hat g}
+\newcommand{\phii}{\phi}
+
+
+\newcommand{\prox}{\mathrm{prox}}
+\newcommand{\argmin}{\mathop{\mathrm{arg\,min}}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\ip}[2]{\left\langle #1,#2 \right\rangle}
+\newcommand{\1}{\mathbf{1}}
+
+\newcommand{\Y}{\mathcal{Y}}
+\newcommand{\X}{\mathcal{X}}
+\newcommand{\V}{\mathcal{V}}
+\newcommand{\U}{\mathcal{U}}
+\newcommand{\G}{\mathcal{G}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\A}{\mathcal{A}}
+\newcommand{\J}{\mathcal{J}}
+\newcommand{\I}{\mathcal{I}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\C}{\mathcal{C}}
+\renewcommand{\L}{\mathcal{L}}
+\renewcommand{\H}{\mathcal{H}}
+\renewcommand{\P}{\mathcal{P}}
+
+\newcommand{\diag}{\mathbf{\operatorname{diag}}}
+
+\newcommand{\muBold}{\boldsymbol{\mu}}
+\renewcommand{\t}{^{\top}}
+\newcommand{\qt}[1]{``#1''}
+
+\newcommand{\Expected}[1]{\mathbb{E}[#1]}
+\newcommand{\Prob}[1]{\mathbb{P}(#1)}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+
+
+\title[Reducing Regressivity in ML: Mass Appraisal]{\color{white} Reducing Regressivity in ML-based Mass Appraisal}
+\subtitle{\color{white} \textit{A covariance-penalty layer for assessor workflows}}
+\author{Nicol\'as Acevedo$^*$, Haihao Lu$^{\dagger}$}
+\date{\today}
+
+% Bool for figures
+\newif\ifshowfigs
+\showfigstrue
+\newcommand{\figurebool}[1]{%
+\ifshowfigs
+#1
+\fi
+}
+
+
+\begin{document}
+
+% ==========================================================
+% Slide 1 -- Title
+% ==========================================================
+\begin{frame}
+  \titlepage
+  \vspace{-2mm}
+  \begin{center}\footnotesize
+  \begin{tabular}{r|l}
+  $^*$Operations Research Center, MIT & \texttt{nacevedo@mit.edu} \\
+  $^\dagger$Sloan School of Management, MIT & \texttt{haihao@mit.edu}
+  \end{tabular}
+  \end{center}
+  \vspace{2mm}
+  \begin{center}
+  % \footnotesize\itshape
+  % Better predictive ML can still worsen vertical equity; a lightweight covariance penalty recovers most of the fairness gap while preserving accuracy.
+  \end{center}
+\end{frame}
+
+
+% ==========================================================
+% PART I -- PRELIMINARIES AND PROBLEM SETUP
+% ==========================================================
+\section{Preliminaries and problem setup}
+
+
+% ----------------------------------------------------------
+% Slide 2 -- Why property valuation matters
+% ----------------------------------------------------------
+
+
+% \begin{frame}{Why property taxes matter}
+
+% % \begin{columns}[T,onlytextwidth]
+% % \column{0.6\textwidth}
+
+
+
+%     Property taxes are a \textbf{major source of local public revenue} in the U.S.
+%     % \vspace{-2mm}
+% \begin{itemize}
+
+% \medskip
+
+% \begin{tcolorbox}[colback=MethodBlue!10,colframe=MethodBlue!60,boxsep=2pt,left=3pt,right=3pt,top=4pt,bottom=4pt]
+% \centering{\large
+% \sim  \textbf{48\%}}\\[1mm]
+% % $\downarrow$\\[1mm]
+% \footnotesize
+% \begin{tabular}{c}
+% of local own-source revenue
+% \end{tabular}
+% \end{tcolorbox}
+
+% % \begin{tcolorbox}[colback=MITred!10,colframe=MITred!60,boxsep=2pt,left=3pt,right=3pt,top=4pt,bottom=4pt]
+% % \centering{\large
+% % \sim  \textbf{72\%}}\\[1mm]
+% % % $\downarrow$\\[1mm]
+% % \footnotesize
+% % \begin{tabular}{c}
+% % of the U.S. local \underline{tax-based} revenue
+% % \end{tabular}
+% % \end{tcolorbox}
+
+%  \begin{tcolorbox}[colback=Good!10,colframe=Good!60,boxsep=2pt,left=3pt,right=3pt,top=4pt,bottom=4pt]
+% \centering{\large
+% \sim  \textbf{\$609B}}\\[1mm]
+% % $\downarrow$\\[1mm]
+% \footnotesize
+% \begin{tabular}{c}
+% collected nationwide in 2021
+% \end{tabular}
+% \end{tcolorbox}   
+    
+%     % \begin{itemize}
+%     %     \item \emoji{bar-chart} $\sim$48\% of local (own-source) general revenue.
+%     %     \item \emoji{bar-chart} $\sim$72\% of \emph{local tax}-based revenue.
+%     %     \item \emoji{bar-chart} $\sim$\$500 billion per year.
+%     % \end{itemize}
+    
+%     % \medskip
+%     % \item They fund \textbf{visible public services}: schools, roads, public safety, transit, parks.
+%     % \medskip
+%     % \item \textbf{Assessment quality} therefore has \underline{broad distributional consequences} on almost everyone (directly or indirectly).
+
+% \end{itemize}
+
+% They help finance \textbf{local public services}.
+
+
+
+% % \column{0.34\textwidth}
+
+% % % \begin{itemize}
+% % %     % \item 
+% % %     \item They finance highly visible {local services}.
+
+% % % \end{itemize}
+
+% % \begin{tcolorbox}[
+% %     title={},
+% %     colback=gray!3,
+% %     colframe=gray!35,
+% %     boxrule=0.5pt,
+% %     arc=1mm,
+% %     left=2mm,right=2mm,top=1.5mm,bottom=1.5mm
+% % ]
+% % \centering
+% % \scriptsize
+% % If valuation is inaccurate, the revenue still has to be raised --- but the burden shifts across taxpayers.
+
+% % \vspace{4mm}
+
+% % \begin{tikzpicture}[
+% %     font=\footnotesize,
+% %     >=stealth,
+% %     main/.style={draw=gray!65, rounded corners=1mm, minimum width=23mm, minimum height=7mm, align=center, fill=white},
+% %     redbox/.style={draw=MITred!55, rounded corners=1mm, minimum width=23mm, minimum height=7mm, align=center, fill=MITred!8},
+% %     greenbox/.style={draw=Good!55, rounded corners=1mm, minimum width=23mm, minimum height=7mm, align=center, fill=Good!8},
+% %     svc/.style={draw=MethodBlue!45, rounded corners=1mm, minimum width=16mm, minimum height=6mm, align=center, fill=MethodBlue!8}
+% % ]
+
+% % % \node[redbox]   (v)  at (0,1.4) {\textbf{Property}\\valuation};
+% % \node[main]     (t)  at (0,0.25) {\textbf{Tax}\\bills};
+% % \node[main] (b)  at (0,-0.9) {\textbf{Local}\\budgets};
+
+% % % \draw[->,thick] (v) -- (t);
+% % \draw[->,thick] (t) -- (b);
+
+% % \node[svc] (s1) at (-1.55,-2.15) {Schools};
+% % \node[svc] (s2) at ( 1.55,-2.15) {Roads};
+% % \node[svc] (s3) at (-1.55,-3.00) {Safety};
+% % \node[svc] (s4) at ( 1.55,-3.00) {Parks};
+
+% % \draw[->,thin] (b) -- (s1);
+% % \draw[->,thin] (b) -- (s2);
+% % \draw[->,thin] (b) -- (s3);
+% % \draw[->,thin] (b) -- (s4);
+
+% % \end{tikzpicture}
+% % \vspace{-4mm}
+% % \scriptsize\itshape
+% % If valuation is inaccurate, the revenue still has to be raised --- but the burden shifts across taxpayers.
+% % \end{tcolorbox}
+
+
+% % \vspace{10mm}
+
+% % \begin{block}{They \textbf{fund}:}
+% %     \medskip
+
+% %     \begin{itemize}
+% %         \item 
+% %     Schools, 
+% %     \item Roads, 
+% %     \item Transit, 
+% %     \item Parks,
+% %     \item Other public services.
+% %     \end{itemize}
+    
+% % \end{block}
+
+% % \begin{tcolorbox}[colback=MITred!5,colframe=MITred!60,boxsep=2pt,left=3pt,right=3pt,top=4pt,bottom=4pt]
+% % \centering\small
+% % \textbf{Property Taxes}\\[1mm]
+% % $\downarrow$\\[1mm]
+% % \begin{tabular}{c}
+% % Schools \quad Roads \\
+% % Public safety \quad Transit \\
+% % Parks \quad Local services
+% % \end{tabular}
+% % \end{tcolorbox}
+% % \vspace{3mm}
+% % \footnotesize\itshape This is why fairness in valuation matters.
+% % \end{columns}
+
+% \begin{center}
+%     \color{gray} 
+% \vspace{1mm}
+%    \scriptsize \itshape Tax Policy Center. (2024, January update). How do state and local property taxes work?
+% \end{center}
+
+% \end{frame}
+
+
+\begin{frame}{Why property taxes matter}
+
+\centering
+
+Property taxes are a \textbf{major source of local public revenue} in the U.S.
+
+\vspace{3mm}
+
+\begin{tcolorbox}[
+    width=0.58\textwidth,
+    colback=MethodBlue!10,
+    colframe=MethodBlue!60,
+    boxsep=2pt,
+    left=4pt,right=4pt,top=5pt,bottom=5pt,
+    arc=1mm,
+    boxrule=1.5pt
+]
+\centering
+{\Large \textbf{\(\mathbf{\sim 48\%}\)}}\\[1mm]
+{\footnotesize of local own-source revenue}
+\end{tcolorbox}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    width=0.58\textwidth,
+    colback=Good!10,
+    colframe=Good!60,
+    boxsep=2pt,
+    left=4pt,right=4pt,top=5pt,bottom=5pt,
+    arc=1mm,
+    boxrule=1.5pt
+]
+\centering
+{\Large \(\mathbf{\sim \$609}\textbf{B}\)}\\[1mm]
+{\footnotesize collected nationwide in 2021}
+\end{tcolorbox}
+
+\vspace{3mm}
+
+%     \begin{center}
+% \begin{block}
+        
+% They help finance \textbf{schools, roads, public safety, parks, etc.}
+% \end{block}
+%     \end{center}
+
+
+They help \textbf{finance public services}: {schools, roads, public safety, etc.}
+
+% \begin{tcolorbox}[
+%     width=0.8\textwidth,
+%     colback=gray!5,
+%     colframe=gray!35,
+%     boxsep=2pt,
+%     left=0pt,right=0pt,top=4pt,bottom=4pt,
+%     arc=1mm,
+%     boxrule=0.5pt
+% ]
+% \centering
+% They help finance \textbf{public services}: {schools, roads, etc.}
+% \end{tcolorbox}
+
+\begin{center}
+    \color{gray}
+    \vspace{3mm}
+    \scriptsize \itshape Tax Policy Center. (2024, January update). How do state and local property taxes work?
+\end{center}
+
+\end{frame}
+
+
+
+
+% ----------------------------------------------------------
+% Slide 3 -- How property taxes are produced
+% ----------------------------------------------------------
+\begin{frame}{Basic mechanism of property tax}
+
+\begin{enumerate}
+    \item \textbf{Assessment:} Local \textit{assessors} estimate \textbf{market value} of properties.
+    \medskip
+
+    \item \textbf{Base Adjustments:} Qualifying adjustments apply to assessed market value.
+    \begin{itemize}
+        \item E.g., Homestead exceptions, veterans, etc.
+    \end{itemize}
+    \medskip
+    % Principal-residence, senior citizens, veterans
+
+    \item \textbf{Tax Rate:} Local governments (city, county, etc.) set a tax rate.
+    \begin{itemize}
+        \item E.g., Cambridge: $\sim$ 0.55\%, Boston: $\sim$1.05\%, Chicago: $\sim$2\%.
+    \end{itemize}
+    \medskip
+
+    \item \textbf{Tax Bill:} Property Tax = Adjusted Value $\times$ Tax Rate
+\end{enumerate}
+
+
+% \begin{center}
+% \textbf{Valuation sits \underline{upstream} of the final tax bill.}
+% \end{center}
+% \vspace{3mm}
+
+% \begin{center}
+% \begin{tikzpicture}[>={Stealth[round]},thick,
+%   node/.style={rectangle, rounded corners, draw=MITred!70, fill=MITred!8,
+%                minimum width=3.0cm, minimum height=1.0cm, align=center, font=\footnotesize}]
+%   \node[node] (A) {1.~Assess\\market value};
+%   \node[node, right=0.7cm of A] (B) {2.~Apply\\exemptions};
+%   \node[node, right=0.7cm of B] (C) {3.~Apply\\local tax rate};
+%   \node[node, right=0.7cm of C] (D) {4.~Tax bill};
+%   \draw[->] (A) -- (B);
+%   \draw[->] (B) -- (C);
+%   \draw[->] (C) -- (D);
+% \end{tikzpicture}
+% \end{center}
+
+% \medskip
+
+% \begin{block}{\emoji{light-bulb} Consequence}
+% If assessments are \textbf{systematically distorted}, the tax burden is also systematically distorted.
+% \begin{itemize}
+%     \item Assessment errors that correlate with property value translate directly into \underline{uneven effective tax rates} across the price distribution.
+% \end{itemize}
+% \end{block}
+
+% \vspace{-2mm}
+% {\footnotesize
+% \textit{Tax rate examples:} Cambridge $\sim 0.6$--$0.6\%$, Boston $\sim 1.0$--$1.1\%$, Chicago $\sim 2.0$--$2.3\%$.
+% }
+
+\end{frame}
+
+
+
+\begin{frame}{Basic mechanism of property tax}
+
+
+% \begin{center}
+% % A \textbf{property tax bill} is determined in four main steps.
+% % Assessment quality determines \textbf{who pays how much}.
+% \end{center}
+
+
+\begin{columns}[T,onlytextwidth]
+\column{0.24\textwidth}
+\begin{tcolorbox}[
+    colback=gray!10,
+    colframe=gray!75,
+    arc=1mm,
+    boxrule=0.6pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    valign=top,
+    height=5.5cm
+]
+\centering \textbf{1. Assessment}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    colback=white,
+    colframe=gray!35,
+    arc=1mm,
+    boxrule=0.4pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    height=4cm
+]
+\begin{minipage}[t][2.6cm][t]{\linewidth}
+\raggedright
+\small
+Local \textit{assessors} estimate the \textbf{market value} of properties.
+\end{minipage}
+\end{tcolorbox}
+\end{tcolorbox}
+
+\column{0.24\textwidth}
+\begin{tcolorbox}[
+    colback=gray!10,
+    colframe=gray!75,
+    arc=1mm,
+    boxrule=0.6pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    valign=top,
+    % height=4.6cm
+    height=5.5cm
+]
+\centering \textbf{2. Exemptions \& Adjustments}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    colback=white,
+    colframe=gray!35,
+    arc=1mm,
+    boxrule=0.4pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    height=4cm
+]
+\begin{minipage}[t][2.6cm][t]{\linewidth}
+\raggedright
+\small
+Qualifying adjustments apply to assessed value.
+
+{\scriptsize E.g., homestead exemptions.}
+\end{minipage}
+\end{tcolorbox}
+\end{tcolorbox}
+
+\column{0.24\textwidth}
+\begin{tcolorbox}[
+    colback=gray!10,
+    colframe=gray!75,
+    arc=1mm,
+    boxrule=0.6pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    valign=top,
+    % height=4.6cm
+    height=5.5cm
+]
+\centering \textbf{3. Tax Rate}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    colback=white,
+    colframe=gray!35,
+    arc=1mm,
+    boxrule=0.4pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    height=4cm
+]
+\begin{minipage}[t][2.6cm][t]{\linewidth}
+\raggedright
+\small
+Local governments set tax rate(s).
+
+{\scriptsize E.g., Chicago: $\sim$2\%.}
+\end{minipage}
+\end{tcolorbox}
+\end{tcolorbox}
+
+\column{0.24\textwidth}
+
+
+\begin{tcolorbox}[
+    colback=gray!10,
+    colframe=gray!75,
+    arc=1mm,
+    boxrule=0.6pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    valign=top,
+    % height=4.6cm
+    height=5.5cm
+]
+\centering \textbf{4. Tax Bill}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    colback=white,
+    colframe=gray!35,
+    arc=1mm,
+    boxrule=0.4pt,
+    left=0pt,right=0pt,top=4pt,bottom=4pt,
+    height=4cm
+]
+\begin{minipage}[t][2.6cm][t]{\linewidth}
+\raggedright
+\small
+Property Tax $=$ (Adjusted Value) $\times$ (Tax Rate)
+\end{minipage}
+\end{tcolorbox}
+\end{tcolorbox}
+
+\end{columns}
+
+\medskip
+
+\begin{center}
+Assessment is critical: quality determines \textbf{who pays how much}.
+\end{center}
+
+
+\end{frame}
+
+% ----------------------------------------------------------
+% Slide 4 -- Why assessors need mass appraisal
+% ----------------------------------------------------------
+\begin{frame}{Why assessors need mass appraisal}
+
+
+\begin{columns}[T,onlytextwidth]
+
+
+
+\column{0.55\textwidth}
+
+% \vspace{-4mm}
+% \begin{block}{}
+% \small \emoji{pushpin} \textbf{Mass Appraisal:} \textit{Estimating the value of a group of real estate properties for a given date.}
+% \end{block}
+
+\medskip
+
+
+\begin{itemize}
+    \item Only a \textbf{small fraction of properties are sold} in any given year ($\sim$4--6\%).
+    \medskip
+    \item Yet assessor offices must \textbf{value the full market} of parcels each year.
+    \medskip
+    \item \textbf{Mass Appraisal:} They \underline{estimate values} \underline{for unsold properties} using shared data and standardized methods.
+\end{itemize}
+
+\vspace{4mm}
+{\scriptsize
+% \textit{Nearby features help: size, rooms, location, transit access, neighborhood, etc.}
+% \textit{Property and location characteristics size, rooms, location, transit access, neighborhood, etc.}
+}
+
+
+
+\column{0.42\textwidth}
+\vspace{3mm}
+\centering
+\begin{tikzpicture}[scale=0.75]
+  \foreach \x in {0,...,4} {
+    \foreach \y in {0,...,3} {
+      \pgfmathsetmacro{\isSold}{(\x==1 && \y==2) || (\x==3 && \y==0) ? 1 : 0}
+      \ifnum\isSold=1
+        \fill[MITred!80] (\x,\y) rectangle ++(0.8,0.8);
+      \else
+        \fill[gray!25] (\x,\y) rectangle ++(0.8,0.8);
+      \fi
+    }
+  }
+  \medskip
+  \node[font=\scriptsize] at (2.4,-0.5) {  \textcolor{MITred}{\textbf{Sold} = observed prices} \quad \textcolor{gray!45}{\textbf{Unsold} = estimated}};
+
+\end{tikzpicture}
+
+
+\end{columns}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 4 -- Why assessors need mass appraisal
+% ----------------------------------------------------------
+\begin{frame}{Why assessors use mass appraisal}
+
+\begin{columns}[T,onlytextwidth]
+
+\column{0.54\textwidth}
+
+\vspace{1mm}
+\begin{itemize}
+    \item Only a \textbf{small share of properties are sold} in a year (\(\sim\)4--6\%).
+    \medskip
+
+    \item Yet assessors must \textbf{estimate value for every taxable property} (not just sold ones).
+    \medskip
+
+    \item \textbf{Mass appraisal}: Use observed sold-properties characteristics to estimate value of \textbf{unsold-properties}.
+\end{itemize}
+
+\vspace{2mm}
+{\scriptsize \textit{*Characteristics: size, age, location, neighborhood, and other property features.}}
+
+\column{0.44\textwidth}
+
+\vspace{3mm}
+\centering
+
+\begin{center}
+    
+\begin{tikzpicture}[scale=0.62]
+  \foreach \x in {0,...,7} {
+    \foreach \y in {0,...,4} {
+      \pgfmathtruncatemacro{\isSold}{(\x==1 && \y==3) || (\x==5 && \y==0)}
+      \ifnum\isSold=1
+        \fill[MITred!80] (\x,\y) rectangle ++(0.8,0.85);
+      \else
+        \fill[gray!25] (\x,\y) rectangle ++(0.8,0.85);
+      \fi
+      \draw[white, line width=0.35pt] (\x,\y) rectangle ++(0.8,0.85);
+    }
+  }
+
+  \node[font=\scriptsize, align=center] at (3.2,-0.55) {%
+    \textcolor{MITred}{\textbf{Sold}} = observed prices
+    \mid
+    \textcolor{gray!60}{\textbf{Unsold}} = to estimate};
+
+  \node[font=\scriptsize, align=center] at (3.2,-1.15) {%
+    (\textbf{2 out of 40} observed)};
+\end{tikzpicture}
+\end{center}
+
+\end{columns}
+
+% \vspace{2mm}
+% \begin{center}
+% \footnotesize \textbf{Most parcels do not sell, but all must be assessed.}
+% \end{center}
+
+\end{frame}
+
+% ----------------------------------------------------------
+% Slide 5 -- Why ML enters naturally
+% ----------------------------------------------------------
+\begin{frame}{ML appears naturally}
+
+\begin{itemize}
+    \item Mass appraisal uses \textbf{many features and interactions}; housing markets are nonlinear.
+    \medskip
+    \item Assessor offices increasingly adopt \textbf{flexible ML learners} for the valuation step.
+    \begin{itemize}
+        \item Regularized linear models $\rightarrow$ \textbf{tree ensembles} (XGBoost, LightGBM) $\rightarrow$ neural networks.
+        \item Gradient-boosted trees are now among the \underline{most common production learners}.
+    \end{itemize}
+\end{itemize}
+
+\medskip
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{\emoji{white-check-mark} What flexible ML buys}
+\begin{itemize}
+    \item Stronger \textbf{predictive accuracy} on tabular data.
+    \item Captures \textbf{nonlinear market structure}.
+    \item Scales to large parcel inventories.
+\end{itemize}
+\end{block}
+
+\column{0.48\textwidth}
+\begin{block}{\emoji{warning} What it does not solve}
+\begin{itemize}
+    \item Explainability \& defensibility.
+    \item \textbf{Fairness/equity} in assessment.
+    \item Operational feasibility.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\vspace{2mm}
+{\footnotesize\itshape
+We show next that stronger predictors can \underline{worsen} one of the equity dimensions assessors care most about.
+}
+
+\end{frame}
+
+\begin{frame}{Why ML is a natural fit for mass appraisal}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\begin{tcolorbox}[colback=gray!8,colframe=gray!60,arc=1mm,boxrule=0.5pt]
+\centering \textbf{1. Market data}
+
+\vspace{1.5mm}
+\raggedright
+Large amount of data, property features, complex interactions, etc.
+\end{tcolorbox}
+
+
+
+\column{0.32\textwidth}
+\begin{tcolorbox}[colback=gray!8,colframe=gray!60,arc=1mm,boxrule=0.5pt]
+\centering \textbf{2. Appraisal task}
+
+\vspace{1.5mm}
+\raggedright
+Assessors must estimate market values for many unsold parcels.
+\end{tcolorbox}
+
+
+
+\column{0.32\textwidth}
+\begin{tcolorbox}[colback=gray!8,colframe=gray!60,arc=1mm,boxrule=0.5pt]
+\centering \textbf{3. Why ML fits}
+
+\vspace{1.5mm}
+\raggedright
+Flexible ML methods can learn complex patterns and scale to large tabular datasets.
+\end{tcolorbox}
+\end{columns}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+
+\begin{center}
+    $X$
+\end{center}
+
+\column{0.32\textwidth}
+
+\begin{center}
+    $y$
+\end{center}
+
+\column{0.32\textwidth}
+
+\begin{center}
+    $f(X) = \hat y $
+\end{center}
+
+\end{columns}
+
+
+\vspace{4mm}
+\begin{center}
+\footnotesize {Mass appraisal naturally invites for ML usage.}
+
+\end{center}
+
+\end{frame}
+
+
+\begin{frame}{Better prediction does NOT guarantee fairness}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\begin{tcolorbox}[
+    colback=gray!10,
+    colframe=gray!75,
+    arc=1mm,
+    boxrule=0.6pt,
+    left=4pt,right=4pt,top=4pt,bottom=4pt,
+    valign=top,
+    height=4.5cm
+]
+\centering \textbf{1. What ML optimizes}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    colback=white,
+    colframe=gray!35,
+    arc=1mm,
+    boxrule=0.4pt,
+    left=4pt,right=4pt,top=4pt,bottom=4pt
+]
+\begin{minipage}[t][2.5cm][t]{\linewidth}
+\raggedright
+Flexible ML methods are typically trained to reduce \textbf{overall prediction error}.
+\end{minipage}
+\end{tcolorbox}
+\end{tcolorbox}
+
+\column{0.32\textwidth}
+\begin{tcolorbox}[
+    colback=gray!10,
+    colframe=gray!75,
+    arc=1mm,
+    boxrule=0.6pt,
+    left=4pt,right=4pt,top=4pt,bottom=4pt,
+    valign=top,
+    height=4.5cm
+]
+\centering \textbf{2. What equity asks}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    colback=white,
+    colframe=gray!35,
+    arc=1mm,
+    boxrule=0.4pt,
+    left=4pt,right=4pt,top=4pt,bottom=4pt
+]
+\begin{minipage}[t][2.5cm][t]{\linewidth}
+\raggedright
+Assessment equity asks whether errors are \textbf{distributed fairly}, rather than concentrated on some properties.
+\end{minipage}
+\end{tcolorbox}
+\end{tcolorbox}
+
+\column{0.32\textwidth}
+\begin{tcolorbox}[
+    colback=gray!10,
+    colframe=gray!75,
+    arc=1mm,
+    boxrule=0.6pt,
+    left=4pt,right=4pt,top=4pt,bottom=4pt,
+    valign=top,
+    height=4.5cm
+]
+\centering \textbf{3. Why they can differ}
+
+\vspace{2mm}
+
+\begin{tcolorbox}[
+    colback=white,
+    colframe=gray!35,
+    arc=1mm,
+    boxrule=0.4pt,
+    left=4pt,right=4pt,top=4pt,bottom=4pt
+]
+\begin{minipage}[t][2.5cm][t]{\linewidth}
+\raggedright
+A model can be \textbf{more accurate on average}, yet still discriminate some property types.
+\end{minipage}
+\end{tcolorbox}
+\end{tcolorbox}
+\end{columns}
+
+\vspace{3mm}
+\begin{center}
+\footnotesize \textbf{Better predictions do not guarantee fairer tax bills.}
+\end{center}
+
+\end{frame}
+
+% ----------------------------------------------------------
+% Slide 6 -- The CCAO as the running case
+% ----------------------------------------------------------
+\begin{frame}{The CCAO as the running case}
+
+\begin{itemize}
+    \item We study a \textbf{translated version} of the Cook County Assessor's Office (CCAO) residential pipeline.
+    \begin{itemize}
+        \item Operational AVM: \textbf{LightGBM}-based, \underline{open source} (\href{https://github.com/ccao-data/model-res-avm/tree/2025-assessment-year/pipeline}{\color{blue}ccao-data/model-res-avm}).
+        \item Uses open \textbf{ratio-study diagnostics} to screen candidate models.
+    \end{itemize}
+\end{itemize}
+
+\medskip
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{\emoji{information-source} Case-study card}
+\small
+\begin{tabular}{rl}
+Operational context & $\sim$1.5M parcels \\
+Verified sales (study) & \textbf{349{,}661} \\
+Features & \textbf{95} \\
+Training window & 2016--2022 \\
+Held-out test year & 2023 \\
+Validation & 8-fold rolling origin \\
+\end{tabular}
+\end{block}
+
+\column{0.48\textwidth}
+\begin{block}{\emoji{bullseye} Why this case}
+\begin{itemize}
+    \item A \textbf{real} production AVM, not a toy setup.
+    \item Well-documented \underline{workflow and diagnostics}.
+    \item Lets us test the method against the \textbf{same tolerances} an assessor would apply.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\end{frame}
+
+% ----------------------------------------------------------
+% Slide 6 -- Running case: Cook County residential AVM
+% ----------------------------------------------------------
+\begin{frame}{Running case: Cook County}
+
+% \begin{itemize}
+% \small
+\begin{center}
+    Collaboration with the \textbf{Cook County Assessor's Office} (CCAO) --- Chicago.
+\end{center}
+
+% \end{itemize}
+
+
+% (\textbf{real, open-source, LightGBM-based AVM}
+% evaluated with \textbf{assessment-style ratio-study diagnostics}.
+
+\medskip
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Context}
+\small
+\centering
+\begin{tabular}{@{}rl@{}}
+{Past Sales} & 2016--2023 \\
+{Assessment year} & 2024 \\
+\midrule
+{Total properties} & {$\sim$}{1.5M}  \\
+% Production setting & countywide residential AVM \\
+{Sold properties} & {349,661} \\
+\midrule
+{Features} & {95} features \\
+% \textbf{Held-out test year} & 2023 \\
+% \textbf{Validation} & 8-fold rolling origin \\
+% Screening metrics & COD, PRD, PRB, median ratio \\
+\end{tabular}
+\end{block}
+
+\column{0.48\textwidth}
+
+\begin{block}{Features by category.}
+% \label{tab:feature_groups}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrl}
+\toprule
+\textbf{Category} & \textbf{Count} & \textbf{Examples} \\
+\midrule
+Property characteristics & 25 & Bedrooms, building sqft \\
+Proximity                & 20 & Distance to transit or schools \\
+ACS Census (5-year)      & 16 & Median income, education \\
+Location                 & 8  & Lat/lon, flood factor \\
+Time                     & 8  & Sale year, day-of-week\\
+Parcel shape             & 6  & Vertex count, rectangle ratios \\
+Other / identifiers      & 12 & Township, neighborhood  \\
+\midrule
+\textbf{Total}           & \textbf{95} & \\
+\bottomrule
+\end{tabular}
+}
+\end{block}
+% \begin{block}{Why this is a strong running case}
+% \small
+% \begin{itemize}
+%     \item \textbf{Operational benchmark:} not a toy housing dataset.
+%     \item \textbf{Public and reproducible:} code, documentation, and diagnostics are open.
+%     \item \textbf{Decision-relevant:} models are judged using the same style of diagnostics used in assessment practice.
+% \end{itemize}
+% \end{block}
+\end{columns}
+
+\medskip
+% {\scriptsize
+% \emph{Note:} Bold quantities refer to our translated study setup; the production CCAO system provides the real-world benchmark context.
+% }
+
+Real-world (\href{https://github.com/ccao-data/model-res-avm/tree/2025-assessment-year/pipeline}{\color{blue}\underline{open source}}) residential mass appraisal pipeline 
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 7 -- Fairness in assessment
+% ----------------------------------------------------------
+\begin{frame}{Fairness in assessment}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+
+For assessors, fairness is expressed through the \textbf{assessment ratio}:
+\vspace{-1mm}
+\[
+r_i := \frac{\widehat{P}_i}{P_i} = \frac{\text{Assessed value}}{\text{Sale price}}.
+\]
+
+\medskip
+
+\begin{block}{\emoji{balance-scale} Two equity dimensions}
+\begin{itemize}
+    \item \textbf{Horizontal equity:} consistency of $r$ \underline{among similar properties}.
+    \item \textbf{Vertical equity:} fairness of $r$ \underline{across value tiers} (low-price vs high-price homes).
+\end{itemize}
+\end{block}
+
+{\footnotesize\itshape
+Full IAAO metrics (COD, COV, PRD, PRB, VEI, MKI) are reviewed in the appendix.
+}
+
+\column{0.45\textwidth}
+\centering
+\small\textbf{Horizontal equity}\\[1mm]
+\begin{tikzpicture}[scale=0.55]
+  \foreach \x/\r in {0/0.98,1.2/1.02,2.4/0.99,3.6/1.01} {
+    \draw[draw=MITred!70,fill=MITred!15] (\x,0) rectangle ++(1,1);
+    \node[font=\scriptsize] at (\x+0.5,0.5) {$r{=}\r$};
+  }
+\end{tikzpicture}\\[1mm]
+{\scriptsize similar homes $\rightarrow$ similar ratios}
+
+\vspace{4mm}
+
+\small\textbf{Vertical equity}\\[1mm]
+\begin{tikzpicture}[scale=0.55]
+  \draw[draw=MITred!70,fill=MITred!15] (0,0) rectangle ++(1,1);
+  \node[font=\scriptsize] at (0.5,0.5) {$r{=}1.10$};
+  \node[font=\tiny] at (0.5,-0.3) {low};
+  \draw[->,gray] (1.3,0.5) -- (2.5,0.5);
+  \draw[draw=MITred!70,fill=MITred!15] (2.8,0) rectangle ++(1,1);
+  \node[font=\scriptsize] at (3.3,0.5) {$r{=}0.92$};
+  \node[font=\tiny] at (3.3,-0.3) {high};
+\end{tikzpicture}\\[1mm]
+{\scriptsize ratio drifting with price $\Rightarrow$ {\color{red}\textbf{regressivity}}}
+
+\end{columns}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 8 -- Regressivity in taxpayer terms
+% ----------------------------------------------------------
+\begin{frame}{Regressivity in taxpayer terms}
+
+\begin{block}{\emoji{pushpin} What regressivity \emph{means} for taxpayers}
+Lower-value homes are \textbf{over-assessed} ($r>1$) and higher-value homes are \textbf{under-assessed} ($r<1$)
+\;\;$\Rightarrow$\;\; the tax burden is \underline{not neutral across the price distribution}.
+\end{block}
+
+\medskip
+
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\centering
+\small
+\begin{tabular}{c|c|c|c}
+\toprule
+Price tier & Typical $r$ & Burden effect & $\%$\\
+\midrule
+\rowcolor{red!10} Q1 (low)   & $\sim 1.10$ & over-taxed   & $+10\%$ \\
+ Q2                & $\sim 1.04$ & slight over  & $+4\%$  \\
+ Q3                & $\sim 1.00$ & neutral      & 0\% \\
+ Q4                & $\sim 0.97$ & slight under & $-3\%$  \\
+\rowcolor{green!10} Q5 (high) & $\sim 0.92$ & under-taxed  & $-8\%$  \\
+\bottomrule
+\end{tabular}
+
+\vspace{2mm}
+{\scriptsize\itshape Illustrative pattern from the CCAO baseline LightGBM.}
+
+\column{0.44\textwidth}
+\begin{block}{\emoji{warning} Distributional impact}
+\begin{itemize}
+    \item Owners of lower-valued properties can face \textbf{effective tax rates up to $\sim$50\% higher} than owners of higher-valued properties.\\[0.5mm]
+    {\scriptsize\itshape (Amornsiripanitch, 2020)}
+    \smallskip
+    \item This is the financial content behind \underline{an otherwise technical} ratio plot.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 9 -- Regressivity in diagnostic terms
+% ----------------------------------------------------------
+\newcommand{\frameA}{Regressivity in diagnostic terms}
+\begin{frame}{\frameA}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.55\textwidth}
+\begin{figure}
+\centering
+\ifshowfigs
+\includegraphics[width=0.98\linewidth, trim={0 0mm 0 0}]{CCAO meeting/img/motivation/Baseline LightGBM_0_motivation_squared_only.pdf}
+\fi
+\end{figure}
+
+\column{0.42\textwidth}
+{\footnotesize
+\textbf{Notation:}
+\begin{itemize}
+    \item $AV=$ Assessed Value ($=\widehat{P}$)
+    \item $MV=$ Market Value ($=P$)
+    \item $r = AV/MV$ = assessment ratio
+\end{itemize}
+}
+\medskip
+
+\begin{block}{Trend test}
+If the trend of $r$ vs $MV$ is \textbf{negative}:
+\vspace{-2mm}
+\[
+\Rightarrow \text{ \textbf{\color{red}regressive behavior}.}
+\]
+\vspace{-4mm}
+{\footnotesize If \emph{positive}: \underline{progressive} behavior (much rarer).}
+\end{block}
+\end{columns}
+
+\vspace{1mm}
+{\footnotesize
+\textbf{Note:} Under squared loss, the Bayes predictor $f(X)=\mathbb{E}[y\mid X]$ satisfies $\Cov(e,y)\le 0$ with $e=f(X)-y$ \;$\Rightarrow$\; \underline{regressivity is the expected default of accurate regression}.
+}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 10 -- The CCAO baseline tension
+% ----------------------------------------------------------
+\begin{frame}{The CCAO baseline tension: better ML, worse vertical equity}
+
+\textbf{Moving from Linear Regression to LightGBM in the CCAO workflow:}
+
+\vspace{2mm}
+
+\begin{table}[]
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{l|cc|cc|ccc}
+\toprule
+Model & \multicolumn{2}{c|}{\textbf{Accuracy}} & \multicolumn{2}{c|}{\textbf{Horizontal equity}} & \multicolumn{3}{c}{\textbf{Vertical equity}} \\
+      & $R^2$ & MAE & COD (\%) & COV (\%) & VEI (\%) & PRD & PRB \\
+\midrule
+Linear Regression & 0.762 & \$86{,}257 & 25.01 & 36.8 & -13.47\phantom{0} & 1.039 & -0.011 \\
+LightGBM          & \textcolor{green!60!black}{\textbf{0.883}} & \textcolor{green!60!black}{\textbf{\$72{,}064}} & \textcolor{green!60!black}{\textbf{23.11}} & \textcolor{green!60!black}{\textbf{35.4}} & \textcolor{red}{\textbf{-36.82}} & \textcolor{red}{\textbf{1.085}} & \textcolor{red}{\textbf{-0.118}} \\
+\bottomrule
+\end{tabular}}
+\vspace{-1mm}
+\caption{\footnotesize Held-out 2023 CCAO test set. \textcolor{green!60!black}{\textbf{Green}}: accuracy / horizontal equity improve. \textcolor{red}{\textbf{Red}}: vertical equity worsens.}
+\end{table}
+
+\vspace{-2mm}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.52\textwidth}
+\setbeamercolor{block title}{fg=white, bg=darkgray!50}
+\begin{block}{\emoji{information-source} IAAO reference ranges (vertical equity)}
+\centering\small
+\begin{tabular}{ccc}
+\toprule
+VEI & PRD & PRB \\
+\midrule
+$[-10\%, 10\%]$ & $[0.98, 1.03]$ & $[-0.05, 0.05]$ \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\column{0.45\textwidth}
+\setbeamercolor{block title}{bg=MITred!12, fg=Dark}
+\begin{block}{\emoji{pushpin} The baseline tension}
+The stronger predictor \underline{exits the compliance region} on exactly the equity dimension the office most cares about.
+\end{block}
+\end{columns}
+
+\vspace{1mm}
+\begin{center}\itshape
+Can we have a \textbf{middle-ground solution} that keeps LightGBM's accuracy and restores vertical equity?
+\end{center}
+
+\end{frame}
+
+
+% ==========================================================
+% PART II -- PROPOSED METHOD
+% ==========================================================
+\section{Proposed method}
+
+
+% ----------------------------------------------------------
+% Slide 11 -- Main idea: fairness as regularization
+% ----------------------------------------------------------
+\begin{frame}{Main idea: penalize value-dependent error patterns}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Old paradigm}
+Minimize in-sample prediction error:
+\vspace{-1mm}
+\[
+f_{\text{base}} \in \arg\min_{f\in\H}\; L(f; X, y).
+\]
+\begin{itemize}
+    \item Pure accuracy objective.
+    \item \emoji{warning} Ignores value-dependent ratio drift.
+\end{itemize}
+\end{block}
+
+\column{0.48\textwidth}
+\begin{block}{Regressivity-aware paradigm}
+Add a \textbf{dependence penalty} $\Psi$:
+\vspace{-1mm}
+\[
+f_{\text{dep}} \in \arg\min_{f\in\H}\big\{ L(f; X, y) + \rho\,\Psi(r, y) \big\}.
+\]
+\begin{itemize}
+    \item One extra hyperparameter $\rho \ge 0$.
+    \item Recovers the baseline at $\rho=0$.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\vspace{3mm}
+
+\begin{block}{\emoji{light-bulb} Three moves}
+\begin{enumerate}
+    \item Start from a \textbf{strong predictive learner} (e.g., LightGBM).
+    \item Add a penalty $\Psi$ that \underline{discourages value-dependent error patterns}.
+    \item Tune $\rho$ to navigate the \textbf{accuracy--equity tradeoff}.
+\end{enumerate}
+\end{block}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 12 -- Why covariance, and why log-space
+% ----------------------------------------------------------
+\begin{frame}{Why covariance, and why log-space}
+
+\begin{block}{\emoji{pushpin} A natural statistical target}
+Train on the log-price scale: $y=\log P$, $\hat y = \log \widehat P$. The log-scale residual is a log-ratio:
+\vspace{-1mm}
+\[
+e_i \;=\; \hat y_i - y_i \;=\; \log\!\left(\frac{\widehat P_i}{P_i}\right) \;=\; \log r_i.
+\]
+\end{block}
+
+\vspace{-1mm}
+
+\begin{itemize}
+    \item \textbf{Dependence} between $e$ and $y$ $\;\Leftrightarrow\;$ \underline{value-dependent ratio trend}.
+    \medskip
+    \item \textbf{Covariance} $\Cov(e, y)$ captures the \textbf{first-order (linear) trend} visible in the ratio--price plot.
+    \medskip
+    \item Flattening $\Cov(e, y) \to 0$ flattens the main \underline{price-tier trend} behind PRD, PRB, VEI.
+\end{itemize}
+
+\vspace{2mm}
+
+\begin{block}{\emoji{light-bulb} Intuition in one line}
+\begin{center}
+``\textit{If residuals drift with price, then ratios drift with price.\\ Penalize one covariance, flatten the whole trend.}''
+\end{center}
+\end{block}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 13 -- Two penalty variants
+% ----------------------------------------------------------
+\begin{frame}{Two penalty variants}
+
+\vspace{-1mm}
+\begin{columns}[T,onlytextwidth]
+\column{0.49\textwidth}
+\begin{block}{\textbf{Direct}: squared covariance}
+\vspace{-4mm}
+\[
+\Psi_{\text{cov}} = \widehat{\Cov}(e, y)^2
+= \Big(\tfrac{1}{n}\sum_i (e_i - \bar e)(y_i - \bar y)\Big)^2
+\]
+\begin{itemize}
+    \item \emoji{white-check-mark} Closest to the \textbf{conceptual target}.
+    \item \emoji{warning} \textbf{Non-separable} across samples (global coupling).
+    \item \emoji{warning} Dense Hessian $\Rightarrow$ diagonal approximation or custom leaf solver.
+\end{itemize}
+\end{block}
+
+\column{0.49\textwidth}
+\begin{block}{\textbf{Surrogate}: separable upper bound}
+\vspace{-4mm}
+\[
+\Psi_{\text{surr}} = \tfrac{1}{n}\sum_{i=1}^n (e_i)^2\,(y_i - \bar y)^2
+\]
+\begin{itemize}
+    \item \emoji{white-check-mark} Separable \& \textbf{sample-additive}.
+    \item \emoji{white-check-mark} \textbf{Plug-and-play} into LightGBM / XGBoost custom-objective APIs.
+    \item \emoji{white-check-mark} Weights residual size by distance from $\bar y$.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\vspace{3mm}
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\textbf{Direct} $\Psi_{\text{cov}}$   & $\rightarrow$ \emph{conceptual fidelity}.\\
+\textbf{Surrogate} $\Psi_{\text{surr}}$ & $\rightarrow$ \emph{implementation convenience} (our default).
+\end{tabular}
+\end{center}
+
+{\footnotesize\itshape
+Both are governed by a single $\rho \ge 0$; we refer to both as ``covariance'' penalties. Derivations, Hessians, and boosting-API details are in the appendix.
+}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 14 -- Practical workflow fit
+% ----------------------------------------------------------
+\begin{frame}{Practical workflow fit}
+
+\begin{block}{\emoji{bullseye} Not a new pipeline --- a \underline{correction layer}}
+Same preprocessing, same feature set, same evaluation diagnostics.
+\textbf{One extra hyperparameter} $\rho$.
+\end{block}
+
+\vspace{-1mm}
+
+\begin{figure}
+\centering
+\ifshowfigs
+\includegraphics[width=0.82\linewidth]{CCAO meeting/img/pipeline/pipeline1.pdf}
+\fi
+\end{figure}
+
+\vspace{-2mm}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{\emoji{white-check-mark} Minimal workflow change}
+\begin{itemize}
+    \item Same training loop.
+    \item Same ratio-study evaluation.
+    \item One knob $\rho \ge 0$; $\rho=0$ recovers the baseline.
+\end{itemize}
+\end{block}
+
+\column{0.48\textwidth}
+\begin{block}{\emoji{white-check-mark} Two deployment modes}
+\begin{itemize}
+    \item \textbf{Joint calibration:} tune $\rho$ jointly with other hyperparameters.
+    \item \textbf{Post-hoc calibration:} tune $\rho$ \underline{alone} on top of the already-selected predictive model.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\end{frame}
+
+
+% ==========================================================
+% PART III -- EMPIRICAL EVIDENCE
+% ==========================================================
+\section{Empirical evidence}
+
+
+% ----------------------------------------------------------
+% Slide 15 -- Visual effect: the ratio-price trend flattens
+% ----------------------------------------------------------
+\begin{frame}{Visual effect: the ratio--price trend flattens}
+
+\begin{block}{{\color{red}Baseline} LightGBM \hfill $\rightarrow$ \hfill {\color{blue}Covariance-penalized} LightGBM}
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\centering
+\figurebool{\includegraphics[width=\linewidth, trim={-1cm 0mm 1cm 3mm}]{CCAO meeting/img/motivation/Baseline LightGBM_0_motivation_arrows_3.pdf}}
+
+\column{0.48\textwidth}
+\centering
+\figurebool{\includegraphics[width=\linewidth, trim={1cm 0mm -1cm 3mm}]{CCAO meeting/img/Covariance-Penalized LightGBM_2_motivation.pdf}}
+\end{columns}
+
+\vspace{-3mm}
+
+\begin{center}\small
+\begin{tabular}{|l|ccc|}
+\hline
+ & Baseline & $\rightarrow$ & Penalized \\
+\hline
+Corr($r$, $P$)                 & {\color{red}$-0.267$} & $\rightarrow$ & {\color{blue}$-0.122$} \\
+Slope($r \sim \log P$)         & {\color{red}$-0.216$} & $\rightarrow$ & {\color{blue}$-0.126$} \\
+\hline
+\end{tabular}
+\end{center}
+\end{block}
+
+\vspace{-2mm}
+{\footnotesize\itshape
+The exact failure mode on the ratio plot is attenuated. The surrogate penalty drives slope and correlation \emph{further} toward zero (see appendix).
+}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 16 -- Main metrics result
+% ----------------------------------------------------------
+\begin{frame}{Main metrics: most of the vertical-equity gap is recovered}
+
+\begin{block}{Representative penalized LightGBM on the 2023 CCAO test set}
+\centering
+\small
+\begin{tabular}{l|cc|cc|ccc}
+\toprule
+ & \multicolumn{2}{c|}{\textbf{Accuracy}} & \multicolumn{2}{c|}{\textbf{Horiz.\ equity}} & \multicolumn{3}{c}{\textbf{Vertical equity}} \\
+Model & $R^2$ & MAE & COD & COV & VEI & PRD & PRB \\
+\midrule
+LightGBM (baseline)   & 0.883 & \$72{,}064 & 23.11 & 35.4\% & \textcolor{red}{$-36.8\%$} & \textcolor{red}{$1.085$} & \textcolor{red}{$-0.118$} \\
+\;\;\; + covariance penalty ($\rho{=}6.57$) &
+\textbf{0.882} & \$74{,}428 & \textbf{22.81} & \textbf{33.4\%} &
+\textcolor{green!60!black}{\textbf{$-8.5\%$}} &
+\textcolor{green!60!black}{\textbf{$1.038$}} &
+\textcolor{green!60!black}{\textbf{$-0.011$}} \\
+\bottomrule
+\end{tabular}
+\end{block}
+
+\medskip
+
+\begin{columns}[T,onlytextwidth]
+\column{0.32\textwidth}
+\centering
+\begin{tcolorbox}[colback=green!5,colframe=green!50!black,boxsep=2pt]
+\centering
+\textbf{PRD}\\[0.5mm]
+{\color{red}$1.085$}\; $\rightarrow$\; {\color{green!60!black}$\mathbf{1.038}$}\\
+{\scriptsize closer to IAAO $[0.98,1.03]$}
+\end{tcolorbox}
+
+\column{0.32\textwidth}
+\centering
+\begin{tcolorbox}[colback=green!5,colframe=green!50!black,boxsep=2pt]
+\centering
+\textbf{PRB}\\[0.5mm]
+{\color{red}$-0.118$}\; $\rightarrow$\; {\color{green!60!black}$\mathbf{-0.011}$}\\
+{\scriptsize inside IAAO $[-0.05,0.05]$}
+\end{tcolorbox}
+
+\column{0.32\textwidth}
+\centering
+\begin{tcolorbox}[colback=green!5,colframe=green!50!black,boxsep=2pt]
+\centering
+\textbf{VEI}\\[0.5mm]
+{\color{red}$-36.8\%$}\; $\rightarrow$\; {\color{green!60!black}$\mathbf{-8.5\%}$}\\
+{\scriptsize inside IAAO $[-10\%,10\%]$}
+\end{tcolorbox}
+\end{columns}
+
+\vspace{2mm}
+{\footnotesize\itshape
+$R^2$ essentially unchanged; COD and COV \emph{improve} relative to the baseline. MAE cost: $\sim 3.3\%$.
+}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 17 -- Tradeoff frontier
+% ----------------------------------------------------------
+\newcommand{\frameL}{Tradeoff frontier: accuracy vs vertical equity}
+\begin{frame}{\frameL}
+
+\begin{block}{Test-set tradeoff for different penalty levels $\rho > 0$}
+\begin{figure}
+\centering
+\begin{minipage}{0.48\linewidth}
+\centering
+\ifshowfigs
+\includegraphics[width=\linewidth, trim={2mm 0 4mm 2mm}]{CCAO meeting/img/tradeoffs/PRD_vs_R2_band.pdf}
+\fi
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\linewidth}
+\centering
+\ifshowfigs
+\includegraphics[width=\linewidth, trim={4mm 0 0 2mm}]{CCAO meeting/img/tradeoffs/VEI_vs_R2_band.pdf}
+\fi
+\end{minipage}
+\end{figure}
+\end{block}
+
+\vspace{-3mm}
+
+\begin{itemize}
+    \item Increasing $\rho$ traces an \textbf{accuracy--equity frontier}, not a single operating point.
+    \item Penalized models move \underline{toward the IAAO compliance region} while staying near the top of the accuracy frontier.
+    \item The practical question is \textbf{not} ``which model wins one metric?'' --- it is ``which model best balances the objectives under assessor tolerances?''
+\end{itemize}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 18 -- Interim takeaway
+% ----------------------------------------------------------
+\begin{frame}{Interim takeaway}
+
+\begin{center}
+{\large\textbf{Is a middle-ground solution feasible?}\; $\rightarrow$\; \textbf{Yes.}}
+\end{center}
+
+\vspace{3mm}
+
+\begin{block}{\emoji{pushpin} What we have shown so far}
+\begin{itemize}
+\medskip
+\item Competitive on \textbf{accuracy} and \textbf{horizontal equity}. \;\emoji{white-check-mark}
+\medskip
+\item Competitive on \textbf{vertical equity}: PRB and VEI reach IAAO-consistent ranges; PRD gets close. \;\emoji{white-check-mark}
+\medskip
+\item Requires only \textbf{one extra hyperparameter} and \underline{minimal pipeline changes}. \;\emoji{white-check-mark}
+\medskip
+\end{itemize}
+\end{block}
+
+\vspace{-2mm}
+\begin{center}\itshape
+Next: how do we turn this frontier into a concrete deployment rule?
+\end{center}
+
+\end{frame}
+
+
+% ==========================================================
+% PART IV -- DEPLOYMENT AND MODEL SELECTION
+% ==========================================================
+\section{Deployment and model selection}
+
+
+% ----------------------------------------------------------
+% Slide 19 -- Constrained calibration
+% ----------------------------------------------------------
+\begin{frame}{Deployment logic: constrained calibration}
+
+\begin{block}{\emoji{bullseye} Multi-objective selection, assessor-style}
+In deployment, \textbf{multiple diagnostics matter simultaneously} (accuracy, COD, PRD, PRB, VEI, \dots).\\
+Calibration is naturally a \underline{constrained} selection problem: pick the strongest predictive candidate \emph{among those satisfying ratio-study tolerances}.
+\end{block}
+
+\vspace{-1mm}
+
+\renewcommand{\C}{\mathcal{C}}
+\renewcommand{\V}{\mathcal{V}}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.56\textwidth}
+
+\textbf{Setup.}
+\begin{itemize}
+    \item $c \in \C$: candidate configurations (model family, hyperparameters, penalty $\rho$).
+    \item $v \in \V$: rolling-origin validation folds.
+    \item For each $(c,v)$: prediction error $\mathcal{E}_v(c)$ and an equity metric $\mathcal{F}_v(c)$.
+\end{itemize}
+
+\medskip
+
+\textbf{Selection rule:}
+\vspace{-1mm}
+\[
+c^* \in \argmin_{c \in \C}\; \frac{1}{|\V|}\sum_{v\in\V} \mathcal{E}_v(c)
+\quad
+\text{s.t.}\; \mathcal{F}_v(c) \le \tau,\;\; \forall v\in\V.
+\]
+
+\column{0.42\textwidth}
+\begin{block}{\emoji{white-check-mark} Properties}
+\begin{itemize}
+    \item Add \textbf{any number} of equity constraints (PRD, PRB, VEI, COD, \dots).
+    \item $c^*$ is a \textbf{Pareto-optimal} candidate under the chosen tolerances.
+    \item Same logic as the office's \underline{ratio-study compliance check}.
+\end{itemize}
+\end{block}
+\end{columns}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 20 -- What this buys in practice
+% ----------------------------------------------------------
+\begin{frame}{What this buys in practice}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.5\textwidth}
+\begin{figure}
+\centering
+\ifshowfigs
+\includegraphics[width=0.95\linewidth, trim={2mm 2mm 4mm 4mm}]{CCAO meeting/img/model_selection/pareto_optimal.pdf}
+\fi
+\end{figure}
+
+\column{0.48\textwidth}
+\begin{block}{\emoji{pushpin} Operational consequence}
+\begin{itemize}
+    \item \textbf{Interpretable} deployment rule: ``best predictor that meets our tolerances.''
+    \item \textbf{Aligned} with existing ratio-study compliance logic.
+    \item \textbf{Flexible}: include dispersion / central-ratio constraints too.
+\end{itemize}
+\end{block}
+
+\begin{block}{\emoji{light-bulb} Candidate pool $\rightarrow$ feasible region $\rightarrow$ selected model}
+Covariance-penalized candidates \underline{expand the feasible region} that the accuracy-only rule would otherwise leave empty.
+\end{block}
+\end{columns}
+
+\vspace{1mm}
+{\footnotesize\itshape
+Alternative Pareto-style criteria (closest-to-Utopia, Nash) are available when tolerances are unknown or jointly infeasible; see appendix.
+}
+
+\end{frame}
+
+
+% ==========================================================
+% PART V -- CLOSING
+% ==========================================================
+\section{Closing}
+
+
+% ----------------------------------------------------------
+% Slide 21 -- Main takeaway
+% ----------------------------------------------------------
+\begin{frame}{Main takeaway}
+
+\vspace{4mm}
+\begin{block}{\emoji{pushpin} Three lines}
+\begin{enumerate}
+    \medskip
+    \item \textbf{Better predictive ML does not guarantee vertical equity.}\\[1mm]
+    {\scriptsize The CCAO move from Linear Regression to LightGBM improves accuracy and horizontal equity, but exits the IAAO compliance region on PRD/PRB/VEI.}
+    \medskip
+    \item \textbf{A covariance-based penalty recovers most of the vertical-equity gap.}\\[1mm]
+    {\scriptsize PRD $1.085\!\to\!1.038$, PRB $-0.118\!\to\!-0.011$, VEI $-36.8\%\!\to\!-8.5\%$, with $R^2$ essentially unchanged.}
+    \medskip
+    \item \textbf{It is lightweight enough for real assessor workflows.}\\[1mm]
+    {\scriptsize One extra hyperparameter, same pipeline, same diagnostics; deployment framed as \emph{constrained calibration}, not one-score ranking.}
+    \medskip
+\end{enumerate}
+\end{block}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 22 -- Limitations and honest scope
+% ----------------------------------------------------------
+\begin{frame}{Limitations and honest scope}
+
+\begin{block}{What the method does \emph{not} (yet) do}
+\begin{enumerate}
+    \medskip
+    \item Does \textbf{not optimize PRD / PRB / VEI directly}; it controls a covariance that is directionally aligned with them.
+    \medskip
+    \item Provides \textbf{no out-of-sample guarantees} on ratio-study compliance; this is why we use constrained calibration across folds.
+    \medskip
+    \item Covariance is a \textbf{first-order summary} (linear dependence); nonmonotone local distortions can cancel.
+    \medskip
+    \item Penalties are \textbf{global}; not \underline{submarket- or geography-aware}.
+    \medskip
+    \item The CCAO pipeline we use is a \textbf{translation} of the production code; absolute levels should be read in that context.
+    \medskip
+\end{enumerate}
+\end{block}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% Slide 23 -- Questions
+% ----------------------------------------------------------
+\begin{frame}{}
+\vfill
+\begin{center}
+{\Huge\textbf{Questions?}}
+\end{center}
+\vspace{3mm}
+\begin{center}
+\footnotesize\itshape
+Happy to discuss: implementation in ML objectives, diagnostics, deployment, and extensions (nonlinear dependence, submarket-aware penalties, interpretability).
+\end{center}
+\vfill
+\end{frame}
+
+
+% ==========================================================
+% APPENDIX
+% ==========================================================
+\appendix
+\section*{Appendix}
+
+
+% ----------------------------------------------------------
+% A1 -- Metric definitions
+% ----------------------------------------------------------
+\begin{frame}{Appendix A1: Metric definitions (accuracy, horizontal \& vertical equity)}
+
+Assessment-ratio statistics:
+\footnotesize
+\setlength{\abovedisplayskip}{3pt}
+\setlength{\belowdisplayskip}{3pt}
+\setlength{\abovedisplayshortskip}{2pt}
+\setlength{\belowdisplayshortskip}{2pt}
+
+\[
+r_i := \frac{AV_i}{MV_i} = \frac{\widehat{MV}_i}{MV_i},\qquad
+\tilde r := \mathrm{median}(r),\qquad
+\bar r := \frac{1}{n}\sum_i r_i,\qquad
+\bar r_w = \frac{\sum_i MV_i\,r_i}{\sum_i MV_i}
+\]
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+
+\begin{block}{Accuracy}
+\[
+R^2 = 1 - \frac{\sum_i (MV_i - \widehat{MV}_i)^2}{\sum_i (MV_i - \overline{MV})^2},
+\qquad
+\mathrm{MAE} = \tfrac{1}{n}\sum_i |MV_i - \widehat{MV}_i|
+\]
+\end{block}
+
+\begin{block}{Horizontal equity / dispersion (IAAO)}
+\[
+\mathrm{COD} = 100\cdot \frac{\tfrac{1}{n}\sum_i |r_i - \tilde r|}{\tilde r},
+\qquad
+\mathrm{COV} = \frac{\mathrm{SD}(r)}{\bar r}
+\]
+\end{block}
+
+\column{0.49\textwidth}
+
+\begin{block}{Vertical equity (IAAO \& CCAO)}
+\[
+\mathrm{VEI} \approx 100\cdot \frac{\mathrm{median}(r)_{\text{last dec.}} - \mathrm{median}(r)_{\text{first dec.}}}{\tilde r}
+\]
+{\scriptsize (VEI${<}0$ regressive; VEI${>}0$ progressive.)}
+\medskip
+\[
+\mathrm{PRD} = \frac{\bar r}{\bar r_w},\qquad
+\mathrm{PRB} = \mathrm{slope}\!\left(\tfrac{r_i - \tilde r}{\tilde r} \sim \log_2\!\Big(\tfrac{1}{2}(MV_i + AV_i/\tilde r)\Big)\right)
+\]
+\[
+\mathrm{MKI} = \frac{\mathrm{Gini}(AV)}{\mathrm{Gini}(MV)}
+\]
+\end{block}
+\end{columns}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% A2 -- Full baseline + penalized results table
+% ----------------------------------------------------------
+\begin{frame}{Appendix A2: Full test-set results (baseline + penalized)}
+
+\small
+
+\begin{block}{{\color{red}Baselines} \hfill {\color{blue}Covariance- / Surrogate-penalized LightGBM}}
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{lc|cc|cc|cccc}
+\toprule
+Model & Penalty $\rho$ & $R^2$ & MAE & COD & COV (IAAO) & VEI & PRD & PRB & MKI \\
+\midrule
+Linear Regression & -- & 0.798 & \$85{,}273 & 24.306 & 0.354 & 6.223\% & 1.016 & 0.033 & 1.009 \\
+LGBM Regressor    & -- & 0.860 & \$73{,}398 & 21.647 & 0.330 & {\color{red}$-31.431\%$} & {\color{red}$1.082$} & {\color{red}$-0.108$} & {\color{red}$0.890$} \\
+\midrule
+LGBMSurrPenalty [v1] & 2.043 &
+\makecell{\textbf{0.872}\\{\scriptsize(\textcolor{green!60!black}{+1.40\%})}} &
+\makecell{\$74{,}579\\{\scriptsize(\textcolor{red!70!black}{$-1.61\%$})}} &
+\makecell{21.770\\{\scriptsize(\textcolor{red!70!black}{$-0.57\%$})}} &
+\makecell{\textbf{0.316}\\{\scriptsize(\textcolor{green!60!black}{+4.24\%})}} &
+\makecell{\textbf{$-0.043\%$}\\{\scriptsize(\textcolor{green!60!black}{+99.86\%})}} &
+\makecell{\textbf{1.030}\\{\scriptsize(\textcolor{green!60!black}{+63.41\%})}} &
+\makecell{\textbf{$+0.003$}\\{\scriptsize(\textcolor{green!60!black}{+97.22\%})}} &
+\makecell{\textbf{0.970}\\{\scriptsize(\textcolor{green!60!black}{+72.73\%})}} \\
+[1.2mm]
+LGBMSurrPenalty [v2] & 280.7 &
+\makecell{\textbf{0.867}\\{\scriptsize(\textcolor{green!60!black}{+0.81\%})}} &
+\makecell{\$75{,}641\\{\scriptsize(\textcolor{red!70!black}{$-3.06\%$})}} &
+\makecell{21.829\\{\scriptsize(\textcolor{red!70!black}{$-0.84\%$})}} &
+\makecell{\textbf{0.313}\\{\scriptsize(\textcolor{green!60!black}{+5.15\%})}} &
+\makecell{\textbf{$+3.403\%$}\\{\scriptsize(\textcolor{green!60!black}{+89.17\%})}} &
+\makecell{\textbf{1.029}\\{\scriptsize(\textcolor{green!60!black}{+64.63\%})}} &
+\makecell{\textbf{$+0.008$}\\{\scriptsize(\textcolor{green!60!black}{+92.59\%})}} &
+\makecell{\textbf{0.970}\\{\scriptsize(\textcolor{green!60!black}{+72.73\%})}} \\
+[1.2mm]
+LGBMCovPenalty [v1] & 6.58 &
+\makecell{\textbf{0.877}\\{\scriptsize(\textcolor{green!60!black}{+1.98\%})}} &
+\makecell{\textbf{\$72{,}042}\\{\scriptsize(\textcolor{green!60!black}{+1.85\%})}} &
+\makecell{21.693\\{\scriptsize(\textcolor{red!70!black}{$-0.21\%$})}} &
+\makecell{\textbf{0.319}\\{\scriptsize(\textcolor{green!60!black}{+3.33\%})}} &
+\makecell{\textbf{$-6.579\%$}\\{\scriptsize(\textcolor{green!60!black}{+79.07\%})}} &
+\makecell{\textbf{1.030}\\{\scriptsize(\textcolor{green!60!black}{+63.41\%})}} &
+\makecell{\textbf{$-0.026$}\\{\scriptsize(\textcolor{green!60!black}{+75.93\%})}} &
+\makecell{\textbf{0.989}\\{\scriptsize(\textcolor{green!60!black}{+90.00\%})}} \\
+[1.2mm]
+LGBMCovPenalty [v2] & 1487.0 &
+\makecell{\textbf{0.880}\\{\scriptsize(\textcolor{green!60!black}{+2.33\%})}} &
+\makecell{\textbf{\$70{,}855}\\{\scriptsize(\textcolor{green!60!black}{+3.46\%})}} &
+\makecell{\textbf{21.467}\\{\scriptsize(\textcolor{green!60!black}{+0.83\%})}} &
+\makecell{\textbf{0.317}\\{\scriptsize(\textcolor{green!60!black}{+3.94\%})}} &
+\makecell{\textbf{$-4.043\%$}\\{\scriptsize(\textcolor{green!60!black}{+87.14\%})}} &
+\makecell{\textbf{1.029}\\{\scriptsize(\textcolor{green!60!black}{+64.63\%})}} &
+\makecell{\textbf{$-0.022$}\\{\scriptsize(\textcolor{green!60!black}{+79.63\%})}} &
+\makecell{\textbf{0.986}\\{\scriptsize(\textcolor{green!60!black}{+87.27\%})}} \\
+\bottomrule
+\end{tabular}}
+\end{block}
+
+{\scriptsize\itshape
+Percent change vs LGBM baseline in parentheses. For MAE/COD/COV: lower is better. For VEI/PRB: closer to $0$. For PRD/MKI: closer to $1$.
+}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% A3 -- Implementation details
+% ----------------------------------------------------------
+\begin{frame}{Appendix A3: General-learner with covariance penalty}
+
+\vspace{-1mm}
+\begin{block}{Base learning problem}
+For a hypothesis class $\H$ (linear, GBM, NN, \dots), standard learners solve
+\vspace{-1mm}
+\[
+f^*(X) = \arg\min_{f\in\H}\; \mathcal{L}(f; X, y) = \arg\min_{f\in\H}\; J(f; X, y) + \Omega(f).
+\]
+\end{block}
+
+\begin{block}{Covariance-penalized objective}
+With ratio proxy $g(\hat y, y)$ and value transform $\phi(y)$:
+\vspace{-1mm}
+\[
+\min_{f\in\H}\; \mathcal{L}(f; X, y) + \rho\, \big(\widehat{\Cov}(g(\hat y, y), \phi(y))\big)^2,
+\]
+or the constrained form
+\vspace{-1mm}
+\[
+\min_{f\in\H}\; \mathcal{L}(f; X, y)
+\quad\text{s.t.}\quad
+\big(\widehat{\Cov}(g(\hat y, y), \phi(y))\big)^2 \le \varepsilon.
+\]
+\end{block}
+
+\begin{columns}[T,onlytextwidth]
+\column{0.48\textwidth}
+\begin{block}{Choice of $g$ and $\phi$}
+\footnotesize
+Training on log-price $y=\log P$, $\hat y=f(X)$:
+\begin{itemize}
+    \item $g(\hat y, y) = \hat y - y$ (log-ratio; target 0), or
+    \item $r = \hat y / y$ with $g = r$ (target 1).
+    \item Start with $\phi(y) = y$ (log market value).
+\end{itemize}
+\end{block}
+
+\column{0.48\textwidth}
+\begin{block}{Coupling and separable surrogate}
+\footnotesize
+$\widehat{\Cov}(g,\phi)$ is \textbf{non-separable} (dense Hessian).
+\vspace{-1mm}
+\[
+\widehat{\Cov}(g,\phi)^2 \le \tfrac{1}{n}\sum_{i=1}^n (g_i - \bar g)^2 (\phi_i - \bar\phi)^2
+\]
+$\Rightarrow$ \textbf{separable} upper bound; plugs into LightGBM / XGBoost custom-objective APIs via per-sample gradient and Hessian.
+\end{block}
+\end{columns}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% A4 -- Alternative selection criteria (Utopia / Nash)
+% ----------------------------------------------------------
+\begin{frame}{Appendix A4: Alternative selection criteria (Utopia / Nash)}
+
+\begin{itemize}
+    \item The constrained rule is our \textbf{recommended default}, but it has limits:
+    \begin{itemize}
+        \item Does not guarantee out-of-sample compliance.
+        \item May be infeasible on some validation folds.
+        \item May sacrifice too much accuracy when tolerances are strict.
+    \end{itemize}
+    \medskip
+    \item \textbf{Alternative Pareto criteria} (used when tolerances are unknown / jointly infeasible):
+    \begin{itemize}
+        \item \textbf{Closest-to-Utopia:} minimize normalized distance to an ideal point that is best on every metric.
+        \item \textbf{Nash / maximum-volume:} maximize the volume of a hyper-rectangle inscribed in the Pareto frontier.
+    \end{itemize}
+\end{itemize}
+
+\vspace{-1mm}
+\begin{figure}
+\centering
+\ifshowfigs
+\includegraphics[width=0.58\linewidth]{CCAO meeting/img/model_selection/extreme_case_3_constraint_O1_0.90_edit (1).pdf}
+\fi
+\end{figure}
+
+\vspace{-3mm}
+{\scriptsize\itshape Three Pareto-optimal solutions in a convex two-objective setting: constrained (threshold-dependent), closest-to-Utopia, Nash (maximum-volume).}
+
+\end{frame}
+
+
+\begin{frame}{Appendix A4 (cont.): Constrained calibration --- test results}
+
+\vspace{-2mm}
+
+\definecolor{darkgreen}{rgb}{0.0, 0.5, 0.0}
+\definecolor{darkred}{rgb}{0.7, 0.0, 0.0}
+
+\begin{table}[!htbp]
+\centering
+\caption{\footnotesize Held-out 2023 test set under different constraint sets; $\rho$ is the surrogate penalty.}
+\resizebox{0.82\textwidth}{!}{%
+\begin{tabular}{llc|cc|cc|cc|ccc}
+\toprule
+Solution & Model & $\rho$ & $R^2$ & MAE & Med.\ $r$ & Mean $r$ & COD & COV & PRD & PRB & VEI \\
+\midrule
+\multicolumn{12}{l}{\textbf{Unconstrained baselines}} \\
+\midrule
+BASELINE & Linear Reg. & --   & 0.762 & \$86{,}244 & 1.001 & 1.050 & 25.01\% & 36.86\% & 1.039 & $-0.011$ & $-13.53\%$ \\
+BASELINE & LGBM        & --   & 0.885 & \$71{,}912 & 0.944 & 1.021 & 23.07\% & 35.48\% & 1.085 & $-0.118$ & $-37.64\%$ \\
+\midrule
+\multicolumn{12}{l}{\textbf{Constraints: PRD}} \\
+\midrule
+CONSTRAINED & LGBSmooth & 5.96   & \textcolor{darkred}{0.881} & \textcolor{darkred}{\$74{,}416} & \textcolor{darkred}{0.937} & 0.978 & \textcolor{darkgreen}{\textbf{22.80\%}} & \textcolor{darkgreen}{\textbf{33.64\%}} & \textcolor{darkgreen}{\textbf{1.039}} & \textcolor{darkgreen}{\textbf{$-0.014$}} & \textcolor{darkgreen}{\textbf{$-9.27\%$}} \\
+UTOPIA      & LGBSmooth & 100.00 & \textcolor{darkred}{0.877} & \textcolor{darkred}{\$79{,}217} & \textcolor{darkred}{0.930} & \textcolor{darkred}{0.953} & \textcolor{darkred}{24.47\%} & \textcolor{darkgreen}{\textbf{34.89\%}} & \textcolor{darkgreen}{\textbf{1.019}} & \textcolor{darkgreen}{\textbf{$+0.032$}} & \textcolor{darkgreen}{\textbf{$-4.41\%$}} \\
+NASH        & LGBSmooth & 2.95   & 0.883 & \textcolor{darkred}{\$73{,}395} & \textcolor{darkred}{0.938} & \textcolor{darkgreen}{\textbf{0.988}} & \textcolor{darkgreen}{\textbf{22.63\%}} & \textcolor{darkgreen}{\textbf{33.63\%}} & \textcolor{darkgreen}{\textbf{1.048}} & \textcolor{darkgreen}{\textbf{$-0.034$}} & \textcolor{darkgreen}{\textbf{$-12.20\%$}} \\
+\midrule
+\multicolumn{12}{l}{\textbf{Constraints: PRD, PRB, VEI}} \\
+\midrule
+CONSTRAINED & LGBSmooth & 5.96 & \textcolor{darkred}{0.881} & \textcolor{darkred}{\$74{,}416} & \textcolor{darkred}{0.937} & 0.978 & \textcolor{darkgreen}{\textbf{22.80\%}} & \textcolor{darkgreen}{\textbf{33.64\%}} & \textcolor{darkgreen}{\textbf{1.039}} & \textcolor{darkgreen}{\textbf{$-0.014$}} & \textcolor{darkgreen}{\textbf{$-9.27\%$}} \\
+UTOPIA      & LGBSmooth & 7.91 & \textcolor{darkred}{0.882} & \textcolor{darkred}{\$74{,}939} & \textcolor{darkred}{0.935} & \textcolor{darkred}{0.974} & 23.02\% & \textcolor{darkgreen}{\textbf{33.85\%}} & \textcolor{darkgreen}{\textbf{1.036}} & \textcolor{darkgreen}{\textbf{$-0.007$}} & \textcolor{darkgreen}{\textbf{$-8.36\%$}} \\
+NASH        & LGBSmooth & 5.96 & \textcolor{darkred}{0.881} & \textcolor{darkred}{\$74{,}416} & \textcolor{darkred}{0.937} & 0.978 & \textcolor{darkgreen}{\textbf{22.80\%}} & \textcolor{darkgreen}{\textbf{33.64\%}} & \textcolor{darkgreen}{\textbf{1.039}} & \textcolor{darkgreen}{\textbf{$-0.014$}} & \textcolor{darkgreen}{\textbf{$-9.27\%$}} \\
+\midrule
+\multicolumn{12}{l}{\textbf{Constraints: PRD, Mean $r$, COD}} \\
+\midrule
+INFEASIBLE$^{*}$ & --- & --- & --- & --- & --- & --- & --- & --- & --- & --- & --- \\
+UTOPIA      & LGBSmooth & 6.87 & \textcolor{darkred}{0.882} & \textcolor{darkred}{\$74{,}449} & \textcolor{darkred}{0.937} & 0.977 & \textcolor{darkgreen}{\textbf{22.84\%}} & \textcolor{darkgreen}{\textbf{33.72\%}} & \textcolor{darkgreen}{\textbf{1.038}} & \textcolor{darkgreen}{\textbf{$-0.011$}} & \textcolor{darkgreen}{\textbf{$-9.38\%$}} \\
+NASH        & LGBSmooth & 2.95 & 0.883 & \textcolor{darkred}{\$73{,}395} & \textcolor{darkred}{0.938} & \textcolor{darkgreen}{\textbf{0.988}} & \textcolor{darkgreen}{\textbf{22.63\%}} & \textcolor{darkgreen}{\textbf{33.63\%}} & \textcolor{darkgreen}{\textbf{1.048}} & \textcolor{darkgreen}{\textbf{$-0.034$}} & \textcolor{darkgreen}{\textbf{$-12.20\%$}} \\
+\midrule
+\multicolumn{12}{l}{\textbf{Constraints: full metric set$^{\dagger}$}} \\
+\midrule
+INFEASIBLE$^{*}$ & --- & --- & --- & --- & --- & --- & --- & --- & --- & --- & --- \\
+UTOPIA & LGBSmooth & 5.96 & \textcolor{darkred}{0.881} & \textcolor{darkred}{\$74{,}416} & \textcolor{darkred}{0.937} & 0.978 & \textcolor{darkgreen}{\textbf{22.80\%}} & \textcolor{darkgreen}{\textbf{33.64\%}} & \textcolor{darkgreen}{\textbf{1.039}} & \textcolor{darkgreen}{\textbf{$-0.014$}} & \textcolor{darkgreen}{\textbf{$-9.27\%$}} \\
+NASH   & LGBSmooth & 5.96 & \textcolor{darkred}{0.881} & \textcolor{darkred}{\$74{,}416} & \textcolor{darkred}{0.937} & 0.978 & \textcolor{darkgreen}{\textbf{22.80\%}} & \textcolor{darkgreen}{\textbf{33.64\%}} & \textcolor{darkgreen}{\textbf{1.039}} & \textcolor{darkgreen}{\textbf{$-0.014$}} & \textcolor{darkgreen}{\textbf{$-9.27\%$}} \\
+\bottomrule
+\multicolumn{12}{l}{\scriptsize $^{*}$INFEASIBLE: no feasible selected solution. $^{\dagger}$PRD, PRB, VEI, COD, COV, Mean $r$, Median $r$, Weighted Mean $r$.} \\
+\end{tabular}}
+\end{table}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% A5 -- Constrained-ML challenges and extensions
+% ----------------------------------------------------------
+\begin{frame}{Appendix A5: Why not constrain the learner directly?}
+
+\begin{block}{\emoji{warning} Three challenges of fully constrained ML for assessment}
+\begin{enumerate}
+    \item \textbf{Feasibility / learnability (train):} hard constraints like ``PRB${=}0$'' may be infeasible or unstable in-sample, especially for simpler learners.
+    \medskip
+    \item \textbf{Generalization / robustness (test):} constraints tied to complex dependencies can fail out-of-sample (selection bias + small labeled sales population).
+    \medskip
+    \item \textbf{Implementation:} non-convex / non-differentiable ratio-study metrics (e.g., VEI) require substantially more sophisticated machinery.
+\end{enumerate}
+\end{block}
+
+\medskip
+
+\begin{block}{\emoji{light-bulb} Design choice}
+Start with \textbf{simple dependence control} (linear / rank-1) that is robust with small samples; extend to \underline{nonlinear dependence} (HSIC, dCov, maximal correlation), \underline{submarket-aware} penalties, and \underline{interpretable learners} (EBM/GAM) in future work.
+\end{block}
+
+\end{frame}
+
+
+% ----------------------------------------------------------
+% A6 -- Correlation / tradeoff evolution plots
+% ----------------------------------------------------------
+\begin{frame}{Appendix A6: Correlation evolution across $\rho$}
+
+\begin{figure}
+\centering
+\ifshowfigs
+\includegraphics[width=0.95\linewidth]{CCAO meeting/img/correlations/correlations.pdf}
+\fi
+\end{figure}
+
+\vspace{-2mm}
+{\footnotesize\itshape
+Evolution of residual--price / ratio--price correlations with the penalty strength $\rho$, across training and validation folds.
+}
+
+\end{frame}
+
+
+\end{document}
