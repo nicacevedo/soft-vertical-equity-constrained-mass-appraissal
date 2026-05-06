@@ -17,6 +17,8 @@ lightgbm>=4.0
 # Plotting / viz
 matplotlib>=3.6
 seaborn>=0.12
+plotly>=5.18
+shapely>=2.0
 
 # Optimization (stacking_pf_opt)
 cvxpy>=1.4
