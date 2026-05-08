@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Three-Model Comparison report (CCAO ``performance.qmd``-style analog).
+Selected-model comparison report (CCAO ``performance.qmd``-style analog).
 
 Cook County renders a Quarto HTML report (``reports/performance/performance.qmd``)
 from the parquet artifacts produced by ``pipeline/03-evaluate.R``. The report
 is organized around a single model, but its content — overall ratio-study
 metrics, geography breakouts, decile-by-price ratio curves — is exactly what
-a *three-model comparison* report needs. Cook County itself does the
+a selected-model comparison report needs. Cook County itself does the
 cross-model comparison in a separate Tableau dashboard; this stage produces
 the equivalent in plain HTML, in pure Python, using the artifacts already
 produced by stages 02 and 03.
 
-The three models compared, by default, are:
+The report compares these models by default:
 
   1. **Linear baseline** — ``LinearRegression`` row in
      ``test_metrics.csv`` (or ``LGBMRegressor`` if no linear baseline was
@@ -19,14 +19,16 @@ The three models compared, by default, are:
   2. **CCAO min-RMSE** — winner of the ``ccao_min_rmse`` rule from stage 02.
   3. **Nash equilibrium** — winner of the ``nash`` rule from stage 02 (same utilities
      as ``simple_model_selection.py`` Nash; no across-candidate normalization).
+  4. **SmoothPenalty Nash** — ``LGBSmoothPenalty`` winner under the same Nash utility,
+     when stage 02 produced that family-specific selection.
 
 Outputs (under ``analysis/data_id=…/split_id=…/selected/report/``):
 
 - ``three_model_comparison.html``     — full report (single HTML file)
 - ``three_model_metrics.csv``         — flat metrics table (model × scope)
 - ``three_model_decile.csv``          — long table (model × scope × decile)
-- ``three_model_township_error.csv`` — mean % error by assessor township (model × township)
-- ``three_model_puma_error.csv``  — mean % error by Census PUMA (model × PUMA)
+- ``three_model_township_error.csv`` — median assessment-ratio error by township
+- ``three_model_tract_error.csv``    — median assessment-ratio error by Census tract
 
 Usage::
 
@@ -78,7 +80,7 @@ def _read_selected_models(analysis_dir: Path) -> Dict[str, Any]:
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Report stage — three-model comparison HTML report.")
+    p = argparse.ArgumentParser(description="Report stage — selected-model comparison HTML report.")
     p.add_argument("--result-root", type=str, default=str(DEFAULT_RESULT_ROOT))
     p.add_argument("--data-id", type=str, default=None)
     p.add_argument("--split-id", type=str, default=None)
@@ -161,18 +163,20 @@ def main() -> None:
         "triad_counts": ", ".join(
             f"{k}: {v:,}" for k, v in sorted(triad_counts.items(), key=lambda kv: str(kv[0]))
         ),
+        "ratio_error_bands": "township maps ±5%; Census tract maps and decile ratio curves ±10%",
         "n_deciles": str(args.n_deciles),
         "min_obs_per_scope": str(args.n_min),
     }
 
-    html, township_df, puma_df = render_html_report(
-        title="Three-Model Comparison",
+    html, township_df, tract_df = render_html_report(
+        title="Selected-Model Comparison",
         subtitle=(
             "Held-out test ratio-study comparison of (1) a linear / LightGBM baseline, "
-            "(2) the CCAO-style minimum mean fold RMSE winner, and (3) the "
-            "Nash-equilibrium (product-of-utilities) penalized model. Metrics are reported "
-            "overall and broken out by Cook County triad (City / North / South). "
-            "Township and PUMA maps summarize geographic mean percentage error on official Census boundaries."
+            "(2) the CCAO-style minimum mean fold RMSE winner, (3) the Nash-selected "
+            "CovPenalty model, and (4) the Nash-selected SmoothPenalty model. Metrics are "
+            "reported overall and broken out by Cook County triad (City / North / South). "
+            "Township and Census tract maps summarize geographic median assessment-ratio "
+            "error on fixed polygons in pipeline/geo_data."
         ),
         metadata_kv=metadata_kv,
         models=models,
@@ -184,16 +188,16 @@ def main() -> None:
     html_path.write_text(html, encoding="utf-8")
 
     township_csv: Optional[Path] = None
-    puma_csv: Optional[Path] = None
+    tract_csv: Optional[Path] = None
     if township_df is not None and not township_df.empty:
         township_csv = out_dir / "three_model_township_error.csv"
         township_df.to_csv(township_csv, index=False)
-    if puma_df is not None and not puma_df.empty:
-        puma_csv = out_dir / "three_model_puma_error.csv"
-        puma_df.to_csv(puma_csv, index=False)
+    if tract_df is not None and not tract_df.empty:
+        tract_csv = out_dir / "three_model_tract_error.csv"
+        tract_df.to_csv(tract_csv, index=False)
 
     print("=" * 70)
-    print("REPORT — three-model comparison")
+    print("REPORT — selected-model comparison")
     print("=" * 70)
     print(f"  data_id={data_id}  split_id={split_id}")
     print("  models compared:")
@@ -204,8 +208,8 @@ def main() -> None:
     print(f"  → CSV  : {decile_csv}")
     if township_csv is not None:
         print(f"  → CSV  : {township_csv}")
-    if puma_csv is not None:
-        print(f"  → CSV  : {puma_csv}")
+    if tract_csv is not None:
+        print(f"  → CSV  : {tract_csv}")
 
     ctx = dict(read_context())
     ctx.update(
@@ -218,7 +222,7 @@ def main() -> None:
             "report_metrics_csv": str(metrics_csv),
             "report_decile_csv": str(decile_csv),
             "report_township_csv": str(township_csv) if township_csv else "",
-            "report_puma_csv": str(puma_csv) if puma_csv else "",
+            "report_tract_csv": str(tract_csv) if tract_csv else "",
         }
     )
     write_context(ctx)

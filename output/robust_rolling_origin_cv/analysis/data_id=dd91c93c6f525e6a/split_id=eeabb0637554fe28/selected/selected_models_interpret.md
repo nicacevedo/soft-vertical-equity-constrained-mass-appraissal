@@ -6,8 +6,10 @@
 - accuracy metric: `RMSE`  
 - constraint metrics: `['PRD', 'PRB', 'VEI']`
 - candidate pools:
-  - `ccao_min_rmse`: 51 configs across 8 folds (families: ['LGBCovPenalty', 'LGBMRegressor'])
+  - `ccao_min_rmse`: 101 configs across 8 folds (families: ['LGBCovPenalty', 'LGBMRegressor', 'LGBSmoothPenalty'])
   - `nash`: 50 configs across 8 folds (families: ['LGBCovPenalty'])
+  - `smooth_penalty_nash`: 50 configs across 8 folds (families: ['LGBSmoothPenalty'])
+  - `utopia`: 50 configs across 8 folds (families: ['LGBCovPenalty'])
 
 ## Selection rule: `ccao_min_rmse`
 - **config_id:** `3e68c37f6db0d0dc`
@@ -78,6 +80,98 @@
   - lgbm_base_config_id: 7ce5a0a0e6e4f38b
   - ratio_mode: diff
   - rho: 24.420530945486497
+  - (LightGBM base hyperparameters from model_params.yaml::LGBMRegressor)
+      · boosting_type: gbdt
+      · class_weight: None
+      · colsample_bytree: 1.0
+      · importance_type: split
+      · learning_rate: 0.012806
+      · max_bin: 322
+      · max_depth: 15
+      · min_child_samples: 30
+      · min_split_gain: 0.023317
+      · n_estimators: 500
+      · n_jobs: 1
+      · num_leaves: 1209
+      · objective: mse
+      · random_state: 2025
+      · reg_alpha: 1e-3
+      · reg_lambda: 1e-2
+      · subsample_for_bin: 200000
+```
+
+## Selection rule: `smooth_penalty_nash`
+- **config_id:** `4a2e54d229c866aa`
+- **model_name:** `LGBSmoothPenalty`
+- **model_family:** `LGBSmoothPenalty`
+- **n_folds:** 8
+- **nash_log_utility:** -11.5968
+- **CV RMSE (mean ± std):** 103360 ± 11016
+- **CV PRD mean:** 1.0206  (inside [0.98, 1.03])
+- **CV PRB mean:** 0.0106554  (inside [-0.05, 0.05])
+- **CV VEI mean:** -0.200873  (inside [-10.0, 10.0])
+
+**Held-out test metrics:**
+  - R2: 0.881383
+  - RMSE: 124349
+  - MAE: 75099.8
+  - PRD: 1.03531
+  - PRB: -0.00496913
+  - VEI: -9.13257
+  - COD: 23.0777
+
+**Hyperparameters (`model_config_json`):**
+
+```
+  - lgbm_base_config_id: 7ce5a0a0e6e4f38b
+  - ratio_mode: diff
+  - rho: 9.102981779915218
+  - (LightGBM base hyperparameters from model_params.yaml::LGBMRegressor)
+      · boosting_type: gbdt
+      · class_weight: None
+      · colsample_bytree: 1.0
+      · importance_type: split
+      · learning_rate: 0.012806
+      · max_bin: 322
+      · max_depth: 15
+      · min_child_samples: 30
+      · min_split_gain: 0.023317
+      · n_estimators: 500
+      · n_jobs: 1
+      · num_leaves: 1209
+      · objective: mse
+      · random_state: 2025
+      · reg_alpha: 1e-3
+      · reg_lambda: 1e-2
+      · subsample_for_bin: 200000
+```
+
+## Selection rule: `utopia`
+- **config_id:** `a887995f87d76d31`
+- **model_name:** `LGBCovPenalty`
+- **model_family:** `LGBCovPenalty`
+- **n_folds:** 8
+- **utopia_distance (legacy key):** 0.1221
+- **CV RMSE (mean ± std):** 112188 ± 10320.3
+- **CV PRD mean:** 1.02177  (inside [0.98, 1.03])
+- **CV PRB mean:** -0.00738631  (inside [-0.05, 0.05])
+- **CV VEI mean:** 2.87458  (inside [-10.0, 10.0])
+
+**Held-out test metrics:**
+  - R2: 0.859151
+  - RMSE: 135502
+  - MAE: 75789.7
+  - PRD: 1.03822
+  - PRB: -0.0404531
+  - VEI: -10.7944
+  - COD: 23.4311
+
+**Hyperparameters (`model_config_json`):**
+
+```
+  - lgbm_base_config_id: 7ce5a0a0e6e4f38b
+  - ratio_mode: diff
+  - rho: 49.41713361323833
   - (LightGBM base hyperparameters from model_params.yaml::LGBMRegressor)
       · boosting_type: gbdt
       · class_weight: None

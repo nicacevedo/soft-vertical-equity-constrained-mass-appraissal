@@ -166,7 +166,7 @@ def _evaluate(
                     row[f"test_{col}"] = float(test_metrics[col])
                 except (TypeError, ValueError):
                     row[f"test_{col}"] = np.nan
-        if rule == "nash":
+        if "nash" in str(rule):
             row["nash_log_utility"] = float(sel.get("nash_log_utility", np.nan))
         # Legacy JSON keys
         if rule == "utopia":

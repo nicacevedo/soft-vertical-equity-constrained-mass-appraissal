@@ -88,6 +88,7 @@ def _collect_artifact_paths(*, result_root: Path, analysis_dir: Path, data_id: s
         "three_model_metrics.csv",
         "three_model_decile.csv",
         "three_model_township_error.csv",
+        "three_model_tract_error.csv",
     ):
         p = report_dir / name
         found[name] = str(p.resolve()) if p.is_file() else None

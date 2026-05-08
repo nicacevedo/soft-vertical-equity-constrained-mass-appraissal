@@ -1,15 +1,16 @@
 """
 Cook County geography for pipeline HTML reports.
 
-**Political townships** use Cook County GIS ``cookVwrDynmc`` MapServer layer
-**43 — Political Township** (38 polygons, WGS84). This matches CCAO
-``meta_township_name`` after normalizing *North/South/West Chicago* to GIS
-``NORTH`` / ``SOUTH`` / ``WEST``. Aligns with
-`CookViewer <https://maps.cookcountyil.gov/cookviewer/>`__ and published assessor maps.
+**Political townships** use the fixed polygon data committed under
+``pipeline/geo_data`` (38 named Cook County political township polygons, WGS84).
+This matches CCAO ``meta_township_name`` after normalizing
+*North/South/West Chicago* to GIS ``NORTH`` / ``SOUTH`` / ``WEST``.
 
-**PUMA (2020)** — U.S. Census TIGER/Line for secondary finer choropleths.
+**Census tracts** use the fixed Census TIGER/Line polygons committed under
+``pipeline/geo_data`` for secondary finer choropleths.
 
-References: IAAO *Standard on Ratio Studies*; ±5% mean % error band for map coloring.
+References: IAAO *Standard on Ratio Studies*; map coloring uses a ±5% township
+ratio-error band and a ±10% IAAO ratio-error band elsewhere.
 """
 
 from __future__ import annotations
@@ -25,9 +26,19 @@ import pandas as pd
 
 _REPO = Path(__file__).resolve().parent.parent
 _GEO_CACHE = _REPO / "data" / "geo"
+_PIPELINE_GEO_DATA = _REPO / "pipeline" / "geo_data"
+_COOK_POLITICAL_TOWNSHIP_FIXED_GEOJSON = (
+    _PIPELINE_GEO_DATA / "cook_county_political_townships.geojson"
+)
+_COOK_CENSUS_TRACTS_FIXED_GEOJSON = (
+    _PIPELINE_GEO_DATA / "cook_county_census_tracts_2025.geojson"
+)
 
-# IAAO-inspired **level** tolerance for **mean % error** maps (symmetric).
-IAAO_MEAN_PCT_ERROR_BAND: float = 5.0
+# Symmetric percentage-error bands for map coloring.
+TOWNSHIP_RATIO_ERROR_BAND: float = 5.0
+IAAO_RATIO_ERROR_BAND: float = 10.0
+# Backward-compatible alias for existing report code.
+IAAO_MEAN_PCT_ERROR_BAND: float = TOWNSHIP_RATIO_ERROR_BAND
 
 _CENSUS_COSUB_QUERY = (
     "https://tigerweb.geo.census.gov/arcgis/rest/services/"
@@ -97,6 +108,26 @@ def load_or_fetch_cook_puma_geojson(*, force: bool = False) -> Dict[str, Any]:
     return data
 
 
+def load_cook_census_tract_geojson() -> Dict[str, Any]:
+    """Cook County Census tract polygons from the fixed pipeline TIGER/Line GeoJSON."""
+    if not _COOK_CENSUS_TRACTS_FIXED_GEOJSON.is_file():
+        raise FileNotFoundError(
+            f"Fixed Census tract boundary file not found: {_COOK_CENSUS_TRACTS_FIXED_GEOJSON}"
+        )
+    raw = json.loads(_COOK_CENSUS_TRACTS_FIXED_GEOJSON.read_text(encoding="utf-8"))
+    feats_out: List[Dict[str, Any]] = []
+    for feat in raw.get("features") or []:
+        props = dict(feat.get("properties") or {})
+        gid = str(props.get("GEOID") or "").strip()
+        if not gid:
+            continue
+        props["GEOID"] = gid
+        props["tract_id"] = gid
+        props["tract_label"] = str(props.get("NAMELSAD") or props.get("NAME") or gid)
+        feats_out.append({"type": "Feature", "properties": props, "geometry": feat.get("geometry")})
+    return {"type": "FeatureCollection", "features": feats_out}
+
+
 # CCAO ``meta_township_name`` (training column) → Cook GIS Political Township ``NAME``.
 _CCAO_META_TO_GIS_NAME: Dict[str, str] = {
     "North Chicago": "NORTH",
@@ -144,30 +175,25 @@ def cook_political_township_triad_by_gis_name() -> Dict[str, str]:
 
 def load_or_fetch_cook_political_township_geojson(*, force: bool = False) -> Dict[str, Any]:
     """
-    All **38** Cook County political townships — Cook County GIS MapServer layer 43, WGS84.
+    All **38** Cook County political townships from the fixed pipeline GeoJSON.
 
-    Each feature gets ``properties.twn`` = GIS ``NAME`` (e.g. ``NORTH``, ``ORLAND``) for
-    Plotly choropleth joins. Boundaries follow official county GIS (shoreline / land).
+    Each feature gets ``properties.township_key`` and ``properties.twn`` from
+    upper-stripped ``NAME`` for Plotly choropleth joins. Features with blank
+    ``NAME`` are dropped, matching the reference join pattern.
     """
-    path = _ensure_cache_dir() / "cook_il_political_township_ccgis.geojson"
-    if path.is_file() and not force:
-        return json.loads(path.read_text(encoding="utf-8"))
-    q = (
-        f"{_COOK_POLITICAL_TOWNSHIP_QUERY}?"
-        "where=1%3D1"
-        "&outFields=NAME,OBJECTID"
-        "&returnGeometry=true"
-        "&outSR=4326"
-        "&resultRecordCount=100"
-        "&f=geojson"
-    )
-    raw = _download_json_url(q)
+    if not _COOK_POLITICAL_TOWNSHIP_FIXED_GEOJSON.is_file():
+        raise FileNotFoundError(
+            f"Fixed township boundary file not found: {_COOK_POLITICAL_TOWNSHIP_FIXED_GEOJSON}"
+        )
+    raw = json.loads(_COOK_POLITICAL_TOWNSHIP_FIXED_GEOJSON.read_text(encoding="utf-8"))
     feats_out: List[Dict[str, Any]] = []
     for feat in raw.get("features") or []:
         props = dict(feat.get("properties") or {})
-        nm = str(props.get("NAME", "")).strip()
+        nm = str(props.get("NAME") or "").strip().upper()
         if not nm:
             continue
+        props["NAME"] = nm
+        props["township_key"] = nm
         props["twn"] = nm
         props["label"] = gis_name_to_display_label(nm)
         feat = {"type": "Feature", "properties": props, "geometry": feat.get("geometry")}
@@ -178,8 +204,38 @@ def load_or_fetch_cook_political_township_geojson(*, force: bool = False) -> Dic
             f"Expected 38 Cook political townships; got {len(feats_out)}. "
             "Cook County GIS service may have changed."
         )
-    path.write_text(json.dumps(data, separators=(",", ":")), encoding="utf-8")
     return data
+
+
+def township_label_trace(township_geojson: Dict[str, Any]) -> Dict[str, Any]:
+    """Plotly text trace for visible township labels at polygon representative points."""
+    from shapely.geometry import shape
+
+    lats: List[float] = []
+    lons: List[float] = []
+    labels: List[str] = []
+    for feat in township_geojson.get("features") or []:
+        props = feat.get("properties") or {}
+        name = str(props.get("NAME") or props.get("twn") or "").strip()
+        geom = feat.get("geometry")
+        if not name or not geom:
+            continue
+        p = shape(geom).representative_point()
+        lons.append(float(p.x))
+        lats.append(float(p.y))
+        labels.append(str(props.get("label") or name))
+    return {
+        "type": "scattermapbox",
+        "lat": lats,
+        "lon": lons,
+        "text": labels,
+        "mode": "text",
+        "textposition": "middle center",
+        "name": "Township labels",
+        "textfont": {"size": 8, "color": "#111111"},
+        "showlegend": False,
+        "hoverinfo": "skip",
+    }
 
 
 def _normalize_place(s: str) -> str:
@@ -392,6 +448,20 @@ def build_puma_official_geojson(puma_gj: Dict[str, Any]) -> Dict[str, Any]:
     return {"type": "FeatureCollection", "features": feats}
 
 
+def build_census_tract_official_geojson(tract_gj: Dict[str, Any]) -> Dict[str, Any]:
+    """Relabel tract features with ``properties.tract_id = GEOID`` for choropleth joins."""
+    feats: List[Dict[str, Any]] = []
+    for f in tract_gj.get("features") or []:
+        props = dict(f.get("properties") or {})
+        gid = str(props.get("GEOID", "")).strip()
+        if not gid:
+            continue
+        props["tract_id"] = gid
+        props["tract_label"] = str(props.get("NAMELSAD") or props.get("NAME") or gid)
+        feats.append({"type": "Feature", "properties": props, "geometry": f.get("geometry")})
+    return {"type": "FeatureCollection", "features": feats}
+
+
 def triad_outline_traces(
     *,
     township_geojson: Dict[str, Any],
@@ -490,27 +560,31 @@ def map_summary_stats(
     acceptable_band: float,
     label_column: str = "meta_township_name",
     region_word: str = "townships",
+    metric_column: str = "median_pct_error",
+    metric_label: str = "median error",
 ) -> str:
     """Compact HTML for one model's aggregated geography table."""
     if tdf is None or tdf.empty:
         return "<p class='note small'>No rows to summarize.</p>"
     if label_column not in tdf.columns:
         return "<p class='note small'>Summary unavailable (missing label column).</p>"
-    m = tdf["mean_pct_error"].astype(float)
+    if metric_column not in tdf.columns:
+        return "<p class='note small'>Summary unavailable (missing metric column).</p>"
+    m = tdf[metric_column].astype(float)
     idx_max = int(m.idxmax())
     idx_min = int(m.idxmin())
-    worst = tdf.loc[idx_max]
-    best = tdf.loc[idx_min]
+    highest = tdf.loc[idx_max]
+    lowest = tdf.loc[idx_min]
     in_band = float(np.mean(np.abs(m.to_numpy()) <= acceptable_band) * 100.0)
-    mae = float(np.mean(np.abs(m.to_numpy())))
+    med_abs = float(np.median(np.abs(m.to_numpy())))
     return (
         "<ul class='small' style='margin:8px 0 12px 18px;'>"
-        f"<li><strong>Worst mean error:</strong> {worst[label_column]} "
-        f"({worst['mean_pct_error']:+.2f}%, n={int(worst['n_obs'])})</li>"
-        f"<li><strong>Best mean error:</strong> {best[label_column]} "
-        f"({best['mean_pct_error']:+.2f}%, n={int(best['n_obs'])})</li>"
-        f"<li><strong>Within ±{acceptable_band:.0f}% (IAAO-style level band):</strong> "
+        f"<li><strong>Highest {metric_label}:</strong> {highest[label_column]} "
+        f"({highest[metric_column]:+.2f}%, n={int(highest['n_obs'])})</li>"
+        f"<li><strong>Lowest {metric_label}:</strong> {lowest[label_column]} "
+        f"({lowest[metric_column]:+.2f}%, n={int(lowest['n_obs'])})</li>"
+        f"<li><strong>Within ±{acceptable_band:.0f}% band:</strong> "
         f"{in_band:.1f}% of {region_word} (by count)</li>"
-        f"<li><strong>Mean absolute bias (|mean error|) across {region_word}:</strong> {mae:.2f}%</li>"
+        f"<li><strong>Median absolute regional error across {region_word}:</strong> {med_abs:.2f}%</li>"
         "</ul>"
     )

@@ -127,7 +127,7 @@ def _build_markdown(payload: Dict[str, Any]) -> str:
         lines.append(f"- **model_name:** `{sel['model_name']}`")
         lines.append(f"- **model_family:** `{sel.get('model_family', '')}`")
         lines.append(f"- **n_folds:** {sel.get('n_folds', '?')}")
-        if rule == "nash":
+        if "nash" in str(rule):
             lines.append(f"- **nash_log_utility:** {sel.get('nash_log_utility', float('nan')):.6g}")
         elif rule == "utopia":
             lines.append(f"- **utopia_distance (legacy key):** {sel.get('utopia_distance', float('nan')):.4f}")

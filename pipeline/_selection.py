@@ -1,7 +1,7 @@
 """
-Simplified two-path model selection for the pipeline stage ``02-assess``.
+Simplified model selection for the pipeline stage ``02-assess``.
 
-Two parallel selections are produced from a finished rolling-origin CV run
+Selections are produced from a finished rolling-origin CV run
 (``runs/`` parquet + ``analysis/.../test_metrics.csv``):
 
 1. ``ccao_min_rmse`` — pick the configuration with the **lowest mean fold RMSE**
@@ -9,7 +9,7 @@ Two parallel selections are produced from a finished rolling-origin CV run
    ``01-train.R`` via ``select_best(lgbm_search, metric = params$cv$best_metric)``:
    no fairness constraints, just pure validation-error minimization.
 
-2. ``utopia`` — for each configuration, build min–max-normalized preference
+2. ``utopia`` — legacy selector: for each configuration, build min–max-normalized preference
    scores in ``[0, 1]`` for the accuracy metric AND each fairness/ratio-study
    constraint metric (PRD, PRB, VEI by default; bounds from
    ``utils.motivation_utils``). Pick the configuration that minimizes the
@@ -17,9 +17,15 @@ Two parallel selections are produced from a finished rolling-origin CV run
    utopia logic used in ``simple_model_selection.py`` but stripped of the
    constrained / nash variants.
 
-Both selections share the same candidate pool by default (every config that
-appears in CV ``runs/`` and in ``test_metrics.csv``). Use ``--families`` to
-restrict the pool, e.g. ``--families LGBCovPenalty,LGBSmoothPenalty``.
+3. ``nash`` — restrict to ``LGBCovPenalty`` by default and maximize the Nash
+   product of positive utilities.
+
+4. ``smooth_penalty_nash`` — restrict to ``LGBSmoothPenalty`` and maximize the
+   Nash product of positive utilities over the accuracy metric and requested
+   fairness/ratio-study metrics.
+
+Each selection starts from configs that appear in both CV ``runs/`` and
+``test_metrics.csv``, then applies its family filter.
 
 Outputs (under ``analysis/data_id=…/split_id=…/selected/``):
 
@@ -80,6 +86,7 @@ ACCURACY_SPECS: Dict[str, AccuracyMetricSpec] = {
 
 DEFAULT_CONSTRAINT_METRICS: Tuple[str, ...] = ("PRD", "PRB", "VEI")
 DEFAULT_ACCURACY_METRIC: str = "RMSE"
+_POSITIVE_EPS: float = 1e-12
 
 # Default candidate pools per selection rule. CCAO picks the best LightGBM
 # tuning trial regardless of fairness; we mirror that by allowing every
@@ -89,6 +96,8 @@ DEFAULT_ACCURACY_METRIC: str = "RMSE"
 # the accuracy / fairness trade-off.
 DEFAULT_CCAO_FAMILIES: Tuple[str, ...] = ("LGBMRegressor", "LGBCovPenalty", "LGBSmoothPenalty")
 DEFAULT_UTOPIA_FAMILIES: Tuple[str, ...] = ("LGBCovPenalty", "LGBSmoothPenalty")
+DEFAULT_NASH_FAMILIES: Tuple[str, ...] = ("LGBCovPenalty",)
+SMOOTH_NASH_FAMILIES: Tuple[str, ...] = ("LGBSmoothPenalty",)
 
 
 # ----------------------------------------------------------------------------
@@ -246,6 +255,42 @@ def _constraint_preference(value: float, spec: ConstraintSpec) -> float:
     return float(value)
 
 
+def _positive_accuracy_utility(value: float, spec: AccuracyMetricSpec) -> float:
+    if not np.isfinite(value):
+        return float("nan")
+    val = float(value)
+    if spec.higher_is_better:
+        if spec.column == "R2":
+            return float(max(1.0 + val, _POSITIVE_EPS))
+        return float(max(val, _POSITIVE_EPS))
+    return float(1.0 / max(val, _POSITIVE_EPS))
+
+
+def _positive_constraint_utility(value: float, spec: ConstraintSpec) -> float:
+    if not np.isfinite(value):
+        return float("nan")
+    val = float(value)
+    target = _constraint_target(spec)
+
+    if spec.lower is not None and spec.upper is not None:
+        if np.isfinite(target) and abs(float(target)) > _POSITIVE_EPS and val > _POSITIVE_EPS:
+            return float(min(val, float(target)) / max(val, float(target)))
+        span = max(abs(float(spec.lower)), abs(float(spec.upper)), 1.0)
+        return float(1.0 / (1.0 + abs(val - float(target)) / span))
+
+    if spec.upper is not None:
+        scale = max(abs(float(spec.upper)), 1.0)
+        return float(1.0 / (1.0 + max(val, 0.0) / scale))
+
+    if spec.lower is not None:
+        scale = max(abs(float(spec.lower)), 1.0)
+        if val <= 0.0:
+            return _POSITIVE_EPS
+        return float(1.0 / (1.0 + max(float(spec.lower) - val, 0.0) / scale))
+
+    return float(max(val, _POSITIVE_EPS))
+
+
 def select_min_rmse(stats_df: pd.DataFrame, *, accuracy: AccuracyMetricSpec) -> Dict[str, Any]:
     col = f"{accuracy.metric_id}_mean"
     primary = pd.to_numeric(stats_df[col], errors="coerce")
@@ -288,6 +333,52 @@ def select_utopia(
     return df.iloc[0].to_dict()
 
 
+def select_nash(
+    stats_df: pd.DataFrame,
+    *,
+    accuracy: AccuracyMetricSpec,
+    constraint_ids: Sequence[str],
+) -> Dict[str, Any]:
+    if stats_df.empty:
+        raise RuntimeError("No candidate rows available for Nash selection.")
+
+    df = stats_df.copy()
+    acc_col = f"{accuracy.metric_id}_mean"
+    acc_vals = pd.to_numeric(df[acc_col], errors="coerce").to_numpy(dtype=float)
+    utility_cols = ["nash_accuracy_utility"]
+    df["nash_accuracy_utility"] = np.asarray(
+        [_positive_accuracy_utility(v, accuracy) for v in acc_vals],
+        dtype=float,
+    )
+
+    for cid in constraint_ids:
+        spec = CONSTRAINT_SPECS[cid]
+        raw = pd.to_numeric(df[f"{cid}_mean"], errors="coerce").to_numpy(dtype=float)
+        utility_col = f"nash_{cid}_utility"
+        df[utility_col] = np.asarray(
+            [_positive_constraint_utility(v, spec) for v in raw],
+            dtype=float,
+        )
+        utility_cols.append(utility_col)
+
+    utility_mat = df[utility_cols].apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
+    positive_mask = np.all(np.isfinite(utility_mat) & (utility_mat > 0.0), axis=1)
+    df["nash_log_utility"] = np.nan
+    if np.any(positive_mask):
+        df.loc[positive_mask, "nash_log_utility"] = np.sum(np.log(utility_mat[positive_mask]), axis=1)
+
+    df[f"{accuracy.metric_id}_std"] = pd.to_numeric(df[f"{accuracy.metric_id}_std"], errors="coerce")
+    df = df.sort_values(
+        by=["nash_log_utility", f"{accuracy.metric_id}_std", "config_id"],
+        ascending=[False, True, True],
+        na_position="last",
+        ignore_index=True,
+    )
+    if df.empty or not np.isfinite(pd.to_numeric(df["nash_log_utility"], errors="coerce")).any():
+        raise RuntimeError("Could not compute a finite Nash log-utility for any candidate.")
+    return df.iloc[0].to_dict()
+
+
 # ----------------------------------------------------------------------------
 # Public entrypoint
 # ----------------------------------------------------------------------------
@@ -316,6 +407,7 @@ def run_selection(
     constraint_metrics: Sequence[str] = DEFAULT_CONSTRAINT_METRICS,
     ccao_families: Optional[Sequence[str]] = DEFAULT_CCAO_FAMILIES,
     utopia_families: Optional[Sequence[str]] = DEFAULT_UTOPIA_FAMILIES,
+    nash_families: Optional[Sequence[str]] = DEFAULT_NASH_FAMILIES,
 ) -> Dict[str, Any]:
     metric_id = accuracy_metric.upper()
     if metric_id not in ACCURACY_SPECS:
@@ -344,12 +436,26 @@ def run_selection(
         raise RuntimeError(
             f"Utopia candidate pool is empty after filtering by families={list(utopia_families or [])}."
         )
+    nash_pool = _filter_pool(runs_df, eligible_ids=eligible_ids, families=nash_families)
+    if nash_pool.empty:
+        raise RuntimeError(
+            f"Nash candidate pool is empty after filtering by families={list(nash_families or [])}."
+        )
+    smooth_pool = _filter_pool(runs_df, eligible_ids=eligible_ids, families=SMOOTH_NASH_FAMILIES)
+    if smooth_pool.empty:
+        raise RuntimeError(
+            f"SmoothPenalty Nash candidate pool is empty after filtering by families={list(SMOOTH_NASH_FAMILIES)}."
+        )
 
     ccao_stats = _per_config_fold_stats(ccao_pool, accuracy=accuracy, constraint_ids=constraint_ids)
     utopia_stats = _per_config_fold_stats(utopia_pool, accuracy=accuracy, constraint_ids=constraint_ids)
+    nash_stats = _per_config_fold_stats(nash_pool, accuracy=accuracy, constraint_ids=constraint_ids)
+    smooth_stats = _per_config_fold_stats(smooth_pool, accuracy=accuracy, constraint_ids=constraint_ids)
 
     pick_min = select_min_rmse(ccao_stats, accuracy=accuracy)
     pick_utopia = select_utopia(utopia_stats, accuracy=accuracy, constraint_ids=constraint_ids)
+    pick_nash = select_nash(nash_stats, accuracy=accuracy, constraint_ids=constraint_ids)
+    pick_smooth_nash = select_nash(smooth_stats, accuracy=accuracy, constraint_ids=constraint_ids)
 
     test_lookup = test_df.set_index(test_df["config_id"].astype(str)).to_dict(orient="index")
 
@@ -373,6 +479,16 @@ def run_selection(
                 "families": sorted(utopia_stats["model_family"].dropna().astype(str).unique().tolist()),
                 "n_folds": int(utopia_pool["fold_id"].nunique()),
             },
+            "nash": {
+                "n_configs": int(nash_stats.shape[0]),
+                "families": sorted(nash_stats["model_family"].dropna().astype(str).unique().tolist()),
+                "n_folds": int(nash_pool["fold_id"].nunique()),
+            },
+            "smooth_penalty_nash": {
+                "n_configs": int(smooth_stats.shape[0]),
+                "families": sorted(smooth_stats["model_family"].dropna().astype(str).unique().tolist()),
+                "n_folds": int(smooth_pool["fold_id"].nunique()),
+            },
         },
         "selections": {
             "ccao_min_rmse": _selection_record(
@@ -391,13 +507,29 @@ def run_selection(
                 constraint_ids=constraint_ids,
                 extra={"utopia_distance": float(pick_utopia.get("utopia_distance", np.nan))},
             ),
+            "nash": _selection_record(
+                rule="nash",
+                row=pick_nash,
+                test_metrics=test_lookup.get(str(pick_nash["config_id"]), {}),
+                accuracy=accuracy,
+                constraint_ids=constraint_ids,
+                extra={"nash_log_utility": float(pick_nash.get("nash_log_utility", np.nan))},
+            ),
         },
     }
+    payload["selections"]["smooth_penalty_nash"] = _selection_record(
+        rule="smooth_penalty_nash",
+        row=pick_smooth_nash,
+        test_metrics=test_lookup.get(str(pick_smooth_nash["config_id"]), {}),
+        accuracy=accuracy,
+        constraint_ids=constraint_ids,
+        extra={"nash_log_utility": float(pick_smooth_nash.get("nash_log_utility", np.nan))},
+    )
 
     json_path = out_dir / "selected_models.json"
     json_path.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str), encoding="utf-8")
 
-    flat = pd.DataFrame([payload["selections"]["ccao_min_rmse"], payload["selections"]["utopia"]])
+    flat = pd.DataFrame(list(payload["selections"].values()))
     csv_path = out_dir / "selected_models.csv"
     flat.to_csv(csv_path, index=False)
 
