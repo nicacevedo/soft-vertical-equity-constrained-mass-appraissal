@@ -17,6 +17,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import os
 from pathlib import Path
+import sys
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -42,8 +43,18 @@ from soft_constrained_models.boosting_models import (
 from utils.motivation_utils import (
     _compute_extended_metrics,
     _stable_hash,
+    compute_rolling_origin_protocol_ids,
     run_robust_rolling_origin_cv,
     split_ccao_assessment_universe,
+)
+from canonical_experiment import (
+    VALID_STAGES,
+    frozen_baseline_path,
+    git_state,
+    package_versions,
+    read_json,
+    seed_lgbm_candidates_from_repo,
+    write_json,
 )
 
 
@@ -268,6 +279,12 @@ def _build_rho_values(
     return vals
 
 
+def _prepend_explicit_zero(rho_values: List[float]) -> List[float]:
+    """Keep rho=0 as an explicit control, never inside a geometric sequence."""
+    positives = [float(x) for x in rho_values if float(x) != 0.0]
+    return [0.0] + positives
+
+
 # LightGBM's own built-in defaults for keys that model_params.yaml may not specify.
 # Used when use_ccao_fallback=False (the default) so that only model_params.yaml
 # drives behaviour and there is no silent override from params.yaml.
@@ -401,10 +418,16 @@ def _build_baseline_search_candidates(
     seed: int,
 ) -> List[Dict[str, Any]]:
     candidates: List[Dict[str, Any]] = [dict(base_lgbm_params)]
-    seen = {json.dumps(base_lgbm_params, sort_keys=True)}
+    seen = {json.dumps(base_lgbm_params, sort_keys=True, default=str)}
+    for extra in seed_lgbm_candidates_from_repo(base_lgbm_params):
+        key = json.dumps(extra, sort_keys=True, default=str)
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(dict(extra))
     rng = np.random.default_rng(int(seed))
-
-    while len(candidates) < (1 + max(0, int(n_random_trials))):
+    target_n = len(candidates) + max(0, int(n_random_trials))
+    while len(candidates) < target_n:
         candidate = _sample_baseline_lgbm_candidate(
             hp_range=hp_range,
             base_lgbm_params=base_lgbm_params,
@@ -783,6 +806,7 @@ def _build_model_specs(
     ratio_modes: List[str],
     fairness_ratio_mode: str,
     include_cvar_models: bool = False,
+    include_logistic_proxy: bool = False,
 ) -> List[Dict[str, Any]]:
     specs: List[Dict[str, Any]] = []
     lgbm_base_config_id = _stable_hash({"lgbm_params": lgbm_params})
@@ -831,35 +855,38 @@ def _build_model_specs(
                             ratio_mode=ratio_mode,
                             weighting_proxy_mode="identity",
                             zero_grad_tol=1e-12,
+                            early_stopping_rounds=None,
                             lgbm_params=dict(lgbm_params),
                             verbose=False,
                         )
                     ),
                 }
             )
-            specs.append(
-                {
-                    "name": "LGBSmoothPenaltyLogisticProxy",
-                    "config": {
-                        "rho": r,
-                        "ratio_mode": ratio_mode,
-                        "weighting_proxy_mode": "logistic_quantile",
-                        **lgbm_base_config,
-                    },
-                    "metric_ratio_mode": ratio_mode,
-                    "requires_linear_pipeline": False,
-                    "factory": (
-                        lambda rho=r, ratio_mode=ratio_mode: LGBSmoothPenalty(
-                            rho=rho,
-                            ratio_mode=ratio_mode,
-                            weighting_proxy_mode="logistic_quantile",
-                            zero_grad_tol=1e-12,
-                            lgbm_params=dict(lgbm_params),
-                            verbose=False,
-                        )
-                    ),
-                }
-            )
+            if bool(include_logistic_proxy):
+                specs.append(
+                    {
+                        "name": "LGBSmoothPenaltyLogisticProxy",
+                        "config": {
+                            "rho": r,
+                            "ratio_mode": ratio_mode,
+                            "weighting_proxy_mode": "logistic_quantile",
+                            **lgbm_base_config,
+                        },
+                        "metric_ratio_mode": ratio_mode,
+                        "requires_linear_pipeline": False,
+                        "factory": (
+                            lambda rho=r, ratio_mode=ratio_mode: LGBSmoothPenalty(
+                                rho=rho,
+                                ratio_mode=ratio_mode,
+                                weighting_proxy_mode="logistic_quantile",
+                                zero_grad_tol=1e-12,
+                                early_stopping_rounds=None,
+                                lgbm_params=dict(lgbm_params),
+                                verbose=False,
+                            )
+                        ),
+                    }
+                )
             if bool(include_cvar_models):
                 keep_sweep = [float(k) for k in keep_values] if keep_values else [1.0]
                 for keep in keep_sweep:
@@ -914,6 +941,7 @@ def _build_model_specs(
                             rho=rho,
                             ratio_mode=ratio_mode,
                             zero_grad_tol=1e-12,
+                            early_stopping_rounds=None,
                             lgbm_params=dict(lgbm_params),
                             verbose=False,
                         )
@@ -1435,6 +1463,99 @@ def _evaluate_models_on_test_set(
     return out
 
 
+_VALID_STAGES = ("baseline-search", "cv", "test", "forward", "all")
+
+
+def _frozen_baseline_path(result_root: str) -> Path:
+    return Path(result_root) / "frozen_baseline.json"
+
+
+def _write_json(path: Path, payload: Dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with tmp.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2, sort_keys=True, default=str)
+    tmp.replace(path)
+
+
+def _package_versions() -> Dict[str, str]:
+    versions = {
+        "python": sys.version.split()[0],
+    }
+    for name in ("lightgbm", "numpy", "pandas", "scikit-learn"):
+        try:
+            versions[name] = str(__import__(name.replace("-", "_") if name != "scikit-learn" else "sklearn").__version__)
+        except Exception:
+            versions[name] = "unknown"
+    try:
+        import sklearn
+        versions["scikit-learn"] = str(sklearn.__version__)
+    except Exception:
+        versions["scikit-learn"] = versions.get("scikit-learn", "unknown")
+    return versions
+
+
+def _git_state() -> Dict[str, str]:
+    out = {"git_commit": "unknown", "git_branch": "unknown"}
+    try:
+        import subprocess
+        root = Path(__file__).resolve().parent
+        commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, stderr=subprocess.DEVNULL).decode().strip()
+        branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=root, stderr=subprocess.DEVNULL).decode().strip()
+        out["git_commit"] = commit
+        out["git_branch"] = branch
+    except Exception:
+        pass
+    return out
+
+
+def _seed_lgbm_candidates_from_repo(base_lgbm_params: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """CV-only historical LightGBM configs plus the official CCAO default. Excludes test-selected configs."""
+    extra: List[Dict[str, Any]] = []
+    yaml_path = Path("best_lgbm_baseline_configs.yaml")
+    if yaml_path.is_file():
+        with yaml_path.open("r", encoding="utf-8") as f:
+            blob = yaml.safe_load(f) or {}
+        for name, rec in dict(blob.get("lgbm_baselines", {})).items():
+            if str(name).startswith("test_"):
+                continue
+            raw = dict(rec.get("lgbm_params", {}))
+            cand = dict(base_lgbm_params)
+            for key in cand.keys():
+                if key in raw and raw[key] is not None:
+                    cand[key] = raw[key]
+            extra.append(cand)
+    try:
+        with open("params.yaml", "r", encoding="utf-8") as f:
+            params = yaml.safe_load(f)
+        hp = dict(params["model"]["hyperparameter"]["default"])
+        num_leaves = int(hp["num_leaves"])
+        add_depth = int(hp.get("add_to_linked_depth", 4))
+        cand = dict(base_lgbm_params)
+        cand.update(
+            {
+                "n_estimators": int(hp["num_iterations"]),
+                "learning_rate": float(hp["learning_rate"]),
+                "max_bin": int(hp["max_bin"]),
+                "num_leaves": num_leaves,
+                "max_depth": int(np.floor(np.log2(max(num_leaves, 2))) + add_depth),
+                "colsample_bytree": float(hp["feature_fraction"]),
+                "min_split_gain": float(hp["min_gain_to_split"]),
+                "min_child_samples": int(hp["min_data_in_leaf"]),
+                "max_cat_threshold": int(hp["max_cat_threshold"]),
+                "min_data_per_group": int(hp["min_data_per_group"]),
+                "cat_smooth": float(hp["cat_smooth"]),
+                "cat_l2": float(hp["cat_l2"]),
+                "reg_alpha": float(hp["lambda_l1"]),
+                "reg_lambda": float(hp["lambda_l2"]),
+            }
+        )
+        extra.append(cand)
+    except Exception:
+        pass
+    return extra
+
+
 def run_full_pipeline(
     *,
     result_root: str,
@@ -1461,6 +1582,8 @@ def run_full_pipeline(
     include_cvar_models: bool = False,
     universe_start: str = "2016-01-01",
     pre_assessment_end: str = "2024-12-31",
+    stage: str = "all",
+    allow_unverified_baseline: bool = False,
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -1530,10 +1653,19 @@ def run_full_pipeline(
         "split_prop_pre_assessment": float(params["cv"]["split_prop"]),
     }
 
+    stage_norm = str(stage).strip().lower().replace("_", "-")
+    if stage_norm not in VALID_STAGES:
+        raise ValueError(f"stage must be one of {VALID_STAGES}, got {stage!r}")
+    run_search = bool(baseline_search) or stage_norm == "baseline-search"
+    run_cv = stage_norm in {"cv", "all"}
+    run_test = stage_norm in {"test", "all"}
+    run_forward = stage_norm in {"forward", "all"}
+
     model_setup_start = time.perf_counter()
     lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed, use_ccao_fallback=use_ccao_fallback)
     baseline_search_artifacts: Dict[str, Any] = {}
-    if bool(baseline_search):
+    frozen_path = frozen_baseline_path(result_root)
+    if run_search:
         baseline_search_artifacts = _run_baseline_lgbm_search(
             result_root=result_root,
             params=params,
@@ -1556,8 +1688,40 @@ def run_full_pipeline(
             fairness_ratio_mode=fairness_ratio_mode,
         )
         lgbm_params = dict(baseline_search_artifacts["best_lgbm_params"])
-    smooth_rhos = [float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)]
-    cov_rhos = [float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)]
+        write_json(
+            frozen_path,
+            {
+                "best_lgbm_params": lgbm_params,
+                "search_criterion": "mean_validation_RMSE_price",
+                "n_folds_protocol": "paper_v6_seven_fold_expanding_15mo",
+                "seed": int(seed),
+                "provenance": baseline_search_artifacts,
+                "versions": package_versions(),
+                **git_state(),
+            },
+        )
+        _log("frozen baseline written", path=str(frozen_path))
+        if stage_norm == "baseline-search":
+            return {
+                "stage": stage_norm,
+                "result_root": str(Path(result_root).resolve()),
+                "frozen_baseline_json": str(frozen_path),
+                **baseline_search_artifacts,
+            }
+    elif frozen_path.is_file():
+        frozen = read_json(frozen_path)
+        lgbm_params = dict(frozen.get("best_lgbm_params", lgbm_params))
+        _log("loaded frozen baseline", path=str(frozen_path))
+    elif not bool(allow_unverified_baseline):
+        raise RuntimeError(
+            "No frozen_baseline.json found. Run --stage baseline-search first, "
+            "or pass --allow-unverified-baseline for a smoke run that uses model_params.yaml."
+        )
+    else:
+        _log("using unverified model_params.yaml baseline", reason="allow_unverified_baseline")
+
+    smooth_rhos = _prepend_explicit_zero([float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)])
+    cov_rhos = _prepend_explicit_zero([float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)])
     model_specs = _build_model_specs(
         lgbm_params=lgbm_params,
         rho_values_smooth=smooth_rhos,
@@ -1566,6 +1730,7 @@ def run_full_pipeline(
         ratio_modes=ratio_modes,
         fairness_ratio_mode=fairness_ratio_mode,
         include_cvar_models=bool(include_cvar_models),
+        include_logistic_proxy=False,
     )
     _log(
         "model specs built",
@@ -1575,50 +1740,91 @@ def run_full_pipeline(
         n_ratio_modes=int(len(ratio_modes)),
         elapsed_sec=f"{time.perf_counter() - model_setup_start:.2f}",
     )
-
-    cv_start = time.perf_counter()
-    _log(
-        "starting rolling-origin CV",
-        split_protocol=json.dumps(split_protocol, sort_keys=True),
-        bootstrap_protocol=json.dumps(bootstrap_protocol, sort_keys=True),
+    write_json(
+        Path(result_root) / "experiment_spec.json",
+        {
+            "stage": stage_norm,
+            "lgbm_params": lgbm_params,
+            "smooth_rhos": smooth_rhos,
+            "cov_rhos": cov_rhos,
+            "ratio_modes": list(ratio_modes),
+            "include_cvar_models": bool(include_cvar_models),
+            "include_logistic_proxy": False,
+            "early_stopping_rounds": None,
+            "split_protocol": split_protocol,
+            "bootstrap_protocol": bootstrap_protocol,
+            "versions": package_versions(),
+            **git_state(),
+        },
     )
-    cv_out = run_robust_rolling_origin_cv(
-        df_train_validate=df_train_validate,
+
+    protocol_ids = compute_rolling_origin_protocol_ids(
+        df_train_validate,
         date_col=date_col,
-        target_col=target_col,
-        predictor_cols=predictor_cols,
-        categorical_cols=categorical_cols,
-        model_specs=model_specs,
-        linear_pipeline_builder=linear_pipeline_builder,
-        result_root=result_root,
         data_signature=data_signature,
         split_protocol=split_protocol,
         bootstrap_protocol=bootstrap_protocol,
-        fairness_ratio_mode=fairness_ratio_mode,
-        predict_store=True,
-        parquet_engine=parquet_engine,
-        log_progress=True,
-        parallel_enabled=parallel_enabled,
-        parallel_cpu_fraction=parallel_cpu_fraction,
-        parallel_max_workers=parallel_max_workers,
-        parallel_backend="loky",
-        numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
     )
-    _log(
-        "rolling-origin CV finished",
-        data_id=str(cv_out["data_id"]),
-        split_id=str(cv_out["split_id"]),
-        fold_count=int(cv_out["fold_count"]),
-        flagged_configs=int(len(cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])))),
-        elapsed_sec=f"{time.perf_counter() - cv_start:.2f}",
-    )
+    data_id = str(protocol_ids["data_id"])
+    split_id = str(protocol_ids["split_id"])
+    cv_out = {
+        "data_id": data_id,
+        "split_id": split_id,
+        "fold_count": int(len(protocol_ids["folds"])),
+        "flagged_config_ids": [],
+        "invalid_config_ids": [],
+    }
 
-    data_id = str(cv_out["data_id"])
-    split_id = str(cv_out["split_id"])
+    if run_cv:
+        cv_start = time.perf_counter()
+        _log(
+            "starting rolling-origin CV",
+            split_protocol=json.dumps(split_protocol, sort_keys=True),
+            bootstrap_protocol=json.dumps(bootstrap_protocol, sort_keys=True),
+        )
+        cv_out = run_robust_rolling_origin_cv(
+            df_train_validate=df_train_validate,
+            date_col=date_col,
+            target_col=target_col,
+            predictor_cols=predictor_cols,
+            categorical_cols=categorical_cols,
+            model_specs=model_specs,
+            linear_pipeline_builder=linear_pipeline_builder,
+            result_root=result_root,
+            data_signature=data_signature,
+            split_protocol=split_protocol,
+            bootstrap_protocol=bootstrap_protocol,
+            fairness_ratio_mode=fairness_ratio_mode,
+            predict_store=True,
+            parquet_engine=parquet_engine,
+            log_progress=True,
+            parallel_enabled=parallel_enabled,
+            parallel_cpu_fraction=parallel_cpu_fraction,
+            parallel_max_workers=parallel_max_workers,
+            parallel_backend="loky",
+            numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
+        )
+        _log(
+            "rolling-origin CV finished",
+            data_id=str(cv_out["data_id"]),
+            split_id=str(cv_out["split_id"]),
+            fold_count=int(cv_out["fold_count"]),
+            flagged_configs=int(len(cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])))),
+            elapsed_sec=f"{time.perf_counter() - cv_start:.2f}",
+        )
+        data_id = str(cv_out["data_id"])
+        split_id = str(cv_out["split_id"])
+    elif run_test or run_forward:
+        protocol_file = Path(result_root) / "protocol" / f"data_id={data_id}" / f"split_id={split_id}" / "folds.json"
+        if not protocol_file.is_file():
+            raise RuntimeError(f"CV protocol not found at {protocol_file}. Run --stage cv first.")
 
     analysis_dir = Path(result_root) / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
-    test_eval_start = time.perf_counter()
-    test_artifacts = _evaluate_models_on_test_set(
+    test_artifacts: Dict[str, str] = {}
+    assess_artifacts: Dict[str, str] = {}
+    if run_test:
+        test_eval_start = time.perf_counter()
+        test_artifacts = _evaluate_models_on_test_set(
         df_train_validate=df_train_validate,
         df_test=df_test,
         predictor_cols=predictor_cols,
@@ -1636,10 +1842,9 @@ def run_full_pipeline(
         parallel_max_workers=parallel_max_workers,
         invalid_config_ids=[str(x) for x in cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", []))],
     )
-    _log("held-out test evaluation finished", elapsed_sec=f"{time.perf_counter() - test_eval_start:.2f}")
+        _log("held-out test evaluation finished", elapsed_sec=f"{time.perf_counter() - test_eval_start:.2f}")
 
-    assess_artifacts: Dict[str, str] = {}
-    if str(heldout_test_mode).strip().lower() == "pre_assessment_tail" and not df_assess.empty:
+    if run_forward and str(heldout_test_mode).strip().lower() == "pre_assessment_tail" and not df_assess.empty:
         assess_eval_start = time.perf_counter()
         production = pd.concat([df_train_validate, df_test], ignore_index=True)
         assess_artifacts = _evaluate_models_on_test_set(
@@ -1892,6 +2097,19 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
             "Defaults to params.yaml cv.initial_set when omitted."
         ),
     )
+    p.add_argument(
+        "--stage",
+        type=str,
+        default=str(cfg.get("stage", "all")),
+        choices=["baseline-search", "cv", "test", "forward", "all"],
+        help="Run one experiment stage or the full sequence. Later stages reuse frozen artifacts.",
+    )
+    p.add_argument(
+        "--allow-unverified-baseline",
+        action=argparse.BooleanOptionalAction,
+        default=bool(cfg.get("allow_unverified_baseline", False)),
+        help="Allow penalty stages to use model_params.yaml when frozen_baseline.json is absent. Smoke tests only.",
+    )
     return p
 
 
@@ -1971,17 +2189,24 @@ if __name__ == "__main__":
         include_cvar_models=bool(args.include_cvar_models),
         universe_start=str(cfg.get("universe_start", "2016-01-01")),
         pre_assessment_end=str(cfg.get("pre_assessment_end", "2024-12-31")),
+        stage=str(args.stage),
+        allow_unverified_baseline=bool(args.allow_unverified_baseline),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")
     print("=" * 90)
-    print(f"data_id={out['data_id']} | split_id={out['split_id']}")
-    print(f"analysis_dir={out['analysis_dir']}")
-    print(f"test_metrics_csv={out['test_metrics_csv']}")
-    print(f"test_predictions_parquet={out['test_predictions_parquet']}")
+    if "data_id" in out:
+        print(f"data_id={out['data_id']} | split_id={out['split_id']}")
+    if out.get("analysis_dir"):
+        print(f"analysis_dir={out['analysis_dir']}")
+    if out.get("test_metrics_csv"):
+        print(f"test_metrics_csv={out['test_metrics_csv']}")
+        print(f"test_predictions_parquet={out['test_predictions_parquet']}")
     if out.get("assess_metrics_csv"):
         print(f"assess_metrics_csv={out['assess_metrics_csv']}")
         print(f"assess_predictions_parquet={out['assess_predictions_parquet']}")
+    if out.get("frozen_baseline_json"):
+        print(f"frozen_baseline_json={out['frozen_baseline_json']}")
     if bool(out.get("baseline_search_enabled", False)):
         print(f"baseline_search_summary_csv={out['search_summary_csv']}")
         print(f"baseline_search_best_params_json={out['best_params_json']}")

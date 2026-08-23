@@ -115,6 +115,107 @@ def _training_early_stopping_callback(stopping_rounds: int, verbose: bool = True
     return _Callback()
 
 
+def _as_1d_float(values) -> np.ndarray:
+    return np.asarray(values, dtype=float).reshape(-1)
+
+
+def canonical_direct_scaled_grad_hess(
+    y_true,
+    y_pred,
+    *,
+    y_mean: float,
+    rho: float,
+) -> Tuple[np.ndarray, np.ndarray, Dict[str, float]]:
+    """LightGBM-native scaled direct covariance objective for ratio_mode='diff'.
+
+    Paper objective
+        J = (1/n) sum_i e_i^2 + (rho/2) C^2
+        e_i = y_pred_i - y_true_i = log(P_hat_i / P_i)
+        c_i = y_true_i - y_mean
+        C = (1/n) sum_i e_i c_i
+
+    This function returns derivatives of (n/2) * J so that rho=0 matches native
+    LightGBM L2 (grad = e, hess = 1). That common positive multiplier does not
+    change the minimizer.
+
+    Exact Hessian of the scaled objective
+        H = I + (rho / (2n)) c c^T
+      The squared-error block I is exactly diagonal. The covariance curvature
+      (rho / (2n)) c c^T is dense rank-one. LightGBM's custom-objective interface
+      only accepts a per-observation Hessian, so we supply diag(H):
+        hess_i = 1 + (rho / (2n)) c_i^2
+      The gradient remains exact:
+        grad_i = e_i + (rho/2) * C * c_i
+    """
+    y_true = _as_1d_float(y_true)
+    y_pred = _as_1d_float(y_pred)
+    if y_true.shape != y_pred.shape:
+        raise ValueError("y_true and y_pred must have the same shape.")
+    n = int(y_true.size)
+    if n == 0:
+        empty = np.asarray([], dtype=float)
+        return empty, empty, {"n": 0.0, "C": 0.0, "rho": float(rho)}
+
+    e = y_pred - y_true
+    c = y_true - float(y_mean)
+    C = float(np.mean(e * c))
+    rho = float(rho)
+    grad = e + 0.5 * rho * C * c
+    hess = np.ones(n, dtype=float) + (rho / (2.0 * float(n))) * (c ** 2)
+    return grad, hess, {"n": float(n), "C": C, "rho": rho}
+
+
+def canonical_direct_exact_scaled_hessian(c: np.ndarray, rho: float) -> np.ndarray:
+    """Exact dense Hessian of the scaled direct objective: I + (rho/(2n)) c c^T."""
+    c = _as_1d_float(c)
+    n = int(c.size)
+    if n == 0:
+        return np.zeros((0, 0), dtype=float)
+    return np.eye(n) + (float(rho) / (2.0 * float(n))) * np.outer(c, c)
+
+
+def canonical_surrogate_scaled_grad_hess(
+    y_true,
+    y_pred,
+    *,
+    y_mean: float,
+    rho: float,
+) -> Tuple[np.ndarray, np.ndarray, Dict[str, float]]:
+    """LightGBM-native scaled identity surrogate for ratio_mode='diff'.
+
+    Paper penalty
+        Psi = (1/n) sum_i e_i^2 c_i^2
+        J = (1/n) sum_i e_i^2 + rho * Psi
+    with e_i = y_pred_i - y_true_i and c_i = y_true_i - y_mean (not normalized).
+
+    Derivatives of (n/2) * J, matching native L2 at rho=0:
+        grad_i = e_i * (1 + rho * c_i^2)
+        hess_i = 1 + rho * c_i^2
+    The surrogate Hessian is already exactly diagonal.
+    Direct and surrogate rho values are separate regularization scales.
+    """
+    y_true = _as_1d_float(y_true)
+    y_pred = _as_1d_float(y_pred)
+    if y_true.shape != y_pred.shape:
+        raise ValueError("y_true and y_pred must have the same shape.")
+    n = int(y_true.size)
+    if n == 0:
+        empty = np.asarray([], dtype=float)
+        return empty, empty, {"n": 0.0, "rho": float(rho)}
+
+    e = y_pred - y_true
+    c = y_true - float(y_mean)
+    weight = 1.0 + float(rho) * (c ** 2)
+    grad = e * weight
+    hess = weight.copy()
+    return grad, hess, {"n": float(n), "rho": float(rho)}
+
+
+def _assert_finite_grad_hess(grad: np.ndarray, hess: np.ndarray, *, name: str) -> None:
+    if (not np.all(np.isfinite(grad))) or (not np.all(np.isfinite(hess))):
+        raise FloatingPointError(f"Non-finite gradient or Hessian in {name}.")
+
+
 # ============================= MAIN MODELS =============================
 
 # 0) Separable linear covariance penalty
@@ -329,27 +430,20 @@ class LGBCovLinearPenalty:
 
 # V2: with diff/div/ratio inputs
 class LGBCovPenalty:
-    """LightGBM objective: MSE + rho * (Cov(r, y))^2
+    """Direct squared-covariance LightGBM objective.
 
-    r is chosen by ratio_mode:
-      - "div"  : r = y_pred / max(|y_true|, eps_y)    (DEFAULT, preserves old behavior)
-      - "diff" : r = y_pred - y_true                 (useful when y is log-price -> log-residual)
-      - "ratio": r = exp(y_pred - y_true)            (true price ratio when y is log-price)
+    Canonical paper path (ratio_mode='diff') implements (n/2) times
+        J = (1/n) sum_i e_i^2 + (rho/2) C^2
+    with e_i = y_pred_i - y_true_i and C = (1/n) sum_i e_i c_i,
+    c_i = y_true_i - mean(y_true). The n/2 multiplier makes rho=0 match native
+    LightGBM L2 derivatives (grad = e, hess = 1).
 
-    Cov is computed as: cov = mean( r_eff * (y_true - y_mean_) ),
-    where r_eff may optionally be shifted by an "anchor" (see below).
+    The squared-error Hessian is exactly diagonal. Covariance curvature is the
+    dense rank-one term (rho/(2n)) c c^T. LightGBM receives only the diagonal
+    of that exact scaled Hessian; the covariance gradient is exact.
 
-    Anchor note (important):
-      Because yc = (y_true - y_mean_) is mean-centered, subtracting any *constant* anchor
-      from r does not change cov (up to floating error). Therefore anchor_mode/target_value
-      are effectively no-ops for this specific cov definition. Included only for API symmetry.
-
-    Diagonal Hessian approximation (as before):
-      cov = (1/n) * sum_i r_i * yc_i
-      dc/dy_pred_i = (1/n) * yc_i * d r_i / d y_pred_i
-      penalty = 0.5 * rho * n * cov^2
-      grad_pen_i = rho * n * cov * dc/dy_pred_i
-      hess_pen_i = rho * n * (dc/dy_pred_i)^2
+    Other ratio_mode values keep the historical exploratory implementation.
+    Canonical paths do not floor tiny gradients to a positive constant.
     """
 
     def __init__(
@@ -360,6 +454,7 @@ class LGBCovPenalty:
         target_value=None,         # if anchor_mode="target": default 1.0 (div/ratio) or 0.0 (diff)
         early_stopping_rounds=10,
         zero_grad_tol=1e-6,
+        zero_grad_floor=None,
         eps_y=1e-12,
         lgbm_params=None,
         verbose=True,
@@ -369,7 +464,10 @@ class LGBCovPenalty:
         self.anchor_mode = anchor_mode
         self.target_value = target_value
         self.early_stopping_rounds = None if early_stopping_rounds is None else int(early_stopping_rounds)
+        if zero_grad_floor is not None:
+            zero_grad_tol = zero_grad_floor
         self.zero_grad_tol = float(zero_grad_tol)
+        self.zero_grad_floor = float(self.zero_grad_tol)
         self.eps_y = float(eps_y)
         self.verbose = bool(verbose)
         self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
@@ -400,6 +498,22 @@ class LGBCovPenalty:
         y_true = np.asarray(y_true)
         y_pred = np.asarray(y_pred)
         n = y_pred.size
+
+        if self.ratio_mode == "diff":
+            grad, hess, extras = canonical_direct_scaled_grad_hess(
+                y_true,
+                y_pred,
+                y_mean=float(self.y_mean_),
+                rho=self.rho,
+            )
+            _assert_finite_grad_hess(grad, hess, name="LGBCovPenalty.diff")
+            if self.verbose:
+                mse_mean = float(np.mean((y_pred - y_true) ** 2))
+                print(
+                    f"[LGBCovPenalty] "
+                    f"MSE: {mse_mean:.6f} | C: {extras['C']:.6e} | rho: {self.rho:.6g}"
+                )
+            return grad, hess
 
         yc = (y_true - self.y_mean_)  # centered y (note: mean(yc)≈0 on training data)
 
@@ -921,6 +1035,7 @@ class LGBSmoothPenalty:
         target_value=None,       # default: 1.0 for div/ratio, 0.0 for diff
         early_stopping_rounds=10,
         zero_grad_tol=1e-6,
+        zero_grad_floor=None,
         eps_y=1e-12,
         lgbm_params=None,
         verbose=True,
@@ -930,7 +1045,10 @@ class LGBSmoothPenalty:
         self.weighting_proxy_mode = str(weighting_proxy_mode).strip().lower()
         self.target_value = target_value
         self.early_stopping_rounds = None if early_stopping_rounds is None else int(early_stopping_rounds)
+        if zero_grad_floor is not None:
+            zero_grad_tol = zero_grad_floor
         self.zero_grad_tol = float(zero_grad_tol)
+        self.zero_grad_floor = float(self.zero_grad_tol)
         self.eps_y = float(eps_y)
         self.verbose = bool(verbose)
         self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
@@ -973,6 +1091,30 @@ class LGBSmoothPenalty:
     def fobj(self, y_true, y_pred):
         y_true = np.asarray(y_true)
         y_pred = np.asarray(y_pred)
+
+        canonical_identity_diff = (
+            str(self.ratio_mode) == "diff"
+            and str(self.weighting_proxy_mode) == "identity"
+            and (self.target_value is None or float(self.target_value) == 0.0)
+        )
+        if canonical_identity_diff:
+            grad, hess, _extras = canonical_surrogate_scaled_grad_hess(
+                y_true,
+                y_pred,
+                y_mean=float(self.y_mean_),
+                rho=self.rho,
+            )
+            _assert_finite_grad_hess(grad, hess, name="LGBSmoothPenalty.diff.identity")
+            if self.verbose:
+                e = y_pred - y_true
+                c = y_true - float(self.y_mean_)
+                mse_mean = float(np.mean(e ** 2))
+                psi = float(np.mean((e ** 2) * (c ** 2)))
+                print(
+                    f"[LGBSmoothPenalty] "
+                    f"MSE: {mse_mean:.6f} | Psi: {psi:.6e} | rho: {self.rho:.6g}"
+                )
+            return grad, hess
 
         z = y_true
         if self.weighting_proxy_mode == "identity":

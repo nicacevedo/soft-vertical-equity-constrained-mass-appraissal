@@ -9,7 +9,7 @@
 # ---------------------------------------------------------------------------
 # I/O
 # ---------------------------------------------------------------------------
-result_root: "./output/robust_rolling_origin_cv"
+result_root: "./output/robust_rolling_origin_cv_v2"
 data_path:   "./data/CCAO/2025/training_data.parquet"
 assessment_year: 2025
 heldout_test_mode: "pre_assessment_tail"

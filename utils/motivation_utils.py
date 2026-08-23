@@ -251,6 +251,7 @@ def build_rolling_origin_protocol(
         raise ValueError("train_mode must be 'expanding' or 'sliding'.")
 
     dfx = df[[date_col]].copy()
+    dfx[date_col] = pd.to_datetime(dfx[date_col])
     dfx = dfx.sort_values(date_col).reset_index(drop=False).rename(columns={"index": "_row_id"})
     min_date = pd.Timestamp(dfx[date_col].min()).normalize()
     max_date = pd.Timestamp(dfx[date_col].max()).normalize()
@@ -436,6 +437,66 @@ def _first_bad_numeric_metric(metrics: Dict[str, Any], *, abs_cap: float) -> Opt
     return None
 
 
+def compute_rolling_origin_protocol_ids(
+    df_train_validate: pd.DataFrame,
+    *,
+    date_col: str,
+    data_signature: Dict[str, Any],
+    split_protocol: Dict[str, Any],
+    bootstrap_protocol: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Deterministic data/split IDs and fold definitions without fitting."""
+    _val_frac = split_protocol.get("val_fraction", None)
+    if _val_frac is not None:
+        try:
+            _val_frac = float(_val_frac)
+        except (TypeError, ValueError):
+            _val_frac = None
+    if _val_frac is not None and not (0.0 < _val_frac < 1.0):
+        _val_frac = None
+
+    folds = build_rolling_origin_protocol(
+        df_train_validate,
+        date_col,
+        train_mode=split_protocol.get("train_mode", "expanding"),
+        initial_train_months=int(split_protocol.get("initial_train_months", 9)),
+        val_fraction=_val_frac,
+        val_window_months=int(split_protocol.get("val_window_months", 9)),
+        step_months=int(split_protocol.get("step_months", 9)),
+        min_train_rows=int(split_protocol.get("min_train_rows", 200)),
+        min_val_rows=int(split_protocol.get("min_val_rows", 100)),
+    )
+    fold_signature = {
+        "split_protocol": split_protocol,
+        "folds": [
+            {
+                k: f[k]
+                for k in (
+                    "fold_id",
+                    "train_start",
+                    "train_end",
+                    "val_start",
+                    "val_end",
+                    "train_size",
+                    "val_size",
+                    "train_index_hash",
+                    "val_index_hash",
+                )
+            }
+            for f in folds
+        ],
+        "bootstrap_protocol": bootstrap_protocol,
+    }
+    data_id = _stable_hash({"data_signature": data_signature})
+    split_id = _stable_hash(fold_signature)
+    return {
+        "folds": folds,
+        "fold_signature": fold_signature,
+        "data_id": data_id,
+        "split_id": split_id,
+    }
+
+
 def run_robust_rolling_origin_cv(
     df_train_validate: pd.DataFrame,
     *,
@@ -469,50 +530,17 @@ def run_robust_rolling_origin_cv(
     output_root = Path(result_root)
     output_root.mkdir(parents=True, exist_ok=True)
 
-    _val_frac = split_protocol.get("val_fraction", None)
-    if _val_frac is not None:
-        try:
-            _val_frac = float(_val_frac)
-        except (TypeError, ValueError):
-            _val_frac = None
-    if _val_frac is not None and not (0.0 < _val_frac < 1.0):
-        _val_frac = None
-
-    folds = build_rolling_origin_protocol(
+    protocol_ids = compute_rolling_origin_protocol_ids(
         df_train_validate,
-        date_col,
-        train_mode=split_protocol.get("train_mode", "expanding"),
-        initial_train_months=int(split_protocol.get("initial_train_months", 9)),
-        val_fraction=_val_frac,
-        val_window_months=int(split_protocol.get("val_window_months", 9)),
-        step_months=int(split_protocol.get("step_months", 9)),
-        min_train_rows=int(split_protocol.get("min_train_rows", 200)),
-        min_val_rows=int(split_protocol.get("min_val_rows", 100)),
+        date_col=date_col,
+        data_signature=data_signature,
+        split_protocol=split_protocol,
+        bootstrap_protocol=bootstrap_protocol,
     )
-
-    fold_signature = {
-        "split_protocol": split_protocol,
-        "folds": [
-            {
-                k: f[k]
-                for k in (
-                    "fold_id",
-                    "train_start",
-                    "train_end",
-                    "val_start",
-                    "val_end",
-                    "train_size",
-                    "val_size",
-                    "train_index_hash",
-                    "val_index_hash",
-                )
-            }
-            for f in folds
-        ],
-        "bootstrap_protocol": bootstrap_protocol,
-    }
-    data_id = _stable_hash({"data_signature": data_signature})
-    split_id = _stable_hash(fold_signature)
+    folds = protocol_ids["folds"]
+    fold_signature = protocol_ids["fold_signature"]
+    data_id = protocol_ids["data_id"]
+    split_id = protocol_ids["split_id"]
 
     protocol_dir = output_root / "protocol" / f"data_id={data_id}" / f"split_id={split_id}"
     protocol_dir.mkdir(parents=True, exist_ok=True)
@@ -1403,27 +1431,89 @@ def mki(assessed, sale_price, na_rm=False):
 #   1.3 Main Function of Metrics
 # -----------------------------------
 
+def _has_train_values(y_train) -> bool:
+    if y_train is None:
+        return False
+    try:
+        arr = np.asarray(y_train, dtype=float).reshape(-1)
+    except Exception:
+        return False
+    return arr.size > 0
+
+
+def _mean_cov(x: np.ndarray, y: np.ndarray) -> float:
+    x = np.asarray(x, dtype=float).reshape(-1)
+    y = np.asarray(y, dtype=float).reshape(-1)
+    if x.size == 0 or x.size != y.size:
+        return float("nan")
+    x = x - float(np.mean(x))
+    return float(np.mean(x * y))
+
+
+def paper_mechanism_metrics(y_true_log, y_pred_log) -> Dict[str, float]:
+    """Paper mechanism diagnostics on the evaluation sample.
+
+    e = y_pred_log - y_true_log
+    c = y_true_log - mean(y_true_log)
+    Cov uses the paper 1/n convention: mean(e * c).
+    Beta_log = Cov(e, log P) / Var(log P) with the same 1/n variance.
+    """
+    y_true_log = np.asarray(y_true_log, dtype=float).reshape(-1)
+    y_pred_log = np.asarray(y_pred_log, dtype=float).reshape(-1)
+    e = y_pred_log - y_true_log
+    c = y_true_log - float(np.mean(y_true_log))
+    cov = float(np.mean(e * c))
+    var_log = float(np.mean(c ** 2))
+    var_e = float(np.mean((e - float(np.mean(e))) ** 2))
+    beta_log = cov / var_log if var_log > 0.0 and np.isfinite(var_log) else float("nan")
+    corr = float("nan")
+    denom = float(np.sqrt(max(var_e, 0.0) * max(var_log, 0.0)))
+    if denom > 0.0 and np.isfinite(denom):
+        corr = cov / denom
+    return {
+        "Cov_log_residual_log_price": cov,
+        "Beta_log": float(beta_log),
+        "Corr_log_residual_log_price": corr,
+    }
+
+
 def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):
+        y_real = np.asarray(y_real, dtype=float).reshape(-1)
+        y_pred = np.asarray(y_pred, dtype=float).reshape(-1)
         if scale == "log":
-            y_real_log, y_pred_log = y_real, y_pred 
+            y_real_log, y_pred_log = y_real, y_pred
             y_real, y_pred = np.exp(y_real), np.exp(y_pred)
+            y_train_log = np.asarray(y_train, dtype=float).reshape(-1) if _has_train_values(y_train) else None
+            y_train_price = np.exp(y_train_log) if y_train_log is not None else None
         else:
             y_real_log, y_pred_log = np.log(y_real), np.log(y_pred)
+            if _has_train_values(y_train):
+                y_train_price = np.asarray(y_train, dtype=float).reshape(-1)
+                y_train_log = np.log(y_train_price)
+            else:
+                y_train_log = None
+                y_train_price = None
         metrics = dict()
 
-        # 1. Accuracy metrics
-        metrics["R2"] = r2_score(y_real, y_pred)
-        if y_train.all() is not None:
-            metrics["OOS R2"] = oos_r2_score(y_real, y_pred, y_train)
-        metrics["R2 (log)"] = r2_score(y_real_log, y_pred_log)
-        metrics["RMSE"] = _root_mse(y_real, y_pred)
-        metrics["MAE"] = mean_absolute_error(y_real, y_pred)
-        # metrics["MdAE"] = median_absolute_error(y_real, y_pred)
-        metrics["MAPE"] = mean_absolute_percentage_error(y_real, y_pred)
-        metrics["MdAPE"] = 100*median_absolute_error(y_real/y_pred, y_pred/y_pred)
-
-        # # 1.5 Loss function
-        # metrics["Loss"] = 
+        # 1. Accuracy metrics. R2_price uses the evaluation-sample mean (paper R^2_P).
+        ape = np.abs(y_pred - y_real) / y_real
+        metrics["R2_price"] = r2_score(y_real, y_pred)
+        metrics["R2"] = metrics["R2_price"]
+        metrics["R2_log"] = r2_score(y_real_log, y_pred_log)
+        metrics["R2 (log)"] = metrics["R2_log"]
+        metrics["R2 (log)"] = metrics["R2_log"]
+        if y_train_price is not None:
+            metrics["OOS_R2_price"] = oos_r2_score(y_real, y_pred, y_train_price)
+            metrics["OOS R2"] = metrics["OOS_R2_price"]
+            metrics["OOS_R2_log"] = oos_r2_score(y_real_log, y_pred_log, y_train_log)
+        metrics["RMSE_price"] = _root_mse(y_real, y_pred)
+        metrics["RMSE"] = metrics["RMSE_price"]
+        metrics["RMSE_log"] = _root_mse(y_real_log, y_pred_log)
+        metrics["MAE_price"] = mean_absolute_error(y_real, y_pred)
+        metrics["MAE"] = metrics["MAE_price"]
+        # Store MAPE/MdAPE as proportions. Convert to percent only when presenting.
+        metrics["MAPE"] = float(np.mean(ape))
+        metrics["MdAPE"] = float(np.median(ape))
 
         # 2. My metrics of interest
         ratios = y_pred / y_real
@@ -1441,7 +1531,7 @@ def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):
         median_ratio = np.median(ratios)
         # metrics["COD"] = 100/median_ratio*np.mean(np.abs(ratios - median_ratio))
         metrics["COD"] = cod(ratios, na_rm=True)
-        metrics["COV_IAAO"] = cov_iaao(y_pred, y_real, na_rm=True) 
+        metrics["COV_IAAO"] = cov_iaao(y_pred, y_real, na_rm=True)
         metrics["VEI"] = vei(y_pred, y_real, na_rm=True)
         # metrics["PRD"] =  np.mean(ratios) / np.sum(y_pred) * np.sum(y_real) #(ratios @ y_real) * np.sum(y_real)
         metrics["PRD"] = prd(y_pred, y_real, na_rm=True)
@@ -1449,11 +1539,12 @@ def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):
         # proxy_vals = 0.5 * (y_pred / median_ratio + y_real)
         # median_proxy = np.median(proxy_vals)
         # y_prb = (ratios - median_ratio) / median_ratio
-        # x_prb = np.log2(proxy_vals) - np.log2(median_proxy) 
+        # x_prb = np.log2(proxy_vals) - np.log2(median_proxy)
         # metrics["PRB"] = np.polyfit(x_prb, y_prb, 1)[0]
         metrics["PRB"] = prb(y_pred, y_real, na_rm=True)
         # metrics["MKI"] = mki(y_pred, y_real)
         metrics["MKI"] = mki(y_pred, y_real, na_rm=True)
+        metrics.update(paper_mechanism_metrics(y_real_log, y_pred_log))
 
         # Extra Correlation Metrics (can be ignored)
 
