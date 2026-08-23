@@ -119,6 +119,27 @@ def _as_1d_float(values) -> np.ndarray:
     return np.asarray(values, dtype=float).reshape(-1)
 
 
+def _lgbm_regressor_from_params(lgbm_params, *, disable_boost_from_average: bool = False):
+    """Build LGBMRegressor. Canonical custom models disable average initialization."""
+    params = dict(lgbm_params or {})
+    if disable_boost_from_average:
+        try:
+            return lgb.LGBMRegressor(boost_from_average=False, **params)
+        except TypeError:
+            return lgb.LGBMRegressor(**params)
+    return lgb.LGBMRegressor(**params)
+
+
+def _canonical_mean_init_enabled(ratio_mode, match_native_init, weighting_proxy_mode=None) -> bool:
+    if not bool(match_native_init):
+        return False
+    if str(ratio_mode) != "diff":
+        return False
+    if weighting_proxy_mode is None:
+        return True
+    return str(weighting_proxy_mode).strip().lower() == "identity"
+
+
 def canonical_direct_scaled_grad_hess(
     y_true,
     y_pred,
@@ -458,6 +479,7 @@ class LGBCovPenalty:
         eps_y=1e-12,
         lgbm_params=None,
         verbose=True,
+        match_native_init=False,
     ):
         self.rho = float(rho)
         self.ratio_mode = ratio_mode
@@ -470,15 +492,26 @@ class LGBCovPenalty:
         self.zero_grad_floor = float(self.zero_grad_tol)
         self.eps_y = float(eps_y)
         self.verbose = bool(verbose)
-        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+        self.match_native_init = bool(match_native_init)
+        self.base_score_ = 0.0
+        self.model = _lgbm_regressor_from_params(
+            lgbm_params,
+            disable_boost_from_average=_canonical_mean_init_enabled(ratio_mode, match_native_init),
+        )
 
     def fit(self, X, y):
-        self.y_mean_ = float(np.mean(y))
+        y = _as_1d_float(y)
+        self.base_score_ = float(np.mean(y))
+        use_mean_init = _canonical_mean_init_enabled(self.ratio_mode, self.match_native_init)
+        y_fit = y - self.base_score_ if use_mean_init else y
+        # Objective c_i uses the labels actually passed to LightGBM.
+        self.y_mean_ = float(np.mean(y_fit))
         self.model.set_params(objective=self.fobj, metric="None")
 
         fit_kwargs = {}
         if self.early_stopping_rounds is not None and self.early_stopping_rounds > 0:
-            fit_kwargs["eval_set"] = [(X, y)]
+            y_eval = y_fit if use_mean_init else y
+            fit_kwargs["eval_set"] = [(X, y_eval)]
             fit_kwargs["eval_names"] = ["train"]
             fit_kwargs["eval_metric"] = self.feval
             fit_kwargs["callbacks"] = [
@@ -487,12 +520,17 @@ class LGBCovPenalty:
                     verbose=self.verbose,
                 )
             ]
+        if use_mean_init:
+            fit_kwargs["init_score"] = np.zeros(y_fit.shape[0], dtype=float)
 
-        self.model.fit(X, y, **fit_kwargs)
+        self.model.fit(X, y_fit, **fit_kwargs)
         return self
 
     def predict(self, X):
-        return self.model.predict(X)
+        pred = np.asarray(self.model.predict(X), dtype=float)
+        if _canonical_mean_init_enabled(self.ratio_mode, self.match_native_init):
+            return pred + float(self.base_score_)
+        return pred
 
     def fobj(self, y_true, y_pred):
         y_true = np.asarray(y_true)
@@ -1039,6 +1077,7 @@ class LGBSmoothPenalty:
         eps_y=1e-12,
         lgbm_params=None,
         verbose=True,
+        match_native_init=False,
     ):
         self.rho = float(rho)
         self.ratio_mode = ratio_mode
@@ -1051,28 +1090,41 @@ class LGBSmoothPenalty:
         self.zero_grad_floor = float(self.zero_grad_tol)
         self.eps_y = float(eps_y)
         self.verbose = bool(verbose)
-        self.model = lgb.LGBMRegressor(**(lgbm_params or {}))
+        self.match_native_init = bool(match_native_init)
+        self.base_score_ = 0.0
+        self.model = _lgbm_regressor_from_params(
+            lgbm_params,
+            disable_boost_from_average=_canonical_mean_init_enabled(
+                ratio_mode, match_native_init, self.weighting_proxy_mode
+            ),
+        )
 
     def fit(self, X, y):
-        self.y_mean_ = float(np.mean(y))
-        self.y_std_ = float(np.std(y, ddof=0))
+        y = _as_1d_float(y)
+        self.base_score_ = float(np.mean(y))
+        use_mean_init = _canonical_mean_init_enabled(
+            self.ratio_mode, self.match_native_init, self.weighting_proxy_mode
+        )
+        y_fit = y - self.base_score_ if use_mean_init else y
+        self.y_mean_ = float(np.mean(y_fit))
+        self.y_std_ = float(np.std(y_fit, ddof=0))
         self.y_logistic_scale_ = _logistic_scale_from_std(self.y_std_)
         if self.weighting_proxy_mode not in {"identity", "logistic_quantile"}:
             raise ValueError("weighting_proxy_mode must be 'identity' or 'logistic_quantile'.")
         if self.weighting_proxy_mode == "logistic_quantile":
             y_proxy = _empirical_logistic_quantile_proxy(
-                y,
+                y_fit,
                 loc=self.y_mean_,
                 scale=self.y_logistic_scale_,
             )
             self.y_weight_centered_ = y_proxy - float(np.mean(y_proxy))
         else:
-            self.y_weight_centered_ = np.asarray(y, dtype=float) - self.y_mean_
+            self.y_weight_centered_ = y_fit - self.y_mean_
         self.model.set_params(objective=self.fobj, metric="None")
 
         fit_kwargs = {}
         if self.early_stopping_rounds is not None and self.early_stopping_rounds > 0:
-            fit_kwargs["eval_set"] = [(X, y)]
+            fit_kwargs["eval_set"] = [(X, y_fit)]
             fit_kwargs["eval_names"] = ["train"]
             fit_kwargs["eval_metric"] = self.feval
             fit_kwargs["callbacks"] = [
@@ -1081,12 +1133,19 @@ class LGBSmoothPenalty:
                     verbose=self.verbose,
                 )
             ]
+        if use_mean_init:
+            fit_kwargs["init_score"] = np.zeros(y_fit.shape[0], dtype=float)
 
-        self.model.fit(X, y, **fit_kwargs)
+        self.model.fit(X, y_fit, **fit_kwargs)
         return self
 
     def predict(self, X):
-        return self.model.predict(X)
+        pred = np.asarray(self.model.predict(X), dtype=float)
+        if _canonical_mean_init_enabled(
+            self.ratio_mode, self.match_native_init, self.weighting_proxy_mode
+        ):
+            return pred + float(self.base_score_)
+        return pred
 
     def fobj(self, y_true, y_pred):
         y_true = np.asarray(y_true)

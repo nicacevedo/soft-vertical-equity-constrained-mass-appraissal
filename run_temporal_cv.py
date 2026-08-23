@@ -49,11 +49,18 @@ from utils.motivation_utils import (
 )
 from canonical_experiment import (
     VALID_STAGES,
+    build_cv_completion,
+    cv_completion_path,
+    expected_config_ids,
+    frozen_baseline_hash,
     frozen_baseline_path,
     git_state,
+    model_grid_hash,
     package_versions,
     read_json,
+    require_complete_cv,
     seed_lgbm_candidates_from_repo,
+    write_frozen_baseline,
     write_json,
 )
 
@@ -845,6 +852,8 @@ def _build_model_specs(
                         "rho": r,
                         "ratio_mode": ratio_mode,
                         "weighting_proxy_mode": "identity",
+                        "match_native_init": True,
+                        "early_stopping_rounds": None,
                         **lgbm_base_config,
                     },
                     "metric_ratio_mode": ratio_mode,
@@ -854,6 +863,7 @@ def _build_model_specs(
                             rho=rho,
                             ratio_mode=ratio_mode,
                             weighting_proxy_mode="identity",
+                            match_native_init=True,
                             zero_grad_tol=1e-12,
                             early_stopping_rounds=None,
                             lgbm_params=dict(lgbm_params),
@@ -933,13 +943,20 @@ def _build_model_specs(
             specs.append(
                 {
                     "name": "LGBCovPenalty",
-                    "config": {"rho": r, "ratio_mode": ratio_mode, **lgbm_base_config},
+                    "config": {
+                        "rho": r,
+                        "ratio_mode": ratio_mode,
+                        "match_native_init": True,
+                        "early_stopping_rounds": None,
+                        **lgbm_base_config,
+                    },
                     "metric_ratio_mode": ratio_mode,
                     "requires_linear_pipeline": False,
                     "factory": (
                         lambda rho=r, ratio_mode=ratio_mode: LGBCovPenalty(
                             rho=rho,
                             ratio_mode=ratio_mode,
+                            match_native_init=True,
                             zero_grad_tol=1e-12,
                             early_stopping_rounds=None,
                             lgbm_params=dict(lgbm_params),
@@ -1043,11 +1060,21 @@ def _evaluate_models_on_test_set(
     eval_start = time.perf_counter()
 
     spec_jobs: List[Dict[str, Any]] = []
+    invalid_set = {str(x) for x in (invalid_config_ids or [])}
+    skipped_invalid_ids: List[str] = []
     for spec in model_specs:
         model_name = str(spec["name"])
         model_config = dict(spec.get("config", {}))
         metric_ratio_mode = str(spec.get("metric_ratio_mode", model_config.get("ratio_mode", fairness_ratio_mode)))
         config_id = _stable_hash({"model_name": model_name, "config": model_config})
+        if str(config_id) in invalid_set:
+            skipped_invalid_ids.append(str(config_id))
+            _log(
+                "held-out skipping CV-invalid config",
+                model_name=model_name,
+                config_id=str(config_id),
+            )
+            continue
         spec_jobs.append(
             {
                 "spec": spec,
@@ -1584,6 +1611,7 @@ def run_full_pipeline(
     pre_assessment_end: str = "2024-12-31",
     stage: str = "all",
     allow_unverified_baseline: bool = False,
+    allow_incomplete_cv: bool = False,
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -1688,7 +1716,7 @@ def run_full_pipeline(
             fairness_ratio_mode=fairness_ratio_mode,
         )
         lgbm_params = dict(baseline_search_artifacts["best_lgbm_params"])
-        write_json(
+        write_frozen_baseline(
             frozen_path,
             {
                 "best_lgbm_params": lgbm_params,
@@ -1699,6 +1727,7 @@ def run_full_pipeline(
                 "versions": package_versions(),
                 **git_state(),
             },
+            fallback_used=bool(baseline_search_artifacts.get("search_fallback_used", False)),
         )
         _log("frozen baseline written", path=str(frozen_path))
         if stage_norm == "baseline-search":
@@ -1751,6 +1780,9 @@ def run_full_pipeline(
             "include_cvar_models": bool(include_cvar_models),
             "include_logistic_proxy": False,
             "early_stopping_rounds": None,
+            "match_native_init": True,
+            "model_grid_hash": model_grid_hash(model_specs),
+            "frozen_baseline_hash": frozen_baseline_hash(frozen_path),
             "split_protocol": split_protocol,
             "bootstrap_protocol": bootstrap_protocol,
             "versions": package_versions(),
@@ -1814,10 +1846,37 @@ def run_full_pipeline(
         )
         data_id = str(cv_out["data_id"])
         split_id = str(cv_out["split_id"])
+        completion = build_cv_completion(
+            data_id=data_id,
+            split_id=split_id,
+            expected_config_ids=expected_config_ids(model_specs),
+            expected_fold_ids=[int(f["fold_id"]) for f in protocol_ids["folds"]],
+            run_records=cv_out.get("run_records"),
+            failed_records=cv_out.get("failed_records"),
+            invalid_config_ids=cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", [])),
+            frozen_baseline_sha=frozen_baseline_hash(frozen_path),
+            model_grid_sha=model_grid_hash(model_specs),
+        )
+        write_json(cv_completion_path(result_root), completion)
+        if str(completion["status"]) != "complete" and not bool(allow_incomplete_cv):
+            raise RuntimeError(
+                f"CV completion status is {completion['status']!r}; "
+                "refusing to continue. See cv_completion.json."
+            )
     elif run_test or run_forward:
         protocol_file = Path(result_root) / "protocol" / f"data_id={data_id}" / f"split_id={split_id}" / "folds.json"
         if not protocol_file.is_file():
             raise RuntimeError(f"CV protocol not found at {protocol_file}. Run --stage cv first.")
+        completion = require_complete_cv(
+            result_root,
+            data_id=data_id,
+            split_id=split_id,
+            frozen_baseline_sha=frozen_baseline_hash(frozen_path),
+            model_grid_sha=model_grid_hash(model_specs),
+            allow_incomplete=bool(allow_incomplete_cv),
+        )
+        cv_out["flagged_config_ids"] = list(completion.get("invalid_config_ids", []))
+        cv_out["invalid_config_ids"] = list(completion.get("invalid_config_ids", []))
 
     analysis_dir = Path(result_root) / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
     test_artifacts: Dict[str, str] = {}
@@ -2110,6 +2169,12 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         default=bool(cfg.get("allow_unverified_baseline", False)),
         help="Allow penalty stages to use model_params.yaml when frozen_baseline.json is absent. Smoke tests only.",
     )
+    p.add_argument(
+        "--allow-incomplete-cv",
+        action=argparse.BooleanOptionalAction,
+        default=bool(cfg.get("allow_incomplete_cv", False)),
+        help="Allow test/forward without a complete compatible CV artifact. Smoke tests only.",
+    )
     return p
 
 
@@ -2191,6 +2256,7 @@ if __name__ == "__main__":
         pre_assessment_end=str(cfg.get("pre_assessment_end", "2024-12-31")),
         stage=str(args.stage),
         allow_unverified_baseline=bool(args.allow_unverified_baseline),
+        allow_incomplete_cv=bool(args.allow_incomplete_cv),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")

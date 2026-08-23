@@ -1257,6 +1257,79 @@ def vei(assessed, sale_price, na_rm=False):
 
     return 100.0 * (m_last - m_first) / med
 
+
+def vei_percentile_group_profile(
+    assessed,
+    sale_price,
+    *,
+    n_bootstrap: int = 1000,
+    ci: float = 0.90,
+    rng_seed: int = 2025,
+    na_rm: bool = False,
+) -> pd.DataFrame:
+    """Median valuation ratio by VEI percentile group, with a 90% bootstrap CI.
+
+    Grouping follows the existing IAAO VEI proxy/decile implementation in vei():
+    proxy = 0.5 * sale_price + 0.5 * (assessed / sample_median_ratio), sorted
+    ascending and split into 2/4/10 equal-count groups by sample size.
+    Intervals are percentile bootstrap intervals for the group median ratio
+    (default 90%, 1000 replicates), matching the manuscript's 90% CI language.
+    """
+    assessed, sale_price = _ensure_arrays(assessed, sale_price)
+    cleaned = _handle_na((assessed, sale_price), na_rm)
+    if cleaned[0] is None:
+        return pd.DataFrame()
+    assessed, sale_price = cleaned
+    assessed = np.asarray(assessed, dtype=float)
+    sale_price = np.asarray(sale_price, dtype=float)
+    mask = np.isfinite(assessed) & np.isfinite(sale_price) & (assessed > 0) & (sale_price > 0)
+    assessed, sale_price = assessed[mask], sale_price[mask]
+    n = int(assessed.size)
+    if n < 20:
+        return pd.DataFrame()
+    if n <= 50:
+        k = 2
+    elif n <= 500:
+        k = 4
+    else:
+        k = 10
+    ratio = assessed / sale_price
+    med = float(np.median(ratio))
+    if not np.isfinite(med) or med == 0:
+        return pd.DataFrame()
+    proxy = 0.5 * sale_price + 0.5 * (assessed / med)
+    order = np.argsort(proxy, kind="mergesort")
+    chunks = np.array_split(np.arange(n), k)
+    alpha = (1.0 - float(ci)) / 2.0
+    rng = np.random.default_rng(int(rng_seed))
+    rows = []
+    for g, loc in enumerate(chunks, start=1):
+        idx = order[loc]
+        values = ratio[idx]
+        ci_low, ci_high = np.nan, np.nan
+        if values.size and n_bootstrap > 0:
+            medians = np.empty(int(n_bootstrap), dtype=float)
+            for b in range(int(n_bootstrap)):
+                medians[b] = float(np.median(rng.choice(values, size=values.size, replace=True)))
+            ci_low = float(np.quantile(medians, alpha))
+            ci_high = float(np.quantile(medians, 1.0 - alpha))
+        rows.append(
+            {
+                "group": int(g),
+                "n_groups": int(k),
+                "n": int(values.size),
+                "proxy_min": float(np.min(proxy[idx])) if idx.size else np.nan,
+                "proxy_max": float(np.max(proxy[idx])) if idx.size else np.nan,
+                "median_ratio": float(np.median(values)) if values.size else np.nan,
+                "ci_low": ci_low,
+                "ci_high": ci_high,
+                "ci_level": float(ci),
+                "overall_median_ratio": med,
+                "interval_method": "percentile_bootstrap_median",
+            }
+        )
+    return pd.DataFrame(rows)
+
 # PRD
 def prd(assessed, sale_price, na_rm=False):
     """
@@ -1361,9 +1434,20 @@ def prb(assessed, sale_price, na_rm=False):
     except:
         return np.nan
 
-# MKI (Gini / Gini version of CCAO)
+# MKI (price-ordered concentration / Gini of sale price)
 def _calc_gini(assessed, sale_price):
-    """Helper to calculate Gini coefficients for KI/MKI."""
+    """Price-ordered concentration helper used by KI/MKI.
+
+    Observations are sorted by sale price ascending, with assessed/predicted
+    values as a descending tie-break. The first returned value is the
+    concentration index of assessments/predictions given that sale-price
+    order. The second is the Gini coefficient of sale price under the same
+    order. Their ratio is MKI = C_{P_hat|P} / G_P.
+
+    This is algebraically identical to the paper mid-rank formula
+    q_j = (j - 1/2) / n. It is not Gini(P_hat sorted by P_hat) /
+    Gini(P sorted by P).
+    """
     # Create DataFrame for stable sorting
     df = pd.DataFrame({'av': assessed, 'sp': sale_price})
     
@@ -1408,9 +1492,10 @@ def ki(assessed, sale_price, na_rm=False):
     return g_av - g_sp
 
 def mki(assessed, sale_price, na_rm=False):
-    """
-    Calculate Modified Kakwani Index (MKI).
-    MKI = Gini(Assessed) / Gini(Sale)
+    """Modified Kakwani Index (MKI).
+
+    MKI = C_{P_hat | P} / G_P, where C is the sale-price-ordered concentration
+    index of assessed/predicted values and G_P is the Gini of sale price.
     """
     assessed, sale_price = _ensure_arrays(assessed, sale_price)
     
@@ -1474,7 +1559,21 @@ def paper_mechanism_metrics(y_true_log, y_pred_log) -> Dict[str, float]:
         "Cov_log_residual_log_price": cov,
         "Beta_log": float(beta_log),
         "Corr_log_residual_log_price": corr,
+        "dCor_e_y": distance_correlation_e_y(y_true_log, y_pred_log),
     }
+
+
+def distance_correlation_e_y(y_true_log, y_pred_log) -> float:
+    """Full-sample distance correlation of e = log(P_hat/P) and y = log P."""
+    y_true_log = np.asarray(y_true_log, dtype=float).reshape(-1)
+    y_pred_log = np.asarray(y_pred_log, dtype=float).reshape(-1)
+    e = y_pred_log - y_true_log
+    import dcor
+
+    try:
+        return float(dcor.distance_correlation(e, y_true_log, method="auto"))
+    except TypeError:
+        return float(dcor.distance_correlation(e, y_true_log, method="mergesort"))
 
 
 def compute_taxation_metrics(y_real, y_pred, scale="log", y_train=None):

@@ -38,6 +38,7 @@ HEADLINE_METRICS: Tuple[str, ...] = (
     "Cov_log_residual_log_price",
     "Beta_log",
     "Corr_log_residual_log_price",
+    "dCor_e_y",
 )
 
 ACCURACY_EQUITY_PAIRS: Tuple[Tuple[str, str], ...] = (
@@ -80,18 +81,60 @@ def _rho_from_row(row: pd.Series) -> float:
     return np.nan
 
 
-def _latest_id_dir(root: Path, prefix: str) -> Optional[Path]:
-    if not root.is_dir():
-        return None
-    dirs = sorted(p for p in root.iterdir() if p.is_dir() and p.name.startswith(prefix))
-    return dirs[-1] if dirs else None
-
-
-def _load_cv_runs(result_root: Path) -> pd.DataFrame:
+def _discover_data_split_pairs(result_root: Path) -> List[Tuple[str, str]]:
     runs_root = result_root / "runs"
-    files = sorted(runs_root.glob("data_id=*/split_id=*/fold_id=*/*.parquet"))
-    if not files:
-        files = sorted(runs_root.glob("**/*.parquet"))
+    pairs = []
+    if runs_root.is_dir():
+        for data_dir in sorted(runs_root.glob("data_id=*")):
+            if not data_dir.is_dir():
+                continue
+            data_id = data_dir.name.split("data_id=", 1)[-1]
+            for split_dir in sorted(data_dir.glob("split_id=*")):
+                if split_dir.is_dir():
+                    pairs.append((data_id, split_dir.name.split("split_id=", 1)[-1]))
+    analysis_root = result_root / "analysis"
+    if analysis_root.is_dir():
+        for data_dir in sorted(analysis_root.glob("data_id=*")):
+            data_id = data_dir.name.split("data_id=", 1)[-1]
+            for split_dir in sorted(data_dir.glob("split_id=*")):
+                pair = (data_id, split_dir.name.split("split_id=", 1)[-1])
+                if pair not in pairs:
+                    pairs.append(pair)
+    return pairs
+
+
+def resolve_experiment_ids(result_root: Path, data_id: Optional[str], split_id: Optional[str]) -> Tuple[str, str]:
+    if data_id and split_id:
+        return str(data_id), str(split_id)
+    completion = result_root / "cv_completion.json"
+    if completion.is_file():
+        blob = json.loads(completion.read_text(encoding="utf-8"))
+        cid, sid = blob.get("data_id"), blob.get("split_id")
+        if cid and sid:
+            if data_id and str(data_id) != str(cid):
+                raise SystemExit(f"--data-id {data_id!r} does not match cv_completion.json {cid!r}")
+            if split_id and str(split_id) != str(sid):
+                raise SystemExit(f"--split-id {split_id!r} does not match cv_completion.json {sid!r}")
+            return str(cid), str(sid)
+    pairs = _discover_data_split_pairs(result_root)
+    if data_id:
+        pairs = [p for p in pairs if p[0] == str(data_id)]
+    if split_id:
+        pairs = [p for p in pairs if p[1] == str(split_id)]
+    uniq = sorted(set(pairs))
+    if len(uniq) == 1:
+        return uniq[0]
+    if not uniq:
+        raise SystemExit(f"No data_id/split_id artifacts found under {result_root}")
+    raise SystemExit(
+        "Multiple experiments found; pass --data-id and --split-id explicitly. "
+        f"Candidates: {uniq}"
+    )
+
+
+def _load_cv_runs(result_root: Path, data_id: str, split_id: str) -> pd.DataFrame:
+    runs_root = result_root / "runs" / f"data_id={data_id}" / f"split_id={split_id}"
+    files = sorted(runs_root.glob("fold_id=*/*.parquet"))
     if not files:
         return pd.DataFrame()
     cv = pd.concat([pd.read_parquet(p) for p in files], ignore_index=True)
@@ -330,6 +373,173 @@ def _plot_ratio_shapes(result_root: Path, cv: pd.DataFrame, out_dir: Path) -> No
             )
 
 
+BASELINE_MODELS: Tuple[str, ...] = ("LinearRegression", "LGBMRegressor")
+SECTION2_EXPORT_COLUMNS: Tuple[str, ...] = (
+    "evaluation",
+    "model",
+    "R2_price",
+    "MAE_price",
+    "MAPE_price_pct",
+    "RMSE_log",
+    "Median_ratio",
+    "Mean_ratio",
+    "Weighted_mean_ratio",
+    "COD_pct",
+    "COV_pct",
+    "PRD",
+    "PRB",
+    "MKI",
+    "VEI_pct",
+    "Beta_log",
+    "dCor_e_y",
+)
+
+
+def _section2_row(metrics: Dict[str, Any], *, evaluation: str, model: str) -> Dict[str, Any]:
+    return {
+        "evaluation": evaluation,
+        "model": model,
+        "R2_price": metrics.get("R2_price"),
+        "MAE_price": metrics.get("MAE_price", metrics.get("MAE")),
+        "MAPE_price_pct": 100.0 * float(metrics["MAPE"]) if metrics.get("MAPE") is not None else np.nan,
+        "RMSE_log": metrics.get("RMSE_log"),
+        "Median_ratio": metrics.get("Median ratio"),
+        "Mean_ratio": metrics.get("Mean ratio"),
+        "Weighted_mean_ratio": metrics.get("W. Mean ratio"),
+        "COD_pct": metrics.get("COD"),
+        "COV_pct": 100.0 * float(metrics["COV_IAAO"]) if metrics.get("COV_IAAO") is not None else np.nan,
+        "PRD": metrics.get("PRD"),
+        "PRB": metrics.get("PRB"),
+        "MKI": metrics.get("MKI"),
+        "VEI_pct": metrics.get("VEI"),
+        "Beta_log": metrics.get("Beta_log"),
+        "dCor_e_y": metrics.get("dCor_e_y"),
+    }
+
+
+def _sale_price_bin_profile(pred: pd.DataFrame, n_bins: int = 30) -> pd.DataFrame:
+    rows = []
+    for (evaluation, model), group in pred.groupby(["evaluation", "model"], sort=True):
+        ordered = group.sort_values("sale_price", kind="mergesort")
+        if ordered.empty:
+            continue
+        for bin_id, idx in enumerate(np.array_split(np.arange(len(ordered)), n_bins), start=1):
+            part = ordered.iloc[idx]
+            ratios = part["valuation_to_sale_ratio"].to_numpy(dtype=float)
+            rows.append(
+                {
+                    "evaluation": evaluation,
+                    "model": model,
+                    "bin": int(bin_id),
+                    "n": int(len(part)),
+                    "median_sale_price": float(part["sale_price"].median()),
+                    "median_ratio": float(np.median(ratios)),
+                    "ratio_q25": float(np.quantile(ratios, 0.25)),
+                    "ratio_q75": float(np.quantile(ratios, 0.75)),
+                    "beta_log": float(part["beta_log"].iloc[0]) if "beta_log" in part.columns else np.nan,
+                }
+            )
+    return pd.DataFrame(rows)
+
+
+def _plot_section2_baseline_bins(profile: pd.DataFrame, out_path: Path) -> None:
+    fig, axes = plt.subplots(2, 2, figsize=(8.2, 6.2), sharex=True, sharey=True)
+    evals = ("Held-out evaluation", "2025 forward evaluation")
+    models = BASELINE_MODELS
+    if profile.empty:
+        return
+    x_min = float(profile["median_sale_price"].min())
+    x_max = float(profile["median_sale_price"].max())
+    for row, evaluation in enumerate(evals):
+        for col, model in enumerate(models):
+            ax = axes[row, col]
+            sub = profile.loc[(profile["evaluation"] == evaluation) & (profile["model"] == model)]
+            if sub.empty:
+                ax.set_axis_off()
+                continue
+            ax.fill_between(sub["median_sale_price"], sub["ratio_q25"], sub["ratio_q75"], color="#1D4ED8", alpha=0.18, linewidth=0)
+            ax.plot(sub["median_sale_price"], sub["median_ratio"], color="#1D4ED8", marker="o", markersize=2.5, linewidth=1.4)
+            ax.axhline(1.0, color="#111827", linestyle="--", linewidth=0.9)
+            ax.set_xscale("log", base=10)
+            ax.set_xlim(x_min, x_max)
+            beta = sub["beta_log"].iloc[0] if "beta_log" in sub.columns else np.nan
+            if np.isfinite(beta):
+                ax.text(0.04, 0.08, rf"$\beta_{{\log}}={beta:.3f}$", transform=ax.transAxes, fontsize=8)
+            if row == 0:
+                ax.set_title(model)
+            if col == 0:
+                ax.set_ylabel(f"{evaluation}\nValuation-to-sale ratio")
+            if row == 1:
+                ax.set_xlabel("Sale price (log10)")
+            ax.grid(True, alpha=0.3)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=200)
+    plt.close(fig)
+
+
+def write_section2_outputs(analysis_dir: Path, out_dir: Path) -> None:
+    from utils.motivation_utils import compute_taxation_metrics, vei_percentile_group_profile
+
+    frames = []
+    pred_frames = []
+    vei_frames = []
+    mapping = (
+        ("test_predictions.parquet", "Held-out evaluation"),
+        ("assess_predictions.parquet", "2025 forward evaluation"),
+    )
+    for fname, evaluation in mapping:
+        path = analysis_dir / fname
+        if not path.is_file():
+            continue
+        pred = pd.read_parquet(path)
+        name_col = "model_name" if "model_name" in pred.columns else "model"
+        y_true = pred["y_true"] if "y_true" in pred.columns else np.exp(pred["y_true_log"])
+        y_pred = pred["y_pred"] if "y_pred" in pred.columns else np.exp(pred["y_pred_log"])
+        y_true_log = pred["y_true_log"] if "y_true_log" in pred.columns else np.log(y_true)
+        y_pred_log = pred["y_pred_log"] if "y_pred_log" in pred.columns else np.log(y_pred)
+        work = pred.copy()
+        work["evaluation"] = evaluation
+        work["model"] = work[name_col].astype(str)
+        work["sale_price"] = np.asarray(y_true, dtype=float)
+        work["predicted_price"] = np.asarray(y_pred, dtype=float)
+        work["valuation_to_sale_ratio"] = work["predicted_price"] / work["sale_price"]
+        for model in BASELINE_MODELS:
+            sub = work.loc[work["model"] == model]
+            if sub.empty:
+                continue
+            metrics = compute_taxation_metrics(
+                sub["y_true_log"] if "y_true_log" in sub.columns else np.log(sub["sale_price"]),
+                sub["y_pred_log"] if "y_pred_log" in sub.columns else np.log(sub["predicted_price"]),
+                scale="log",
+            )
+            frames.append(_section2_row(metrics, evaluation=evaluation, model=model))
+            sub = sub.copy()
+            sub["beta_log"] = metrics.get("Beta_log", np.nan)
+            pred_frames.append(sub)
+            profile = vei_percentile_group_profile(sub["predicted_price"], sub["sale_price"])
+            if not profile.empty:
+                profile["evaluation"] = evaluation
+                profile["model"] = model
+                vei_frames.append(profile)
+    if frames:
+        table = pd.DataFrame(frames)[list(SECTION2_EXPORT_COLUMNS)]
+        table_path = out_dir / "section2_baseline_table.csv"
+        table.to_csv(table_path, index=False)
+        print(f"wrote {table_path}")
+    if pred_frames:
+        profile = _sale_price_bin_profile(pd.concat(pred_frames, ignore_index=True), n_bins=30)
+        profile_path = out_dir / "section2_baseline_ratio_bins.csv"
+        profile.to_csv(profile_path, index=False)
+        fig_path = out_dir / "section2_baseline_ratio_bins.png"
+        _plot_section2_baseline_bins(profile, fig_path)
+        print(f"wrote {fig_path}")
+    if vei_frames:
+        vei_path = out_dir / "vei_percentile_group_profile.csv"
+        pd.concat(vei_frames, ignore_index=True).to_csv(vei_path, index=False)
+        print(f"wrote {vei_path}")
+
+
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Analyze frozen paper-v6 penalty paths with no fitting or selection.")
     p.add_argument("--result-root", type=str, default="./output/robust_rolling_origin_cv_v2")
@@ -341,15 +551,12 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     result_root = Path(args.result_root)
-    analysis_root = result_root / "analysis"
-    data_dir = analysis_root / f"data_id={args.data_id}" if args.data_id else _latest_id_dir(analysis_root, "data_id=")
-    if data_dir is None:
-        data_dir = analysis_root
-    analysis_dir = data_dir / f"split_id={args.split_id}" if args.split_id else (_latest_id_dir(data_dir, "split_id=") or data_dir)
+    data_id, split_id = resolve_experiment_ids(result_root, args.data_id, args.split_id)
+    analysis_dir = result_root / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
     out_dir = analysis_dir / "penalty_path_analysis"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    cv = _load_cv_runs(result_root)
+    cv = _load_cv_runs(result_root, data_id, split_id)
     test = _load_stage_metrics(analysis_dir, "test", "test")
     forward = _load_stage_metrics(analysis_dir, "assess", "forward")
     combined = build_combined_path_table(cv, test, forward)
@@ -358,15 +565,17 @@ def main() -> None:
 
     trace_metrics = [
         m
-        for m in ("R2_price", "PRD", "PRB", "VEI", "MAPE", "COD", "Cov_log_residual_log_price", "Beta_log")
+        for m in ("R2_price", "PRD", "PRB", "VEI", "MAPE", "COD", "Cov_log_residual_log_price", "Beta_log", "dCor_e_y")
         if f"{m}__cv_mean" in combined.columns
     ]
     _plot_rho_traces(combined, trace_metrics, out_dir)
     _plot_accuracy_equity(combined, out_dir)
     _plot_fold_stability(cv, ["R2_price", "PRD", "PRB", "VEI", "Beta_log"], out_dir)
     _plot_ratio_shapes(result_root, cv, out_dir)
+    write_section2_outputs(analysis_dir, out_dir)
     print(f"wrote {table_path}")
     print(f"figures under {out_dir}")
+    print(f"experiment data_id={data_id} split_id={split_id}")
 
 
 if __name__ == "__main__":
