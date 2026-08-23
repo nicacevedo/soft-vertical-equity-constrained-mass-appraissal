@@ -187,6 +187,50 @@ def _build_time_block_bootstrap_indices(
     return out
 
 
+def split_ccao_assessment_universe(
+    df: pd.DataFrame,
+    date_col: str,
+    *,
+    split_prop: float = 0.9,
+    universe_start: str = "2016-01-01",
+    pre_assessment_end: str = "2024-12-31",
+    assessment_year: int = 2025,
+    sort_cols: Optional[List[str]] = None,
+) -> Dict[str, pd.DataFrame]:
+    """Split eligible sales into CCAO development, test, production, and assessment frames.
+
+    Sales universe is ``universe_start`` through ``pre_assessment_end`` (inclusive).
+    The oldest ``split_prop`` of those rows is the development/CV pool; the newest
+    remainder is the held-out test tail. Production training uses 100% of the
+    pre-assessment universe. The assessment year is returned separately.
+    """
+    if not (0.0 < float(split_prop) < 1.0):
+        raise ValueError("split_prop must be in (0, 1).")
+    start = pd.Timestamp(universe_start)
+    pre_end = pd.Timestamp(pre_assessment_end)
+    assess_year = int(assessment_year)
+    order = list(sort_cols) if sort_cols else [date_col]
+    ordered = df.sort_values(order, kind="mergesort")
+    dates = pd.to_datetime(ordered[date_col])
+    universe = ordered.loc[(dates >= start) & (dates <= pre_end)].copy()
+    assessment = ordered.loc[dates.dt.year == assess_year].copy()
+    if universe.empty or assessment.empty:
+        raise ValueError("Pre-assessment universe and assessment-year splits must both be nonempty.")
+    split_idx = int(float(split_prop) * len(universe))
+    if split_idx <= 0 or split_idx >= len(universe):
+        raise ValueError("split_prop left an empty development or test split.")
+    development = universe.iloc[:split_idx].copy().reset_index(drop=True)
+    test = universe.iloc[split_idx:].copy().reset_index(drop=True)
+    production = universe.copy().reset_index(drop=True)
+    assessment = assessment.reset_index(drop=True)
+    return {
+        "development": development,
+        "test": test,
+        "production": production,
+        "assessment": assessment,
+    }
+
+
 def build_rolling_origin_protocol(
     df: pd.DataFrame,
     date_col: str,
@@ -212,50 +256,56 @@ def build_rolling_origin_protocol(
     max_date = pd.Timestamp(dfx[date_col].max()).normalize()
 
     folds: List[Dict[str, Any]] = []
-    # Mode A (CCAO figure logic): fixed-size validation block, always the next contiguous rows.
-    # This matches "validation set is always 10% of sales immediately following training set."
+    # Mode A (CCAO): expanding cumulative windows stepped by ``step_months``.
+    # Validation is the newest ``val_fraction`` of observations in each window.
     if val_fraction is not None:
         if not (0.0 < float(val_fraction) < 1.0):
             raise ValueError("val_fraction must be in (0, 1) when provided.")
 
-        n_total = int(dfx.shape[0])
-        val_size = max(int(np.floor(n_total * float(val_fraction))), 1)
-
-        initial_end = min_date + pd.DateOffset(months=initial_train_months)
-        initial_train_mask = dfx[date_col] < initial_end
-        initial_train_size = int(initial_train_mask.sum())
-
-        if initial_train_size < min_train_rows:
-            initial_train_size = min_train_rows
+        initial_end = min_date + pd.DateOffset(months=int(initial_train_months))
+        origins: List[pd.Timestamp] = []
+        current = initial_end
+        while current < max_date:
+            origins.append(pd.Timestamp(current).normalize())
+            current = current + pd.DateOffset(months=int(step_months))
+        last = pd.Timestamp(max_date).normalize()
+        if not origins or origins[-1] < last:
+            origins.append(last)
 
         fold_idx = 0
-        train_end_pos = initial_train_size
-        while (train_end_pos + val_size) <= n_total:
+        prev_n = 0
+        for origin in origins:
+            cumulative = dfx.loc[dfx[date_col] <= origin]
+            n = int(cumulative.shape[0])
+            if n <= prev_n:
+                continue
+            val_size = max(int(np.floor(n * float(val_fraction))), 1)
+            train_end_pos = n - val_size
             if train_mode == "expanding":
                 train_start_pos = 0
             else:
-                # For sliding mode under fixed-size validation, keep train width fixed.
+                initial_train_size = int((dfx[date_col] < (min_date + pd.DateOffset(months=int(initial_train_months)))).sum())
+                if initial_train_size < min_train_rows:
+                    initial_train_size = min_train_rows
                 train_start_pos = max(0, train_end_pos - initial_train_size)
 
-            train_rows = dfx.iloc[train_start_pos:train_end_pos]["_row_id"].to_numpy(dtype=int)
-            val_rows = dfx.iloc[train_end_pos:train_end_pos + val_size]["_row_id"].to_numpy(dtype=int)
-
-            if train_rows.size < min_train_rows or val_rows.size < min_val_rows:
-                train_end_pos += val_size
+            if train_end_pos < min_train_rows or val_size < min_val_rows:
+                prev_n = n
                 continue
 
-            train_start_date = dfx.iloc[train_start_pos][date_col]
-            train_end_date = dfx.iloc[train_end_pos - 1][date_col]
-            val_start_date = dfx.iloc[train_end_pos][date_col]
-            val_end_date = dfx.iloc[train_end_pos + val_size - 1][date_col]
+            train_rows = cumulative.iloc[train_start_pos:train_end_pos]["_row_id"].to_numpy(dtype=int)
+            val_rows = cumulative.iloc[train_end_pos:]["_row_id"].to_numpy(dtype=int)
+            if train_rows.size < min_train_rows or val_rows.size < min_val_rows:
+                prev_n = n
+                continue
 
             folds.append(
                 {
                     "fold_id": fold_idx,
-                    "train_start": str(pd.Timestamp(train_start_date).date()),
-                    "train_end": str(pd.Timestamp(train_end_date).date()),
-                    "val_start": str(pd.Timestamp(val_start_date).date()),
-                    "val_end": str(pd.Timestamp(val_end_date).date()),
+                    "train_start": str(pd.Timestamp(cumulative.iloc[train_start_pos][date_col]).date()),
+                    "train_end": str(pd.Timestamp(cumulative.iloc[train_end_pos - 1][date_col]).date()),
+                    "val_start": str(pd.Timestamp(cumulative.iloc[train_end_pos][date_col]).date()),
+                    "val_end": str(pd.Timestamp(cumulative.iloc[-1][date_col]).date()),
                     "train_indices": train_rows.tolist(),
                     "val_indices": val_rows.tolist(),
                     "train_size": int(train_rows.size),
@@ -265,8 +315,7 @@ def build_rolling_origin_protocol(
                 }
             )
             fold_idx += 1
-            # Advance by one full validation block so each fold validates on the "next 10%".
-            train_end_pos += val_size
+            prev_n = n
 
         return folds
 

@@ -1,0 +1,458 @@
+# Target (Sale Price)
+meta_sale_price
+[2750000.   13300.]
+
+# Saling Date information
+meta_sale_date
+<DatetimeArray>
+['2020-03-19 00:00:00', '2018-02-20 00:00:00']
+Length: 2, dtype: datetime64[ns]
+
+# Extra information about the sale
+meta_sale_document_num: unique document number for the sale (index) -> Not a feature, but an index for the sale
+['2009121035' '1805915172']
+meta_sale_deed_type: type of deed for the sale (index) -> Not a feature, but an index for the sale or a filter/validator of the target
+['ENVIRONS INVESTOR HOLDING' 'BANK OF AMERICA, N.A']
+meta_sale_buyer_name: name of the buyer (index) -> Not a feature, but an index for the sale or a filter/validator of the target
+['GAJIN TSAI' 'LUIS MANUEL SOTELO']
+meta_sale_count_past_n_years: number of years since the last sale (index) -> A time correction confidence feature (?)
+[1. 0.]
+meta_pin: unique pin number for the property (index) -> Not a feature, but an index for the property
+['14201000200000' '20073180200000']
+meta_pin10: unique pin number for the property (index) -> Not a feature, but an index for the property
+['1420100020' '2007318020']
+
+# Useful extra information about the sale(???)
+['01' '05'] # Drop the fifth category (not arms length!!!). Maybe also drop the second category (not a sale!!!).
+meta_sale_seller_name: name of the seller (index) -> Not a feature, but an index for the sale or a filter/validator of the target
+meta_year: year of the sale (index) -> Not a feature, but an index for the sale or a filter/validator of the target
+['2020' '2018']
+
+# Class information: Classes are the main categories of the properties, they are used to group the properties together and to create the spatial lag.
+meta_class
+['209' '202']
+meta_modeling_group: Single Family and Multi-Family (SF: Single Family, MF: Multi-Family)
+['SF' 'MF'] -> 
+meta_triad_name -> North, South, City (North: North, South: South, City: City)
+['City' 'South']
+meta_triad_code: Code for the triad (North: 1, South: 3, City: 2)
+['1' '3']
+meta_township_name: Name of the township (Lake View: Lake View, Lake: Lake)
+['Lake View' 'Lake']
+meta_township_code: Code for the township (Lake View: 73, Lake: 72)
+['73' '72']
+meta_nbhd_code: Code for the neighborhood (Lake View: 73084, Lake: 72120)
+['73084' '72120']
+meta_tax_code: Code for the tax (Lake View: 73001, Lake: 72014)
+['73001' '72014']
+meta_tieback_key_pin
+[None '25282180170000']
+meta_tieback_proration_rate
+[1.  0.5]
+ind_pin_is_prorated
+[False  True]
+meta_card_num
+['1' '2']
+ind_pin_is_multicard
+[0.]
+meta_pin_num_cards
+[1.]
+ind_pin_is_multiland
+[0. 1.]
+meta_pin_num_landlines
+[1. 2.]
+hie_num_active
+[0 1]
+meta_cdu: CDU (Community Development Unit): Condition, Desirability, Utility (AV: Average, None: Not available)
+['AV' None]
+meta_mailed_bldg
+[278385.   6077.]
+meta_mailed_land
+[30624.  2554.]
+meta_mailed_tot
+[309009.   8631.]
+meta_certified_bldg
+[256496.   6077.]
+meta_certified_land
+[30624.  2554.]
+meta_certified_tot
+[287120.   8631.]
+meta_board_bldg
+[244377.   6077.]
+meta_board_land
+[30624.  2554.]
+meta_board_tot
+[275001.   8631.]
+meta_1yr_pri_board_bldg
+[69876.  7189.]
+meta_1yr_pri_board_land
+[30624.  2358.]
+meta_1yr_pri_board_tot
+[100500.   9547.]
+meta_2yr_pri_board_bldg
+[6525. 7189.]
+meta_2yr_pri_board_land
+[30624.  2358.]
+meta_2yr_pri_board_tot
+[37149.  9547.]
+loc_property_address
+['3938 N GREENVIEW AVE' '2212 W 54TH PL']
+loc_property_city
+['CHICAGO' 'WESTERN SPRINGS']
+loc_property_state
+['IL' None]
+loc_property_zip
+['60613' '60609']
+loc_longitude
+[-87.66789767 -87.68018442]
+loc_latitude
+[41.95363867 41.79502673]
+loc_x_3435
+[1165255.56607545 1162353.24031014]
+loc_y_3435
+[1926398.51029266 1868574.85531089]
+char_yrblt
+[2020. 1913.]
+char_bldg_sf
+[5532.  995.]
+char_land_sf
+[4785. 3930.]
+char_beds
+[5. 2.]
+char_rooms
+[11.  4.]
+char_fbath
+[4. 1.]
+char_hbath
+[1. 0.]
+char_frpl
+[2. 0.]
+char_type_resd
+['3' '1']
+char_cnst_qlty
+['2' '1']
+char_apts
+['NONE' 'TWO']
+char_tp_dsgn
+['2' None]
+char_attic_fnsh
+['3' '1']
+char_gar1_att
+['2' '1']
+char_gar1_area
+['2' '1']
+char_gar1_size
+['5' '3']
+char_gar1_cnst
+['2' '1']
+char_attic_type
+['3' '1']
+char_bsmt
+['1' '2']
+char_ext_wall
+['2' '1']
+char_heat
+['1' '2']
+char_bsmt_fin
+['1' '3']
+char_roof_cnst
+['1' '2']
+char_class
+['209' '202']
+char_use
+['1' '2']
+char_porch
+['0' '1']
+char_air
+['1' '2']
+char_ncu
+[0. 1.]
+char_tp_plan
+['2' None]
+char_recent_renovation
+[0. 1.]
+char_land_sf_95_percentile
+[6067. 6520.]
+ind_land_gte_95_percentile
+[False  True]
+char_bldg_sf_95_percentile
+[5706. 2904.]
+ind_bldg_gte_95_percentile
+[False  True]
+ind_land_bldg_ratio_gte_10
+[False  True]
+loc_census_puma_geoid
+['1703502' '1703527']
+loc_census_tract_geoid
+['17031060400' '17031630100']
+loc_census_data_year
+['2020' '2018']
+loc_census_acs5_puma_geoid
+['1703502' '1703527']
+loc_census_acs5_tract_geoid
+['17031060400' '17031630100']
+loc_census_acs5_data_year
+['2020' '2018']
+loc_tax_municipality_name
+['CITY OF CHICAGO' 'VILLAGE OF WESTERN SPRINGS']
+loc_ward_num
+['47' '16']
+loc_chicago_community_area_name
+['LAKE VIEW' 'GAGE PARK']
+loc_school_elementary_district_geoid
+['609803' '609929']
+loc_school_secondary_district_geoid
+['609719' '609715']
+loc_school_unified_district_geoid
+[None '1713710']
+loc_tax_special_service_area_num
+[None '031040105']
+loc_tax_tif_district_num
+[None '030210622']
+loc_misc_subdivision_id
+['1420C_A' '2007E_F']
+loc_env_flood_fema_sfha
+[0. 1.]
+loc_env_flood_fs_factor
+[4. 1.]
+loc_env_flood_fs_risk_direction
+[1. 0.]
+loc_env_ohare_noise_contour_no_buffer_bool
+[0. 1.]
+loc_env_airport_noise_dnl
+[52.5        56.59673309]
+loc_access_cmap_walk_nta_score
+[121.  50.]
+loc_access_cmap_walk_total_score
+[130.  59.]
+prox_num_pin_in_half_mile
+[2772. 2711.]
+prox_num_bus_stop_in_half_mile
+[41. 49.]
+prox_num_foreclosure_per_1000_pin_past_5_years
+[ 6.13 46.48]
+prox_num_school_in_half_mile
+[5. 1.]
+prox_num_school_with_rating_in_half_mile
+[2. 1.]
+prox_avg_school_rating_in_half_mile
+[4.5 4. ]
+prox_airport_dnl_total
+[51.26573546 58.76713094]
+prox_nearest_bike_trail_dist_ft
+[ 6307.54866266 17934.69640536]
+prox_nearest_cemetery_dist_ft
+[ 1540.22226907 21866.61844565]
+prox_nearest_cta_route_dist_ft
+[1902.13265083 3569.67043349]
+prox_nearest_cta_stop_dist_ft
+[1923.12664156 3623.01652767]
+prox_nearest_golf_course_dist_ft
+[ 6325.63687351 10746.54463516]
+prox_nearest_grocery_store_dist_ft
+[ 948.63937469 4161.64009461]
+prox_nearest_hospital_dist_ft
+[3848.80246299 9638.29519293]
+prox_lake_michigan_dist_ft
+[ 7258.4474201  24630.74928078]
+prox_nearest_major_road_dist_ft
+[243.08403005 427.99180103]
+prox_nearest_metra_route_dist_ft
+[ 1664.73955049 10894.02971882]
+prox_nearest_metra_stop_dist_ft
+[ 5643.2312374  17986.30245379]
+prox_nearest_new_construction_dist_ft
+[   0.         9215.48221409]
+prox_nearest_park_dist_ft
+[3314.02975943  599.70176364]
+prox_nearest_railroad_dist_ft
+[1654.94189388  162.2818486 ]
+prox_nearest_road_arterial_daily_traffic
+[19000. 25400.]
+prox_nearest_road_arterial_dist_ft
+[241.01869026 556.59990071]
+prox_nearest_road_arterial_lanes
+[3. 4.]
+prox_nearest_road_arterial_speed_limit
+[30. 25.]
+prox_nearest_road_arterial_surface_type
+['Over PCC - Reinforcement unknown'
+ 'With No or Partial reinforcement but having Hinged Joints']
+prox_nearest_road_collector_daily_traffic
+[10250. 15400.]
+prox_nearest_road_collector_dist_ft
+[1514.5795694   903.66297001]
+prox_nearest_road_collector_lanes
+[2. 4.]
+prox_nearest_road_collector_speed_limit
+[30. 25.]
+prox_nearest_road_collector_surface_type
+['Over PCC - Reinforcement unknown'
+ 'Bituminous Surface Treated – Mixed bituminous']
+prox_nearest_road_highway_daily_traffic
+[ 6000. 10700.]
+prox_nearest_road_highway_dist_ft
+[10634.24504577 13178.5136532 ]
+prox_nearest_road_highway_lanes
+[2. 1.]
+prox_nearest_road_highway_speed_limit
+[nan 30.]
+prox_nearest_road_highway_surface_type
+['Reinforcement unknown' 'No reinforcement']
+prox_nearest_secondary_road_dist_ft
+[1508.18277743 1138.260423  ]
+prox_nearest_stadium_dist_ft
+[ 3912.11102056 17808.84158025]
+prox_nearest_university_dist_ft
+[11338.45636594 22042.50708888]
+prox_nearest_vacant_land_dist_ft
+[257.97618616 188.70326417]
+prox_nearest_water_dist_ft
+[3111.13169377 5741.81965536]
+shp_parcel_centroid_dist_ft_sd
+[18.10391998 14.7602173 ]
+shp_parcel_edge_len_ft_sd
+[75.20893052 58.32195718]
+shp_parcel_interior_angle_sd
+[0.47269391 0.35430475]
+shp_parcel_mrr_area_ratio
+[1.0013055  1.00123787]
+shp_parcel_mrr_side_ratio
+[5.49769359 4.37162224]
+shp_parcel_num_vertices
+[4. 9.]
+acs5_count_sex_total
+[3981.  950.]
+acs5_percent_age_children
+[0.23235368 0.30631579]
+acs5_percent_age_senior
+[0.03617182 0.08105263]
+acs5_median_age_total
+[32.1 33.4]
+acs5_percent_mobility_no_move
+[0.9825691  0.88085106]
+acs5_percent_mobility_moved_in_county
+[0.0174309  0.09042553]
+acs5_percent_mobility_moved_from_other_state
+[0.         0.01429025]
+acs5_percent_household_family_married
+[0.38188559 0.3973064 ]
+acs5_percent_household_nonfamily_alone
+[0.22033898 0.28619529]
+acs5_percent_education_high_school
+[0.24240159 0.10382831]
+acs5_percent_education_bachelor
+[0.11061286 0.40777262]
+acs5_percent_education_graduate
+[0.08993523 0.23433875]
+acs5_percent_income_below_poverty_level
+[0.06743003 0.10738871]
+acs5_median_income_household_past_year
+[144453.  31750.]
+acs5_median_income_per_capita_past_year
+[27229. 14354.]
+acs5_percent_income_household_received_snap_past_year
+[0.00365408 0.25084746]
+acs5_percent_employment_unemployed
+[0.11953833 0.16348195]
+acs5_median_household_total_occupied_year_built
+[1959.   nan]
+acs5_median_household_renter_occupied_gross_rent
+[1775. 1340.]
+acs5_median_household_owner_occupied_value
+[184800. 126800.]
+acs5_percent_household_owner_occupied
+[0.49878197 0.41863075]
+acs5_percent_household_total_occupied_w_sel_cond
+[0.22472594 0.53220339]
+other_ihs_avg_year_index
+[175.01325 172.20725]
+other_distressed_community_index
+[nan 4.4]
+other_affordability_risk_index
+[ 4. nan]
+other_tax_bill_amount_total
+[61261.52  1715.97]
+other_tax_bill_rate
+[6.911 6.83 ]
+other_school_district_elementary_avg_rating
+[6. 4.]
+other_school_district_secondary_avg_rating
+[4.5 1. ]
+ccao_is_active_exe_homeowner
+[0. 1.]
+ccao_n_years_exe_homeowner
+[0. 4.]
+ccao_is_corner_lot
+[False  True]
+time_sale_year
+[2020. 2018.]
+time_sale_day
+[1174.  416.]
+time_sale_quarter_of_year
+['Q1' 'Q3']
+time_sale_month_of_year
+[3 2]
+time_sale_day_of_year
+[79 51]
+time_sale_day_of_month
+[19 20]
+time_sale_day_of_week
+[5 3]
+time_sale_post_covid
+[ True False]
+sv_is_outlier
+[False]
+sv_outlier_reason
+['Algorithm: Valid Sale' 'Review: Valid Sale']
+sv_outlier_reason1
+['Non-person sale' 'PTAX-203 Exclusion']
+sv_outlier_reason2
+[None 'Non-person sale']
+sv_outlier_reason3
+[None 'Statistical Anomaly']
+sv_run_id
+['2026-01-21_16:20-nice-carly']
+sv_review_json
+[None
+ '{"is_flip":false,"has_class_change":false,"has_characteristic_change":"yes_minor","is_arms_length":true}']
+year
+['2020' '2018']
+spatial_lag_5_avg
+[993757.4 142500. ]
+spatial_lag_10_avg
+[1036695.8  159600. ]
+spatial_lag_1_avg
+[1138787.   41000.]
+spatial_lag_2_avg
+[934393.5 138000. ]
+spatial_lag_3_avg
+[1032929.          138666.66666667]
+spatial_lag_4_avg
+[1004696.75  136875.  ]
+spatial_lag_6_avg
+[909993.         124333.33333333]
+spatial_lag_7_avg
+[955708.28571429 121571.42857143]
+spatial_lag_8_avg
+[935619.75 110125.  ]
+spatial_lag_9_avg
+[1026106.44444444  129000.        ]
+spatial_lag_11_avg
+[1024723.45454545  155545.45454545]
+spatial_lag_12_avg
+[987663.16666667 145683.33333333]
+spatial_lag_13_avg
+[977073.69230769 146630.76923077]
+spatial_lag_14_avg
+[960854.14285714 142095.        ]
+spatial_lag_15_avg
+[981130.53333333 146288.66666667]
+spatial_lag_16_avg
+[967309.875 145270.625]
+spatial_lag_17_avg
+[1007468.11764706  147313.52941176]
+spatial_lag_18_avg
+[1020469.88888889  157462.77777778]
+spatial_lag_19_avg
+[1008760.94736842  153754.21052632]

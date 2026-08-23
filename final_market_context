@@ -1,0 +1,1365 @@
+Below is the modeling architecture I would recommend after reading the attached feature inventory, the parameter file, and the current spatial code.
+
+The main conclusion is:
+
+> You should **not** treat “target correction,” “spatial lag modeling,” and “final AVM learning” as one model. They should be three distinct layers with different allowed features, different leakage rules, and different validation logic.
+
+---
+
+# 1. What the available features are actually doing
+
+The attached feature inventory contains far more than one homogeneous feature matrix. It contains **target variables, sale metadata, property characteristics, spatial identifiers, geographic coordinates, census/proximity features, prior assessment outputs, sale-validation information, and precomputed spatial lags**. These should not all be treated as ordinary predictors. 
+
+The parameter file says the current CCAO-style model uses LightGBM with objective `"rmse"`, 10-fold CV, rolling-origin-style parameters, and a time split where the most recent 10% of pre-assessment sales are treated as test data. The current `model.predictor.all` contains 95 predictors and `model.predictor.categorical` contains 23 categorical predictors. 
+
+The current spatial experiment code then wraps the repo preprocessing and fits a linear/ridge estimator using those same `params.yaml::model.predictor.all` features; spatial features are added on top of that full-X setting, and the TEST/ASSESS splits mirror the quick-test logic. 
+
+---
+
+## 1.1 Target and sale-time variables
+
+These are:
+
+```text
+meta_sale_price
+meta_sale_date
+time_sale_year
+time_sale_day
+time_sale_quarter_of_year
+time_sale_month_of_year
+time_sale_day_of_year
+time_sale_day_of_month
+time_sale_day_of_week
+time_sale_post_covid
+```
+
+`meta_sale_price` is the observed transaction price and should become:
+
+[
+y_i=\log(\text{sale price}_i).
+]
+
+`meta_sale_date` and the derived `time_sale_*` variables are **not ordinary property characteristics**. They represent the market date of the observed sale. In training, they describe when the sale happened. At assessment, they must be set consistently to the assessment valuation date, not to an unknown future sale date. The parameter file explicitly defines the 2025 assessment context and the statutory sale/prediction date as `2025-01-01`, with property data pulled from data year 2024. 
+
+So these variables are valid only if interpreted as **market-date controls**.
+
+Recommended use:
+
+| Feature           | Use                                                                           |
+| ----------------- | ----------------------------------------------------------------------------- |
+| `meta_sale_price` | target only                                                                   |
+| `meta_sale_date`  | target correction, temporal split, spatial cutoff                             |
+| `time_sale_*`     | allowed in final AVM only if replaced by assessment-date values at deployment |
+
+---
+
+## 1.2 Sale-validation and transaction metadata
+
+These include:
+
+```text
+meta_sale_document_num
+meta_sale_deed_type
+meta_sale_buyer_name
+meta_sale_seller_name
+sv_is_outlier
+sv_outlier_reason*
+sv_review_json
+sv_run_id
+```
+
+These should **not** be final AVM predictors. They are not property characteristics available for unsold properties at assessment. They are sale-specific metadata.
+
+But they are extremely useful for constructing a better training target:
+
+* exclude invalid sales;
+* downweight questionable sales;
+* identify non-arm’s-length transactions;
+* identify characteristic-change sales;
+* identify statistical anomalies.
+
+The attached feature file explicitly notes that some sale categories look like non-arm’s-length or non-sale categories, and that `sv_review_json` can contain sale-review information such as arm’s-length status and characteristic-change flags. 
+
+Recommended use:
+
+| Feature type               | Use                                        |
+| -------------------------- | ------------------------------------------ |
+| deed/buyer/seller/document | training-only sale validation              |
+| `sv_is_outlier`            | training-only filter                       |
+| `sv_outlier_reason*`       | training-only diagnostics                  |
+| `sv_review_json`           | training-only sale reliability / exclusion |
+| none of these              | final assessment-stage prediction          |
+
+The current code already applies the repo-style filter removing multicards and sale-validation outliers. 
+
+---
+
+## 1.3 Property identity and structural variables
+
+These include:
+
+```text
+char_yrblt
+char_bldg_sf
+char_land_sf
+char_beds
+char_rooms
+char_fbath
+char_hbath
+char_frpl
+char_type_resd
+char_cnst_qlty
+char_apts
+char_tp_dsgn
+char_attic_fnsh
+char_gar*
+char_attic_type
+char_bsmt
+char_ext_wall
+char_heat
+char_bsmt_fin
+char_roof_cnst
+char_class
+char_use
+char_porch
+char_air
+char_ncu
+char_tp_plan
+char_recent_renovation
+```
+
+These are core AVM predictors. They represent the structure and use of the property.
+
+Recommended transformations:
+
+```text
+log1p(char_bldg_sf)
+log1p(char_land_sf)
+building_age = assessment_year - char_yrblt
+building_age^2 or binned age
+bldg_sf / land_sf
+rooms per 1000 sqft
+bath count = fbath + 0.5 * hbath
+large-building indicator
+large-land indicator
+renovation × age
+class × size interactions
+```
+
+The current parameter file already uses many of these as predictors: year built, air, apartments, attic, beds, building square feet, basement, class, exterior wall, baths, fireplaces, garage, land square feet, heat, porch, roof, rooms, design, residence type, and recent renovation. 
+
+These should be part of the final ML model, and also used as controls when estimating time trends for target correction.
+
+---
+
+## 1.4 Geography and location variables
+
+These include:
+
+```text
+meta_township_code
+meta_nbhd_code
+meta_triad_name / code
+loc_latitude
+loc_longitude
+loc_x_3435
+loc_y_3435
+loc_census_tract_geoid
+loc_tax_municipality_name
+loc_ward_num
+loc_chicago_community_area_name
+loc_school_*_district_geoid
+loc_tax_tif_district_num
+loc_misc_subdivision_id
+```
+
+These are not all the same type.
+
+| Feature                         | Best use                                      |
+| ------------------------------- | --------------------------------------------- |
+| `loc_x_3435`, `loc_y_3435`      | spatial distance, spatial smoothers, lags     |
+| `loc_latitude`, `loc_longitude` | final model and spatial diagnostics           |
+| township/neighborhood/tract     | categorical market-area controls              |
+| triad                           | stratification, reporting, maybe interactions |
+| school district                 | market location proxy                         |
+| ward/community area             | diagnostics or market-area controls           |
+| TIF/SSA/subdivision             | market-area or tax/policy controls            |
+
+The current model uses township code, neighborhood code, longitude, latitude, census tract, school districts, and tax municipality as predictors. 
+
+For spatial modeling, use projected coordinates `loc_x_3435` and `loc_y_3435` rather than lat/lon whenever available. The current code correctly prefers Cook County projected feet and converts them to miles for KDTree spatial search. 
+
+---
+
+## 1.5 Environmental, proximity, and accessibility features
+
+These include:
+
+```text
+flood risk
+airport noise
+walk scores
+number of pins nearby
+bus stops
+foreclosures
+schools and school ratings
+distances to CTA, Metra, parks, hospitals, grocery, lake, roads, railroads, universities, vacant land, water, golf courses
+road traffic / lanes / speed
+```
+
+These are generally valid assessment-stage predictors because they are observable location attributes.
+
+They are especially valuable because they partially proxy the local amenities/disamenities that make spatial models necessary in the first place.
+
+Recommended transformations:
+
+```text
+log1p(distance_ft)
+indicator(distance_ft == 0)
+winsorized distances
+interaction: distance_to_lake × triad
+interaction: school_rating × school_district
+interaction: road_traffic × distance_to_road
+foreclosure rate × neighborhood
+```
+
+The current model already uses many proximity and access features, including bus stops, foreclosure rate, school rating, airport noise, distances to transit/amenities/infrastructure, and traffic variables. 
+
+These belong in the final AVM, not in the target correction layer, except as controls when estimating a quality-adjusted time trend.
+
+---
+
+## 1.6 ACS/census variables
+
+These include:
+
+```text
+income
+education
+poverty
+employment
+age distribution
+household composition
+rent
+owner-occupied share
+housing age
+```
+
+These are strong location proxies. They likely improve predictive accuracy because housing markets capitalize neighborhood socioeconomic information.
+
+But they also carry fairness sensitivity. They can encode neighborhood income, education, poverty, employment, and demographic structure. They are not protected-class labels in the narrow sense, but they may be strongly correlated with protected or policy-relevant groups.
+
+Recommended use:
+
+| Use                          | Recommendation                                           |
+| ---------------------------- | -------------------------------------------------------- |
+| pure market-value prediction | include but audit carefully                              |
+| fairness-sensitive model     | compare with and without ACS blocks                      |
+| equity diagnostics           | always evaluate subgroup/geography impacts               |
+| target correction            | use only as controls if needed for time-index estimation |
+
+The current parameter file uses several ACS variables: age, household composition, education, poverty, income, SNAP, unemployment, housing age, rent, and owner-occupied share. 
+
+---
+
+## 1.7 Prior assessment and tax fields
+
+These include:
+
+```text
+meta_mailed_*
+meta_certified_*
+meta_board_*
+meta_1yr_pri_board_*
+meta_2yr_pri_board_*
+other_tax_bill_amount_total
+other_tax_bill_rate
+ccao_is_active_exe_homeowner
+ccao_n_years_exe_homeowner
+```
+
+These are dangerous for the modeling question you care about.
+
+They may be available at assessment time, but they are not clean market-value predictors. They may encode:
+
+* prior assessment policy;
+* appeal behavior;
+* historical inequity;
+* administrative adjustments;
+* taxpayer exemptions;
+* tax-rate mechanics;
+* previous model output.
+
+The current parameter file includes `other_tax_bill_rate` but does **not** include prior mailed/certified/board assessment values in the 95 predictors. 
+
+Recommended use:
+
+| Feature               | Use                                                                              |
+| --------------------- | -------------------------------------------------------------------------------- |
+| prior assessed values | benchmark/reconciliation only, not main fair AVM                                 |
+| tax bill amount       | avoid as predictor; mechanically tied to assessment/tax process                  |
+| tax rate              | maybe location-policy control, but audit carefully                               |
+| exemptions            | usually avoid for market value; they reflect taxpayer status, not property value |
+
+For a fairness-aware market-value AVM, I would avoid prior assessment values in the main model.
+
+---
+
+## 1.8 Precomputed spatial lag features
+
+The feature file contains many variables like:
+
+```text
+spatial_lag_1_avg
+spatial_lag_2_avg
+...
+spatial_lag_18_avg
+...
+```
+
+These are potentially valuable, but they are also potentially dangerous.
+
+Unless you can prove exactly how they were generated, they may contain:
+
+* future-sale leakage;
+* same-sale self-comps;
+* in-sample spatial leakage;
+* inconsistent neighbor definitions;
+* raw-price lags not adjusted for time or property structure.
+
+Given your current project, I would **not** use these precomputed lag columns. I would regenerate all spatial features fold-by-fold using the current spatial code logic.
+
+The current code is more defensible because it constructs candidate pools from history rows, enforces prior-sale timing, uses KDTree spatial search, records candidate counts and neighbor diagnostics, and supports raw, time-adjusted, residual, scaled, and scaled-time-adjusted feature types. 
+
+---
+
+# 2. Target modeling: how to correct sale price into a better market-value proxy
+
+The correct conceptual model is:
+
+[
+\log S_i
+========
+
+## M_i(T)
+
+\Delta_i(t_i,T)
++
+\eta_i,
+]
+
+where:
+
+* (S_i) is the observed sale price;
+* (M_i(T)) is latent market value at assessment date (T);
+* (\Delta_i(t_i,T)) is market movement between sale date (t_i) and assessment date (T);
+* (\eta_i) is transaction noise, sale-specific deviation, or unobserved condition.
+
+The only target correction I would do with high confidence is:
+
+[
+y_i^{adj}(T)
+============
+
+\log S_i
++
+\widehat{\tau}(s_i,T)
+---------------------
+
+\widehat{\tau}(s_i,t_i).
+]
+
+That is, **time-adjust sale prices to the assessment date**, possibly with local geography/property-type variation.
+
+This has strong support in appraisal and price-index logic. IAAO ratio-study guidance says market value cannot be directly observed, but can be represented by sale prices that have been confirmed, screened, and adjusted as necessary; it also says sales under normal circumstances are generally good indicators of market value.  Mass appraisal standards describe model specification and calibration as identifying value-related supply/demand/property factors and estimating their value contributions, and they explicitly recognize geographic stratification and comparable-sales approaches for residential valuation. 
+
+---
+
+## 2.1 Target correction model A: global time adjustment
+
+Current code estimates a simple global time slope:
+
+[
+\log S_i = \alpha+\beta t_i+\varepsilon_i.
+]
+
+Then:
+
+[
+y_i^{adj}(T)=y_i+\widehat\beta(T-t_i).
+]
+
+This is useful as a baseline, but it is too simple for final work. It assumes the same appreciation rate across Cook County, across property classes, and across market segments.
+
+Use it as:
+
+> baseline target correction, not final correction.
+
+The current code uses this global time slope to build `time_adjusted_price` and `scaled_time_adjusted_price` neighbor features. 
+
+---
+
+## 2.2 Target correction model B: hedonic time-dummy correction
+
+Estimate:
+
+[
+\log S_i
+========
+
+h(X_i^{struct},G_i)
++
+\gamma_{month(i)}
++
+\varepsilon_i.
+]
+
+Then use only the time effect:
+
+[
+y_i^{adj}(T)
+============
+
+y_i+\widehat\gamma_T-\widehat\gamma_{t_i}.
+]
+
+Here (h(X_i^{struct},G_i)) controls for property mix so that time effects are not contaminated by changes in which properties happen to sell.
+
+This is standard price-index logic: real estate price-index literature contrasts hedonic methods, which use covariates to control property heterogeneity, and repeat-sales methods, which use multiple transactions of the same property; hedonic methods treat observed prices as composites of structural and locational implicit prices. ([cowles.yale.edu][1])
+
+Recommended controls for (h(\cdot)):
+
+```text
+char_class
+meta_township_code
+meta_nbhd_code
+char_bldg_sf
+char_land_sf
+char_yrblt
+char_rooms
+char_beds
+bath variables
+garage/basement/attic/air/heat
+lat/lon or x/y spatial smooth terms
+```
+
+Important: use property features only to estimate the time index. Do not subtract their effects from the target. The final AVM should still learn structural effects.
+
+---
+
+## 2.3 Target correction model C: local hedonic time correction
+
+Estimate:
+
+[
+\log S_i
+========
+
+h(X_i)
++
+\gamma_{g_i,t_i}
++
+\varepsilon_i,
+]
+
+where (g_i) is a market area:
+
+```text
+triad
+township
+neighborhood
+census tract
+school district
+spatial cluster
+```
+
+Then:
+
+[
+y_i^{adj}(T)
+============
+
+y_i+\widehat\gamma_{g_i,T}-\widehat\gamma_{g_i,t_i}.
+]
+
+This is better than a global time slope because local markets move differently.
+
+But raw area-by-month effects can be sparse. So I would use shrinkage:
+
+[
+\gamma_{g,t}
+============
+
+\gamma_t+\delta_{g,t},
+\qquad
+\delta_{g,t}\sim \text{shrink toward }0.
+]
+
+In practice:
+
+* global month effects;
+* triad × quarter effects;
+* township × year effects;
+* neighborhood × year effects only if enough sales;
+* fallback hierarchy when sparse.
+
+This is probably the best label-correction direction.
+
+---
+
+## 2.4 Target correction model D: spatial-temporal surface
+
+Estimate:
+
+[
+\log S_i
+========
+
+h(X_i)
++
+\tau(s_i,t_i)
++
+\varepsilon_i,
+]
+
+where (s_i=(x_i,y_i)).
+
+Then:
+
+[
+y_i^{adj}(T)
+============
+
+y_i+\widehat\tau(s_i,T)-\widehat\tau(s_i,t_i).
+]
+
+Possible estimators:
+
+* spatial splines;
+* tensor-product spline in (x,y,t);
+* local regression;
+* Gaussian-process-like low-rank smoother;
+* grid-cell time effects with shrinkage.
+
+This is theoretically appealing, but more fragile than area-time effects. I would not start here as the main correction. I would use it after proving that township/neighborhood time effects are too coarse.
+
+---
+
+## 2.5 Target correction model E: repeat-sales validation
+
+If a property sells multiple times, use:
+
+[
+\log S_{i,t_2}-\log S_{i,t_1}
+=============================
+
+\tau(t_2)-\tau(t_1)+\epsilon_i.
+]
+
+Repeat-sales methods are standard for house-price indexes, but they use only properties that transact multiple times and can suffer selection bias because repeat-sale properties may not represent the whole market. ([cowles.yale.edu][1])
+
+For your project, I would use repeat sales mainly to **validate** the hedonic time correction, not as the primary correction.
+
+---
+
+## 2.6 What not to do for target correction
+
+Do not build:
+
+[
+y_i^{proxy}
+===========
+
+\text{local average of neighbor sale prices}
+]
+
+and then train a model on that as the target. That turns the target into a smoothed prediction and can wash out real property-level variation.
+
+Use spatial comparable information as a **feature** or **residual correction**, not as the main target, except for the time-index adjustment above.
+
+---
+
+# 3. Spatial modeling: what makes sense here
+
+The current spatial code is already close to the right family. It is not a simultaneous spatial-lag model. It is a **temporally valid comparable-sales spatial feature**.
+
+The code supports these feature types:
+
+```text
+raw_price
+time_adjusted_price
+residual
+scaled_price
+scaled_time_adjusted_price
+```
+
+and computes spatial-time scores:
+
+[
+\text{score}_{ij}
+=================
+
+\frac{d_{ij}^{space}}{h_s}
++
+\frac{d_{ij}^{time}}{h_t}.
+]
+
+Then it uses exponential weights:
+
+[
+w_{ij}=\exp(-\text{score}_{ij}).
+]
+
+The current implementation also uses KDTree candidate caches and expands candidate pools adaptively before applying temporal and class filters. 
+
+This is good.
+
+---
+
+## 3.1 Best spatial feature: scaled time-adjusted comparable value
+
+The strongest feature is:
+
+[
+z_i^{scaled-time}
+=================
+
+\frac{\sum_{j\in N(i)} w_{ij}
+\left[
+y_j
++
+\widehat\beta(t_i-t_j)
++
+\hat f_0(X_i)
+-------------
+
+\hat f_0(X_j)
+\right]}
+{\sum_{j\in N(i)}w_{ij}}.
+]
+
+This says:
+
+> Take a nearby past sale, move it to the target date, then adjust it from the neighbor’s baseline structural value to the target property’s baseline structural value.
+
+That is exactly the right comparable-sales logic.
+
+It is much better than raw spatial average because raw average confounds:
+
+* location value;
+* structure quality;
+* size;
+* date;
+* sale-specific noise.
+
+Your results already show this feature family is one of the best prediction-oriented candidates. For example, the attached logs show `assess_full_X_plus_scaled_time_adjusted_price_K20_hs0.75_ht500.0` achieves strong assess performance with `r2_log=0.8171`, `rmse_log=0.2996`, `r2_price=0.8553`, and `rmse_price=146077`. 
+
+This should be the primary spatial feature family.
+
+---
+
+## 3.2 Residual spatial feature
+
+Define:
+
+[
+r_j=y_j^{adj}-\hat f_0(X_j).
+]
+
+Then:
+
+[
+z_i^{resid}
+===========
+
+\frac{\sum_{j\in N(i)}w_{ij}r_j}{\sum_{j\in N(i)}w_{ij}}.
+]
+
+Prediction:
+
+[
+\hat y_i=\hat f_0(X_i)+g(z_i^{resid}).
+]
+
+This captures local market effects not explained by full (X).
+
+This is conceptually similar to a spatial-error correction:
+
+[
+y=X\beta+u,\qquad u=\lambda Wu+\epsilon,
+]
+
+but implemented in a deployment-safe way because it uses only prior sales.
+
+This should be your second main spatial family.
+
+However, residual features are more sensitive to:
+
+* base-model misspecification;
+* temporal drift;
+* cross-fitting quality;
+* sale noise.
+
+So they must be computed using cross-fitted residuals on training data. Otherwise, training-side residuals are in-sample and too optimistic.
+
+---
+
+## 3.3 Raw and time-adjusted price lags
+
+Raw neighbor average:
+
+[
+z_i^{raw}
+=========
+
+\frac{\sum_j w_{ij}y_j}{\sum_jw_{ij}}.
+]
+
+Time-adjusted neighbor average:
+
+[
+z_i^{time}
+==========
+
+\frac{\sum_j w_{ij}(y_j+\widehat\beta(t_i-t_j))}{\sum_jw_{ij}}.
+]
+
+These are useful benchmarks but not final candidates.
+
+Your results suggest time-adjusted price lags have weaker predictive accuracy but less negative regressivity slope than residual/scaled features. That makes them useful for fairness/diagnostic comparison, not necessarily for final prediction. 
+
+---
+
+## 3.4 Classical spatial lag, spatial error, GWR, and MGWR
+
+The literature gives several alternatives:
+
+| Method            | Form                                        | Role here                            |
+| ----------------- | ------------------------------------------- | ------------------------------------ |
+| Spatial lag       | (y=\rho Wy+X\beta+\epsilon)                 | diagnostic / benchmark               |
+| Spatial error     | (y=X\beta+u,\ u=\lambda Wu+\epsilon)        | residual correction analogy          |
+| GWR               | local coefficients by location              | diagnostic for spatial heterogeneity |
+| MGWR              | covariates vary at different spatial scales | diagnostic / research benchmark      |
+| Kriging residuals | smooth spatial residual process             | residual correction benchmark        |
+
+Spatial models are widely discussed in mass appraisal because location creates spatial heterogeneity and spatial autocorrelation; GWR, spatial lag, and spatial error models are common alternatives in real estate valuation studies. ([ODU Digital Commons][2])
+
+But for your operational AVM, I would not make a simultaneous spatial lag model the primary approach. The problem is deployment:
+
+[
+Wy_i
+]
+
+requires neighboring outcomes. For unsold assessment properties, those outcomes are unavailable unless you construct (W) only from historical sales. That is exactly why your current comparable-sales lag is more appropriate.
+
+---
+
+# 4. Feature allocation: what should be used where
+
+This is the most important part.
+
+## 4.1 Features for target correction only
+
+Use these to correct observed sale prices into better market-value proxy labels:
+
+```text
+meta_sale_price
+meta_sale_date
+time_sale_year/month/quarter/day
+meta_sale_deed_type
+meta_sale_buyer_name
+meta_sale_seller_name
+sv_is_outlier
+sv_outlier_reason*
+sv_review_json
+char_class
+meta_township_code
+meta_nbhd_code
+meta_triad_name
+loc_x_3435 / loc_y_3435
+loc_latitude / loc_longitude
+```
+
+Purpose:
+
+1. validate/filter/downweight sales;
+2. estimate time trend;
+3. estimate local market movement;
+4. time-adjust sale prices to assessment date.
+
+Do **not** use these sale-validation fields as final AVM predictors.
+
+---
+
+## 4.2 Features for the final AVM
+
+Use the current 95 predictors as the core final model feature set, with careful auditing.
+
+This includes:
+
+* property structure;
+* class/use;
+* geography;
+* proximity;
+* environmental variables;
+* ACS variables;
+* sale-date-derived variables set to assessment date.
+
+The current parameter file’s predictor list is generally coherent for market-value prediction. It avoids obvious leakage fields like `meta_sale_price`, `meta_mailed_tot`, `meta_certified_tot`, `meta_board_tot`, `sv_is_outlier`, and buyer/seller names. 
+
+I would add engineered versions of existing features:
+
+```text
+log_bldg_sf
+log_land_sf
+age_at_assessment
+age_at_assessment^2
+log_distance_to_lake
+log_distance_to_transit
+log_distance_to_park
+bath_total = fbath + 0.5 * hbath
+bldg_land_ratio
+large_lot × township
+class × log_bldg_sf
+class × age
+```
+
+For LightGBM, you do not need to hand-engineer every interaction, but the log/ratio/age transformations can still stabilize learning.
+
+---
+
+## 4.3 Features for spatial model construction
+
+Use:
+
+```text
+loc_x_3435
+loc_y_3435
+meta_sale_date
+char_class
+meta_modeling_group only as diagnostic, not hard default
+meta_township_code
+meta_nbhd_code
+base_pred
+base_residual
+```
+
+Spatial neighbor selection should be based on:
+
+1. exact prior sale date;
+2. distance in projected coordinates;
+3. property class match;
+4. optional fallback if too few same-class sales;
+5. not group-filtered by default unless empirically justified.
+
+Important: the current attached code still has `DEFAULT_GROUP_FILTER_COL = "meta_modeling_group"` and the spatial pool index groups candidate pools by `group_filter_col` when present.  If you truly want to remove group filtering, you need to pass a null/missing group filter or change the default so the candidate pool becomes universal except for class filtering.
+
+I would keep `char_class` as the primary type filter. I would not hard-filter by `meta_modeling_group` unless sparse-class fallback requires it.
+
+---
+
+## 4.4 Features for calibration / fairness correction
+
+After the model predicts (\hat y_i), fit a calibration model on validation data:
+
+[
+\hat y_i^{cal}
+==============
+
+\hat y_i+c(\hat y_i,g_i).
+]
+
+Allowed calibration inputs:
+
+```text
+base prediction
+predicted value decile
+township / triad / broad geography
+class
+spatial feature diagnostics
+neighbor count
+mean neighbor distance
+mean neighbor age
+```
+
+Do not use true sale price at assessment. Sale price can be used only in validation to estimate calibration parameters.
+
+Calibration targets:
+
+* median ratio near 1;
+* low slope of log ratio vs log price;
+* flat decile median ratio curve;
+* no subgroup deterioration.
+
+IAAO AVM standards emphasize holdout samples or cross-validation for model performance, and ratio studies evaluate central tendency, vertical uniformity, and horizontal variability of estimated values relative to sale prices. 
+
+---
+
+# 5. The best overall modeling architecture
+
+I would structure the project as five candidate pipelines.
+
+---
+
+## Pipeline A: raw target baseline
+
+[
+y_i=\log S_i.
+]
+
+Train:
+
+[
+\hat y_i=f(X_i).
+]
+
+Use current LightGBM configuration.
+
+Purpose:
+
+> baseline against which all target/spatial corrections must improve.
+
+---
+
+## Pipeline B: time-adjusted target
+
+Estimate a fold-specific local time index:
+
+[
+\widehat\tau(g,t).
+]
+
+Construct:
+
+[
+y_i^{adj}(T)
+============
+
+\log S_i+\widehat\tau(g_i,T)-\widehat\tau(g_i,t_i).
+]
+
+Train:
+
+[
+\hat y_i=f(X_i).
+]
+
+Best version:
+
+```text
+hedonic time-dummy model
+with class/property controls
+and township/triad/neighborhood time effects with shrinkage
+```
+
+Purpose:
+
+> test whether correcting sale prices to assessment-date market conditions reduces bias and improves stability.
+
+---
+
+## Pipeline C: robust target learning
+
+Do not change (y). Change the loss.
+
+Options:
+
+```text
+MSE / RMSE
+MAE / median regression
+Huber loss
+quantile regression τ = 0.5
+Student-t likelihood
+```
+
+Median/quantile regression is especially relevant because quantile regression generalizes least-squares conditional-mean modeling to conditional quantile functions; median regression minimizes absolute error. ([American Economic Association][3]) More generally, point forecasting theory says the loss must match the target functional: squared error targets mean-like functionals, while quantile losses target quantiles. ([arXiv][4])
+
+Purpose:
+
+> test whether raw sale prices are too noisy for MSE.
+
+---
+
+## Pipeline D: full X + spatial comparable feature
+
+Train a base model:
+
+[
+\hat f_0(X).
+]
+
+Construct:
+
+[
+z_i^{scaled-time}
+=================
+
+\frac{\sum_j w_{ij}
+[
+y_j+\widehat\tau(t_i,t_j)+\hat f_0(X_i)-\hat f_0(X_j)
+]}
+{\sum_jw_{ij}}.
+]
+
+Train final model:
+
+[
+\hat y_i=f_1(X_i,z_i^{scaled-time},d_i,n_i,a_i),
+]
+
+where:
+
+```text
+d_i = mean neighbor distance
+n_i = number of neighbors
+a_i = mean neighbor age
+fallback_i = whether class fallback was used
+```
+
+Purpose:
+
+> exploit comparable-sales information without replacing the whole AVM.
+
+This is currently the most promising spatial direction.
+
+---
+
+## Pipeline E: full X + residual spatial correction
+
+Train base model:
+
+[
+\hat f_0(X).
+]
+
+Cross-fit residuals:
+
+[
+r_j=y_j-\hat f_0^{(-fold)}(X_j).
+]
+
+Construct:
+
+[
+z_i^{resid}
+===========
+
+\frac{\sum_jw_{ij}r_j}{\sum_jw_{ij}}.
+]
+
+Prediction:
+
+[
+\hat y_i^{final}
+================
+
+\hat f_0(X_i)+g(z_i^{resid}).
+]
+
+Purpose:
+
+> capture local under/overprediction patterns not explained by the AVM.
+
+This is conceptually strong but must be cross-fitted.
+
+---
+
+# 6. What I would not use as primary modeling components
+
+## 6.1 Prior assessment values
+
+Do not use:
+
+```text
+meta_mailed_*
+meta_certified_*
+meta_board_*
+meta_1yr_pri_board_*
+meta_2yr_pri_board_*
+```
+
+as main predictors in the fair AVM.
+
+They can improve prediction mechanically, but they also risk carrying forward the current assessment system’s level, appeal effects, and inequities. Use them only as:
+
+* benchmarks;
+* reconciliation checks;
+* diagnostics;
+* maybe as a separate “business-as-usual” comparator.
+
+---
+
+## 6.2 Buyer/seller/deed names as predictors
+
+Do not use buyer/seller/deed names in the final AVM.
+
+Use them only to validate or downweight training labels.
+
+---
+
+## 6.3 Precomputed spatial lags
+
+Do not use the attached `spatial_lag_*_avg` columns unless you can prove they are fold-safe, past-only, no-self-comps, and assessment-stage deployable.
+
+Recompute them with the current code logic.
+
+---
+
+## 6.4 Spatial-first model
+
+Your results already suggest that “spatial first, X residual second” is dominated. For example, the logs show spatial-first variants with much worse RMSE and R² than the baseline and full-X-plus-spatial approaches. 
+
+Drop this family unless you need it as a negative-control benchmark.
+
+---
+
+# 7. Final recommended feature/model map
+
+| Modeling component     | Use these features                                                          | Do not use                                          |
+| ---------------------- | --------------------------------------------------------------------------- | --------------------------------------------------- |
+| Target validation      | sale metadata, deed, buyer/seller, `sv_*`, sale code                        | final assessment predictors                         |
+| Time correction of y   | sale date, class, township/nbhd/triad, structural controls                  | validation/test labels in estimating correction     |
+| Final AVM              | 95 current predictors + engineered structural/proximity transforms          | sale price, buyer/seller, `sv_*`, prior assessments |
+| Spatial comparable lag | prior sales only, x/y coords, sale date, class, base prediction, time index | future sales, same sale, precomputed unsafe lags    |
+| Residual correction    | cross-fitted residuals, prior local residuals, neighbor diagnostics         | in-sample residuals as if they were out-of-sample   |
+| Fairness calibration   | prediction, predicted decile, class, broad geography, spatial diagnostics   | true sale price at deployment                       |
+
+---
+
+# 8. Concrete next modeling sequence
+
+I would run the next experiments in this exact order.
+
+## Step 1: fix feature admissibility
+
+Create three feature lists:
+
+```text
+assessment_features
+training_only_label_features
+forbidden_or_diagnostic_features
+```
+
+Your current params are mostly close to `assessment_features`, but `time_sale_*` must be generated as assessment-date variables for deployment.
+
+---
+
+## Step 2: build target-correction variants
+
+Create:
+
+```text
+y_raw
+y_global_time_adj
+y_township_time_adj
+y_nbhd_shrink_time_adj
+y_spatial_time_surface_adj
+```
+
+Use fold-specific estimation only.
+
+---
+
+## Step 3: train base AVM variants
+
+For each target:
+
+```text
+LightGBM RMSE
+LightGBM MAE / median
+Huber or robust objective if available
+Quantile τ=0.5
+```
+
+This separates:
+
+> Is the issue the target, or the loss?
+
+---
+
+## Step 4: add spatial features
+
+For each base model, add:
+
+```text
+scaled_time_adjusted_price
+local_residual
+neighbor_count
+mean_neighbor_distance
+mean_neighbor_age
+local_neighbor_dispersion
+class_fallback_flag
+```
+
+Use:
+
+```text
+K = 20, 25, 30, 40
+h_space = 0.75, 1.0, 1.25, 1.5 miles
+h_time = 365, 500, 730 days
+```
+
+Keep `h_time=184` as a fairness-oriented option.
+
+---
+
+## Step 5: add equity-aware calibration
+
+For the best few candidates, fit:
+
+[
+\hat y^{cal}
+============
+
+\hat y+a+b\hat y
+]
+
+and then a smooth version:
+
+[
+\hat y^{cal}
+============
+
+\hat y+h(\hat y,\text{triad/class}).
+]
+
+Select by constrained validation:
+
+[
+\min \text{RMSE}
+]
+
+subject to:
+
+```text
+median ratio near 1
+low PRB / slope
+low decile-curve trend
+low nonlinear decile shape
+no triad-level deterioration
+```
+
+Your earlier HTML report already uses decile median ratio curves, IQR bands, and triad-specific evaluation; that should become the model-selection framework, not only a post-hoc report. 
+
+---
+
+# 9. Adversarial review: what could go wrong
+
+## Problem 1: target correction can hide bias
+
+If the time/geography correction is too flexible, it may absorb the very price-related inequity you are trying to measure.
+
+Fix:
+
+```text
+estimate correction on training folds only
+compare raw vs corrected labels
+report correction size by price decile
+report correction size by geography
+```
+
+---
+
+## Problem 2: spatial features can leak outcomes
+
+Any spatial lag built from all sales can leak future sale prices.
+
+Fix:
+
+```text
+strict prior-sale cutoff
+no self-comps
+fold-specific construction
+separate train/eval history rules
+```
+
+The current code correctly emphasizes prior sales and candidate history, but you must confirm `allow_sequential_eval_history` is set consistently with the evaluation question. 
+
+---
+
+## Problem 3: group filtering may still be active
+
+You previously wanted to remove group filtering. The current attached code still has a default group filter column:
+
+```text
+DEFAULT_GROUP_FILTER_COL = "meta_modeling_group"
+```
+
+and the pool index uses `group_filter_col` if present. 
+
+If the goal is truly “no group filter,” change the default to `None` or pass a non-existing/missing group filter and confirm the candidate pool is universal except for class logic.
+
+---
+
+## Problem 4: ACS variables can improve market prediction but complicate fairness
+
+ACS variables may improve market-value prediction because they proxy neighborhood demand. But they can also encode socioeconomic patterns. Removing them may reduce accuracy and potentially worsen residual inequity; keeping them may raise policy concerns.
+
+Fix:
+
+```text
+run with ACS
+run without ACS
+run with ACS only in calibration/audit
+compare decile curves and triad/township residuals
+```
+
+---
+
+## Problem 5: prior assessments can make the model look good while preserving inequity
+
+Prior assessed values and tax bills may improve predictive fit but are not clean market value signals.
+
+Fix:
+
+```text
+exclude from main model
+include only as separate benchmark
+```
+
+---
+
+# Bottom line
+
+The best high-confidence architecture is:
+
+[
+\boxed{
+\text{validated/filtered sales}
+\rightarrow
+\text{fold-specific local time-adjusted target}
+\rightarrow
+\text{LightGBM on assessment-stage features}
+\rightarrow
+\text{scaled time-adjusted comparable-sales feature}
+\rightarrow
+\text{equity-aware calibration}
+}
+]
+
+The most promising spatial feature is:
+
+[
+\boxed{
+y_j+\widehat\tau(t_i,t_j)+\hat f_0(X_i)-\hat f_0(X_j)
+}
+]
+
+averaged over prior nearby comparable sales.
+
+The most important correction to your current code is:
+
+[
+\boxed{
+\text{remove group filtering if intended, cross-fit residual features, and move from RMSE selection to curve-aware selection.}
+}
+]
+
+The most important conceptual rule is:
+
+> Use sale-only features to clean or adjust the target, use assessment-stage features to predict market value, use spatial features as fold-safe comparable evidence, and use ratio-curve diagnostics to choose among models.
+
+[1]: https://cowles.yale.edu/sites/default/files/2022-08/d1969.pdf "TITLE"
+[2]: https://digitalcommons.odu.edu/cgi/viewcontent.cgi?article=1026&context=publicservice_pubs&utm_source=chatgpt.com "Evaluating Spatial Model Accuracy in Mass Real Estate ..."
+[3]: https://www.aeaweb.org/articles?id=10.1257%2Fjep.15.4.143&utm_source=chatgpt.com "Quantile Regression"
+[4]: https://arxiv.org/abs/0912.0902?utm_source=chatgpt.com "Making and Evaluating Point Forecasts"

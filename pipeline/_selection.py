@@ -4,25 +4,22 @@ Simplified model selection for the pipeline stage ``02-assess``.
 Selections are produced from a finished rolling-origin CV run
 (``runs/`` parquet + ``analysis/.../test_metrics.csv``):
 
-1. ``ccao_min_rmse`` — pick the configuration with the **lowest mean fold RMSE**
-   (or MSE) across CV folds. This mirrors what the Cook County AVM does in
-   ``01-train.R`` via ``select_best(lgbm_search, metric = params$cv$best_metric)``:
-   no fairness constraints, just pure validation-error minimization.
+1. ``linear_regression`` — the untuned ``LinearRegression`` baseline. It is
+   included for reporting but has no hyperparameter / rho selection.
 
-2. ``utopia`` — legacy selector: for each configuration, build min–max-normalized preference
-   scores in ``[0, 1]`` for the accuracy metric AND each fairness/ratio-study
-   constraint metric (PRD, PRB, VEI by default; bounds from
-   ``utils.motivation_utils``). Pick the configuration that minimizes the
-   Euclidean distance to the ideal point ``(1, …, 1)``. This is the same
-   utopia logic used in ``simple_model_selection.py`` but stripped of the
-   constrained / nash variants.
+2. ``lgbm_min_rmse`` — pick the ``LGBMRegressor`` configuration with the lowest
+   mean fold RMSE (or MSE). This mirrors the Cook County AVM
+   ``select_best(lgbm_search, metric = params$cv$best_metric)`` logic: pure
+   validation-error minimization.
 
-3. ``nash`` — restrict to ``LGBCovPenalty`` by default and maximize the Nash
-   product of positive utilities.
+3. ``cov_penalty_min_mse`` — pick the best ``LGBCovPenalty`` rho within family.
 
-4. ``smooth_penalty_nash`` — restrict to ``LGBSmoothPenalty`` and maximize the
-   Nash product of positive utilities over the accuracy metric and requested
-   fairness/ratio-study metrics.
+4. ``smooth_identity_min_mse`` — pick the best ``LGBSmoothPenalty`` rho with
+   ``weighting_proxy_mode="identity"``.
+
+5. ``smooth_logistic_min_mse`` — pick the best ``LGBSmoothPenalty`` rho with
+   ``weighting_proxy_mode="logistic_quantile"``
+   (``LGBSmoothPenaltyLogisticProxy`` in the raw run artifacts).
 
 Each selection starts from configs that appear in both CV ``runs/`` and
 ``test_metrics.csv``, then applies its family filter.
@@ -84,20 +81,22 @@ ACCURACY_SPECS: Dict[str, AccuracyMetricSpec] = {
     "R2": AccuracyMetricSpec("R2", "R2", higher_is_better=True),
 }
 
-DEFAULT_CONSTRAINT_METRICS: Tuple[str, ...] = ("PRD", "PRB", "VEI")
+DEFAULT_CONSTRAINT_METRICS: Tuple[str, ...] = ("PRD",)
 DEFAULT_ACCURACY_METRIC: str = "RMSE"
+DEFAULT_PENALIZED_SELECTION_MODE: str = "mse_only"
+DEFAULT_NASH_ACCURACY_METRIC: str = "RMSE"
+DEFAULT_NASH_CONSTRAINT_METRICS: Tuple[str, ...] = ("PRD",)
 _POSITIVE_EPS: float = 1e-12
 
 # Default candidate pools per selection rule. CCAO picks the best LightGBM
-# tuning trial regardless of fairness; we mirror that by allowing every
-# LightGBM-flavored family. The utopia rule is the project's own
-# fairness-aware selector — restrict to fairness-regularized estimators by
-# default so its distance score is computed across configurations that span
-# the accuracy / fairness trade-off.
-DEFAULT_CCAO_FAMILIES: Tuple[str, ...] = ("LGBMRegressor", "LGBCovPenalty", "LGBSmoothPenalty")
-DEFAULT_UTOPIA_FAMILIES: Tuple[str, ...] = ("LGBCovPenalty", "LGBSmoothPenalty")
+# tuning trial regardless of fairness; here that pool is strictly the baseline
+# LightGBM family, while the penalized families are selected independently.
+DEFAULT_CCAO_FAMILIES: Tuple[str, ...] = ("LGBMRegressor",)
+DEFAULT_UTOPIA_FAMILIES: Tuple[str, ...] = ("LGBCovPenalty", "LGBSmoothPenalty", "LGBSmoothPenaltyLogisticProxy")
 DEFAULT_NASH_FAMILIES: Tuple[str, ...] = ("LGBCovPenalty",)
-SMOOTH_NASH_FAMILIES: Tuple[str, ...] = ("LGBSmoothPenalty",)
+SMOOTH_IDENTITY_FAMILIES: Tuple[str, ...] = ("LGBSmoothPenalty",)
+SMOOTH_LOGISTIC_FAMILIES: Tuple[str, ...] = ("LGBSmoothPenaltyLogisticProxy",)
+SMOOTH_NASH_FAMILIES: Tuple[str, ...] = SMOOTH_LOGISTIC_FAMILIES
 
 
 # ----------------------------------------------------------------------------
@@ -398,6 +397,32 @@ def _filter_pool(
     return df
 
 
+def _pool_summary(pool: pd.DataFrame, stats: pd.DataFrame) -> Dict[str, Any]:
+    return {
+        "n_configs": int(stats.shape[0]),
+        "families": sorted(stats["model_family"].dropna().astype(str).unique().tolist()) if not stats.empty else [],
+        "n_folds": int(pool["fold_id"].nunique()) if "fold_id" in pool.columns and not pool.empty else 0,
+    }
+
+
+def _family_stats(
+    runs_df: pd.DataFrame,
+    *,
+    eligible_ids: set,
+    families: Sequence[str],
+    label: str,
+    accuracy: AccuracyMetricSpec,
+    constraint_ids: Sequence[str],
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    pool = _filter_pool(runs_df, eligible_ids=eligible_ids, families=families)
+    if pool.empty:
+        raise RuntimeError(
+            f"{label} candidate pool is empty after filtering by families={list(families)}."
+        )
+    stats = _per_config_fold_stats(pool, accuracy=accuracy, constraint_ids=constraint_ids)
+    return pool, stats
+
+
 def run_selection(
     *,
     result_root: Path,
@@ -408,16 +433,22 @@ def run_selection(
     ccao_families: Optional[Sequence[str]] = DEFAULT_CCAO_FAMILIES,
     utopia_families: Optional[Sequence[str]] = DEFAULT_UTOPIA_FAMILIES,
     nash_families: Optional[Sequence[str]] = DEFAULT_NASH_FAMILIES,
+    penalized_selection_mode: str = DEFAULT_PENALIZED_SELECTION_MODE,
 ) -> Dict[str, Any]:
     metric_id = accuracy_metric.upper()
     if metric_id not in ACCURACY_SPECS:
         raise ValueError(f"Unknown accuracy metric '{accuracy_metric}'. Choose from {sorted(ACCURACY_SPECS)}.")
     accuracy = ACCURACY_SPECS[metric_id]
+    penalized_mode = str(penalized_selection_mode or DEFAULT_PENALIZED_SELECTION_MODE).strip().lower()
+    if penalized_mode not in {"mse_only", "nash_only"}:
+        raise ValueError("penalized_selection_mode must be one of ['mse_only', 'nash_only'].")
+    penalized_accuracy = ACCURACY_SPECS["MSE"] if penalized_mode == "mse_only" else ACCURACY_SPECS[DEFAULT_NASH_ACCURACY_METRIC]
 
     constraint_ids = [c.upper() for c in constraint_metrics]
     unknown = [c for c in constraint_ids if c not in CONSTRAINT_SPECS]
     if unknown:
         raise ValueError(f"Unknown constraint metric(s) {unknown}. Choose from {sorted(CONSTRAINT_SPECS)}.")
+    penalized_constraint_ids = list(constraint_ids) if penalized_mode == "mse_only" else list(DEFAULT_NASH_CONSTRAINT_METRICS)
 
     runs_df = load_runs_df(result_root, data_id, split_id)
     test_df = load_test_metrics(result_root, data_id, split_id)
@@ -426,36 +457,68 @@ def run_selection(
     runs_df["config_id"] = runs_df["config_id"].astype(str)
     runs_df["model_family"] = runs_df["model_name"].astype(str).map(_model_family)
 
-    ccao_pool = _filter_pool(runs_df, eligible_ids=eligible_ids, families=ccao_families)
-    if ccao_pool.empty:
-        raise RuntimeError(
-            f"CCAO candidate pool is empty after filtering by families={list(ccao_families or [])}."
-        )
-    utopia_pool = _filter_pool(runs_df, eligible_ids=eligible_ids, families=utopia_families)
-    if utopia_pool.empty:
-        raise RuntimeError(
-            f"Utopia candidate pool is empty after filtering by families={list(utopia_families or [])}."
-        )
-    nash_pool = _filter_pool(runs_df, eligible_ids=eligible_ids, families=nash_families)
-    if nash_pool.empty:
-        raise RuntimeError(
-            f"Nash candidate pool is empty after filtering by families={list(nash_families or [])}."
-        )
-    smooth_pool = _filter_pool(runs_df, eligible_ids=eligible_ids, families=SMOOTH_NASH_FAMILIES)
-    if smooth_pool.empty:
-        raise RuntimeError(
-            f"SmoothPenalty Nash candidate pool is empty after filtering by families={list(SMOOTH_NASH_FAMILIES)}."
-        )
+    linear_pool, linear_stats = _family_stats(
+        runs_df,
+        eligible_ids=eligible_ids,
+        families=("LinearRegression",),
+        label="LinearRegression",
+        accuracy=accuracy,
+        constraint_ids=constraint_ids,
+    )
+    lgbm_pool, lgbm_stats = _family_stats(
+        runs_df,
+        eligible_ids=eligible_ids,
+        families=tuple(ccao_families or DEFAULT_CCAO_FAMILIES),
+        label="LGBMRegressor",
+        accuracy=accuracy,
+        constraint_ids=constraint_ids,
+    )
+    cov_pool, cov_stats = _family_stats(
+        runs_df,
+        eligible_ids=eligible_ids,
+        families=tuple(nash_families or DEFAULT_NASH_FAMILIES),
+        label="LGBCovPenalty",
+        accuracy=penalized_accuracy,
+        constraint_ids=penalized_constraint_ids,
+    )
+    smooth_identity_pool, smooth_identity_stats = _family_stats(
+        runs_df,
+        eligible_ids=eligible_ids,
+        families=SMOOTH_IDENTITY_FAMILIES,
+        label="LGBSmoothPenalty identity",
+        accuracy=penalized_accuracy,
+        constraint_ids=penalized_constraint_ids,
+    )
+    smooth_logistic_pool, smooth_logistic_stats = _family_stats(
+        runs_df,
+        eligible_ids=eligible_ids,
+        families=SMOOTH_LOGISTIC_FAMILIES,
+        label="LGBSmoothPenalty logistic_quantile",
+        accuracy=penalized_accuracy,
+        constraint_ids=penalized_constraint_ids,
+    )
 
-    ccao_stats = _per_config_fold_stats(ccao_pool, accuracy=accuracy, constraint_ids=constraint_ids)
-    utopia_stats = _per_config_fold_stats(utopia_pool, accuracy=accuracy, constraint_ids=constraint_ids)
-    nash_stats = _per_config_fold_stats(nash_pool, accuracy=accuracy, constraint_ids=constraint_ids)
-    smooth_stats = _per_config_fold_stats(smooth_pool, accuracy=accuracy, constraint_ids=constraint_ids)
-
-    pick_min = select_min_rmse(ccao_stats, accuracy=accuracy)
-    pick_utopia = select_utopia(utopia_stats, accuracy=accuracy, constraint_ids=constraint_ids)
-    pick_nash = select_nash(nash_stats, accuracy=accuracy, constraint_ids=constraint_ids)
-    pick_smooth_nash = select_nash(smooth_stats, accuracy=accuracy, constraint_ids=constraint_ids)
+    # LinearRegression has no tuned hyperparameters. If multiple linear rows ever
+    # appear, keep the deterministic lowest config_id rather than selecting on
+    # the held-out test set.
+    pick_linear = linear_stats.sort_values("config_id", ascending=True).iloc[0].to_dict()
+    pick_lgbm = select_min_rmse(lgbm_stats, accuracy=accuracy)
+    if penalized_mode == "mse_only":
+        pick_cov = select_min_rmse(cov_stats, accuracy=penalized_accuracy)
+        pick_smooth_identity = select_min_rmse(smooth_identity_stats, accuracy=penalized_accuracy)
+        pick_smooth_logistic = select_min_rmse(smooth_logistic_stats, accuracy=penalized_accuracy)
+    else:
+        pick_cov = select_nash(cov_stats, accuracy=penalized_accuracy, constraint_ids=penalized_constraint_ids)
+        pick_smooth_identity = select_nash(
+            smooth_identity_stats,
+            accuracy=penalized_accuracy,
+            constraint_ids=penalized_constraint_ids,
+        )
+        pick_smooth_logistic = select_nash(
+            smooth_logistic_stats,
+            accuracy=penalized_accuracy,
+            constraint_ids=penalized_constraint_ids,
+        )
 
     test_lookup = test_df.set_index(test_df["config_id"].astype(str)).to_dict(orient="index")
 
@@ -468,63 +531,87 @@ def run_selection(
         "split_id": split_id,
         "accuracy_metric": metric_id,
         "constraint_metrics": constraint_ids,
+        "penalized_selection_mode": penalized_mode,
+        "penalized_accuracy_metric": penalized_accuracy.metric_id,
+        "penalized_constraint_metrics": penalized_constraint_ids,
+        "nash_accuracy_metric": penalized_accuracy.metric_id,
+        "nash_constraint_metrics": penalized_constraint_ids,
         "candidate_pools": {
-            "ccao_min_rmse": {
-                "n_configs": int(ccao_stats.shape[0]),
-                "families": sorted(ccao_stats["model_family"].dropna().astype(str).unique().tolist()),
-                "n_folds": int(ccao_pool["fold_id"].nunique()),
-            },
-            "utopia": {
-                "n_configs": int(utopia_stats.shape[0]),
-                "families": sorted(utopia_stats["model_family"].dropna().astype(str).unique().tolist()),
-                "n_folds": int(utopia_pool["fold_id"].nunique()),
-            },
-            "nash": {
-                "n_configs": int(nash_stats.shape[0]),
-                "families": sorted(nash_stats["model_family"].dropna().astype(str).unique().tolist()),
-                "n_folds": int(nash_pool["fold_id"].nunique()),
-            },
-            "smooth_penalty_nash": {
-                "n_configs": int(smooth_stats.shape[0]),
-                "families": sorted(smooth_stats["model_family"].dropna().astype(str).unique().tolist()),
-                "n_folds": int(smooth_pool["fold_id"].nunique()),
-            },
+            "linear_regression": _pool_summary(linear_pool, linear_stats),
+            "lgbm_min_rmse": _pool_summary(lgbm_pool, lgbm_stats),
+            "cov_penalty_min_mse": _pool_summary(cov_pool, cov_stats),
+            "smooth_identity_min_mse": _pool_summary(smooth_identity_pool, smooth_identity_stats),
+            "smooth_logistic_min_mse": _pool_summary(smooth_logistic_pool, smooth_logistic_stats),
         },
         "selections": {
-            "ccao_min_rmse": _selection_record(
-                rule="ccao_min_rmse",
-                row=pick_min,
-                test_metrics=test_lookup.get(str(pick_min["config_id"]), {}),
+            "linear_regression": _selection_record(
+                rule="linear_regression",
+                row=pick_linear,
+                test_metrics=test_lookup.get(str(pick_linear["config_id"]), {}),
                 accuracy=accuracy,
                 constraint_ids=constraint_ids,
-                extra={},
+                extra={
+                    "selector_rule": "untuned_baseline",
+                    "selector_label": "Untuned LinearRegression",
+                    "selector_description": (
+                        "LinearRegression has no hyperparameter or rho sweep; it is included as the fixed "
+                        "linear baseline and is not selected using held-out test performance."
+                    ),
+                },
             ),
-            "utopia": _selection_record(
-                rule="utopia",
-                row=pick_utopia,
-                test_metrics=test_lookup.get(str(pick_utopia["config_id"]), {}),
+            "lgbm_min_rmse": _selection_record(
+                rule="lgbm_min_rmse",
+                row=pick_lgbm,
+                test_metrics=test_lookup.get(str(pick_lgbm["config_id"]), {}),
                 accuracy=accuracy,
                 constraint_ids=constraint_ids,
-                extra={"utopia_distance": float(pick_utopia.get("utopia_distance", np.nan))},
+                extra={
+                    "selector_rule": "lgbm_min_validation_error",
+                    "selector_label": f"LGBM min {accuracy.metric_id}",
+                    "selector_description": (
+                        f"Configuration with the minimum mean fold {accuracy.metric_id} within the "
+                        "baseline LGBMRegressor family."
+                    ),
+                },
             ),
-            "nash": _selection_record(
-                rule="nash",
-                row=pick_nash,
-                test_metrics=test_lookup.get(str(pick_nash["config_id"]), {}),
-                accuracy=accuracy,
-                constraint_ids=constraint_ids,
-                extra={"nash_log_utility": float(pick_nash.get("nash_log_utility", np.nan))},
+            "cov_penalty_min_mse": _selection_record(
+                rule="cov_penalty_min_mse",
+                row=pick_cov,
+                test_metrics=test_lookup.get(str(pick_cov["config_id"]), {}),
+                accuracy=penalized_accuracy,
+                constraint_ids=penalized_constraint_ids,
+                extra=_penalized_selector_extra(
+                    base_rule="cov_penalty_min_mse",
+                    penalized_mode=penalized_mode,
+                    row=pick_cov,
+                ),
+            ),
+            "smooth_identity_min_mse": _selection_record(
+                rule="smooth_identity_min_mse",
+                row=pick_smooth_identity,
+                test_metrics=test_lookup.get(str(pick_smooth_identity["config_id"]), {}),
+                accuracy=penalized_accuracy,
+                constraint_ids=penalized_constraint_ids,
+                extra=_penalized_selector_extra(
+                    base_rule="smooth_identity_min_mse",
+                    penalized_mode=penalized_mode,
+                    row=pick_smooth_identity,
+                ),
+            ),
+            "smooth_logistic_min_mse": _selection_record(
+                rule="smooth_logistic_min_mse",
+                row=pick_smooth_logistic,
+                test_metrics=test_lookup.get(str(pick_smooth_logistic["config_id"]), {}),
+                accuracy=penalized_accuracy,
+                constraint_ids=penalized_constraint_ids,
+                extra=_penalized_selector_extra(
+                    base_rule="smooth_logistic_min_mse",
+                    penalized_mode=penalized_mode,
+                    row=pick_smooth_logistic,
+                ),
             ),
         },
     }
-    payload["selections"]["smooth_penalty_nash"] = _selection_record(
-        rule="smooth_penalty_nash",
-        row=pick_smooth_nash,
-        test_metrics=test_lookup.get(str(pick_smooth_nash["config_id"]), {}),
-        accuracy=accuracy,
-        constraint_ids=constraint_ids,
-        extra={"nash_log_utility": float(pick_smooth_nash.get("nash_log_utility", np.nan))},
-    )
 
     json_path = out_dir / "selected_models.json"
     json_path.write_text(json.dumps(payload, indent=2, sort_keys=True, default=str), encoding="utf-8")
@@ -536,6 +623,51 @@ def run_selection(
     payload["json_path"] = str(json_path)
     payload["csv_path"] = str(csv_path)
     return payload
+
+
+def _penalized_selector_extra(
+    *,
+    base_rule: str,
+    penalized_mode: str,
+    row: Dict[str, Any],
+) -> Dict[str, Any]:
+    family = str(row.get("model_family", ""))
+    family_meta = {
+        "cov_penalty_min_mse": ("CovPenalty", "cov_penalty_min_mse"),
+        "smooth_identity_min_mse": ("SmoothPenalty identity", "smooth_identity_min_mse"),
+        "smooth_logistic_min_mse": ("SmoothPenalty logistic-quantile", "smooth_logistic_min_mse"),
+        "nash": ("CovPenalty", "cov_penalty_min_mse"),
+        "smooth_penalty_nash": ("SmoothPenalty logistic-quantile", "smooth_logistic_min_mse"),
+    }.get(base_rule)
+    if family_meta is None:
+        family_meta = {
+            "LGBCovPenalty": ("CovPenalty", "cov_penalty_min_mse"),
+            "LGBSmoothPenalty": ("SmoothPenalty identity", "smooth_identity_min_mse"),
+            "LGBSmoothPenaltyLogisticProxy": ("SmoothPenalty logistic-quantile", "smooth_logistic_min_mse"),
+        }.get(family, (family or base_rule, f"{family or base_rule}_min_mse"))
+    family_label, mse_rule = family_meta
+    if penalized_mode == "mse_only":
+        return {
+            "selector_rule": mse_rule,
+            "selector_label": f"{family_label} min MSE",
+            "selector_description": (
+                f"Configuration with the minimum mean fold MSE within the {family_label} family. "
+                "This selector uses only predictive error and does not apply fairness-utility aggregation."
+            ),
+        }
+    extra = {
+        "selector_rule": f"{base_rule}_nash",
+        "selector_label": (
+            f"{family_label} Nash"
+        ),
+        "selector_description": (
+            "Penalized-model winner via Nash-style product of utilities: transform fold-mean "
+            "RMSE to 1/RMSE and map PRD through an IAAO-band positive utility, then maximize "
+            "the sum of log-utilities with no across-candidate normalization."
+        ),
+        "nash_log_utility": float(row.get("nash_log_utility", np.nan)),
+    }
+    return extra
 
 
 def _selection_record(

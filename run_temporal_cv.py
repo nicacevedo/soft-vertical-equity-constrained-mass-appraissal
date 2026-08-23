@@ -39,10 +39,15 @@ from soft_constrained_models.boosting_models import (
     LGBSmoothPenaltyCVaR,
     LGBSmoothPenaltyCVaRTotal,
 )
-from utils.motivation_utils import _compute_extended_metrics, _stable_hash, run_robust_rolling_origin_cv
+from utils.motivation_utils import (
+    _compute_extended_metrics,
+    _stable_hash,
+    run_robust_rolling_origin_cv,
+    split_ccao_assessment_universe,
+)
 
 
-_ASSESSMENT_YEAR: int = 2024  # Calendar year used as the held-out assessment block.
+_ASSESSMENT_YEAR_DEFAULT: int = 2025  # Calendar year used as the held-out assessment/test block.
 _LOG_T0 = time.perf_counter()
 
 
@@ -615,14 +620,24 @@ def _load_and_split_data(
     params: dict,
     target_column: str,
     date_column: str,
+    assessment_year: int,
+    heldout_test_mode: str,
     sample_frac: float | None,
     sample_seed: int,
+    universe_start: str = "2016-01-01",
+    pre_assessment_end: str = "2024-12-31",
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, List[str], List[str]]:
     """
     Mirrors the split protocol used elsewhere in this repo:
-      - assessment: year == 2024
-      - pre-2024: split by time into train/validate universe vs held-out test block
+      - assessment_year mode: year < assessment_year is train/CV; year == assessment_year is held-out test
+      - pre_assessment_tail mode: CCAO protocol — oldest split_prop of 2016–2024 for
+        train/CV, newest remainder as test, assessment year held out separately
     """
+    assessment_year = int(assessment_year)
+    heldout_test_mode = str(heldout_test_mode).strip().lower()
+    if heldout_test_mode not in {"assessment_year", "pre_assessment_tail"}:
+        raise ValueError("heldout_test_mode must be 'assessment_year' or 'pre_assessment_tail'.")
+
     predictor_cols = list(params["model"]["predictor"]["all"])
     categorical_cols = list(params["model"]["predictor"]["categorical"])
     filter_cols = ["ind_pin_is_multicard", "sv_is_outlier"]
@@ -716,22 +731,40 @@ def _load_and_split_data(
     order_start = time.perf_counter()
     sorted_idx = np.argsort(date_values.to_numpy(copy=False), kind="quicksort")
     sorted_years = date_years[sorted_idx]
-    pre2024_sorted_idx = sorted_idx[sorted_years < _ASSESSMENT_YEAR]
-    assess_sorted_idx = sorted_idx[sorted_years == _ASSESSMENT_YEAR]
+    pre_assessment_sorted_idx = sorted_idx[sorted_years < assessment_year]
+    assess_sorted_idx = sorted_idx[sorted_years == assessment_year]
     _log(
         "date ordering prepared",
-        pre2024_rows=int(pre2024_sorted_idx.size),
-        assess_rows=int(assess_sorted_idx.size),
+        assessment_year=int(assessment_year),
+        pre_assessment_rows=int(pre_assessment_sorted_idx.size),
+        assessment_year_rows=int(assess_sorted_idx.size),
         elapsed_sec=f"{time.perf_counter() - order_start:.2f}",
     )
 
-    train_prop = float(params["cv"]["split_prop"])
-    split_idx = int(train_prop * pre2024_sorted_idx.size)
-    df_train_validate = df.iloc[pre2024_sorted_idx[:split_idx], :].copy().reset_index(drop=True)
-    df_test = df.iloc[pre2024_sorted_idx[split_idx:], :].copy().reset_index(drop=True)
-    df_assess = df.iloc[assess_sorted_idx, :].copy().reset_index(drop=True)
+    if heldout_test_mode == "assessment_year":
+        df_train_validate = df.iloc[pre_assessment_sorted_idx, :].copy().reset_index(drop=True)
+        df_test = df.iloc[assess_sorted_idx, :].copy().reset_index(drop=True)
+        df_assess = df_test.copy()
+        if df_test.empty:
+            raise ValueError(
+                f"No held-out test rows found for assessment_year={assessment_year}. "
+                "Use --heldout-test-mode pre_assessment_tail or check the input data."
+            )
+    else:
+        splits = split_ccao_assessment_universe(
+            df,
+            date_column,
+            split_prop=float(params["cv"]["split_prop"]),
+            universe_start=str(universe_start),
+            pre_assessment_end=str(pre_assessment_end),
+            assessment_year=int(assessment_year),
+        )
+        df_train_validate = splits["development"]
+        df_test = splits["test"]
+        df_assess = splits["assessment"]
     _log(
         "data split completed",
+        heldout_test_mode=heldout_test_mode,
         train_validate_rows=int(df_train_validate.shape[0]),
         test_rows=int(df_test.shape[0]),
         assess_rows=int(df_assess.shape[0]),
@@ -753,6 +786,10 @@ def _build_model_specs(
 ) -> List[Dict[str, Any]]:
     specs: List[Dict[str, Any]] = []
     lgbm_base_config_id = _stable_hash({"lgbm_params": lgbm_params})
+    lgbm_base_config = {
+        "lgbm_base_config_id": lgbm_base_config_id,
+        "lgbm_params": dict(lgbm_params),
+    }
 
     # Baselines
     specs.append(
@@ -766,7 +803,7 @@ def _build_model_specs(
     specs.append(
         {
             "name": "LGBMRegressor",
-            "config": {"lgbm_base_config_id": lgbm_base_config_id},
+            "config": dict(lgbm_base_config),
             "requires_linear_pipeline": False,
             "factory": lambda: lgb.LGBMRegressor(**dict(lgbm_params)),
         }
@@ -780,13 +817,42 @@ def _build_model_specs(
             specs.append(
                 {
                     "name": "LGBSmoothPenalty",
-                    "config": {"rho": r, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                    "config": {
+                        "rho": r,
+                        "ratio_mode": ratio_mode,
+                        "weighting_proxy_mode": "identity",
+                        **lgbm_base_config,
+                    },
                     "metric_ratio_mode": ratio_mode,
                     "requires_linear_pipeline": False,
                     "factory": (
                         lambda rho=r, ratio_mode=ratio_mode: LGBSmoothPenalty(
                             rho=rho,
                             ratio_mode=ratio_mode,
+                            weighting_proxy_mode="identity",
+                            zero_grad_tol=1e-12,
+                            lgbm_params=dict(lgbm_params),
+                            verbose=False,
+                        )
+                    ),
+                }
+            )
+            specs.append(
+                {
+                    "name": "LGBSmoothPenaltyLogisticProxy",
+                    "config": {
+                        "rho": r,
+                        "ratio_mode": ratio_mode,
+                        "weighting_proxy_mode": "logistic_quantile",
+                        **lgbm_base_config,
+                    },
+                    "metric_ratio_mode": ratio_mode,
+                    "requires_linear_pipeline": False,
+                    "factory": (
+                        lambda rho=r, ratio_mode=ratio_mode: LGBSmoothPenalty(
+                            rho=rho,
+                            ratio_mode=ratio_mode,
+                            weighting_proxy_mode="logistic_quantile",
                             zero_grad_tol=1e-12,
                             lgbm_params=dict(lgbm_params),
                             verbose=False,
@@ -801,7 +867,7 @@ def _build_model_specs(
                     specs.append(
                         {
                             "name": "LGBSmoothPenaltyCVaR",
-                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, **lgbm_base_config},
                             "metric_ratio_mode": ratio_mode,
                             "requires_linear_pipeline": False,
                             "factory": (
@@ -819,7 +885,7 @@ def _build_model_specs(
                     specs.append(
                         {
                             "name": "LGBSmoothPenaltyCVaRTotal",
-                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, **lgbm_base_config},
                             "metric_ratio_mode": ratio_mode,
                             "requires_linear_pipeline": False,
                             "factory": (
@@ -840,7 +906,7 @@ def _build_model_specs(
             specs.append(
                 {
                     "name": "LGBCovPenalty",
-                    "config": {"rho": r, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                    "config": {"rho": r, "ratio_mode": ratio_mode, **lgbm_base_config},
                     "metric_ratio_mode": ratio_mode,
                     "requires_linear_pipeline": False,
                     "factory": (
@@ -879,7 +945,7 @@ def _build_model_specs(
                     specs.append(
                         {
                             "name": "LGBCovPenaltyCVaRTotal",
-                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, "lgbm_base_config_id": lgbm_base_config_id},
+                            "config": {"rho": r, "keep": k, "ratio_mode": ratio_mode, **lgbm_base_config},
                             "metric_ratio_mode": ratio_mode,
                             "requires_linear_pipeline": False,
                             "factory": (
@@ -930,20 +996,22 @@ def _evaluate_models_on_test_set(
     parallel_cpu_fraction: float,
     parallel_max_workers: Optional[int],
     invalid_config_ids: Optional[List[str]] = None,
+    artifact_prefix: str = "test",
+    stage: str = "held_out_test",
 ) -> Dict[str, str]:
     """
-    Fit each config on the full train/validate universe and evaluate once on held-out test.
+    Fit each config on the training frame and evaluate once on the held-out frame.
     """
     analysis_dir.mkdir(parents=True, exist_ok=True)
-    test_metrics_path = analysis_dir / "test_metrics.csv"
-    test_predictions_path = analysis_dir / "test_predictions.parquet"
-    test_meta_path = analysis_dir / "test_eval_metadata.json"
-    flagged_path = analysis_dir / "test_flagged_configs.csv"
-    legacy_flagged_path = analysis_dir / "test_rejected_configs.csv"
-    status_path = analysis_dir / "test_eval_status.json"
-    shard_metrics_root = analysis_dir / "test_run_metrics"
-    shard_preds_root = analysis_dir / "test_run_predictions"
-    shard_status_root = analysis_dir / "test_run_status"
+    test_metrics_path = analysis_dir / f"{artifact_prefix}_metrics.csv"
+    test_predictions_path = analysis_dir / f"{artifact_prefix}_predictions.parquet"
+    test_meta_path = analysis_dir / f"{artifact_prefix}_eval_metadata.json"
+    flagged_path = analysis_dir / f"{artifact_prefix}_flagged_configs.csv"
+    legacy_flagged_path = analysis_dir / f"{artifact_prefix}_rejected_configs.csv"
+    status_path = analysis_dir / f"{artifact_prefix}_eval_status.json"
+    shard_metrics_root = analysis_dir / f"{artifact_prefix}_run_metrics"
+    shard_preds_root = analysis_dir / f"{artifact_prefix}_run_predictions"
+    shard_status_root = analysis_dir / f"{artifact_prefix}_run_status"
     eval_start = time.perf_counter()
 
     spec_jobs: List[Dict[str, Any]] = []
@@ -980,7 +1048,7 @@ def _evaluate_models_on_test_set(
             for job in spec_jobs
         ],
     }
-    eval_signature = _stable_hash({"stage": "held_out_test", **eval_manifest})
+    eval_signature = _stable_hash({"stage": stage, **eval_manifest})
 
     existing_status = _read_json_if_exists(status_path)
     if (
@@ -995,11 +1063,14 @@ def _evaluate_models_on_test_set(
             n_models=int(len(spec_jobs)),
             analysis_dir=str(analysis_dir),
         )
-        out = {"test_metrics_csv": str(test_metrics_path), "test_predictions_parquet": str(test_predictions_path)}
+        out = {
+            f"{artifact_prefix}_metrics_csv": str(test_metrics_path),
+            f"{artifact_prefix}_predictions_parquet": str(test_predictions_path),
+        }
         if flagged_path.exists():
-            out["test_flagged_configs_csv"] = str(flagged_path)
+            out[f"{artifact_prefix}_flagged_configs_csv"] = str(flagged_path)
         if legacy_flagged_path.exists():
-            out["test_rejected_configs_csv"] = str(legacy_flagged_path)
+            out[f"{artifact_prefix}_rejected_configs_csv"] = str(legacy_flagged_path)
         return out
 
     _log(
@@ -1354,10 +1425,13 @@ def _evaluate_models_on_test_set(
         total_sec=f"{time.perf_counter() - eval_start:.2f}",
     )
 
-    out = {"test_metrics_csv": str(test_metrics_path), "test_predictions_parquet": str(test_predictions_path)}
+    out = {
+        f"{artifact_prefix}_metrics_csv": str(test_metrics_path),
+        f"{artifact_prefix}_predictions_parquet": str(test_predictions_path),
+    }
     if not flagged_df.empty:
-        out["test_flagged_configs_csv"] = str(flagged_path)
-        out["test_rejected_configs_csv"] = str(legacy_flagged_path)
+        out[f"{artifact_prefix}_flagged_configs_csv"] = str(flagged_path)
+        out[f"{artifact_prefix}_rejected_configs_csv"] = str(legacy_flagged_path)
     return out
 
 
@@ -1365,6 +1439,8 @@ def run_full_pipeline(
     *,
     result_root: str,
     data_path: str,
+    assessment_year: int,
+    heldout_test_mode: str,
     sample_frac: float | None,
     seed: int,
     rho_values: List[float],
@@ -1383,6 +1459,8 @@ def run_full_pipeline(
     baseline_search: bool = False,
     baseline_search_trials: Optional[int] = None,
     include_cvar_models: bool = False,
+    universe_start: str = "2016-01-01",
+    pre_assessment_end: str = "2024-12-31",
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -1401,6 +1479,8 @@ def run_full_pipeline(
         "pipeline start",
         result_root=result_root,
         data_path=data_path,
+        assessment_year=int(assessment_year),
+        heldout_test_mode=str(heldout_test_mode),
         sample_frac=sample_frac,
         seed=int(seed),
         parallel=bool(parallel_enabled),
@@ -1419,8 +1499,12 @@ def run_full_pipeline(
         params=params,
         target_column=target_col,
         date_column=date_col,
+        assessment_year=int(assessment_year),
+        heldout_test_mode=str(heldout_test_mode),
         sample_frac=sample_frac,
         sample_seed=seed,
+        universe_start=str(universe_start),
+        pre_assessment_end=str(pre_assessment_end),
     )
     _log("data load/split finished", elapsed_sec=f"{time.perf_counter() - data_start:.2f}")
 
@@ -1437,9 +1521,13 @@ def run_full_pipeline(
         "predictor_cols": predictor_cols,
         "categorical_cols": categorical_cols,
         "filters": {"drop_multicard": True, "drop_outliers": True},
+        "assessment_year": int(assessment_year),
+        "heldout_test_mode": str(heldout_test_mode),
+        "universe_start": str(universe_start),
+        "pre_assessment_end": str(pre_assessment_end),
         "sample_frac": sample_frac,
         "sample_seed": int(seed),
-        "split_prop_pre2024": float(params["cv"]["split_prop"]),
+        "split_prop_pre_assessment": float(params["cv"]["split_prop"]),
     }
 
     model_setup_start = time.perf_counter()
@@ -1550,6 +1638,35 @@ def run_full_pipeline(
     )
     _log("held-out test evaluation finished", elapsed_sec=f"{time.perf_counter() - test_eval_start:.2f}")
 
+    assess_artifacts: Dict[str, str] = {}
+    if str(heldout_test_mode).strip().lower() == "pre_assessment_tail" and not df_assess.empty:
+        assess_eval_start = time.perf_counter()
+        production = pd.concat([df_train_validate, df_test], ignore_index=True)
+        assess_artifacts = _evaluate_models_on_test_set(
+            df_train_validate=production,
+            df_test=df_assess,
+            predictor_cols=predictor_cols,
+            categorical_cols=categorical_cols,
+            date_col=date_col,
+            target_col=target_col,
+            model_specs=model_specs,
+            linear_pipeline_builder=linear_pipeline_builder,
+            fairness_ratio_mode=fairness_ratio_mode,
+            analysis_dir=analysis_dir,
+            parquet_engine=parquet_engine,
+            numeric_sanity_abs_cap=float(numeric_sanity_abs_cap),
+            parallel_enabled=parallel_enabled,
+            parallel_cpu_fraction=parallel_cpu_fraction,
+            parallel_max_workers=parallel_max_workers,
+            invalid_config_ids=[str(x) for x in cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", []))],
+            artifact_prefix="assess",
+            stage="assessment_year",
+        )
+        _log(
+            "assessment-year evaluation finished",
+            elapsed_sec=f"{time.perf_counter() - assess_eval_start:.2f}",
+        )
+
     _log(
         "pipeline finished",
         total_sec=f"{time.perf_counter() - pipeline_start:.2f}",
@@ -1563,6 +1680,7 @@ def run_full_pipeline(
         "result_root": str(Path(result_root).resolve()),
         "analysis_dir": str(analysis_dir),
         **test_artifacts,
+        **assess_artifacts,
         "n_train_validate": int(df_train_validate.shape[0]),
         "n_test": int(df_test.shape[0]),
         "n_assess": int(df_assess.shape[0]),
@@ -1606,6 +1724,23 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
     p.add_argument("--config", type=str, default=_CV_CONFIG_PATH, help="Path to cv_config.yaml.")
     p.add_argument("--result-root", type=str, default=cfg.get("result_root", "./output/robust_rolling_origin_cv"))
     p.add_argument("--data-path", type=str, default=cfg.get("data_path", "./data/CCAO/2025/training_data.parquet"))
+    p.add_argument(
+        "--assessment-year",
+        type=int,
+        default=int(cfg.get("assessment_year", _ASSESSMENT_YEAR_DEFAULT)),
+        help="Calendar sale year reserved for the held-out assessment/test block.",
+    )
+    p.add_argument(
+        "--heldout-test-mode",
+        type=str,
+        default=str(cfg.get("heldout_test_mode", "assessment_year")),
+        choices=["assessment_year", "pre_assessment_tail"],
+        help=(
+            "assessment_year: train/CV on years before --assessment-year and test on that year. "
+            "pre_assessment_tail: CCAO protocol — oldest params.yaml cv.split_prop of the "
+            "pre-assessment universe for train/CV, newest remainder as test, assessment year separate."
+        ),
+    )
     p.add_argument("--sample-frac", type=float, default=cfg.get("sample_frac", None))
     p.add_argument("--seed", type=int, default=cfg.get("seed", 2025))
 
@@ -1676,8 +1811,9 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         default=bool(cfg.get("include_cvar_models", False)),
         help=(
             "When enabled, also evaluate CVaR-style penalty variants. "
-            "By default, only the four basic families are run: LinearRegression, "
-            "LGBMRegressor, LGBSmoothPenalty, and LGBCovPenalty."
+            "By default, only the five requested comparison families are run: LinearRegression, "
+            "LGBMRegressor, LGBCovPenalty, LGBSmoothPenalty identity, and "
+            "LGBSmoothPenalty logistic_quantile."
         ),
     )
     p.add_argument(
@@ -1801,6 +1937,8 @@ if __name__ == "__main__":
     out = run_full_pipeline(
         result_root=str(args.result_root),
         data_path=str(args.data_path),
+        assessment_year=int(args.assessment_year),
+        heldout_test_mode=str(args.heldout_test_mode),
         sample_frac=(None if args.sample_frac is None else float(args.sample_frac)),
         seed=int(args.seed),
         rho_values=rho_values,
@@ -1831,6 +1969,8 @@ if __name__ == "__main__":
         baseline_search=bool(args.baseline_search),
         baseline_search_trials=(None if args.baseline_search_trials is None else int(args.baseline_search_trials)),
         include_cvar_models=bool(args.include_cvar_models),
+        universe_start=str(cfg.get("universe_start", "2016-01-01")),
+        pre_assessment_end=str(cfg.get("pre_assessment_end", "2024-12-31")),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")
@@ -1839,6 +1979,9 @@ if __name__ == "__main__":
     print(f"analysis_dir={out['analysis_dir']}")
     print(f"test_metrics_csv={out['test_metrics_csv']}")
     print(f"test_predictions_parquet={out['test_predictions_parquet']}")
+    if out.get("assess_metrics_csv"):
+        print(f"assess_metrics_csv={out['assess_metrics_csv']}")
+        print(f"assess_predictions_parquet={out['assess_predictions_parquet']}")
     if bool(out.get("baseline_search_enabled", False)):
         print(f"baseline_search_summary_csv={out['search_summary_csv']}")
         print(f"baseline_search_best_params_json={out['best_params_json']}")

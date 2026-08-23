@@ -84,6 +84,11 @@ def _collect_artifact_paths(*, result_root: Path, analysis_dir: Path, data_id: s
     report_dir = selected_dir / "report"
     found["report_dir"] = str(report_dir.resolve()) if report_dir.is_dir() else None
     for name in (
+        "five_model_comparison.html",
+        "five_model_metrics.csv",
+        "five_model_decile.csv",
+        "five_model_township_error.csv",
+        "five_model_tract_error.csv",
         "three_model_comparison.html",
         "three_model_metrics.csv",
         "three_model_decile.csv",
@@ -115,6 +120,17 @@ def _load_selected_summary(analysis_dir: Path) -> Dict[str, Any]:
         payload = json.loads(json_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return {"error": f"could not parse {json_path}"}
+    accuracy_metric = payload.get("accuracy_metric", "RMSE")
+    penalized_accuracy_metric = payload.get("penalized_accuracy_metric", accuracy_metric)
+
+    def _cv_metric_summary(sel: Dict[str, Any]) -> Dict[str, Any]:
+        metric = accuracy_metric
+        key = f"cv_{metric}_mean"
+        if key not in sel and penalized_accuracy_metric:
+            metric = penalized_accuracy_metric
+            key = f"cv_{metric}_mean"
+        return {"cv_selection_metric": metric, "cv_selection_metric_mean": sel.get(key)}
+
     return {
         "accuracy_metric": payload.get("accuracy_metric"),
         "constraint_metrics": payload.get("constraint_metrics"),
@@ -124,8 +140,7 @@ def _load_selected_summary(analysis_dir: Path) -> Dict[str, Any]:
                 "config_id": sel.get("config_id"),
                 "model_name": sel.get("model_name"),
                 "model_family": sel.get("model_family"),
-                f"cv_{payload.get('accuracy_metric','RMSE')}_mean":
-                    sel.get(f"cv_{payload.get('accuracy_metric','RMSE')}_mean"),
+                **_cv_metric_summary(sel),
                 "test_R2": sel.get("test_R2"),
                 "test_RMSE": sel.get("test_RMSE"),
                 "test_PRD": sel.get("test_PRD"),

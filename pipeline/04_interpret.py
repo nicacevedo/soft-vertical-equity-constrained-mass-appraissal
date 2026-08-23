@@ -7,7 +7,7 @@ optional comparable sales. This research codebase does not yet have a
 first-class SHAP / comps export wired to the fairness-regularized
 estimators.
 
-This stage focuses on the **two selections** produced by stage 02-assess:
+This stage focuses on the selections produced by stage 02-assess:
 
 - prints each winner's ``config_id``, ``model_name``, and
   ``model_config_json`` so the chosen hyperparameters are visible;
@@ -76,15 +76,19 @@ def _format_hyperparams(model_config_json: str) -> str:
     if not isinstance(cfg, dict):
         return f"  {cfg!r}"
     base_params: Dict[str, Any] = {}
-    if "lgbm_base_config_id" in cfg:
+    if isinstance(cfg.get("lgbm_params"), dict):
+        base_params = dict(cfg["lgbm_params"])
+    elif "lgbm_base_config_id" in cfg:
         base_params = _load_lgbm_base_params()
     lines: List[str] = []
     for k in sorted(cfg.keys()):
+        if k == "lgbm_params":
+            continue
         lines.append(f"  - {k}: {cfg[k]}")
     if base_params:
-        lines.append("  - (LightGBM base hyperparameters from model_params.yaml::LGBMRegressor)")
+        lines.append("  - LightGBM base hyperparameters:")
         for k in sorted(base_params.keys()):
-            lines.append(f"      · {k}: {base_params[k]}")
+            lines.append(f"      - {k}: {base_params[k]}")
     return "\n".join(lines)
 
 
@@ -111,6 +115,14 @@ def _build_markdown(payload: Dict[str, Any]) -> str:
     lines.append(f"- split_id: `{payload['split_id']}`  ")
     lines.append(f"- accuracy metric: `{payload['accuracy_metric']}`  ")
     lines.append(f"- constraint metrics: `{payload['constraint_metrics']}`")
+    if payload.get("penalized_selection_mode"):
+        lines.append(f"- penalized selection mode: `{payload['penalized_selection_mode']}`")
+    penalized_accuracy_metric = payload.get("penalized_accuracy_metric", payload.get("nash_accuracy_metric"))
+    penalized_constraint_metrics = payload.get("penalized_constraint_metrics", payload.get("nash_constraint_metrics"))
+    if penalized_accuracy_metric:
+        lines.append(f"- penalized accuracy metric: `{penalized_accuracy_metric}`  ")
+    if penalized_constraint_metrics is not None:
+        lines.append(f"- penalized constraint metrics: `{penalized_constraint_metrics}`")
     pools = payload.get("candidate_pools", {}) or {}
     if pools:
         lines.append("- candidate pools:")
@@ -122,22 +134,29 @@ def _build_markdown(payload: Dict[str, Any]) -> str:
     lines.append("")
 
     for rule, sel in payload["selections"].items():
+        rule_accuracy = payload["accuracy_metric"]
+        rule_constraints = payload.get("constraint_metrics", [])
+        if f"cv_{rule_accuracy}_mean" not in sel and penalized_accuracy_metric:
+            rule_accuracy = penalized_accuracy_metric
+            rule_constraints = penalized_constraint_metrics or []
+        selector_label = sel.get("selector_label")
         lines.append(f"## Selection rule: `{rule}`")
+        if selector_label:
+            lines.append(f"- **selector:** {selector_label}")
         lines.append(f"- **config_id:** `{sel['config_id']}`")
         lines.append(f"- **model_name:** `{sel['model_name']}`")
         lines.append(f"- **model_family:** `{sel.get('model_family', '')}`")
         lines.append(f"- **n_folds:** {sel.get('n_folds', '?')}")
-        if "nash" in str(rule):
+        if "nash_log_utility" in sel:
             lines.append(f"- **nash_log_utility:** {sel.get('nash_log_utility', float('nan')):.6g}")
         elif rule == "utopia":
             lines.append(f"- **utopia_distance (legacy key):** {sel.get('utopia_distance', float('nan')):.4f}")
 
-        acc = payload["accuracy_metric"]
-        cv_acc = sel.get(f"cv_{acc}_mean", float("nan"))
-        cv_std = sel.get(f"cv_{acc}_std", float("nan"))
-        lines.append(f"- **CV {acc} (mean ± std):** {cv_acc:.6g} ± {cv_std:.6g}")
+        cv_acc = sel.get(f"cv_{rule_accuracy}_mean", float("nan"))
+        cv_std = sel.get(f"cv_{rule_accuracy}_std", float("nan"))
+        lines.append(f"- **CV {rule_accuracy} (mean ± std):** {cv_acc:.6g} ± {cv_std:.6g}")
 
-        for cid in payload.get("constraint_metrics", []):
+        for cid in rule_constraints:
             spec = CONSTRAINT_SPECS.get(cid)
             mean_val = _safe_float(sel.get(f"cv_{cid}_mean"))
             status = _bounds_status(mean_val, lower=getattr(spec, "lower", None), upper=getattr(spec, "upper", None))
@@ -166,7 +185,7 @@ def main() -> None:
         i = argv.index("--")
         argv, qt_argv = argv[:i], argv[i + 1 :]
 
-    p = argparse.ArgumentParser(description="Interpret stage — focused on the two selected models.")
+    p = argparse.ArgumentParser(description="Interpret stage — focused on selected models.")
     p.add_argument("--result-root", type=str, default=str(DEFAULT_RESULT_ROOT))
     p.add_argument("--data-id", type=str, default=None)
     p.add_argument("--split-id", type=str, default=None)

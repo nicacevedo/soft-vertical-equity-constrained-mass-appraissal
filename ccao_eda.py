@@ -111,28 +111,80 @@ def _summary_stats(values: np.ndarray) -> Dict[str, float]:
     mean = float(np.mean(values))
     median = float(np.median(values))
     std = float(np.std(values, ddof=0))
+    variance = float(std**2)
     centered = values - mean
-    skew = float(np.mean(centered**3) / (std**3)) if std > 0.0 else 0.0
-    kurtosis = float(np.mean(centered**4) / (std**4) - 3.0) if std > 0.0 else 0.0
+    abs_centered = np.abs(centered)
+    median_abs_dev = np.abs(values - median)
+
+    quantiles = {
+        "p001": float(np.quantile(values, 0.001)),
+        "p01": float(np.quantile(values, 0.01)),
+        "p05": float(np.quantile(values, 0.05)),
+        "p10": float(np.quantile(values, 0.10)),
+        "p25": float(np.quantile(values, 0.25)),
+        "p50": median,
+        "p75": float(np.quantile(values, 0.75)),
+        "p90": float(np.quantile(values, 0.90)),
+        "p95": float(np.quantile(values, 0.95)),
+        "p99": float(np.quantile(values, 0.99)),
+        "p999": float(np.quantile(values, 0.999)),
+    }
+
+    central_moment_3 = float(np.mean(centered**3))
+    central_moment_4 = float(np.mean(centered**4))
+    central_moment_5 = float(np.mean(centered**5))
+    central_moment_6 = float(np.mean(centered**6))
+    skew = float(central_moment_3 / (std**3)) if std > 0.0 else 0.0
+    kurtosis = float(central_moment_4 / (std**4) - 3.0) if std > 0.0 else 0.0
+    standardized_moment_5 = float(central_moment_5 / (std**5)) if std > 0.0 else 0.0
+    standardized_moment_6 = float(central_moment_6 / (std**6)) if std > 0.0 else 0.0
+
+    iqr = float(quantiles["p75"] - quantiles["p25"])
+    idr = float(quantiles["p90"] - quantiles["p10"])
+    bowley_skewness = (
+        float((quantiles["p75"] + quantiles["p25"] - 2.0 * quantiles["p50"]) / iqr) if iqr > 0.0 else 0.0
+    )
+    crow_siddiqui_skewness = (
+        float((quantiles["p90"] + quantiles["p10"] - 2.0 * quantiles["p50"]) / idr) if idr > 0.0 else 0.0
+    )
+    jarque_bera = float(values.size / 6.0 * (skew**2 + 0.25 * kurtosis**2))
+    coeff_var = float(std / mean) if mean != 0.0 else np.nan
+    mean_median_ratio = float(mean / median) if median != 0.0 else np.nan
 
     return {
         "count": float(values.size),
         "mean": mean,
         "median": median,
         "std": std,
+        "variance": variance,
         "min": float(np.min(values)),
-        "p01": float(np.quantile(values, 0.01)),
-        "p05": float(np.quantile(values, 0.05)),
-        "p25": float(np.quantile(values, 0.25)),
-        "p75": float(np.quantile(values, 0.75)),
-        "p95": float(np.quantile(values, 0.95)),
-        "p99": float(np.quantile(values, 0.99)),
+        **quantiles,
         "max": float(np.max(values)),
-        "iqr": float(np.quantile(values, 0.75) - np.quantile(values, 0.25)),
+        "range": float(np.max(values) - np.min(values)),
+        "iqr": iqr,
+        "interdecile_range": idr,
+        "mean_abs_deviation_from_mean": float(np.mean(abs_centered)),
+        "median_abs_deviation_from_median": float(np.median(median_abs_dev)),
+        "mad_scaled_to_sigma": float(1.4826 * np.median(median_abs_dev)),
+        "coeff_var": coeff_var,
+        "mean_median_gap": float(mean - median),
+        "mean_median_ratio": mean_median_ratio,
+        "pearson_median_skewness": float(3.0 * (mean - median) / std) if std > 0.0 else 0.0,
+        "bowley_skewness": bowley_skewness,
+        "crow_siddiqui_skewness": crow_siddiqui_skewness,
+        "central_moment_2": variance,
+        "central_moment_3": central_moment_3,
+        "central_moment_4": central_moment_4,
+        "central_moment_5": central_moment_5,
+        "central_moment_6": central_moment_6,
         "skewness": skew,
         "excess_kurtosis": kurtosis,
+        "standardized_moment_5": standardized_moment_5,
+        "standardized_moment_6": standardized_moment_6,
+        "jarque_bera": jarque_bera,
         "share_within_1std": float(np.mean(np.abs(values - mean) <= std)),
         "share_within_2std": float(np.mean(np.abs(values - mean) <= 2.0 * std)),
+        "share_within_3std": float(np.mean(np.abs(values - mean) <= 3.0 * std)),
     }
 
 
@@ -252,8 +304,14 @@ def _difference_summary_text(
         ]
     )
 
-
-def _add_reference_lines(ax: plt.Axes, mean: float, median: float, std: float) -> None:
+def _add_reference_lines(
+    ax: plt.Axes, 
+    mean: float, 
+    median: float, 
+    std: float, 
+    data_min: float=False, 
+    data_max: float=False
+) -> None:
     line_specs = [
         (mean, "#C1121F", "-", 2.2, "Mean"),
         (median, "#003049", "-", 2.2, "Median"),
@@ -261,7 +319,10 @@ def _add_reference_lines(ax: plt.Axes, mean: float, median: float, std: float) -
         (mean + std, "#F77F00", "--", 1.8, "Mean + 1 std"),
         (mean - 2.0 * std, "#FCBF49", ":", 2.0, "Mean - 2 std"),
         (mean + 2.0 * std, "#FCBF49", ":", 2.0, "Mean + 2 std"),
+        (data_min, "#2A9D8F", "-.", 1.8, "Min"),  # Added Min
+        (data_max, "#2A9D8F", "-.", 1.8, "Max"),  # Added Max
     ]
+    
     for x_value, color, linestyle, linewidth, label in line_specs:
         ax.axvline(
             x_value,
@@ -299,7 +360,7 @@ def _write_histogram(
         alpha=0.9,
         zorder=1,
     )
-    _add_reference_lines(ax, mean=mean, median=median, std=std)
+    _add_reference_lines(ax, mean=mean, median=median, std=std, data_min=stats["min"], data_max=stats["max"])
     ax.set_title(f"{title}\n{subtitle}", fontsize=15, pad=14)
     ax.set_xlabel(x_label)
     ax.set_ylabel("Count")
@@ -409,6 +470,94 @@ def _write_difference_function_plot(
     ]
 
 
+def _write_cdf_comparison_plot(
+    *,
+    real_values: np.ndarray,
+    normal_values: np.ndarray,
+    logistic_values: np.ndarray,
+    out_path: Path,
+    title: str,
+    subtitle: str,
+    x_label: str,
+) -> None:
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    series = [
+        ("Real log sale price", real_values, "#003049"),
+        ("Normal approximation", normal_values, "#C1121F"),
+        ("Logistic approximation", logistic_values, "#F77F00"),
+    ]
+    real_values = np.asarray(real_values, dtype=float)
+    real_quantiles = {
+        "p10": float(np.quantile(real_values, 0.10)),
+        "p50": float(np.quantile(real_values, 0.50)),
+        "p90": float(np.quantile(real_values, 0.90)),
+    }
+
+    def _empirical_cdf_distance(reference: np.ndarray, candidate: np.ndarray) -> Tuple[float, float]:
+        reference = np.sort(np.asarray(reference, dtype=float))
+        candidate = np.sort(np.asarray(candidate, dtype=float))
+        grid = np.sort(np.concatenate([reference, candidate]))
+        reference_cdf = np.searchsorted(reference, grid, side="right") / reference.size
+        candidate_cdf = np.searchsorted(candidate, grid, side="right") / candidate.size
+        ks_distance = float(np.max(np.abs(reference_cdf - candidate_cdf)))
+        mean_cdf_gap = float(np.mean(np.abs(reference_cdf - candidate_cdf)))
+        return ks_distance, mean_cdf_gap
+
+    for label, values, color in series:
+        sorted_values = np.sort(np.asarray(values, dtype=float))
+        cumulative_prob = np.arange(1, sorted_values.size + 1, dtype=float) / sorted_values.size
+        ax.plot(sorted_values, cumulative_prob, color=color, linewidth=2.1, label=label)
+
+    quantile_line_specs = [
+        (real_quantiles["p10"], "Real p10"),
+        (real_quantiles["p50"], "Real median"),
+        (real_quantiles["p90"], "Real p90"),
+    ]
+    for x_value, label in quantile_line_specs:
+        ax.axvline(
+            x_value,
+            color="#6B7280",
+            linestyle="--",
+            linewidth=1.1,
+            alpha=0.8,
+            zorder=1,
+            label=label,
+        )
+
+    normal_ks, normal_mean_cdf_gap = _empirical_cdf_distance(real_values, normal_values)
+    logistic_ks, logistic_mean_cdf_gap = _empirical_cdf_distance(real_values, logistic_values)
+
+    ax.set_title(f"{title}\n{subtitle}", fontsize=15, pad=14)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel("Cumulative probability")
+    ax.set_ylim(0.0, 1.0)
+    ax.grid(alpha=0.25, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.text(
+        0.985,
+        0.03,
+        "\n".join(
+            [
+                f"Real p10 / median / p90 = {real_quantiles['p10']:.3f} / {real_quantiles['p50']:.3f} / {real_quantiles['p90']:.3f}",
+                f"Normal KS / mean |dCDF| = {normal_ks:.4f} / {normal_mean_cdf_gap:.4f}",
+                f"Logistic KS / mean |dCDF| = {logistic_ks:.4f} / {logistic_mean_cdf_gap:.4f}",
+            ]
+        ),
+        transform=ax.transAxes,
+        ha="right",
+        va="bottom",
+        fontsize=9.5,
+        bbox={"boxstyle": "round,pad=0.45", "facecolor": "white", "edgecolor": "#D9D9D9", "alpha": 0.96},
+    )
+    ax.legend(loc="lower right", frameon=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+    _log("cdf comparison plot written", path=str(out_path))
+
+
 def _build_split_summary(
     *,
     df_train_validate: pd.DataFrame,
@@ -503,6 +652,9 @@ def run_eda(
 
     original_plot_path = eda_path / "sale_price_distribution_original.pdf"
     log_plot_path = eda_path / "sale_price_distribution_log.pdf"
+    log_normal_plot_path = eda_path / "sale_price_distribution_log_normal_approx.pdf"
+    log_logistic_plot_path = eda_path / "sale_price_distribution_log_logistic_approx.pdf"
+    log_cdf_comparison_plot_path = eda_path / "sale_price_distribution_log_cdf_comparison.pdf"
     original_diff_plot_path = eda_path / "sale_price_difference_functions_original.pdf"
     log_diff_plot_path = eda_path / "sale_price_difference_functions_log.pdf"
     stats_csv_path = eda_path / "sale_price_distribution_summary.csv"
@@ -524,6 +676,42 @@ def run_eda(
         subtitle=f"{split_counts_text}",
         x_label="log(sale price)",
         text_style="number",
+    )
+    log_normal_stats = _summary_stats(sale_prices_log)
+    sale_prices_log_normal = np.random.default_rng(seed).normal(
+        loc=log_normal_stats["mean"],
+        scale=log_normal_stats["std"],
+        size=sale_prices_log.shape[0],
+    )
+    log_normal_stats = _write_histogram(
+        values=sale_prices_log_normal,
+        out_path=log_normal_plot_path,
+        title="CCAO Approximate Normal Log Sale Price Distribution",
+        subtitle=f"{split_counts_text}",
+        x_label="log(sale price)",
+        text_style="number",
+    )
+    sale_prices_log_logistic = np.random.default_rng(seed).logistic(
+        loc=log_stats["mean"],
+        scale=log_stats["std"] * np.sqrt(3.0) / np.pi,
+        size=sale_prices_log.shape[0],
+    )
+    log_logistic_stats = _write_histogram(
+        values=sale_prices_log_logistic,
+        out_path=log_logistic_plot_path,
+        title="CCAO Approximate Logistic Log Sale Price Distribution",
+        subtitle=f"{split_counts_text}",
+        x_label="log(sale price)",
+        text_style="number",
+    )
+    _write_cdf_comparison_plot(
+        real_values=sale_prices_log,
+        normal_values=sale_prices_log_normal,
+        logistic_values=sale_prices_log_logistic,
+        out_path=log_cdf_comparison_plot_path,
+        title="CCAO Log Sale Price CDF Comparison",
+        subtitle=f"{split_counts_text}",
+        x_label="log(sale price)",
     )
     diff_rows: List[Dict[str, float | str]] = []
     diff_rows.extend(
@@ -553,6 +741,8 @@ def run_eda(
         [
             {"distribution": "original_sale_price", **raw_stats},
             {"distribution": "log_sale_price", **log_stats},
+            {"distribution": "log_sale_price_normal_approx", **log_normal_stats},
+            {"distribution": "log_sale_price_logistic_approx", **log_logistic_stats},
         ]
     )
     diff_summary_df = pd.DataFrame(diff_rows)
@@ -571,6 +761,9 @@ def run_eda(
         "eda_dir": str(eda_path),
         "original_plot": str(original_plot_path),
         "log_plot": str(log_plot_path),
+        "log_normal_plot": str(log_normal_plot_path),
+        "log_logistic_plot": str(log_logistic_plot_path),
+        "log_cdf_comparison_plot": str(log_cdf_comparison_plot_path),
         "original_difference_plot": str(original_diff_plot_path),
         "log_difference_plot": str(log_diff_plot_path),
         "stats_csv": str(stats_csv_path),

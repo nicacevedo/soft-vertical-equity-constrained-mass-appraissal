@@ -1,12 +1,140 @@
-import cvxpy as cp
-import gurobipy as gp
-import mosek
+try:
+    import cvxpy as cp
+except ImportError:  # pragma: no cover - only needed by legacy optimization classes
+    cp = None
+try:
+    import gurobipy as gp
+except ImportError:  # pragma: no cover - optional legacy solver
+    gp = None
+try:
+    import mosek
+except ImportError:  # pragma: no cover - optional legacy solver
+    mosek = None
 import numpy as np
 
 from time import time
 
 from sklearn.linear_model import LinearRegression, Ridge, LogisticRegression
 from sklearn.metrics import root_mean_squared_error, r2_score
+from sklearn.base import BaseEstimator, RegressorMixin
+
+
+def _as_dense_float_array(X):
+    if hasattr(X, "to_numpy"):
+        X = X.to_numpy()
+    elif hasattr(X, "toarray"):
+        X = X.toarray()
+    return np.asarray(X, dtype=float)
+
+
+class LinearProjectionCovariancePath(BaseEstimator, RegressorMixin):
+    """Exact projection-path covariance-penalized linear regression.
+
+    This implements the manuscript's fixed-prediction-space solution for
+
+        mean((f - y)^2) + 0.5 * rho * Cov(f - y, y)^2.
+
+    The fitted prediction is
+
+        f_rho = f0 - (rho / 2) * C_rho * g,
+        C_rho = C0 / (1 + rho * A / 2),
+
+    where ``f0`` is the OLS projection of ``y`` onto the design space and ``g``
+    is the projection of centered ``y`` onto the same design space. Supplying
+    ``target_q`` computes the raw rho that should leave fraction ``q`` of the
+    baseline covariance on the training data.
+    """
+
+    def __init__(self, rho=0.0, target_q=None, fit_intercept=True, rcond=None, zero_capacity_tol=1e-12):
+        self.rho = rho
+        self.target_q = target_q
+        self.fit_intercept = fit_intercept
+        self.rcond = rcond
+        self.zero_capacity_tol = zero_capacity_tol
+
+    def _augment(self, X):
+        X_arr = _as_dense_float_array(X)
+        if X_arr.ndim != 2:
+            raise ValueError("X must be a 2D array-like object.")
+        if self.fit_intercept:
+            return np.hstack([np.ones((X_arr.shape[0], 1), dtype=float), X_arr])
+        return X_arr
+
+    def fit(self, X, y):
+        Z = self._augment(X)
+        y_arr = np.asarray(y, dtype=float).reshape(-1)
+        if Z.shape[0] != y_arr.shape[0]:
+            raise ValueError("X and y have incompatible lengths.")
+
+        beta0, *_ = np.linalg.lstsq(Z, y_arr, rcond=self.rcond)
+        y_centered = y_arr - float(np.mean(y_arr))
+        beta_g, *_ = np.linalg.lstsq(Z, y_centered, rcond=self.rcond)
+
+        f0 = Z @ beta0
+        g = Z @ beta_g
+        c = y_centered
+        e0 = f0 - y_arr
+
+        C0 = float(np.mean(e0 * c))
+        A = float(np.mean(g * g))
+        B0 = float(np.mean(e0 * e0))
+        var_y = float(np.mean(c * c))
+
+        if self.target_q is not None:
+            q = float(self.target_q)
+            if not np.isfinite(q) or q <= 0.0 or q > 1.0:
+                raise ValueError("target_q must be in (0, 1].")
+            rho = 0.0 if q == 1.0 else (2.0 * (1.0 - q) / (q * A) if A > self.zero_capacity_tol else 0.0)
+        else:
+            rho = float(self.rho)
+            if not np.isfinite(rho) or rho < 0.0:
+                raise ValueError("rho must be finite and non-negative.")
+            q = 1.0 / (1.0 + 0.5 * rho * A) if A > self.zero_capacity_tol else 1.0
+
+        C_rho = q * C0
+        adjust = 0.5 * rho * C_rho
+        beta = beta0 - adjust * beta_g
+
+        self.beta0_ = beta0
+        self.beta_g_ = beta_g
+        self.beta_path_ = beta
+        self.rho_ = float(rho)
+        self.target_q_ = float(q)
+        self.C0_ = C0
+        self.C_rho_train_theory_ = float(C_rho)
+        self.A_projection_capacity_ = A
+        self.B0_mse_log_ = B0
+        self.var_y_log_ = var_y
+        self.delta_mse_log_train_theory_ = float((C0 * C0 / A) * ((1.0 - q) ** 2)) if A > self.zero_capacity_tol else 0.0
+        self.n_features_in_ = Z.shape[1] - (1 if self.fit_intercept else 0)
+        if self.fit_intercept:
+            self.intercept_ = float(beta[0])
+            self.coef_ = beta[1:].copy()
+        else:
+            self.intercept_ = 0.0
+            self.coef_ = beta.copy()
+        return self
+
+    def predict(self, X):
+        if not hasattr(self, "beta_path_"):
+            raise AttributeError("LinearProjectionCovariancePath is not fitted.")
+        Z = self._augment(X)
+        return Z @ self.beta_path_
+
+    def theory_summary(self):
+        if not hasattr(self, "beta_path_"):
+            raise AttributeError("LinearProjectionCovariancePath is not fitted.")
+        return {
+            "rho": self.rho_,
+            "q_theory": self.target_q_,
+            "A_projection_capacity": self.A_projection_capacity_,
+            "baseline_C_log_resid_logprice": self.C0_,
+            "baseline_MSE_log": self.B0_mse_log_,
+            "C_log_resid_logprice_theory": self.C_rho_train_theory_,
+            "delta_MSE_log_theory": self.delta_mse_log_train_theory_,
+            "delta_MSE_log_frac_theory": self.delta_mse_log_train_theory_ / self.B0_mse_log_
+            if self.B0_mse_log_ > 0.0 else np.nan,
+        }
 
 class LeastAbsoluteDeviationRegression:
     def __init__(self, fit_intercept=True, solver="GUROBI", solve_dual=False):
@@ -3025,4 +3153,3 @@ class FairnessConstrainedRidgeLog(BaseEstimator, RegressorMixin):
             return np.linalg.solve(M, b)
         except np.linalg.LinAlgError:
             return np.linalg.lstsq(M, b, rcond=None)[0]
-

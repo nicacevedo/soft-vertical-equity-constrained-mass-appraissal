@@ -33,6 +33,39 @@ except ImportError as e:  # pragma: no cover
     raise ImportError("This module requires scikit-learn. Install via `pip install scikit-learn`.") from e
 
 
+def _logistic_scale_from_std(std: float) -> float:
+    std = float(std)
+    if not np.isfinite(std) or std <= 0.0:
+        return 0.0
+    return float(std * np.sqrt(3.0) / np.pi)
+
+
+def _empirical_logistic_quantile_proxy(values: np.ndarray, *, loc: float, scale: float) -> np.ndarray:
+    values = np.asarray(values, dtype=float).reshape(-1)
+    n = int(values.size)
+    if n == 0:
+        return np.asarray([], dtype=float)
+
+    loc = float(loc)
+    scale = float(scale)
+    if not np.isfinite(scale) or scale <= 0.0:
+        return np.full(n, loc, dtype=float)
+
+    order = np.argsort(values, kind="mergesort")
+    sorted_values = values[order]
+    avg_ranks = np.empty(n, dtype=float)
+
+    group_starts = np.r_[0, 1 + np.flatnonzero(sorted_values[1:] != sorted_values[:-1])]
+    group_ends = np.r_[group_starts[1:], n]
+    for start, end in zip(group_starts, group_ends):
+        avg_rank = 0.5 * (float(start) + float(end - 1))
+        avg_ranks[order[start:end]] = avg_rank
+
+    probs = (avg_ranks + 0.5) / float(n)
+    probs = np.clip(probs, 1e-12, 1.0 - 1e-12)
+    return loc + scale * np.log(probs / (1.0 - probs))
+
+
 def _training_early_stopping_callback(stopping_rounds: int, verbose: bool = True):
     """Stop when the tracked training metric stops improving."""
     rounds = int(stopping_rounds)
@@ -322,7 +355,7 @@ class LGBCovPenalty:
     def __init__(
         self,
         rho=1e-3,
-        ratio_mode="div",          # "div", "diff", or "ratio"
+        ratio_mode="diff",          # "div", "diff", or "ratio"
         anchor_mode="target",        # "none" | "target" | "iter_mean"  (no-op here; see note)
         target_value=None,         # if anchor_mode="target": default 1.0 (div/ratio) or 0.0 (diff)
         early_stopping_rounds=10,
@@ -875,12 +908,16 @@ class LGBSmoothPenalty:
       - This remains separable (per-sample), so grad/hess are exact and diagonal.
       - This does *not* exactly penalize covariance; it penalizes "ratio/residual magnitude"
         weighted by (y - mean(y))^2 (your original structure).
+      - ``weighting_proxy_mode="logistic_quantile"`` keeps the same separable form but
+        replaces ``(y - mean(y))`` with a rank-preserving logistic quantile proxy centered
+        at the empirical log-price mean and scaled by ``sigma * sqrt(3) / pi``.
     """
 
     def __init__(
         self,
         rho=1e-3,
-        ratio_mode="div",        # "div" (default), "diff", or "ratio"
+        ratio_mode="diff",        # "div" (default), "diff", or "ratio"
+        weighting_proxy_mode="logistic_quantile",  # "identity" or "logistic_quantile"
         target_value=None,       # default: 1.0 for div/ratio, 0.0 for diff
         early_stopping_rounds=10,
         zero_grad_tol=1e-6,
@@ -890,6 +927,7 @@ class LGBSmoothPenalty:
     ):
         self.rho = float(rho)
         self.ratio_mode = ratio_mode
+        self.weighting_proxy_mode = str(weighting_proxy_mode).strip().lower()
         self.target_value = target_value
         self.early_stopping_rounds = None if early_stopping_rounds is None else int(early_stopping_rounds)
         self.zero_grad_tol = float(zero_grad_tol)
@@ -899,6 +937,19 @@ class LGBSmoothPenalty:
 
     def fit(self, X, y):
         self.y_mean_ = float(np.mean(y))
+        self.y_std_ = float(np.std(y, ddof=0))
+        self.y_logistic_scale_ = _logistic_scale_from_std(self.y_std_)
+        if self.weighting_proxy_mode not in {"identity", "logistic_quantile"}:
+            raise ValueError("weighting_proxy_mode must be 'identity' or 'logistic_quantile'.")
+        if self.weighting_proxy_mode == "logistic_quantile":
+            y_proxy = _empirical_logistic_quantile_proxy(
+                y,
+                loc=self.y_mean_,
+                scale=self.y_logistic_scale_,
+            )
+            self.y_weight_centered_ = y_proxy - float(np.mean(y_proxy))
+        else:
+            self.y_weight_centered_ = np.asarray(y, dtype=float) - self.y_mean_
         self.model.set_params(objective=self.fobj, metric="None")
 
         fit_kwargs = {}
@@ -924,7 +975,10 @@ class LGBSmoothPenalty:
         y_pred = np.asarray(y_pred)
 
         z = y_true
-        zc = (y_true - self.y_mean_)
+        if self.weighting_proxy_mode == "identity":
+            zc = y_true - self.y_mean_
+        else:
+            zc = self.y_weight_centered_
         denom = np.maximum(np.abs(z), self.eps_y)
 
         # choose r, dr/dy_pred, and default target
@@ -990,7 +1044,10 @@ class LGBSmoothPenalty:
         y_pred = np.asarray(y_pred)
 
         z = y_true
-        zc = (y_true - self.y_mean_)
+        if self.weighting_proxy_mode == "identity":
+            zc = y_true - self.y_mean_
+        else:
+            zc = self.y_weight_centered_
         denom = np.maximum(np.abs(z), self.eps_y)
 
         if self.ratio_mode == "div":
@@ -1012,7 +1069,10 @@ class LGBSmoothPenalty:
         return "train_loss", float(np.mean(loss_value)), False
 
     def __str__(self):
-        return f"LGBSmoothPenalty(rho={self.rho}, mode={self.ratio_mode})"
+        return (
+            f"LGBSmoothPenalty(rho={self.rho}, mode={self.ratio_mode}, "
+            f"weighting_proxy={self.weighting_proxy_mode})"
+        )
 
 
 
@@ -3719,7 +3779,6 @@ class LGBSmoothPenaltyGroupCVaR:
 #         if s > 0:
 #             w /= s
 #         return w
-
 
 
 

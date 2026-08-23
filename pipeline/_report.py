@@ -1,12 +1,12 @@
 """
-Selected-model comparison report — interactive HTML helpers.
+Five-model comparison report — interactive HTML helpers.
 
 This module builds the report compared in
 ``pipeline/reference_reports/Three-Model Comparison.html`` (the reference Quarto document):
 
   - Overview (run id, spec label, description per model)
   - Metric Table — Bootstrap tabset (Overall / City / North / South),
-    best and worst among displayed models highlighted in green / red.
+    best and worst among displayed LGBM-based models highlighted in green / red.
   - Per-Metric Comparisons — one Plotly grouped bar chart per metric
     (R², RMSE, MAE, MAPE, MdAPE, Median Ratio, COD, PRD, PRB, MKI, VEI),
     with bars for each scope and traces per model.
@@ -149,6 +149,7 @@ _MODEL_PALETTE: Tuple[str, ...] = (
     "#ff7f0e",  # orange
     "#2ca02c",  # green
     "#d62728",  # red
+    "#9467bd",  # purple
 )
 
 
@@ -198,7 +199,8 @@ def _base_model_label(model_name: str, model_family: str = "") -> str:
     family = str(model_family or model_name).split("[", 1)[0]
     return {
         "LGBCovPenalty": "CovPenalty",
-        "LGBSmoothPenalty": "SmoothPenalty",
+        "LGBSmoothPenalty": "SmoothIdentity",
+        "LGBSmoothPenaltyLogisticProxy": "SmoothLogistic",
         "LGBMRegressor": "LGBM",
         "LinearRegression": "LinearRegression",
     }.get(family, family or str(model_name))
@@ -219,20 +221,46 @@ _RULE_DESCRIPTION: Dict[str, str] = {
         "candidate pool. Mirrors the Cook County AVM ``select_best(lgbm_search, "
         "metric = 'rmse')`` selection. No fairness constraints."
     ),
+    "lgbm_min_rmse": (
+        "Best baseline LightGBM configuration by mean validation error. No fairness "
+        "penalty is used."
+    ),
+    "cov_penalty_min_mse": (
+        "Best LGBCovPenalty configuration by the penalized-family validation objective."
+    ),
+    "smooth_identity_min_mse": (
+        "Best LGBSmoothPenalty configuration using ``weighting_proxy_mode='identity'``."
+    ),
+    "smooth_logistic_min_mse": (
+        "Best LGBSmoothPenalty configuration using ``weighting_proxy_mode='logistic_quantile'``."
+    ),
     "nash": (
         "Penalized-model winner via **Nash-style product of utilities** (same construction "
         "as ``simple_model_selection.py::_select_nash_candidate``): transform fold-mean "
-        "RMSE to ``1/RMSE``, R² to ``1+R²``, and map PRD / PRB / VEI through IAAO-band "
-        "positive utilities, then maximize ``\\sum \\log u_j`` (**no across-candidate "
+        "RMSE to ``1/RMSE`` and map PRD through an IAAO-band positive utility, then "
+        "maximize ``\\sum \\log u_j`` (**no across-candidate "
         "min–max normalization**)."
     ),
     "utopia": "Legacy selection key in older ``selected_models.json`` files (treated as Nash).",
     "smooth_penalty_nash": (
-        "Best ``LGBSmoothPenalty`` configuration under the Nash product-of-utilities selector, "
-        "included as a family-specific fairness-aware comparison."
+        "Best logistic-quantile weighted ``LGBSmoothPenalty`` configuration under the Nash "
+        "product-of-utilities selector, included as a family-specific fairness-aware comparison."
     ),
     "reference_baseline": "User-supplied reference configuration.",
 }
+
+
+def _selection_description(
+    selected_models_json: Dict[str, Any],
+    *,
+    base_rule: str,
+    sel: Dict[str, Any],
+    fallback_rule: str,
+) -> str:
+    custom = str(sel.get("selector_description", "") or "").strip()
+    if custom:
+        return custom
+    return _RULE_DESCRIPTION.get(fallback_rule, "")
 
 
 def _config_choice(test_df: pd.DataFrame, *, family: str) -> Optional[Dict[str, Any]]:
@@ -245,13 +273,41 @@ def _config_choice(test_df: pd.DataFrame, *, family: str) -> Optional[Dict[str, 
     return sub.iloc[0].to_dict()
 
 
-def resolve_three_models(
+def _selection_to_model(
+    *,
+    selected_models_json: Dict[str, Any],
+    base_rule: str,
+    sel: Dict[str, Any],
+    fallback_rule: str,
+) -> ModelSelection:
+    display_rule = str(sel.get("selector_rule", base_rule))
+    rho = _extract_rho(sel.get("model_config_json", ""))
+    model_family = str(sel.get("model_family", ""))
+    return ModelSelection(
+        label=_display_model_label(str(sel["model_name"]), model_family, rho),
+        rule=display_rule,
+        config_id=str(sel["config_id"]),
+        model_name=str(sel["model_name"]),
+        model_family=model_family,
+        model_config_json=str(sel.get("model_config_json", "")),
+        description=_selection_description(
+            selected_models_json,
+            base_rule=base_rule,
+            sel=sel,
+            fallback_rule=fallback_rule,
+        ),
+        rho=rho,
+    )
+
+
+def resolve_five_models(
     *,
     selected_models_json: Dict[str, Any],
     test_metrics_df: pd.DataFrame,
     reference_config_id: Optional[str] = None,
 ) -> List[ModelSelection]:
     out: List[ModelSelection] = []
+    sels = (selected_models_json or {}).get("selections", {}) or {}
 
     if reference_config_id:
         ref_row = test_metrics_df.loc[
@@ -274,68 +330,80 @@ def resolve_three_models(
             )
         )
     else:
-        chosen = _config_choice(test_metrics_df, family="LinearRegression")
-        if chosen is None:
-            chosen = _config_choice(test_metrics_df, family="LGBMRegressor")
-        if chosen is None:
-            raise RuntimeError(
-                "No baseline candidate found (need LinearRegression or LGBMRegressor in test_metrics.csv)."
+        linear_sel = sels.get("linear_regression")
+        if linear_sel:
+            out.append(
+                _selection_to_model(
+                    selected_models_json=selected_models_json,
+                    base_rule="linear_regression",
+                    sel=linear_sel,
+                    fallback_rule="linear_baseline",
+                )
             )
-        family = str(chosen["model_name"]).split("[", 1)[0]
-        rho = _extract_rho(chosen.get("model_config_json", ""))
-        out.append(
-            ModelSelection(
-                label=_display_model_label(str(chosen["model_name"]), family, rho),
-                rule="linear_baseline",
-                config_id=str(chosen["config_id"]),
-                model_name=str(chosen["model_name"]),
-                model_family=family,
-                model_config_json=str(chosen.get("model_config_json", "")),
-                description=_RULE_DESCRIPTION["linear_baseline"],
-                rho=rho,
-            )
-        )
-
-    sels = (selected_models_json or {}).get("selections", {}) or {}
-    nash_sel = sels.get("nash") or sels.get("utopia")
-    for base_rule, label in (
-        ("ccao_min_rmse", "CCAO min RMSE"),
-        ("nash", "Nash equilibrium"),
-        ("smooth_penalty_nash", "SmoothPenalty Nash"),
-    ):
-        if base_rule == "nash":
-            sel = nash_sel
         else:
-            sel = sels.get(base_rule)
-        if base_rule == "smooth_penalty_nash" and not sel:
-            continue
+            chosen = _config_choice(test_metrics_df, family="LinearRegression")
+            if chosen is None:
+                raise RuntimeError(
+                    "No LinearRegression candidate found in selected_models.json or test_metrics.csv."
+                )
+            family = str(chosen["model_name"]).split("[", 1)[0]
+            rho = _extract_rho(chosen.get("model_config_json", ""))
+            out.append(
+                ModelSelection(
+                    label=_display_model_label(str(chosen["model_name"]), family, rho),
+                    rule="linear_baseline",
+                    config_id=str(chosen["config_id"]),
+                    model_name=str(chosen["model_name"]),
+                    model_family=family,
+                    model_config_json=str(chosen.get("model_config_json", "")),
+                    description=_RULE_DESCRIPTION["linear_baseline"],
+                    rho=rho,
+                )
+            )
+
+    ordered_rules = (
+        ("lgbm_min_rmse", ("lgbm_min_rmse", "ccao_min_rmse"), "lgbm_min_rmse"),
+        ("cov_penalty_min_mse", ("cov_penalty_min_mse", "nash", "utopia"), "cov_penalty_min_mse"),
+        ("smooth_identity_min_mse", ("smooth_identity_min_mse",), "smooth_identity_min_mse"),
+        ("smooth_logistic_min_mse", ("smooth_logistic_min_mse", "smooth_penalty_nash"), "smooth_logistic_min_mse"),
+    )
+    for base_rule, keys, fallback_rule in ordered_rules:
+        sel = None
+        actual_key = base_rule
+        for key in keys:
+            if key in sels:
+                sel = sels[key]
+                actual_key = key
+                break
         if not sel:
             raise RuntimeError(
-                f"selected_models.json is missing the '{base_rule}' selection "
-                f"(for Nash, provide `nash` or legacy `utopia`). Run pipeline/02_assess.py first."
+                f"selected_models.json is missing the '{base_rule}' selection. "
+                "Run pipeline/02_assess.py with the five-family selector first."
             )
-        eff_rule = base_rule
-        if base_rule == "nash" and "utopia" in sels and "nash" not in sels:
-            eff_rule = "utopia"  # description fallback only
-        rho = _extract_rho(sel.get("model_config_json", ""))
-        model_family = str(sel.get("model_family", ""))
         out.append(
-            ModelSelection(
-                label=_display_model_label(str(sel["model_name"]), model_family, rho),
-                rule=eff_rule,
-                config_id=str(sel["config_id"]),
-                model_name=str(sel["model_name"]),
-                model_family=model_family,
-                model_config_json=str(sel.get("model_config_json", "")),
-                description=_RULE_DESCRIPTION.get(
-                    "nash" if base_rule == "nash" else base_rule,
-                    "",
-                ),
-                rho=rho,
+            _selection_to_model(
+                selected_models_json=selected_models_json,
+                base_rule=actual_key,
+                sel=sel,
+                fallback_rule=fallback_rule,
             )
         )
 
     return out
+
+
+def resolve_three_models(
+    *,
+    selected_models_json: Dict[str, Any],
+    test_metrics_df: pd.DataFrame,
+    reference_config_id: Optional[str] = None,
+) -> List[ModelSelection]:
+    """Backward-compatible alias for the current five-model report resolver."""
+    return resolve_five_models(
+        selected_models_json=selected_models_json,
+        test_metrics_df=test_metrics_df,
+        reference_config_id=reference_config_id,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -649,22 +717,27 @@ def _fmt_value(label: str, value: Any) -> str:
 def _row_score_table(metrics_df: pd.DataFrame, *, scope: str, models: Sequence[ModelSelection]) -> List[Dict[str, Any]]:
     sub = metrics_df.loc[metrics_df["scope"] == scope].copy()
     by_cfg = {str(r["config_id"]): r for _, r in sub.iterrows()}
+    highlightable = [m.model_family != "LinearRegression" for m in models]
     table_rows: List[Dict[str, Any]] = []
     for label in METRIC_ROWS:
         key = _METRIC_KEY[label]
         direction = _METRIC_DIRECTION.get(label, "none")
         cells: List[Dict[str, Any]] = []
         scores: List[float] = []
-        for m in models:
+        for idx, m in enumerate(models):
             row = by_cfg.get(m.config_id, {})
             value = row.get(key, np.nan) if row is not None else np.nan
-            cells.append({"value": value, "score": _ranking_score(_safe(value), direction)})
-            scores.append(_ranking_score(_safe(value), direction))
+            score = _ranking_score(_safe(value), direction)
+            cells.append({"value": value, "score": score, "highlightable": highlightable[idx]})
+            if highlightable[idx]:
+                scores.append(score)
         finite_scores = [s for s in scores if np.isfinite(s)]
         best = min(finite_scores) if finite_scores else float("nan")
         worst = max(finite_scores) if finite_scores else float("nan")
         for c in cells:
-            color = "" if direction == "none" else _highlight_color(c["score"], best=best, worst=worst)
+            color = ""
+            if direction != "none" and c["highlightable"]:
+                color = _highlight_color(c["score"], best=best, worst=worst)
             c["color"] = color
         table_rows.append({"label": label, "direction": direction, "cells": cells})
     return table_rows
@@ -693,6 +766,45 @@ def _metric_table_html(metrics_df: pd.DataFrame, *, scope: str, models: Sequence
         "<table class='metrics-table table table-striped table-bordered'>"
         f"<thead>{headers}</thead><tbody>{''.join(body_rows)}</tbody>"
         "</table>"
+    )
+
+
+def _validation_summary_html(
+    validation_df: Optional[pd.DataFrame],
+    *,
+    models: Sequence[ModelSelection],
+) -> str:
+    if validation_df is None or validation_df.empty:
+        return "<p class='note'>Validation summary CSV was not found. Run pipeline/03_evaluate.py first.</p>"
+
+    rows: List[Dict[str, Any]] = []
+    for m in models:
+        sub = validation_df.loc[validation_df["config_id"].astype(str) == str(m.config_id)]
+        if sub.empty:
+            continue
+        r = sub.iloc[0]
+        rows.append(
+            {
+                "Model": m.label,
+                "Rule": m.rule,
+                "CV RMSE mean": _safe(r.get("cv_RMSE_mean", np.nan)),
+                "CV RMSE std": _safe(r.get("cv_RMSE_std", np.nan)),
+                "CV MSE mean": _safe(r.get("cv_MSE_mean", np.nan)),
+                "CV PRD mean": _safe(r.get("cv_PRD_mean", np.nan)),
+                "CV PRB mean": _safe(r.get("cv_PRB_mean", np.nan)),
+                "2025 test RMSE": _safe(r.get("test_RMSE", np.nan)),
+                "2025 test R²": _safe(r.get("test_R2", np.nan)),
+            }
+        )
+    if not rows:
+        return "<p class='note'>No selected configurations were found in the validation summary CSV.</p>"
+    out = pd.DataFrame(rows)
+    return out.to_html(
+        index=False,
+        classes="table table-striped table-bordered metrics-table",
+        border=0,
+        justify="left",
+        float_format=lambda x: "" if not np.isfinite(float(x)) else f"{float(x):,.4g}",
     )
 
 
@@ -1403,6 +1515,7 @@ def render_html_report(
     models: Sequence[ModelSelection],
     metrics_df: pd.DataFrame,
     decile_df: pd.DataFrame,
+    validation_df: Optional[pd.DataFrame] = None,
     predictions_geography_df: Optional[pd.DataFrame] = None,
 ) -> Tuple[str, Optional[pd.DataFrame], Optional[pd.DataFrame]]:
     # Overview
@@ -1431,6 +1544,7 @@ def render_html_report(
     for scope in SCOPE_ORDER:
         metric_tabs.append((scope, _metric_table_html(metrics_df, scope=scope, models=models)))
     metric_table_html = _build_tabset(tabset_id="metric-tab", tabs=metric_tabs)
+    validation_summary_html = _validation_summary_html(validation_df, models=models)
 
     # Per-Metric panels (one figure per metric except N)
     panel_blocks: List[str] = []
@@ -1515,11 +1629,19 @@ def render_html_report(
             model configuration; unpenalized models list rho as none.</p>
             {overview_html}
 
+            <h2 id='validation-summary'>Validation Selection Check</h2>
+            <p>This table reports rolling-origin validation metrics for the selected configurations,
+              using the pre-2025 folds that drove model selection. It is included to check whether
+              the tuned LGBM base configuration is also competitive after adding each fairness
+              penalty and selected rho.</p>
+            {validation_summary_html}
+
             <h2 id='metric-table'>Metric Table</h2>
-            <p>The best value among the displayed models is highlighted in
+            <p>The best value among the displayed LGBM-based models is highlighted in
               <span style='background:#c8e6c9;padding:2px 6px;border-radius:3px'>green</span>;
               the worst in
               <span style='background:#ffcdd2;padding:2px 6px;border-radius:3px'>red</span>.
+              <code>LinearRegression</code>, when shown, is excluded from the highlighting comparison.
               Direction conventions: R² → higher better; RMSE / MAE / MAPE / MdAPE / COD → lower better;
               Median Ratio / PRD / MKI → closer to 1 better; PRB / VEI → closer to 0 better. <em>N</em> is the
               row count (no highlight applied).</p>

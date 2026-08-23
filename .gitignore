@@ -14,6 +14,7 @@ slurm-*.out
 *.err
 runs/
 outputs/
+output/
 tmp/
 wandb/
 
@@ -41,6 +42,17 @@ obj/
 *.parquet
 *.json
 core.*
+
+# Large local source datasets (ATTOM, assessor, Census, and GIS extracts)
+data/ATTOM/
+data/CCAO/
+data/CensusData/
+data/dewey-downloads/
+data/geo/
+
+# Accidental empty files created by misparsed CLI flags
+/--data-path
+/--out-dir
 
 # Ignore outputs
 2025_assessment_python/outputs

@@ -1,0 +1,935 @@
+I mostly agree with your revised framing. My earlier target-adjustment proposal was too compressed: I treated “time/geography correction” as the main target correction, but your ladder is better because it separates **different assumptions about what the sale price represents**.
+
+There are really four distinct operations:
+
+1. **sample restriction**: decide which sales are credible enough to use;
+2. **label uncertainty**: treat sale price as an interval/noisy observation;
+3. **local market prior**: combine the sale with neighborhood/time comparable evidence;
+4. **time/geography normalization**: move sales to a common market date or local market condition.
+
+Those should be tested gradually, not collapsed into one adjustment.
+
+---
+
+# 1. Raw target
+
+Your first step is correct:
+
+[
+y_i=\log S_i.
+]
+
+This is the necessary baseline.
+
+Interpretation:
+
+[
+\log S_i = m_i+\eta_i,
+]
+
+where (m_i) is latent market value and (\eta_i) is transaction noise.
+
+Using raw (y_i) assumes that, conditional on features,
+
+[
+\mathbb E[\eta_i\mid X_i]\approx 0
+]
+
+or at least that the noise does not systematically bias the model.
+
+This is not “wrong.” It is the benchmark every correction must beat. IAAO’s ratio-study standard explicitly treats sale prices as representations of market value only after they are confirmed, screened, and adjusted as necessary, so raw sale price is the unadjusted proxy, not the ideal proxy. ([IAAO][1])
+
+So the first model family should remain:
+
+[
+\boxed{
+\text{Raw-}y\text{ AVM: } \hat y_i=f(X_i),\quad y_i=\log S_i.
+}
+]
+
+---
+
+# 2. Strict validation
+
+Your second step is also correct, but I would phrase it differently.
+
+It is not a new target:
+
+[
+y_i=\log S_i.
+]
+
+It is a new **sample definition**:
+
+[
+i\in \mathcal V
+]
+
+where (\mathcal V) is the set of validated sales.
+
+So:
+
+[
+y_i=\log S_i,\qquad i\in\mathcal V.
+]
+
+The feature inventory supports this because you have sale-specific fields like deed type, buyer/seller names, document number, sale code-like categories, `sv_is_outlier`, `sv_outlier_reason*`, and `sv_review_json`. These are not assessment-stage predictors, but they are exactly the type of information that can define filters or sale reliability weights. 
+
+The IAAO sales verification standard supports this logic: some transfers, such as partial-interest sales, should be excluded as valid transactions, and sale prices should be adjusted to reflect the market value of the real property interest transferred. ([IAAO][2])
+
+The important caveat:
+
+> Strict validation can reduce label noise, but it can also create selection bias.
+
+For example, if strict validation disproportionately removes low-value, distressed, older, or certain-neighborhood sales, the resulting “clean” sample may no longer represent the full assessment population.
+
+So the right experiments are:
+
+[
+\boxed{
+\text{Raw all-valid-under-current-repo filters}
+}
+]
+
+versus
+
+[
+\boxed{
+\text{Strict validation subset}
+}
+]
+
+versus
+
+[
+\boxed{
+\text{Soft weighted validation}
+}
+]
+
+where soft validation uses weights:
+
+[
+w_i^{sale}\in[0,1].
+]
+
+This is often better than hard deletion.
+
+---
+
+# 3. Robust formulation with label uncertainty
+
+Your third step is valuable, but it needs one major correction.
+
+You wrote:
+
+[
+y_i=\log S_i+\delta_i,
+]
+
+where (\delta) belongs to an uncertainty set.
+
+That is a good modeling idea, but there are **two different robust interpretations**, and they behave very differently.
+
+---
+
+## 3.1 Adversarial robust target
+
+Suppose the true latent market-value proxy is inside:
+
+[
+m_i\in[y_i-\epsilon_i,y_i+\epsilon_i].
+]
+
+If you use worst-case squared loss,
+
+[
+\max_{|\delta_i|\le\epsilon_i}
+\left(f(X_i)-y_i-\delta_i\right)^2,
+]
+
+then the robust counterpart is:
+
+[
+\left(|f(X_i)-y_i|+\epsilon_i\right)^2.
+]
+
+This is the literal Bertsimas-style adversarial version: protect against the worst allowed perturbation. Bertsimas and Sim’s robust optimization framework is designed around uncertainty sets and the tradeoff between robustness and conservatism. ([robustopt.com][3])
+
+But for noisy labels, this may be the wrong direction.
+
+Why? Because it actually **penalizes uncertain observations more harshly**, unless (\epsilon_i) enters through weighting or another transformation. If a sale price is uncertain, we usually want to trust it **less**, not make the model fit every possible perturbation around it.
+
+So the worst-case robust loss is defensible as a stress test, but not necessarily as the best target-denoising method.
+
+---
+
+## 3.2 Interval-valued label / epsilon-insensitive loss
+
+If the interpretation is:
+
+> any value inside the interval is plausibly consistent with market value,
+
+then the more natural loss is:
+
+[
+\min_{|\delta_i|\le\epsilon_i}
+\left(f(X_i)-y_i-\delta_i\right)^2.
+]
+
+That gives:
+
+[
+\left(\max{|f(X_i)-y_i|-\epsilon_i,0}\right)^2.
+]
+
+This says:
+
+> Do not penalize the prediction if it lies within the plausible market-value interval around the sale price.
+
+This is more aligned with your statement that the sale price is a noisy one-time observation.
+
+So there are two target-uncertainty benchmarks:
+
+[
+\boxed{
+\text{Worst-case label robustness: }
+(|r_i|+\epsilon_i)^2
+}
+]
+
+and
+
+[
+\boxed{
+\text{Interval/noisy-label robustness: }
+(\max{|r_i|-\epsilon_i,0})^2.
+}
+]
+
+For your application, I would prioritize the second.
+
+---
+
+## 3.3 Robust statistical loss
+
+A third version is not to construct an uncertainty set explicitly, but to use robust losses:
+
+[
+\sum_i \rho(y_i-f(X_i)).
+]
+
+Examples:
+
+[
+\text{MAE},\quad \text{Huber},\quad \text{Student-}t\text{ likelihood},\quad \text{quantile loss}.
+]
+
+Huber loss is a standard robust regression loss: quadratic near zero and linear for large residuals, making it less sensitive to outliers than squared error. ([Wikipedia][4])
+
+This is probably the cleanest first implementation of your robust formulation.
+
+So Step 3 should have three sub-benchmarks:
+
+| Version           | Objective         | Interpretation                           |                 |                                       |
+| ----------------- | ----------------- | ---------------------------------------- | --------------- | ------------------------------------- |
+| Huber/MAE         | robust statistics | sale prices contain outliers/heavy tails |                 |                                       |
+| interval loss     | ((                | r                                        | -\epsilon)_+^2) | sale price is imprecise within a band |
+| worst-case robust | ((                | r                                        | +\epsilon)^2)   | adversarial label perturbation        |
+
+---
+
+# 4. Combination of sale price and aggregated market beliefs
+
+This is the most interesting part of your proposal.
+
+You wrote:
+
+[
+y_i
+===
+
+\alpha\log S_i
++
+(1-\alpha)
+\sum_{j\in N(i),\ t_0\le t_j\le t_i}
+w_j
+\left(
+\log S_j+\tau(t_i,t_j)
+\right).
+]
+
+This is not merely a correction. It is a **shrinkage target**.
+
+It says:
+
+> The observed sale price is one noisy signal of market value. The local comparable-sales aggregate is another signal. The corrected target is a weighted combination of both.
+
+That is a very defensible idea.
+
+But it should be formalized as an empirical-Bayes or local-prior model.
+
+---
+
+## 4.1 Proper interpretation
+
+Let
+
+[
+\mu_i^{loc}(t_i)
+================
+
+\sum_{j\in N_i^-}
+w_{ij}
+\left(
+y_j+\tau(t_i,t_j)
+\right),
+]
+
+where (N_i^-) are prior nearby comparable sales.
+
+Then define:
+
+[
+y_i^{shrunk}
+============
+
+\alpha_i y_i
++
+(1-\alpha_i)\mu_i^{loc}(t_i).
+]
+
+This is a local prior shrinkage target.
+
+A formal justification is:
+
+[
+y_i\mid m_i\sim N(m_i,\sigma_i^2),
+]
+
+[
+m_i\mid \mu_i^{loc}\sim N(\mu_i^{loc},\tau_i^2).
+]
+
+Then the posterior mean is:
+
+[
+\mathbb E[m_i\mid y_i,\mu_i^{loc}]
+==================================
+
+\alpha_i y_i+(1-\alpha_i)\mu_i^{loc},
+]
+
+where
+
+[
+\alpha_i
+========
+
+\frac{\tau_i^2}{\tau_i^2+\sigma_i^2}.
+]
+
+Interpretation:
+
+* if sale noise (\sigma_i^2) is high, trust the local market belief more;
+* if local prior uncertainty (\tau_i^2) is high, trust the individual sale more;
+* if the local comps are dense, recent, and consistent, shrink more toward them;
+* if the property is unique or local comps are sparse, shrink less.
+
+This gives a principled way to choose (\alpha_i), not just a global tuning parameter.
+
+---
+
+## 4.2 Critical correction: local average must be property-adjusted
+
+Your formula uses:
+
+[
+\log S_j+\tau(t_i,t_j).
+]
+
+That is good for time adjustment, but not enough.
+
+A nearby property (j) may be much smaller/larger/better/worse than property (i). The local average is not automatically an estimate of (i)’s market value.
+
+So I would prefer:
+
+[
+\mu_i^{loc}
+===========
+
+\sum_{j\in N_i^-}
+w_{ij}
+\left[
+y_j
++
+\tau(t_i,t_j)
++
+\hat f_0(X_i)-\hat f_0(X_j)
+\right].
+]
+
+This is exactly the logic behind your current `scaled_time_adjusted_price` spatial feature: take a neighbor sale, time-adjust it, then scale it from the neighbor’s baseline predicted value to the target property’s baseline predicted value. Your current code already implements spatial lag features on top of the full `params.yaml::model.predictor.all` feature set and includes feature families such as time-adjusted and scaled-time-adjusted spatial features. 
+
+This is much stronger than a raw neighborhood average.
+
+So Step 4 should become:
+
+[
+\boxed{
+y_i^{shrunk}
+============
+
+\alpha_i y_i
++
+(1-\alpha_i)
+\sum_{j\in N_i^-}w_{ij}
+\left[
+y_j+\tau(t_i,t_j)+\hat f_0(X_i)-\hat f_0(X_j)
+\right].
+}
+]
+
+This is a proper “market-belief corrected” target.
+
+---
+
+## 4.3 Choosing the weights (w_{ij})
+
+Weights should depend on:
+
+[
+w_{ij}
+\propto
+\exp\left(
+-\frac{d_{ij}^{space}}{h_s}
+-\frac{t_i-t_j}{h_t}
+\right)
+\cdot
+\mathbf 1{t_j<t_i}
+\cdot
+\mathbf 1{\text{same broad property class}}.
+]
+
+Then normalize:
+
+[
+\sum_{j\in N_i^-}w_{ij}=1.
+]
+
+The key restrictions:
+
+1. no future sales;
+2. no self-sale;
+3. exact date cutoff, not just year cutoff;
+4. same broad property type/class, or soft class penalty;
+5. enough neighbors, otherwise fallback to broader geography.
+
+Your current spatial code is already moving in this direction: it uses KDTree candidate caches, spatial/time bandwidths, class filters, and full-X spatial lag features. 
+
+---
+
+## 4.4 Choosing (\alpha)
+
+Do not start with one global (\alpha) only.
+
+Try both:
+
+### Global shrinkage
+
+[
+y_i^\alpha=\alpha y_i+(1-\alpha)\mu_i^{loc}.
+]
+
+Grid:
+
+[
+\alpha\in{0,0.1,0.25,0.5,0.75,0.9,1}.
+]
+
+This is simple and good for a first experiment.
+
+### Reliability-based shrinkage
+
+Let:
+
+[
+\alpha_i
+========
+
+\frac{\widehat{\tau}_i^2}{\widehat{\tau}_i^2+\widehat{\sigma}_i^2}.
+]
+
+Estimate:
+
+* (\widehat{\sigma}_i^2): sale noise / label uncertainty;
+* (\widehat{\tau}_i^2): uncertainty of local prior.
+
+Practical proxies:
+
+[
+\widehat{\tau}_i^2
+==================
+
+\text{weighted variance of adjusted neighbor values},
+]
+
+[
+\widehat{\sigma}_i^2
+====================
+
+\text{global residual variance or sale-code-specific residual variance}.
+]
+
+Then:
+
+* if neighbors are consistent, (\widehat{\tau}_i^2) is small, so (\alpha_i) is smaller;
+* if neighbors are dispersed, (\widehat{\tau}_i^2) is large, so (\alpha_i) is larger;
+* if sale is unreliable, (\widehat{\sigma}_i^2) is large, so (\alpha_i) is smaller.
+
+This is the best version.
+
+---
+
+# 5. Critical comparison: your view vs my earlier view
+
+## Where your view is stronger
+
+Your proposal is stronger because it distinguishes four levels of faith in the sale price:
+
+| Level               | Assumption                                          |
+| ------------------- | --------------------------------------------------- |
+| raw                 | sale price is good enough                           |
+| strict validation   | some sales are invalid                              |
+| robust uncertainty  | sale price is noisy even when valid                 |
+| local market belief | sale is one signal among comparable market evidence |
+
+That is conceptually better than simply saying:
+
+[
+y_i^{adj}=y_i+\tau(T,t_i).
+]
+
+My earlier target adjustment was mostly a **time-normalization correction**. Useful, but incomplete.
+
+Your Step 4 also captures something important: market value is not just “sale price moved through time.” It is the market’s belief about the property, which can be informed by nearby comparable sales.
+
+---
+
+## Where my earlier view is still important
+
+The main thing I would keep from my earlier framing is:
+
+> Do not let target correction become a hidden prediction model that erases genuine property-level variation.
+
+If you replace every sale price by a local average, you may reduce noise but also destroy information.
+
+For example, a high-quality unique home may sell above neighborhood average for real reasons. If your local prior shrinks it too aggressively, you create downward bias.
+
+That is why your Step 4 needs:
+
+1. structural scaling;
+2. adaptive (\alpha_i);
+3. local variance diagnostics;
+4. validation by price decile and geography.
+
+---
+
+# 6. Focused target-correction ladder I would now recommend
+
+I would define six target variants.
+
+---
+
+## Target 0: raw
+
+[
+y_i^{(0)}=\log S_i.
+]
+
+Purpose:
+
+> benchmark.
+
+---
+
+## Target 1: strict validated raw
+
+[
+y_i^{(1)}=\log S_i,\qquad i\in\mathcal V.
+]
+
+Purpose:
+
+> measure value of removing clearly invalid sales.
+
+Use sale-only metadata, deed/sale flags, and `sv_*` fields where available. 
+
+---
+
+## Target 2: soft validation / weighted raw
+
+[
+\min_f
+\sum_i q_i
+\ell(y_i,f(X_i)),
+]
+
+where
+
+[
+q_i\in[0,1]
+]
+
+is sale reliability.
+
+Purpose:
+
+> avoid binary deletion when sale validity is uncertain.
+
+This is often better than strict filtering.
+
+---
+
+## Target 3: robust noisy-label formulation
+
+Either:
+
+[
+\min_f \sum_i \rho(y_i-f(X_i))
+]
+
+with Huber/MAE/Student-(t), or:
+
+[
+\min_f
+\sum_i
+\left(\max{|y_i-f(X_i)|-\epsilon_i,0}\right)^2.
+]
+
+Purpose:
+
+> account for sale price as an imprecise observation.
+
+Use this before shrinkage because it is simpler and less assumption-heavy.
+
+---
+
+## Target 4: time-adjusted sale target
+
+[
+y_i^{(4)}
+=========
+
+y_i+\widehat\tau(t_{ref},t_i).
+]
+
+If training a model for assessment date (T):
+
+[
+y_i^{(4)}(T)
+============
+
+y_i+\widehat\tau(T,t_i).
+]
+
+Purpose:
+
+> move sale prices to a common market date.
+
+This is the cleanest econometric correction. But it does not solve sale-specific noise.
+
+---
+
+## Target 5: local market-belief shrinkage
+
+[
+y_i^{(5)}
+=========
+
+\alpha_i y_i^{(4)}
++
+(1-\alpha_i)\mu_i^{loc}(t_i).
+]
+
+Where:
+
+[
+\mu_i^{loc}(t_i)
+================
+
+\sum_{j\in N_i^-}
+w_{ij}
+\left[
+y_j
++
+\widehat\tau(t_i,t_j)
++
+\hat f_0(X_i)-\hat f_0(X_j)
+\right].
+]
+
+Purpose:
+
+> combine the individual sale with prior local comparable-market evidence.
+
+This is your Step 4, but upgraded into a properly scaled empirical-Bayes-style target.
+
+---
+
+## Target 6: robust shrinkage target
+
+Combine Target 3 and Target 5:
+
+[
+y_i^{(6)}
+=========
+
+\alpha_i y_i^{(4)}
++
+(1-\alpha_i)\mu_i^{loc}(t_i),
+]
+
+then train with robust loss:
+
+[
+\min_f
+\sum_i
+\rho(y_i^{(6)}-f(X_i)).
+]
+
+Or use uncertainty radius:
+
+[
+\epsilon_i
+==========
+
+c\cdot
+\sqrt{
+\widehat{\operatorname{Var}}
+\left(
+y_j+\tau(t_i,t_j)+\hat f_0(X_i)-\hat f_0(X_j)
+\right)
+}.
+]
+
+Purpose:
+
+> shrink noisy sale prices toward local market beliefs, while still being robust to abnormal labels.
+
+This is the most sophisticated version, but it should come only after Targets 0–5.
+
+---
+
+# 7. One important warning: target shrinkage vs spatial features
+
+There are two ways to use local market beliefs:
+
+## Option A: use local belief as corrected target
+
+[
+y_i^{train}= \alpha y_i+(1-\alpha)\mu_i^{loc}.
+]
+
+Final model:
+
+[
+\hat y_i=f(X_i).
+]
+
+## Option B: use local belief as feature
+
+[
+\hat y_i=f(X_i,\mu_i^{loc}).
+]
+
+Your current spatial experiments are mostly Option B: spatial lag features are added on top of the full-X baseline, and the code reports full-X plus spatial-lag model performance. 
+
+You should not naively do both at full strength:
+
+[
+y_i^{train}=\alpha y_i+(1-\alpha)\mu_i^{loc}
+]
+
+and
+
+[
+\hat y_i=f(X_i,\mu_i^{loc})
+]
+
+because the model may simply learn to reproduce the smoothed target through the same smoothing feature. That would overstate the value of the correction.
+
+So the clean experiment should compare:
+
+| Experiment | Target            | Features                           |
+| ---------- | ----------------- | ---------------------------------- |
+| A          | raw (y)           | (X)                                |
+| B          | raw (y)           | (X+\mu^{loc})                      |
+| C          | shrunk (y^\alpha) | (X)                                |
+| D          | shrunk (y^\alpha) | (X+\mu^{loc}), with caution        |
+| E          | raw (y)           | (X+\mu^{loc}) + equity calibration |
+
+The cleanest comparison is B versus C:
+
+> Is local market belief better as an input feature or as a target correction?
+
+My prior: it is probably better as a **feature** first, then possibly as a mild target shrinkage.
+
+---
+
+# 8. How to validate the target-correction ladder
+
+Do not choose the best target only by RMSE against its own corrected labels.
+
+That would be circular.
+
+For every target variant, evaluate final predictions against:
+
+1. raw held-out sale prices;
+2. validated held-out sale prices if available;
+3. ratio curves;
+4. PRB/PRD/VEI/COD;
+5. decile median ratio curve;
+6. subgroup curves by triad/township/class;
+7. calibration level: median ratio near 1;
+8. nonlinear curve shape, not just slope.
+
+The report you attached earlier already uses decile ratio curves and ratio-study metrics, which is the right final evaluation frame. 
+
+The danger is that target shrinkage may improve apparent smoothness but reduce responsiveness to true high-value/low-value property differences. The decile curve and residual dispersion will reveal that.
+
+---
+
+# 9. My revised position
+
+I would now frame the target-correction study as:
+
+[
+\boxed{
+\text{How much should we trust a single sale relative to structured market evidence?}
+}
+]
+
+The raw target says:
+
+[
+\alpha=1.
+]
+
+A pure local-smoothed target says:
+
+[
+\alpha=0.
+]
+
+Your proposed model studies the continuum:
+
+[
+\alpha\in[0,1].
+]
+
+That is exactly the right conceptual axis.
+
+But the local market belief should be:
+
+[
+\mu_i^{loc}
+===========
+
+\sum_j w_{ij}
+\left[
+\log S_j
++
+\text{time adjustment}
++
+\text{structural scaling}
+\right],
+]
+
+not just raw neighbor prices.
+
+And the robust formulation should distinguish:
+
+[
+\text{adversarial robustness}
+]
+
+from
+
+[
+\text{interval/noisy-label tolerance}.
+]
+
+---
+
+# 10. Final focused recommendation
+
+I would implement the following target variants, in order:
+
+1. **Raw:**
+   [
+   y_i=\log S_i.
+   ]
+
+2. **Strict validation:**
+   [
+   y_i=\log S_i,\quad i\in\mathcal V.
+   ]
+
+3. **Weighted validation:**
+   [
+   \min_f\sum_i q_i\ell(y_i,f(X_i)).
+   ]
+
+4. **Robust noisy-sale loss:**
+   Huber, MAE, Student-(t), or interval loss.
+
+5. **Time-adjusted target:**
+   [
+   y_i+\widehat\tau(T,t_i).
+   ]
+
+6. **Local market-belief shrinkage target:**
+   [
+   \alpha_i y_i+(1-\alpha_i)\mu_i^{loc}.
+   ]
+
+7. **Robust shrinkage target:**
+   shrinkage target plus robust loss or interval uncertainty.
+
+Then compare each against the spatial-feature approach:
+
+[
+\hat y_i=f(X_i,\mu_i^{loc}).
+]
+
+The strongest final candidate will likely be one of these two:
+
+[
+\boxed{
+\text{Raw or lightly time-adjusted target}
++
+\text{scaled-time spatial comparable feature}
++
+\text{equity calibration}
+}
+]
+
+or
+
+[
+\boxed{
+\text{mild shrinkage target}
++
+\text{full AVM on }X
++
+\text{equity calibration}
+}
+]
+
+I would not jump directly to aggressive target smoothing. Start with (\alpha\ge 0.75), then test whether lower (\alpha) actually improves ratio curves without hurting unique-property accuracy.
+
+[1]: https://www.iaao.org/wp-content/uploads/Standard_on_Ratio_Studies.pdf?utm_source=chatgpt.com "Standard on Ratio Studies"
+[2]: https://www.iaao.org/wp-content/uploads/Standard_on_Verification_Adjustment_of_Sales.pdf?utm_source=chatgpt.com "Standard on Verification and Adjustment of Sales"
+[3]: https://www.robustopt.com/references/Price%20of%20Robustness.pdf?utm_source=chatgpt.com "The Price of Robustness"
+[4]: https://en.wikipedia.org/wiki/Huber_loss?utm_source=chatgpt.com "Huber loss"

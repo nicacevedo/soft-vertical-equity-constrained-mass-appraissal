@@ -59,7 +59,9 @@ import lightgbm as lgb
 from sklearn.linear_model import LinearRegression
 
 from preprocessing.recipes_pipelined import build_model_pipeline
+from soft_constrained_models.linear_models import LinearProjectionCovariancePath
 from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty
+from utils.projection_theory_utils import compute_projection_theory_metrics
 from utils.plotting_utils import (
     plot_ratio_vs_logprice,
     plot_residual_vs_logprice,
@@ -80,22 +82,29 @@ from utils.motivation_utils import (
 
 
 _PAIRWISE_DEPENDENCE_SAMPLE_N = 1024
-_QUANTILE_ANALYSIS_COUNTS = (3, 4, 5)
+_QUANTILE_ANALYSIS_COUNTS = (3, 4, 5, 10)
 _RATIO_MODES = ("diff",)
 _MAIN_SWEEP_FAMILIES = (
     "LGBCovPenalty[diff]",
     "LGBSmoothPenalty[diff]",
 )
 _GROUPED_SWEEP_FAMILY = "LGBSmoothPenaltyGrouped"
-_RHO_PLOT_METRICS = [
-    "Corr(r,price)",
-    "Corr(r,logprice)",
-    "dCor(r,logprice)_sampled",
-    "ChatterjeeXi(r,logprice)",
-    "nHSIC(r,logprice)_sampled",
-]
+_COMPUTE_DEPENDENCE_METRICS = False
+_RHO_PLOT_METRICS = ("R2", "MdAPE", "COD", "PRD", "PRB", "VEI")
+_RHO_METRIC_COLORS = {
+    "R2": "#111827",
+    "MdAPE": "#F97316",
+    "COD": "#7C3AED",
+    "PRD": "#16A34A",
+    "PRB": "#2563EB",
+    "VEI": "#DC2626",
+}
+_RHO_HIGHER_IS_BETTER = {"R2"}
+_RHO_LOWER_IS_BETTER = {"MdAPE", "COD"}
+_RHO_TARGET_IS_BETTER = {"PRD": 1.0, "PRB": 0.0, "VEI": 0.0}
+_RHO_DECIMALS = 3
 _TRADEOFF_FAIRNESS_METRICS = ("PRD", "PRB", "VEI")
-_TRADEOFF_TARGET_METRICS = ("R2", "COD")
+_TRADEOFF_TARGET_METRICS = ("R2", "MdAPE", "COD")
 _TRADEOFF_BASELINE_FAMILIES = ("LinearRegression", "LGBMRegressor")
 _TRADEOFF_FAMILY_COLORS = {
     "LinearRegression": "#4B5563",
@@ -103,6 +112,8 @@ _TRADEOFF_FAMILY_COLORS = {
     "LGBCovPenalty[diff]": "#2563EB",
     "LGBSmoothPenalty[diff]": "#DC2626",
 }
+_DEFAULT_LGBM_HYPERPARAMETER_FILE = "best_lgbm_baseline_configs.yaml"
+_DEFAULT_LGBM_CONFIG_KEY = "test_best_r2"
 _META_TOWNSHIP_TRIAD_COL = "meta_township_triad"
 _CHAR_CLASS_BUCKET_COL = "char_class_bucket"
 _TOWNSHIP_TRIAD_MAP = {
@@ -217,6 +228,21 @@ def _build_lgbm_params_from_files(model_params: dict, ccao_params: dict, seed: i
     }
 
 
+def _load_lgbm_params_from_hyperparameter_file(path: str, config_key: str) -> dict:
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f) or {}
+
+    baselines = cfg.get("lgbm_baselines", {})
+    if config_key not in baselines:
+        available = ", ".join(sorted(str(k) for k in baselines.keys()))
+        raise KeyError(f"LGBM config key '{config_key}' not found in {path}. Available: {available}")
+
+    params = baselines[config_key].get("lgbm_params", {})
+    if not isinstance(params, dict) or not params:
+        raise ValueError(f"LGBM config key '{config_key}' in {path} does not contain a non-empty lgbm_params block.")
+    return dict(params)
+
+
 def _series_to_string_with_na(series: pd.Series) -> pd.Series:
     return series.astype("object").where(series.notna(), "NA").astype(str)
 
@@ -246,6 +272,7 @@ def _load_and_split_data(
     date_column: str,
     sample_frac: float | None,
     sample_seed: int,
+    assessment_year: int,
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, List[str], List[str]]:
     """
     Mirrors `main.py`:
@@ -253,7 +280,8 @@ def _load_and_split_data(
       - filter out multicard and outliers
       - keep only predictor + target + date
       - sort by date
-      - split into assess (2024), and pre-assess (<2024) then train/validate + test
+      - split into assess (== assessment_year), and pre-assess (< assessment_year)
+        then train/validate + test (last 1-split_prop fraction of pre-assess).
     """
     _log("loading parquet", data_path=data_path)
     df = pd.read_parquet(data_path, engine="fastparquet")
@@ -281,8 +309,14 @@ def _load_and_split_data(
     df = df.sort_values(date_column).reset_index(drop=True)
     _log("date sort completed", rows=int(df.shape[0]))
 
-    df_assess = df.loc[df[date_column].dt.year == 2024, :].copy()
-    df_train_all = df.loc[df[date_column].dt.year < 2024, :].copy()
+    df_assess = df.loc[df[date_column].dt.year == int(assessment_year), :].copy()
+    df_train_all = df.loc[df[date_column].dt.year < int(assessment_year), :].copy()
+    _log(
+        "assessment-year split",
+        assessment_year=int(assessment_year),
+        assess_year_rows=int(df_assess.shape[0]),
+        pre_assess_rows=int(df_train_all.shape[0]),
+    )
 
     train_prop = float(params["cv"]["split_prop"])
     split_idx = int(train_prop * df_train_all.shape[0])
@@ -303,9 +337,12 @@ def _build_rho_sweep(
     rho_range_raw: str,
     rho_count: int,
     rho_scale: str,
+    rho_extra_raw: str = "",
 ) -> List[float]:
+    extra = [float(token.strip()) for token in str(rho_extra_raw).split(",") if token.strip()]
+
     if str(rho_range_raw).strip() == "":
-        return [float(rho)]
+        return _round_rho_values([float(rho), *extra])
 
     bounds = [float(token.strip()) for token in str(rho_range_raw).split(",") if token.strip()]
     if len(bounds) != 2:
@@ -317,7 +354,7 @@ def _build_rho_sweep(
 
     lo, hi = float(bounds[0]), float(bounds[1])
     if count == 1:
-        return [lo]
+        return _round_rho_values([lo, *extra])
 
     scale = str(rho_scale).strip().lower()
     if scale == "linear":
@@ -329,7 +366,25 @@ def _build_rho_sweep(
     else:
         raise ValueError("rho_scale must be one of: linear, log, geom.")
 
-    return [float(v) for v in values.tolist()]
+    # Append any explicit extra rho values (e.g. a recommended operating point) and
+    # return a sorted, de-duplicated grid so downstream code can rely on monotonicity.
+    return _round_rho_values(sorted(values.tolist() + extra))
+
+
+def _round_rho_value(value: float) -> float:
+    rounded = float(np.round(float(value), _RHO_DECIMALS))
+    return 0.0 if rounded == 0.0 else rounded
+
+
+def _round_rho_values(values: List[float]) -> List[float]:
+    out: List[float] = []
+    seen: set[float] = set()
+    for value in values:
+        rounded = _round_rho_value(float(value))
+        if rounded not in seen:
+            out.append(rounded)
+            seen.add(rounded)
+    return out
 
 
 def _parse_float_list(values_raw: str) -> List[float]:
@@ -337,6 +392,41 @@ def _parse_float_list(values_raw: str) -> List[float]:
     if not values:
         raise ValueError("Expected at least one numeric value.")
     return values
+
+
+def _parse_model_families(values_raw: str) -> List[str]:
+    aliases = {
+        "linear": "linear",
+        "linearregression": "linear",
+        "linear_cov": "linear_cov",
+        "linearcov": "linear_cov",
+        "linearcovariance": "linear_cov",
+        "linearprojectioncovariancepath": "linear_cov",
+        "lgbm": "lgbm",
+        "lgbmregressor": "lgbm",
+        "cov": "cov",
+        "lgbcovpenalty": "cov",
+        "lgbcovpenalty[diff]": "cov",
+        "smooth": "smooth",
+        "surr": "smooth",
+        "surrogate": "smooth",
+        "lgbsurrpenalty": "smooth",
+        "lgbsmoothpenalty": "smooth",
+        "lgbsmoothpenalty[diff]": "smooth",
+    }
+    order = ["linear", "linear_cov", "lgbm", "cov", "smooth"]
+    tokens = [token.strip().lower() for token in str(values_raw).split(",") if token.strip()]
+    if not tokens or tokens == ["all"]:
+        return order
+
+    out: List[str] = []
+    for token in tokens:
+        if token not in aliases:
+            raise ValueError("--models entries must be one of: linear,linear_cov,lgbm,cov,smooth,surr,all.")
+        value = aliases[token]
+        if value not in out:
+            out.append(value)
+    return out
 
 
 def _pairwise_metric_subsample(x: np.ndarray, y: np.ndarray, max_n: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -951,6 +1041,12 @@ def _compute_quick_test_metrics(
         y_train_log=y_train_log,
         ratio_mode=ratio_mode,
     )
+    metrics.update(
+        compute_projection_theory_metrics(
+            y_true_log=y_true_log,
+            y_pred_log=y_pred_log,
+        )
+    )
     y_true = np.exp(np.asarray(y_true_log, dtype=float).reshape(-1))
     y_pred = np.exp(np.asarray(y_pred_log, dtype=float).reshape(-1))
     mask = np.isfinite(y_true) & np.isfinite(y_pred) & (y_true > 0.0)
@@ -958,13 +1054,14 @@ def _compute_quick_test_metrics(
         metrics["MPE"] = float(np.mean((y_pred[mask] - y_true[mask]) / y_true[mask]))
     else:
         metrics["MPE"] = np.nan
-    metrics.update(
-        _compute_logprice_dependence_metrics(
-            y_true_log=y_true_log,
-            y_pred_log=y_pred_log,
-            ratio_mode=ratio_mode,
+    if _COMPUTE_DEPENDENCE_METRICS:
+        metrics.update(
+            _compute_logprice_dependence_metrics(
+                y_true_log=y_true_log,
+                y_pred_log=y_pred_log,
+                ratio_mode=ratio_mode,
+            )
         )
-    )
     metrics.update(
         _compute_quantile_block_error_metrics(
             y_true_log=y_true_log,
@@ -981,13 +1078,15 @@ def _build_quick_test_models(
     keep_values: List[float],
     lgbm_params: dict,
     early_stopping_rounds: int | None,
+    model_families: List[str] | None = None,
 ) -> List[Dict[str, Any]]:
     models: List[Dict[str, Any]] = []
 
     rho_list = [float(r) for r in rho_values]
+    enabled = set(model_families or ["linear", "lgbm", "cov", "smooth"])
 
-    models.extend(
-        [
+    if "linear" in enabled:
+        models.append(
             {
                 "model_name": "LinearRegression",
                 "model_family": "LinearRegression",
@@ -996,7 +1095,23 @@ def _build_quick_test_models(
                 "rho_group": np.nan,
                 "estimator": LinearRegression(fit_intercept=True),
                 "requires_linear_pipeline": True,
-            },
+            }
+        )
+    if "linear_cov" in enabled:
+        for rho_value in rho_list:
+            models.append(
+                {
+                    "model_name": f"LinearProjectionCovariancePath_rho_{rho_value}",
+                    "model_family": "LinearProjectionCovariancePath",
+                    "ratio_mode": "diff",
+                    "rho": float(rho_value),
+                    "rho_group": np.nan,
+                    "estimator": LinearProjectionCovariancePath(rho=float(rho_value), fit_intercept=True),
+                    "requires_linear_pipeline": True,
+                }
+            )
+    if "lgbm" in enabled:
+        models.append(
             {
                 "model_name": "LGBMRegressor",
                 "model_family": "LGBMRegressor",
@@ -1005,48 +1120,51 @@ def _build_quick_test_models(
                 "rho_group": np.nan,
                 "estimator": lgb.LGBMRegressor(**lgbm_params),
                 "requires_linear_pipeline": False,
-            },
-        ]
-    )
+            }
+        )
 
     for ratio_mode in _RATIO_MODES:
         for rho_value in rho_list:
-            models.append(
-                {
-                    "model_name": f"LGBCovPenalty_mode_{ratio_mode}_rho_{rho_value}",
-                    "model_family": f"LGBCovPenalty[{ratio_mode}]",
-                    "ratio_mode": ratio_mode,
-                    "rho": float(rho_value),
-                    "rho_group": np.nan,
-                    "estimator": LGBCovPenalty(
-                        rho=float(rho_value),
-                        ratio_mode=ratio_mode,
-                        early_stopping_rounds=early_stopping_rounds,
-                        zero_grad_tol=1e-12,
-                        lgbm_params=lgbm_params,
-                        verbose=True,
-                    ),
-                    "requires_linear_pipeline": False,
-                }
-            )
-            models.append(
-                {
-                    "model_name": f"LGBSmoothPenalty_mode_{ratio_mode}_rho_{rho_value}",
-                    "model_family": f"LGBSmoothPenalty[{ratio_mode}]",
-                    "ratio_mode": ratio_mode,
-                    "rho": float(rho_value),
-                    "rho_group": np.nan,
-                    "estimator": LGBSmoothPenalty(
-                        rho=float(rho_value),
-                        ratio_mode=ratio_mode,
-                        early_stopping_rounds=early_stopping_rounds,
-                        zero_grad_tol=1e-12,
-                        lgbm_params=lgbm_params,
-                        verbose=True,
-                    ),
-                    "requires_linear_pipeline": False,
-                }
-            )
+            if "cov" in enabled:
+                models.append(
+                    {
+                        "model_name": f"LGBCovPenalty_mode_{ratio_mode}_rho_{rho_value}",
+                        "model_family": f"LGBCovPenalty[{ratio_mode}]",
+                        "ratio_mode": ratio_mode,
+                        "rho": float(rho_value),
+                        "rho_group": np.nan,
+                        "estimator": LGBCovPenalty(
+                            rho=float(rho_value),
+                            ratio_mode=ratio_mode,
+                            early_stopping_rounds=early_stopping_rounds,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=lgbm_params,
+                            verbose=True,
+                        ),
+                        "requires_linear_pipeline": False,
+                    }
+                )
+            if "smooth" in enabled:
+                models.append(
+                    {
+                        "model_name": f"LGBSmoothPenalty_mode_{ratio_mode}_rho_{rho_value}",
+                        "model_family": f"LGBSmoothPenalty[{ratio_mode}]",
+                        "ratio_mode": ratio_mode,
+                        "rho": float(rho_value),
+                        "rho_group": np.nan,
+                        "estimator": LGBSmoothPenalty(
+                            rho=float(rho_value),
+                            ratio_mode=ratio_mode,
+                            early_stopping_rounds=early_stopping_rounds,
+                            zero_grad_tol=1e-12,
+                            lgbm_params=lgbm_params,
+                            verbose=True,
+                        ),
+                        "requires_linear_pipeline": False,
+                    }
+                )
+    if not models:
+        raise ValueError("No models selected. Use --models linear,linear_cov,lgbm,cov,smooth or --models all.")
     return models
 
 
@@ -1068,53 +1186,32 @@ def _write_rho_evolution_plot(
     if plot_df.empty:
         return
 
-    fig, axes = plt.subplots(1, len(_MAIN_SWEEP_FAMILIES), figsize=(6 * len(_MAIN_SWEEP_FAMILIES), 5), sharey=True)
-    if len(_MAIN_SWEEP_FAMILIES) == 1:
-        axes = [axes]
-
-    for ax, family in zip(axes, _MAIN_SWEEP_FAMILIES):
-        family_df = plot_df.loc[plot_df["model_family"] == family, :].copy()
-        if family_df.empty:
-            ax.set_visible(False)
-            continue
-
-        metric_names = [metric_name for metric_name in _RHO_PLOT_METRICS if metric_name in family_df.columns]
-        if family_df["rho"].duplicated().any() and metric_names:
-            family_df = (
-                family_df.groupby("rho", as_index=False)[metric_names]
-                .mean(numeric_only=True)
-                .sort_values("rho")
-            )
-        else:
-            family_df = family_df.sort_values("rho")
-
-        for metric_name in metric_names:
-            y = pd.to_numeric(family_df[metric_name], errors="coerce")
-            if not np.isfinite(y.to_numpy(dtype=float)).any():
-                continue
-            ax.plot(
-                family_df["rho"].to_numpy(dtype=float),
-                y.to_numpy(dtype=float),
-                marker="o",
-                linewidth=1.8,
-                linestyle="--",
-                label=metric_name,
-            )
-
-        ax.axhline(0.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.6)
-        ax.set_title(family)
-        ax.set_xlabel("rho")
-        ax.grid(True, linestyle=":", alpha=0.4)
-
-    axes[0].set_ylabel("metric value")
-    handles, labels = axes[0].get_legend_handles_labels()
-    if handles:
-        fig.legend(handles, labels, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, -0.02))
-    fig.suptitle(f"Correlation Metric Evolution vs rho ({split_label})")
-    fig.tight_layout(rect=(0.0, 0.08, 1.0, 0.92))
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path, dpi=180, bbox_inches="tight")
-    plt.close(fig)
+    metric_names = [metric_name for metric_name in _RHO_PLOT_METRICS if metric_name in plot_df.columns]
+    if not metric_names:
+        return
+    for metric_name in metric_names:
+        plot_df[metric_name] = pd.to_numeric(plot_df[metric_name], errors="coerce")
+
+    for metric_name in metric_names:
+        metric_out_path = out_path.with_name(
+            f"{out_path.stem}_{_sanitize_plot_filename(metric_name.lower())}{out_path.suffix}"
+        )
+        _write_rho_evolution_original_metric_plot(
+            plot_df,
+            family_names=_MAIN_SWEEP_FAMILIES,
+            metric_name=metric_name,
+            split_label=split_label,
+            out_path=metric_out_path,
+        )
+
+    _write_rho_evolution_normalized_plot(
+        plot_df,
+        family_names=_MAIN_SWEEP_FAMILIES,
+        metric_names=metric_names,
+        split_label=split_label,
+        out_path=out_path,
+    )
 
 
 def _write_grouped_rho_evolution_plots(
@@ -1148,43 +1245,235 @@ def _write_grouped_rho_evolution_plots(
         family_df = plot_df.loc[plot_df["rho_group"] == rho_group_value, :].copy()
         if family_df.empty:
             continue
-        if family_df["rho"].duplicated().any():
-            family_df = (
-                family_df.groupby("rho", as_index=False)[metric_names]
-                .mean(numeric_only=True)
-                .sort_values("rho")
-            )
-        else:
-            family_df = family_df.sort_values("rho")
+        rho_group_slug = _sanitize_plot_filename(f"{rho_group_value}")
+        base_out_path = out_dir / f"quick_test_rho_evolution_grouped_rho_group_{rho_group_slug}_{split_slug}.pdf"
 
-        fig, ax = plt.subplots(1, 1, figsize=(6.5, 5))
         for metric_name in metric_names:
-            y = pd.to_numeric(family_df[metric_name], errors="coerce")
-            if not np.isfinite(y.to_numpy(dtype=float)).any():
+            metric_out_path = base_out_path.with_name(
+                f"{base_out_path.stem}_{_sanitize_plot_filename(metric_name.lower())}{base_out_path.suffix}"
+            )
+            _write_rho_evolution_original_metric_plot(
+                family_df,
+                family_names=(_GROUPED_SWEEP_FAMILY,),
+                metric_name=metric_name,
+                split_label=f"{split_label}, rho_group={rho_group_value}",
+                out_path=metric_out_path,
+            )
+
+        _write_rho_evolution_normalized_plot(
+            family_df,
+            family_names=(_GROUPED_SWEEP_FAMILY,),
+            metric_names=metric_names,
+            split_label=f"{split_label}, rho_group={rho_group_value}",
+            out_path=base_out_path,
+        )
+
+
+def _rho_family_metric_frame(
+    plot_df: pd.DataFrame,
+    *,
+    family: str,
+    metric_names: Tuple[str, ...] | List[str],
+) -> pd.DataFrame:
+    family_df = plot_df.loc[plot_df["model_family"] == family, :].copy()
+    if family_df.empty:
+        return family_df
+    cols = ["rho"] + [metric_name for metric_name in metric_names if metric_name in family_df.columns]
+    if family_df["rho"].duplicated().any():
+        return (
+            family_df.groupby("rho", as_index=False)[cols[1:]]
+            .mean(numeric_only=True)
+            .sort_values("rho")
+        )
+    return family_df.loc[:, cols].sort_values("rho")
+
+
+def _normalize_rho_metric_values(
+    metric_name: str,
+    values: np.ndarray,
+    *,
+    reference_values: np.ndarray | None = None,
+) -> np.ndarray:
+    values = np.asarray(values, dtype=float)
+    out = np.full(values.shape, np.nan, dtype=float)
+    value_mask = np.isfinite(values)
+    if not value_mask.any():
+        return out
+
+    reference = values if reference_values is None else np.asarray(reference_values, dtype=float)
+    reference = reference[np.isfinite(reference)]
+    if reference.size == 0:
+        return out
+
+    if metric_name in _RHO_HIGHER_IS_BETTER:
+        lo = float(np.nanmin(reference))
+        hi = float(np.nanmax(reference))
+        denom = hi - lo
+        if denom <= 0.0:
+            out[value_mask] = 1.0
+        else:
+            out[value_mask] = (values[value_mask] - lo) / denom
+    elif metric_name in _RHO_LOWER_IS_BETTER:
+        lo = float(np.nanmin(reference))
+        hi = float(np.nanmax(reference))
+        denom = hi - lo
+        if denom <= 0.0:
+            out[value_mask] = 1.0
+        else:
+            out[value_mask] = (hi - values[value_mask]) / denom
+    elif metric_name in _RHO_TARGET_IS_BETTER:
+        target = float(_RHO_TARGET_IS_BETTER[metric_name])
+        reference_deviation = np.abs(reference - target)
+        best = float(np.nanmin(reference_deviation))
+        worst = float(np.nanmax(reference_deviation))
+        denom = worst - best
+        if denom <= 0.0:
+            out[value_mask] = 1.0
+        else:
+            out[value_mask] = (worst - np.abs(values[value_mask] - target)) / denom
+    else:
+        lo = float(np.nanmin(reference))
+        hi = float(np.nanmax(reference))
+        denom = hi - lo
+        if denom <= 0.0:
+            out[value_mask] = 1.0
+        else:
+            out[value_mask] = (values[value_mask] - lo) / denom
+
+    out[value_mask] = np.clip(out[value_mask], 0.0, 1.0)
+    return out
+
+
+def _write_rho_evolution_original_metric_plot(
+    plot_df: pd.DataFrame,
+    *,
+    family_names: Tuple[str, ...],
+    metric_name: str,
+    split_label: str,
+    out_path: Path,
+) -> None:
+    fig, axes = plt.subplots(1, len(family_names), figsize=(6 * len(family_names), 5), sharey=True)
+    if len(family_names) == 1:
+        axes = [axes]
+
+    any_plotted = False
+    color = _RHO_METRIC_COLORS.get(metric_name, "C0")
+    std_col = f"{metric_name}_std"
+    for ax, family in zip(axes, family_names):
+        family_df = _rho_family_metric_frame(plot_df, family=family, metric_names=(metric_name, std_col))
+        if family_df.empty or metric_name not in family_df.columns:
+            ax.set_visible(False)
+            continue
+
+        y = pd.to_numeric(family_df[metric_name], errors="coerce").to_numpy(dtype=float)
+        x = family_df["rho"].to_numpy(dtype=float)
+        if not np.isfinite(y).any():
+            ax.set_visible(False)
+            continue
+
+        ax.plot(x, y, marker="o", linewidth=1.8, linestyle="--", color=color, label=metric_name)
+        if std_col in family_df.columns:
+            y_std = np.abs(pd.to_numeric(family_df[std_col], errors="coerce").to_numpy(dtype=float))
+            band_mask = np.isfinite(y) & np.isfinite(y_std)
+            if band_mask.any():
+                ax.fill_between(
+                    x[band_mask],
+                    y[band_mask] - y_std[band_mask],
+                    y[band_mask] + y_std[band_mask],
+                    color=color,
+                    alpha=0.14,
+                    linewidth=0.0,
+                )
+        ax.set_title(family)
+        ax.set_xlabel("rho")
+        ax.grid(True, linestyle=":", alpha=0.4)
+        any_plotted = True
+
+    if not any_plotted:
+        plt.close(fig)
+        return
+
+    axes[0].set_ylabel(metric_name)
+    fig.suptitle(f"{metric_name} Evolution vs rho ({split_label})")
+    fig.tight_layout(rect=(0.0, 0.02, 1.0, 0.92))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+
+def _write_rho_evolution_normalized_plot(
+    plot_df: pd.DataFrame,
+    *,
+    family_names: Tuple[str, ...],
+    metric_names: List[str] | Tuple[str, ...],
+    split_label: str,
+    out_path: Path,
+) -> None:
+    references = {
+        metric_name: pd.to_numeric(plot_df[metric_name], errors="coerce").to_numpy(dtype=float)
+        for metric_name in metric_names
+        if metric_name in plot_df.columns
+    }
+    if not references:
+        return
+
+    fig, axes = plt.subplots(1, len(family_names), figsize=(6 * len(family_names), 5), sharey=True)
+    if len(family_names) == 1:
+        axes = [axes]
+
+    any_plotted = False
+    first_handles = None
+    first_labels = None
+    for ax, family in zip(axes, family_names):
+        family_df = _rho_family_metric_frame(plot_df, family=family, metric_names=metric_names)
+        if family_df.empty:
+            ax.set_visible(False)
+            continue
+
+        for metric_name in metric_names:
+            if metric_name not in family_df.columns or metric_name not in references:
+                continue
+            y = pd.to_numeric(family_df[metric_name], errors="coerce").to_numpy(dtype=float)
+            y_norm = _normalize_rho_metric_values(
+                metric_name,
+                y,
+                reference_values=references[metric_name],
+            )
+            if not np.isfinite(y_norm).any():
                 continue
             ax.plot(
                 family_df["rho"].to_numpy(dtype=float),
-                y.to_numpy(dtype=float),
+                y_norm,
                 marker="o",
                 linewidth=1.8,
                 linestyle="--",
+                color=_RHO_METRIC_COLORS.get(metric_name, None),
                 label=metric_name,
             )
+            any_plotted = True
 
-        ax.axhline(0.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.6)
-        ax.set_title(f"{_GROUPED_SWEEP_FAMILY}\nrho_group={rho_group_value}")
+        ax.set_ylim(-0.03, 1.03)
+        ax.set_title(family)
         ax.set_xlabel("rho")
-        ax.set_ylabel("metric value")
         ax.grid(True, linestyle=":", alpha=0.4)
-        handles, labels = ax.get_legend_handles_labels()
-        if handles:
-            fig.legend(handles, labels, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, -0.02))
-        fig.suptitle(f"Correlation Metric Evolution vs rho ({split_label})")
-        fig.tight_layout(rect=(0.0, 0.08, 1.0, 0.92))
-        rho_group_slug = _sanitize_plot_filename(f"{rho_group_value}")
-        out_path = out_dir / f"quick_test_rho_evolution_grouped_rho_group_{rho_group_slug}_{split_slug}.pdf"
-        fig.savefig(out_path, dpi=180, bbox_inches="tight")
+        if first_handles is None:
+            handles, labels = ax.get_legend_handles_labels()
+            if handles:
+                first_handles = handles
+                first_labels = labels
+
+    if not any_plotted:
         plt.close(fig)
+        return
+
+    axes[0].set_ylabel("normalized score (0=worst, 1=best)")
+    if first_handles:
+        fig.legend(first_handles, first_labels, loc="lower center", ncol=3, frameon=False, bbox_to_anchor=(0.5, -0.02))
+    fig.suptitle(f"Normalized Metric Evolution vs rho ({split_label})")
+    fig.tight_layout(rect=(0.0, 0.08, 1.0, 0.92))
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
 
 
 def _blend_with_white(color: Any, intensity: float) -> Tuple[float, float, float]:
@@ -1416,6 +1705,23 @@ def _sanitize_plot_filename(name: str) -> str:
     return safe or "plot"
 
 
+def _cap_scatter_plot_samples(
+    *,
+    y_true_log: np.ndarray,
+    y_pred_log: np.ndarray,
+    group_labels: np.ndarray | None,
+    max_samples: int | None,
+    seed: int,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray | None]:
+    y_true_log = np.asarray(y_true_log)
+    y_pred_log = np.asarray(y_pred_log)
+    if max_samples is None or int(max_samples) <= 0 or y_true_log.size <= int(max_samples):
+        return y_true_log, y_pred_log, group_labels
+    idx = np.random.default_rng(int(seed)).choice(y_true_log.size, size=int(max_samples), replace=False)
+    labels = None if group_labels is None else np.asarray(group_labels)[idx]
+    return y_true_log[idx], y_pred_log[idx], labels
+
+
 def _write_ratio_vs_logprice_plots(
     *,
     split_label: str,
@@ -1425,6 +1731,8 @@ def _write_ratio_vs_logprice_plots(
     out_dir: Path,
     grouped_feature_labels: np.ndarray | None = None,
     grouped_feature_name: str | None = None,
+    scatter_plot_max_samples: int | None = None,
+    scatter_plot_sample_seed: int = 0,
 ) -> None:
     if results_df.empty or not pred_logs:
         return
@@ -1439,10 +1747,17 @@ def _write_ratio_vs_logprice_plots(
             continue
         model_family = str(row.get("model_family", ""))
         color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
-        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
-        plot_ratio_vs_logprice(
+        y_true_plot, y_pred_plot, color_labels = _cap_scatter_plot_samples(
             y_true_log=y_true_log,
             y_pred_log=y_pred_log,
+            group_labels=color_labels,
+            max_samples=scatter_plot_max_samples,
+            seed=scatter_plot_sample_seed,
+        )
+        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
+        plot_ratio_vs_logprice(
+            y_true_log=y_true_plot,
+            y_pred_log=y_pred_plot,
             out_path=out_path,
             model_label=model_name,
             split_label=split_label,
@@ -1462,6 +1777,8 @@ def _write_residual_vs_logprice_plots(
     out_dir: Path,
     grouped_feature_labels: np.ndarray | None = None,
     grouped_feature_name: str | None = None,
+    scatter_plot_max_samples: int | None = None,
+    scatter_plot_sample_seed: int = 0,
 ) -> None:
     if results_df.empty or not pred_logs:
         return
@@ -1476,10 +1793,17 @@ def _write_residual_vs_logprice_plots(
             continue
         model_family = str(row.get("model_family", ""))
         color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
-        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
-        plot_residual_vs_logprice(
+        y_true_plot, y_pred_plot, color_labels = _cap_scatter_plot_samples(
             y_true_log=y_true_log,
             y_pred_log=y_pred_log,
+            group_labels=color_labels,
+            max_samples=scatter_plot_max_samples,
+            seed=scatter_plot_sample_seed,
+        )
+        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
+        plot_residual_vs_logprice(
+            y_true_log=y_true_plot,
+            y_pred_log=y_pred_plot,
             out_path=out_path,
             model_label=model_name,
             split_label=split_label,
@@ -1499,6 +1823,8 @@ def _write_ratio_vs_logprediction_plots(
     out_dir: Path,
     grouped_feature_labels: np.ndarray | None = None,
     grouped_feature_name: str | None = None,
+    scatter_plot_max_samples: int | None = None,
+    scatter_plot_sample_seed: int = 0,
 ) -> None:
     if results_df.empty or not pred_logs:
         return
@@ -1513,10 +1839,17 @@ def _write_ratio_vs_logprediction_plots(
             continue
         model_family = str(row.get("model_family", ""))
         color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
-        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
-        plot_ratio_vs_logprediction(
+        y_true_plot, y_pred_plot, color_labels = _cap_scatter_plot_samples(
             y_true_log=y_true_log,
             y_pred_log=y_pred_log,
+            group_labels=color_labels,
+            max_samples=scatter_plot_max_samples,
+            seed=scatter_plot_sample_seed,
+        )
+        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
+        plot_ratio_vs_logprediction(
+            y_true_log=y_true_plot,
+            y_pred_log=y_pred_plot,
             out_path=out_path,
             model_label=model_name,
             split_label=split_label,
@@ -1536,6 +1869,8 @@ def _write_residual_vs_logprediction_plots(
     out_dir: Path,
     grouped_feature_labels: np.ndarray | None = None,
     grouped_feature_name: str | None = None,
+    scatter_plot_max_samples: int | None = None,
+    scatter_plot_sample_seed: int = 0,
 ) -> None:
     if results_df.empty or not pred_logs:
         return
@@ -1550,10 +1885,17 @@ def _write_residual_vs_logprediction_plots(
             continue
         model_family = str(row.get("model_family", ""))
         color_labels = grouped_feature_labels if model_family == _GROUPED_SWEEP_FAMILY else None
-        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
-        plot_residual_vs_logprediction(
+        y_true_plot, y_pred_plot, color_labels = _cap_scatter_plot_samples(
             y_true_log=y_true_log,
             y_pred_log=y_pred_log,
+            group_labels=color_labels,
+            max_samples=scatter_plot_max_samples,
+            seed=scatter_plot_sample_seed,
+        )
+        out_path = split_dir / f"{_sanitize_plot_filename(model_name)}.pdf"
+        plot_residual_vs_logprediction(
+            y_true_log=y_true_plot,
+            y_pred_log=y_pred_plot,
             out_path=out_path,
             model_label=model_name,
             split_label=split_label,
@@ -1689,11 +2031,26 @@ def _evaluate_model_specs(
             for spec in model_specs
         ]
 
-    max_workers = min(len(model_specs), max(1, int(os.cpu_count() or 1)))
+    # Detect the cores actually available to this process. os.cpu_count() reports
+    # the full machine and ignores SLURM/cgroup affinity, which can oversubscribe
+    # threads and trigger OpenMP allocation failures. Prefer the CPU affinity mask
+    # (honours --cpus-per-task) and allow an explicit override via env var.
+    try:
+        available_cpus = len(os.sched_getaffinity(0))  # type: ignore[attr-defined]
+    except (AttributeError, OSError):
+        available_cpus = int(os.cpu_count() or 1)
+    env_cap = os.environ.get("QUICK_TEST_MAX_WORKERS", "").strip()
+    if env_cap:
+        try:
+            available_cpus = max(1, int(env_cap))
+        except ValueError:
+            pass
+    max_workers = min(len(model_specs), max(1, int(available_cpus)))
     _log(
         "parallel model evaluation enabled",
         n_models=int(len(model_specs)),
         max_workers=int(max_workers),
+        available_cpus=int(available_cpus),
     )
     rows: List[Dict[str, Any] | None] = [None] * len(model_specs)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -1731,20 +2088,33 @@ def run_quick_test(
     data_path: str,
     sample_frac: float | None,
     seed: int,
+    scatter_plot_max_samples: int | None = None,
+    lgbm_hyperparameter_file: str | None = _DEFAULT_LGBM_HYPERPARAMETER_FILE,
+    lgbm_config_key: str = _DEFAULT_LGBM_CONFIG_KEY,
+    lgbm_n_jobs: int | None = None,
+    lgbm_n_estimators: int | None = None,
+    model_families: List[str] | None = None,
     skip_delete_analysis: bool = True,
-    n_bootstrap_validation: int = 5,
+    n_bootstrap_validation: int = 0,
     bootstrap_block_freq: str = "M",
     parallel_models: bool = False,
+    assessment_year: int = 2024,
 ) -> Dict[str, str]:
     """Runs the quick test and writes the output CSV tables."""
     target_column = "meta_sale_price"
     date_column = "meta_sale_date"
+    scatter_plot_max_samples = (
+        None
+        if scatter_plot_max_samples is None or int(scatter_plot_max_samples) <= 0
+        else int(scatter_plot_max_samples)
+    )
     _log(
         "quick test start",
         out_dir=out_dir,
         data_path=data_path,
         rho=rho,
         sample_frac=sample_frac,
+        scatter_plot_max_samples=scatter_plot_max_samples,
     )
 
     with open("params.yaml", "r", encoding="utf-8") as f:
@@ -1760,6 +2130,7 @@ def run_quick_test(
         date_column=date_column,
         sample_frac=sample_frac,
         sample_seed=seed,
+        assessment_year=int(assessment_year),
     )
     _log("data load/split finished")
     predictor_cols = list(predictor_cols)
@@ -2132,7 +2503,23 @@ def run_quick_test(
 
     # Model parameterization (baseline LGBM defaults).
     lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed)
-    rho_sweep = [float(r) for r in (rho_values if rho_values is not None else [rho])]
+    if lgbm_hyperparameter_file is not None and str(lgbm_hyperparameter_file).strip():
+        lgbm_params = _load_lgbm_params_from_hyperparameter_file(
+            str(lgbm_hyperparameter_file),
+            str(lgbm_config_key),
+        )
+        _log(
+            "LGBM parameters loaded from hyperparameter file",
+            hyperparameter_file=str(lgbm_hyperparameter_file),
+            config_key=str(lgbm_config_key),
+        )
+    if lgbm_n_jobs is not None:
+        lgbm_params["n_jobs"] = int(lgbm_n_jobs)
+        _log("LGBM n_jobs override applied", n_jobs=int(lgbm_n_jobs))
+    if lgbm_n_estimators is not None:
+        lgbm_params["n_estimators"] = int(lgbm_n_estimators)
+        _log("LGBM n_estimators override applied", n_estimators=int(lgbm_n_estimators))
+    rho_sweep = _round_rho_values([float(r) for r in (rho_values if rho_values is not None else [rho])])
     eta_sweep = [float(v) for v in (eta_values if eta_values is not None else [rho if eta is None else eta])]
     models = _build_quick_test_models(
         rho_values=rho_sweep,
@@ -2140,8 +2527,9 @@ def run_quick_test(
         keep_values=keep_values,
         lgbm_params=lgbm_params,
         early_stopping_rounds=early_stopping_rounds,
+        model_families=model_families,
     )
-    _log("model specs built", n_models=int(len(models)))
+    _log("model specs built", n_models=int(len(models)), models=",".join(str(m) for m in (model_families or [])))
     model_ratio_modes = {str(spec["model_name"]): str(spec["ratio_mode"]) for spec in models}
     model_specs_by_name = {str(spec["model_name"]): spec for spec in models}
 
@@ -2257,6 +2645,33 @@ def run_quick_test(
     if not train_assess_df.empty:
         train_assess_df.to_csv(train_assess_path, index=False)
 
+    # Persist the unpenalized baseline log-space predictions so downstream theory
+    # tooling (e.g. scripts/theory_informed_rho_range.py) can recycle them instead
+    # of refitting the baseline LGBM. This is cheap (two small parquet files of
+    # already-computed arrays) and adds no model fitting.
+    def _save_baseline_predictions(pred_logs, y_true_log, split_label):
+        if y_true_log is None:
+            return
+        y_arr = np.asarray(y_true_log, dtype=float).reshape(-1)
+        cols = {"y_log": y_arr}
+        for model_name, key in (("LGBMRegressor", "f0_log"), ("LinearRegression", "linear_log")):
+            if model_name in pred_logs:
+                p = np.asarray(pred_logs[model_name], dtype=float).reshape(-1)
+                if p.shape[0] == y_arr.shape[0]:
+                    cols[key] = p
+        if "f0_log" not in cols:
+            return
+        path = out / f"baseline_predictions_{split_label}.parquet"
+        try:
+            pd.DataFrame(cols).to_parquet(path, index=False)
+            _log("baseline predictions saved for theory recycling", path=str(path), rows=int(y_arr.shape[0]))
+        except Exception as exc:  # pragma: no cover - persistence must not break the run
+            _log("failed to save baseline predictions", split=split_label, error=repr(exc))
+
+    _save_baseline_predictions(test_pred_logs, y_test_log, "test")
+    if not assess_df.empty:
+        _save_baseline_predictions(assess_pred_logs, y_assess_log, "assess")
+
     _write_split_report(
         split_label="Test",
         results_df=test_df,
@@ -2338,8 +2753,11 @@ def run_quick_test(
             for c in bs_df.columns:
                 s = pd.to_numeric(bs_df[c], errors="coerce")
                 v = s.to_numpy(dtype=float)
-                if np.isfinite(v).any():
-                    row[c] = float(np.nanmean(v))
+                finite_v = v[np.isfinite(v)]
+                if finite_v.size > 0:
+                    row[c] = float(np.nanmean(finite_v))
+                    if finite_v.size > 1:
+                        row[f"{c}_std"] = float(np.nanstd(finite_v, ddof=1))
             bootstrap_rows.append(row)
     bootstrap_df = pd.DataFrame(bootstrap_rows)
     bootstrap_df.to_csv(bootstrap_val_path, index=False)
@@ -2423,6 +2841,10 @@ def run_quick_test(
             out_dir=tradeoff_plots_dir,
         )
 
+    scatter_plot_kwargs = {
+        "scatter_plot_max_samples": scatter_plot_max_samples,
+        "scatter_plot_sample_seed": int(seed),
+    }
     _write_ratio_vs_logprice_plots(
         split_label="Test",
         results_df=test_df,
@@ -2433,6 +2855,7 @@ def run_quick_test(
         if _META_TOWNSHIP_TRIAD_COL in df_test.columns
         else None,
         grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
     )
     _write_ratio_vs_logprediction_plots(
         split_label="Test",
@@ -2444,6 +2867,7 @@ def run_quick_test(
         if _META_TOWNSHIP_TRIAD_COL in df_test.columns
         else None,
         grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
     )
     _write_residual_vs_logprice_plots(
         split_label="Test",
@@ -2455,6 +2879,7 @@ def run_quick_test(
         if _META_TOWNSHIP_TRIAD_COL in df_test.columns
         else None,
         grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
     )
     _write_residual_vs_logprediction_plots(
         split_label="Test",
@@ -2466,6 +2891,7 @@ def run_quick_test(
         if _META_TOWNSHIP_TRIAD_COL in df_test.columns
         else None,
         grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
     )
     if not train_test_df.empty:
         _write_ratio_vs_logprice_plots(
@@ -2478,6 +2904,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_ratio_vs_logprediction_plots(
             split_label="TrainInSample-TestFit",
@@ -2489,6 +2916,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_residual_vs_logprice_plots(
             split_label="TrainInSample-TestFit",
@@ -2500,6 +2928,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_residual_vs_logprediction_plots(
             split_label="TrainInSample-TestFit",
@@ -2511,6 +2940,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_train_validate.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
     if not assess_df.empty:
         _write_ratio_vs_logprice_plots(
@@ -2523,6 +2953,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_ratio_vs_logprediction_plots(
             split_label="Assessment",
@@ -2534,6 +2965,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_residual_vs_logprice_plots(
             split_label="Assessment",
@@ -2545,6 +2977,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_residual_vs_logprediction_plots(
             split_label="Assessment",
@@ -2556,6 +2989,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_assess.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
     if not train_assess_df.empty:
         _write_ratio_vs_logprice_plots(
@@ -2568,6 +3002,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_ratio_vs_logprediction_plots(
             split_label="TrainInSample-AssessFit",
@@ -2579,6 +3014,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_residual_vs_logprice_plots(
             split_label="TrainInSample-AssessFit",
@@ -2590,6 +3026,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
         _write_residual_vs_logprediction_plots(
             split_label="TrainInSample-AssessFit",
@@ -2601,6 +3038,7 @@ def run_quick_test(
             if _META_TOWNSHIP_TRIAD_COL in df_pre2024.columns
             else None,
             grouped_feature_name=_META_TOWNSHIP_TRIAD_COL,
+        **scatter_plot_kwargs,
         )
     _log("quick test finished", plots_dir=str(plots_dir))
 
@@ -2641,6 +3079,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     p.add_argument("--rho-count", type=int, default=5, help="Number of rho values to generate when --rho-range is provided.")
     p.add_argument(
+        "--rho-extra",
+        type=str,
+        default="",
+        help="Optional comma-separated rho values appended to the generated sweep (e.g. a recommended operating point like 3.01). Merged, de-duplicated and sorted into the grid.",
+    )
+    p.add_argument(
         "--rho-scale",
         type=str,
         default="log",
@@ -2665,6 +3109,36 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         default="0.5,0.7,0.9",
         help="Comma-separated keep values for LGBSmoothPenaltyGroupCVaR, e.g. 0.5,0.7,0.9.",
     )
+    p.add_argument(
+        "--lgbm-hyperparameter-file",
+        type=str,
+        default=_DEFAULT_LGBM_HYPERPARAMETER_FILE,
+        help="YAML file containing reusable LGBM params. Use an empty string to fall back to model_params.yaml/params.yaml.",
+    )
+    p.add_argument(
+        "--lgbm-config-key",
+        type=str,
+        default=_DEFAULT_LGBM_CONFIG_KEY,
+        help="Key under lgbm_baselines in --lgbm-hyperparameter-file, e.g. test_best_r2 or cv_best_r2.",
+    )
+    p.add_argument(
+        "--lgbm-n-jobs",
+        type=int,
+        default=None,
+        help="Override n_jobs for each LGBM-based estimator. Default keeps the value from the loaded config.",
+    )
+    p.add_argument(
+        "--lgbm-n-estimators",
+        type=int,
+        default=None,
+        help="Override n_estimators for each LGBM-based estimator. Default keeps the value from the loaded config.",
+    )
+    p.add_argument(
+        "--models",
+        type=str,
+        default="linear,lgbm,cov,smooth",
+        help="Comma-separated models to run: linear,linear_cov,lgbm,cov,smooth. Alias surr maps to smooth. Use all for the default set.",
+    )
     p.add_argument("--out-dir", type=str, default="./output/quick_test", help="Directory to write CSV outputs.")
     p.add_argument(
         "--data-path",
@@ -2685,9 +3159,16 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="Run the independent model fits in parallel. Disabled by default to preserve the current workflow.",
     )
     p.add_argument("--sample-frac", type=float, default=None, help="Optional down-sampling fraction in (0,1].")
+    p.add_argument("--scatter-plot-max-samples", type=int, default=None, help="Maximum randomly sampled points per scatter plot. Use 0 or omit to disable the cap.")
     p.add_argument("--seed", type=int, default=4050, help="Random seed (mirrors main.py default).")
-    p.add_argument("--n-bootstrap-validation", type=int, default=5, help="Small number of bootstrap resamples for quick validation-like summary.")
+    p.add_argument("--n-bootstrap-validation", type=int, default=0, help="Small number of bootstrap resamples for quick validation-like summary.")
     p.add_argument("--bootstrap-block-freq", type=str, default="M", help="Time block frequency for bootstrap resampling (e.g., M, W, Q).")
+    p.add_argument(
+        "--assessment-year",
+        type=int,
+        default=2024,
+        help="Calendar year used as the held-out assessment block. Sales in this year form the assessment set; sales before it form train/validate + test (the last 1-split_prop fraction is the test split).",
+    )
     return p
 
 
@@ -2700,6 +3181,7 @@ if __name__ == "__main__":
             str(args.rho_range),
             int(args.rho_count),
             str(args.rho_scale),
+            str(args.rho_extra),
         ),
         eta=(None if args.eta is None else float(args.eta)),
         eta_values=(
@@ -2720,10 +3202,23 @@ if __name__ == "__main__":
         data_path=str(args.data_path),
         sample_frac=(None if args.sample_frac is None else float(args.sample_frac)),
         seed=int(args.seed),
+        scatter_plot_max_samples=(
+            None if args.scatter_plot_max_samples is None else int(args.scatter_plot_max_samples)
+        ),
+        lgbm_hyperparameter_file=(
+            None
+            if str(args.lgbm_hyperparameter_file).strip() == ""
+            else str(args.lgbm_hyperparameter_file)
+        ),
+        lgbm_config_key=str(args.lgbm_config_key),
+        lgbm_n_jobs=(None if args.lgbm_n_jobs is None else int(args.lgbm_n_jobs)),
+        lgbm_n_estimators=(None if args.lgbm_n_estimators is None else int(args.lgbm_n_estimators)),
+        model_families=_parse_model_families(str(args.models)),
         skip_delete_analysis=bool(args.skip_delete_analysis),
         n_bootstrap_validation=int(args.n_bootstrap_validation),
         bootstrap_block_freq=str(args.bootstrap_block_freq),
         parallel_models=bool(args.parallel_models),
+        assessment_year=int(args.assessment_year),
     )
     print("=" * 90)
     print("QUICK TEST COMPLETED")

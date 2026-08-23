@@ -1,0 +1,163 @@
+metadata:
+  description: "Reusable unpenalized LightGBM baseline configurations selected from saved output artifacts."
+  created_from:
+    cv_best_source: "output/robust_rolling_origin_cv/analysis/data_id=dd91c93c6f525e6a/split_id=eeabb0637554fe28/selected/selected_models_evaluation.csv"
+    test_best_source: "output/robust_rolling_origin_cv_2025/analysis/data_id=d2b6dd81ad6ca613/split_id=a72eb9f19bef3733/selected/selected_models_evaluation.csv"
+    cv_top_source: "output/robust_rolling_origin_cv_2025/runs/data_id=d2b6dd81ad6ca613/split_id=a72eb9f19bef3733 (per-fold run parquets aggregated over 8 folds)"
+  note: "test_best_r2 / cv_best_r2 share lgbm_base_config_id 7ce5a0a0e6e4f38b. cv_top1_r2 and cv_top2_r2 are the two distinct LGBMRegressor configurations that achieved the lowest mean CV RMSE in the 2025 rolling-origin run; their full params were recovered from the per-fold run artifacts. The three test_best/cv_top configs are distinct hyperparameter sets and are used as parallel baseline models in the rho-sweep experiments."
+
+lgbm_baselines:
+  cv_best_r2:
+    selector_rule: "ccao_min_rmse"
+    config_id: "3e68c37f6db0d0dc"
+    model_name: "LGBMRegressor"
+    lgbm_base_config_id: "7ce5a0a0e6e4f38b"
+    metrics:
+      n_folds: 8
+      cv_R2_mean: 0.888206839293485
+      cv_R2_std: 0.00825292269241601
+      cv_R2_min: 0.8763330659046308
+      cv_R2_max: 0.8981403847986451
+      cv_RMSE_mean: 101200.72856785127
+      cv_RMSE_std: 11102.509955648095
+      cv_RMSE_min: 89787.875503759
+      cv_RMSE_max: 121271.49030131417
+      test_R2: 0.8850818077537352
+      test_RMSE: 122395.28803725782
+      test_MAE: 71912.08925726036
+      test_MAPE: 0.2243204765964922
+    lgbm_params:
+      boosting_type: "gbdt"
+      objective: "mse"
+      n_estimators: 500
+      learning_rate: 0.012806
+      num_leaves: 1209
+      max_depth: 15
+      max_bin: 322
+      min_child_samples: 30
+      min_split_gain: 0.023317
+      colsample_bytree: 1.0
+      reg_alpha: 0.001
+      reg_lambda: 0.01
+      max_cat_threshold: 32
+      min_data_per_group: 100
+      cat_smooth: 10.0
+      cat_l2: 10.0
+      random_state: 2025
+      n_jobs: 1
+      verbosity: -1
+      importance_type: "split"
+
+  cv_top1_r2:
+    selector_rule: "min_mean_cv_rmse"
+    selector_label: "LGBM CV-best #1 (min mean CV RMSE)"
+    config_id: "c6fc2c3b6d325ce6"
+    model_name: "LGBMRegressor"
+    lgbm_base_config_id: "1a7481cf2c73a1a4"
+    metrics:
+      n_folds: 8
+      cv_R2_mean: 0.890796
+      cv_RMSE_mean: 105136.637230
+      cv_MAPE_mean: 0.216071
+      cv_COD_mean: 22.051797
+      cv_PRD_mean: 1.065790
+      cv_PRB_mean: -0.077531
+    lgbm_params:
+      boosting_type: "gbdt"
+      objective: "mse"
+      n_estimators: 1472
+      learning_rate: 0.036133966167754564
+      num_leaves: 1554
+      max_depth: 13
+      max_bin: 413
+      min_child_samples: 274
+      min_split_gain: 0.027585888559555648
+      colsample_bytree: 0.34389925976734015
+      reg_alpha: 0.006870495747707845
+      reg_lambda: 13.365357449037234
+      max_cat_threshold: 211
+      min_data_per_group: 257
+      cat_smooth: 21.4701330685764
+      cat_l2: 0.0026468910764330875
+      random_state: 2025
+      n_jobs: 1
+      verbosity: -1
+      importance_type: "split"
+
+  cv_top2_r2:
+    selector_rule: "min_mean_cv_rmse"
+    selector_label: "LGBM CV-best #2 (2nd lowest mean CV RMSE)"
+    config_id: "a1c87203c53eb847"
+    model_name: "LGBMRegressor"
+    lgbm_base_config_id: "5be4ae06f4d8fd8a"
+    metrics:
+      n_folds: 8
+      cv_R2_mean: 0.890828
+      cv_RMSE_mean: 105166.218488
+      cv_MAPE_mean: 0.216331
+      cv_COD_mean: 22.098386
+      cv_PRD_mean: 1.066668
+      cv_PRB_mean: -0.080431
+    lgbm_params:
+      boosting_type: "gbdt"
+      objective: "mse"
+      n_estimators: 1025
+      learning_rate: 0.021023027637055314
+      num_leaves: 1245
+      max_depth: 15
+      max_bin: 503
+      min_child_samples: 127
+      min_split_gain: 0.0011599873576921774
+      colsample_bytree: 0.6632376700703669
+      reg_alpha: 0.3455523724802531
+      reg_lambda: 0.046705490038822364
+      max_cat_threshold: 93
+      min_data_per_group: 42
+      cat_smooth: 24.765327476875576
+      cat_l2: 0.10534134290552764
+      random_state: 2025
+      n_jobs: 1
+      verbosity: -1
+      importance_type: "split"
+
+  test_best_r2:
+    selector_rule: "lgbm_min_rmse"
+    selector_label: "LGBM min RMSE"
+    config_id: "dee08fa9ab117c39"
+    model_name: "LGBMRegressor"
+    lgbm_base_config_id: "7ce5a0a0e6e4f38b"
+    metrics:
+      n_folds: 8
+      cv_R2_mean: 0.8854587728493003
+      cv_R2_std: 0.008831557963853801
+      cv_R2_min: 0.8716108323431748
+      cv_R2_max: 0.9019877369518026
+      cv_RMSE_mean: 107825.27121798531
+      cv_RMSE_std: 13269.9563691314
+      cv_RMSE_min: 89855.14199753724
+      cv_RMSE_max: 124262.2156391561
+      test_R2: 0.8915755057847635
+      test_RMSE: 142925.37502178762
+      test_MAE: 83437.58069934208
+      test_MAPE: 0.2129363851199211
+    lgbm_params:
+      boosting_type: "gbdt"
+      objective: "mse"
+      n_estimators: 500
+      learning_rate: 0.012806
+      num_leaves: 1209
+      max_depth: 15
+      max_bin: 322
+      min_child_samples: 30
+      min_split_gain: 0.023317
+      colsample_bytree: 1.0
+      reg_alpha: 0.001
+      reg_lambda: 0.01
+      max_cat_threshold: 32
+      min_data_per_group: 100
+      cat_smooth: 10.0
+      cat_l2: 10.0
+      random_state: 2025
+      n_jobs: 1
+      verbosity: -1
+      importance_type: "split"

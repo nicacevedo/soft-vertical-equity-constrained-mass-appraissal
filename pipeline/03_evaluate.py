@@ -5,8 +5,8 @@ Evaluate (CCAO ``03-evaluate`` analog).
 Cook County aggregates ratio-study and ML metrics by geography for both the
 held-out test set and the assessment universe.
 
-This stage focuses on the **two configurations selected by stage 02-assess**
-(``ccao_min_rmse`` and ``nash``) and produces a side-by-side report combining:
+This stage focuses on the configurations selected by stage 02-assess and
+produces a side-by-side report combining:
 
 - per-fold CV metrics from ``runs/``
 - aggregated CV stats (mean / std / max-or-min depending on direction)
@@ -97,6 +97,14 @@ def _summarize_folds(runs_df: pd.DataFrame, *, config_id: str) -> Dict[str, Any]
         summary[f"{col}_std"] = float(np.std(vals, ddof=0))
         summary[f"{col}_min"] = float(np.min(vals))
         summary[f"{col}_max"] = float(np.max(vals))
+    if "RMSE" in sub.columns:
+        rmse_vals = pd.to_numeric(sub["RMSE"], errors="coerce").to_numpy(dtype=float)
+        mse_vals = rmse_vals[np.isfinite(rmse_vals)] ** 2
+        if mse_vals.size:
+            summary["MSE_mean"] = float(np.mean(mse_vals))
+            summary["MSE_std"] = float(np.std(mse_vals, ddof=0))
+            summary["MSE_min"] = float(np.min(mse_vals))
+            summary["MSE_max"] = float(np.max(mse_vals))
     return summary
 
 
@@ -148,10 +156,11 @@ def _evaluate(
             "config_id": cfg_id,
             "model_name": sel["model_name"],
             "model_family": sel.get("model_family", ""),
+            "selector_label": sel.get("selector_label", ""),
             "n_folds": cv_summary.get("n_folds", 0),
             "model_config_json": sel.get("model_config_json", ""),
         }
-        for col in _FOLD_NUMERIC_COLS:
+        for col in (*_FOLD_NUMERIC_COLS, "MSE"):
             row[f"cv_{col}_mean"] = cv_summary.get(f"{col}_mean", np.nan)
             row[f"cv_{col}_std"] = cv_summary.get(f"{col}_std", np.nan)
             row[f"cv_{col}_min"] = cv_summary.get(f"{col}_min", np.nan)
@@ -166,7 +175,7 @@ def _evaluate(
                     row[f"test_{col}"] = float(test_metrics[col])
                 except (TypeError, ValueError):
                     row[f"test_{col}"] = np.nan
-        if "nash" in str(rule):
+        if "nash_log_utility" in sel:
             row["nash_log_utility"] = float(sel.get("nash_log_utility", np.nan))
         # Legacy JSON keys
         if rule == "utopia":
@@ -199,7 +208,7 @@ def _evaluate(
 
 
 def main() -> None:
-    p = argparse.ArgumentParser(description="Evaluate stage — focused report on the two selected models.")
+    p = argparse.ArgumentParser(description="Evaluate stage — focused report on selected models.")
     p.add_argument("--result-root", type=str, default=str(DEFAULT_RESULT_ROOT))
     p.add_argument("--data-id", type=str, default=None)
     p.add_argument("--split-id", type=str, default=None)
