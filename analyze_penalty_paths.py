@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import LogFormatterSciNotation, LogLocator
 import numpy as np
 import pandas as pd
 
@@ -92,8 +93,12 @@ def _discover_data_split_pairs(result_root: Path) -> List[Tuple[str, str]]:
             for split_dir in sorted(data_dir.glob("split_id=*")):
                 if split_dir.is_dir():
                     pairs.append((data_id, split_dir.name.split("split_id=", 1)[-1]))
-    analysis_root = result_root / "analysis"
-    if analysis_root.is_dir():
+    for analysis_root in (
+        result_root / "analysis",
+        result_root / "baseline_reporting" / "analysis",
+    ):
+        if not analysis_root.is_dir():
+            continue
         for data_dir in sorted(analysis_root.glob("data_id=*")):
             data_id = data_dir.name.split("data_id=", 1)[-1]
             for split_dir in sorted(data_dir.glob("split_id=*")):
@@ -233,6 +238,8 @@ def _save_fig(fig: plt.Figure, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
     fig.savefig(path, dpi=200)
+    pdf_path = path.with_suffix(".pdf")
+    fig.savefig(pdf_path)
     plt.close(fig)
 
 
@@ -276,28 +283,46 @@ def _plot_rho_traces(combined: pd.DataFrame, metrics: Sequence[str], out_dir: Pa
 
 
 def _plot_accuracy_equity(combined: pd.DataFrame, out_dir: Path) -> None:
+    splits = (
+        ("cv_mean", "CV mean"),
+        ("test", "Held-out"),
+        ("forward", "2025 forward"),
+    )
     for x_metric, y_metric in ACCURACY_EQUITY_PAIRS:
-        x_col = f"{x_metric}__cv_mean"
-        y_col = f"{y_metric}__cv_mean"
-        if x_col not in combined.columns or y_col not in combined.columns:
-            continue
-        fig, ax = plt.subplots(figsize=(7.2, 5.4))
-        for family in PENALTY_FAMILIES:
-            sub = combined.loc[combined["model_name"].astype(str) == family].copy()
-            if sub.empty:
-                continue
-            sub = sub.sort_values("rho")
-            ax.plot(sub[x_col], sub[y_col], color=_family_color(family), marker="o", linewidth=1.5, label=f"{family} CV")
-            if f"{x_metric}__test" in sub.columns and f"{y_metric}__test" in sub.columns:
-                ax.plot(sub[f"{x_metric}__test"], sub[f"{y_metric}__test"], color=_family_color(family), linestyle="--", marker="s", label=f"{family} test")
-            if f"{x_metric}__forward" in sub.columns and f"{y_metric}__forward" in sub.columns:
-                ax.plot(sub[f"{x_metric}__forward"], sub[f"{y_metric}__forward"], color=_family_color(family), linestyle=":", marker="^", label=f"{family} 2025")
-        ax.set_xlabel(x_metric)
-        ax.set_ylabel(y_metric)
-        ax.set_title(f"{x_metric} vs {y_metric} (increasing rho)")
-        ax.grid(True, alpha=0.3)
-        ax.legend(fontsize=8)
-        _save_fig(fig, out_dir / f"path_{x_metric}_vs_{y_metric}.png")
+        fig, axes = plt.subplots(1, 3, figsize=(13.2, 4.2), sharex=False, sharey=False)
+        drew = False
+        for ax, (suffix, title) in zip(axes, splits):
+            x_col = f"{x_metric}__{suffix}"
+            y_col = f"{y_metric}__{suffix}"
+            any_series = False
+            for family in PENALTY_FAMILIES:
+                sub = combined.loc[combined["model_name"].astype(str) == family].copy()
+                if sub.empty or x_col not in sub.columns or y_col not in sub.columns:
+                    continue
+                sub = sub.sort_values("rho")
+                ax.plot(
+                    sub[x_col],
+                    sub[y_col],
+                    color=_family_color(family),
+                    marker="o",
+                    linewidth=1.5,
+                    label=family,
+                )
+                any_series = True
+                drew = True
+            ax.set_title(title)
+            ax.set_xlabel(x_metric)
+            ax.set_ylabel(y_metric)
+            ax.grid(True, alpha=0.3)
+            if any_series:
+                ax.legend(fontsize=7)
+            else:
+                ax.set_axis_off()
+        if drew:
+            fig.suptitle(f"{x_metric} vs {y_metric} along the ordered rho path", fontsize=11)
+            _save_fig(fig, out_dir / f"path_{x_metric}_vs_{y_metric}.png")
+        else:
+            plt.close(fig)
 
 
 def _plot_fold_stability(cv: pd.DataFrame, metrics: Sequence[str], out_dir: Path) -> None:
@@ -462,19 +487,69 @@ def _plot_section2_baseline_bins(profile: pd.DataFrame, out_path: Path) -> None:
             ax.axhline(1.0, color="#111827", linestyle="--", linewidth=0.9)
             ax.set_xscale("log", base=10)
             ax.set_xlim(x_min, x_max)
+            ax.set_ylim(0.55, 1.45)
+            ax.xaxis.set_major_locator(LogLocator(base=10, subs=(1.0, 2.0, 5.0)))
+            ax.xaxis.set_major_formatter(
+                LogFormatterSciNotation(base=10, labelOnlyBase=False, minor_thresholds=(np.inf, np.inf))
+            )
             beta = sub["beta_log"].iloc[0] if "beta_log" in sub.columns else np.nan
             if np.isfinite(beta):
                 ax.text(0.04, 0.08, rf"$\beta_{{\log}}={beta:.3f}$", transform=ax.transAxes, fontsize=8)
-            if row == 0:
-                ax.set_title(model)
+            display = {"LinearRegression": "Linear", "LGBMRegressor": "LightGBM"}.get(model, model)
+            short_eval = "Held-out" if "Held-out" in evaluation else "2025 forward"
+            ax.set_title(f"{short_eval} {display}")
             if col == 0:
-                ax.set_ylabel(f"{evaluation}\nValuation-to-sale ratio")
+                ax.set_ylabel("Valuation-to-sale ratio")
             if row == 1:
-                ax.set_xlabel("Sale price (log10)")
-            ax.grid(True, alpha=0.3)
+                ax.set_xlabel("Sale price")
+            ax.grid(True, color="#E5E7EB", linewidth=0.7)
+            ax.set_axisbelow(True)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
     fig.savefig(out_path, dpi=200)
+    fig.savefig(out_path.with_suffix(".pdf"))
+    plt.close(fig)
+
+
+def _plot_vei_group_profile(profile: pd.DataFrame, out_path: Path) -> None:
+    if profile.empty:
+        return
+    fig, axes = plt.subplots(2, 2, figsize=(8.2, 6.2), sharex=True, sharey=True)
+    evals = ("Held-out evaluation", "2025 forward evaluation")
+    for row, evaluation in enumerate(evals):
+        for col, model in enumerate(BASELINE_MODELS):
+            ax = axes[row, col]
+            sub = profile.loc[(profile["evaluation"] == evaluation) & (profile["model"] == model)]
+            if sub.empty:
+                ax.set_axis_off()
+                continue
+            group_col = "group" if "group" in sub.columns else "group"
+            med_col = "median_ratio" if "median_ratio" in sub.columns else "median_ratio"
+            low_col = "ci_low" if "ci_low" in sub.columns else "ci_low"
+            high_col = "ci_high" if "ci_high" in sub.columns else "ci_high"
+            overall_col = "overall_median_ratio" if "overall_median_ratio" in sub.columns else "overall_median_ratio"
+            x = sub[group_col].to_numpy(dtype=float)
+            ax.fill_between(x, sub[low_col], sub[high_col], color="#1D4ED8", alpha=0.18, linewidth=0)
+            ax.plot(x, sub[med_col], color="#1D4ED8", marker="o", linewidth=1.4)
+            overall = float(sub[overall_col].iloc[0])
+            if np.isfinite(overall):
+                ax.axhline(overall, color="#111827", linestyle=":", linewidth=0.9, label="overall median ratio")
+            ax.axhline(1.0, color="#6B7280", linestyle="--", linewidth=0.8)
+            display = {"LinearRegression": "Linear", "LGBMRegressor": "LightGBM"}.get(model, model)
+            short_eval = "Held-out" if "Held-out" in evaluation else "2025 forward"
+            ax.set_title(f"{short_eval} {display}")
+            if col == 0:
+                ax.set_ylabel("Group median valuation-to-sale ratio")
+            if row == 1:
+                ax.set_xlabel("VEI percentile group (low to high value)")
+            ax.grid(True, color="#E5E7EB", linewidth=0.7)
+            ax.set_axisbelow(True)
+            if row == 0 and col == 1:
+                ax.legend(fontsize=7, loc="best")
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=200)
+    fig.savefig(out_path.with_suffix(".pdf"))
     plt.close(fig)
 
 
@@ -526,6 +601,7 @@ def write_section2_outputs(analysis_dir: Path, out_dir: Path) -> None:
         table = pd.DataFrame(frames)[list(SECTION2_EXPORT_COLUMNS)]
         table_path = out_dir / "section2_baseline_table.csv"
         table.to_csv(table_path, index=False)
+        _write_section2_latex(table, out_dir / "section2_baseline_table.tex")
         print(f"wrote {table_path}")
     if pred_frames:
         profile = _sale_price_bin_profile(pd.concat(pred_frames, ignore_index=True), n_bins=30)
@@ -535,16 +611,100 @@ def write_section2_outputs(analysis_dir: Path, out_dir: Path) -> None:
         _plot_section2_baseline_bins(profile, fig_path)
         print(f"wrote {fig_path}")
     if vei_frames:
+        vei_df = pd.concat(vei_frames, ignore_index=True)
         vei_path = out_dir / "vei_percentile_group_profile.csv"
-        pd.concat(vei_frames, ignore_index=True).to_csv(vei_path, index=False)
+        vei_df.to_csv(vei_path, index=False)
+        _plot_vei_group_profile(vei_df, out_dir / "vei_percentile_group_profile.png")
         print(f"wrote {vei_path}")
+
+
+def _write_section2_latex(table: pd.DataFrame, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    cols = [c for c in SECTION2_EXPORT_COLUMNS if c in table.columns]
+    lines = [
+        r"\begin{tabular}{l" + "r" * (len(cols) - 1) + r"}",
+        r"\toprule",
+        " & ".join(cols) + r" \\",
+        r"\midrule",
+    ]
+    for _, row in table.iterrows():
+        cells = []
+        for c in cols:
+            val = row[c]
+            if isinstance(val, (float, np.floating)):
+                cells.append(f"{float(val):.3f}")
+            else:
+                cells.append(str(val))
+        lines.append(" & ".join(cells) + r" \\")
+    lines.extend([r"\bottomrule", r"\end{tabular}", ""])
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def _endpoint_path_summary(combined: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    for family in PENALTY_FAMILIES:
+        sub = combined.loc[combined["model_name"].astype(str) == family].copy()
+        if sub.empty or "rho" not in sub.columns:
+            continue
+        sub = sub.sort_values("rho")
+        zero = sub.loc[np.isclose(sub["rho"].fillna(-1.0), 0.0)]
+        pos = sub.loc[sub["rho"] > 0]
+        picks = []
+        if not zero.empty:
+            picks.append(("rho=0", zero.iloc[0]))
+        if not pos.empty:
+            picks.append(("lowest_positive_rho", pos.iloc[0]))
+            picks.append(("highest_positive_rho", pos.iloc[-1]))
+        for label, rec in picks:
+            row = {"family": family, "grid_location": label, "rho": rec.get("rho")}
+            for metric in ("R2_price", "PRD", "PRB", "MKI", "VEI", "Beta_log"):
+                for suffix in ("cv_mean", "cv_sd", "test", "forward"):
+                    col = f"{metric}__{suffix}"
+                    if col in rec.index:
+                        row[col] = rec[col]
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _copy_paper_assets(src_dir: Path, paper_dir: Path, manuscript_dir: Path) -> None:
+    paper_dir.mkdir(parents=True, exist_ok=True)
+    (paper_dir / "tables").mkdir(exist_ok=True)
+    (paper_dir / "figures").mkdir(exist_ok=True)
+    (paper_dir / "sources").mkdir(exist_ok=True)
+    manuscript_dir.mkdir(parents=True, exist_ok=True)
+    for csv in src_dir.glob("*.csv"):
+        target = paper_dir / "tables" / csv.name if "table" in csv.name or "path" in csv.name else paper_dir / "sources" / csv.name
+        target.write_bytes(csv.read_bytes())
+    for tex in src_dir.glob("*.tex"):
+        (paper_dir / "tables" / tex.name).write_bytes(tex.read_bytes())
+    for fig in list(src_dir.glob("*.png")) + list(src_dir.glob("*.pdf")):
+        if fig.name.startswith("ratio_shape_"):
+            continue
+        (paper_dir / "figures" / fig.name).write_bytes(fig.read_bytes())
+        (manuscript_dir / fig.name).write_bytes(fig.read_bytes())
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Analyze frozen paper-v6 penalty paths with no fitting or selection.")
-    p.add_argument("--result-root", type=str, default="./output/robust_rolling_origin_cv_v2")
+    p.add_argument("--result-root", type=str, default="./output/paper_v6_preselection")
     p.add_argument("--data-id", type=str, default=None)
     p.add_argument("--split-id", type=str, default=None)
+    p.add_argument(
+        "--paper-asset-dir",
+        type=str,
+        default="./output/paper_v6_preselection/paper_outputs",
+        help="Directory for manuscript-ready copies of tables/figures.",
+    )
+    p.add_argument(
+        "--manuscript-figure-dir",
+        type=str,
+        default="./paper/img/generated_v6_preselection",
+    )
+    p.add_argument(
+        "--preview",
+        action="store_true",
+        help="Mark outputs as smoke/preview; do not treat numbers as final paper results.",
+    )
     return p.parse_args()
 
 
@@ -553,7 +713,12 @@ def main() -> None:
     result_root = Path(args.result_root)
     data_id, split_id = resolve_experiment_ids(result_root, args.data_id, args.split_id)
     analysis_dir = result_root / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
+    baseline_analysis_dir = (
+        result_root / "baseline_reporting" / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
+    )
     out_dir = analysis_dir / "penalty_path_analysis"
+    if args.preview:
+        out_dir = result_root / "preview" / "penalty_path_analysis"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     cv = _load_cv_runs(result_root, data_id, split_id)
@@ -561,21 +726,44 @@ def main() -> None:
     forward = _load_stage_metrics(analysis_dir, "assess", "forward")
     combined = build_combined_path_table(cv, test, forward)
     table_path = out_dir / "combined_penalty_path_table.csv"
-    combined.to_csv(table_path, index=False)
+    if not combined.empty:
+        combined.to_csv(table_path, index=False)
+        endpoints = _endpoint_path_summary(combined)
+        if not endpoints.empty:
+            endpoints.to_csv(out_dir / "rho_path_endpoint_summary.csv", index=False)
 
     trace_metrics = [
         m
-        for m in ("R2_price", "PRD", "PRB", "VEI", "MAPE", "COD", "Cov_log_residual_log_price", "Beta_log", "dCor_e_y")
-        if f"{m}__cv_mean" in combined.columns
+        for m in (
+            "R2_price",
+            "MAE_price",
+            "MAPE",
+            "RMSE_log",
+            "PRD",
+            "PRB",
+            "MKI",
+            "VEI",
+            "Beta_log",
+            "Cov_log_residual_log_price",
+            "dCor_e_y",
+        )
+        if combined.empty or f"{m}__cv_mean" in combined.columns or f"{m}__test" in combined.columns
     ]
-    _plot_rho_traces(combined, trace_metrics, out_dir)
-    _plot_accuracy_equity(combined, out_dir)
-    _plot_fold_stability(cv, ["R2_price", "PRD", "PRB", "VEI", "Beta_log"], out_dir)
-    _plot_ratio_shapes(result_root, cv, out_dir)
-    write_section2_outputs(analysis_dir, out_dir)
+    if not combined.empty:
+        _plot_rho_traces(combined, trace_metrics, out_dir)
+        _plot_accuracy_equity(combined, out_dir)
+        _plot_fold_stability(cv, ["R2_price", "PRD", "PRB", "VEI", "Beta_log"], out_dir)
+        _plot_ratio_shapes(result_root, cv, out_dir)
+
+    section2_dir = baseline_analysis_dir if (baseline_analysis_dir / "test_predictions.parquet").is_file() else analysis_dir
+    write_section2_outputs(section2_dir, out_dir)
+    if not args.preview:
+        _copy_paper_assets(out_dir, Path(args.paper_asset_dir), Path(args.manuscript_figure_dir))
     print(f"wrote {table_path}")
     print(f"figures under {out_dir}")
     print(f"experiment data_id={data_id} split_id={split_id}")
+    if args.preview:
+        print("PREVIEW/SMOKE outputs only; numbers are not final paper results.")
 
 
 if __name__ == "__main__":

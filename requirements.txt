@@ -15,6 +15,9 @@ fastparquet>=2023.8.0
 # Gradient boosting
 lightgbm>=4.0
 
+# Distance correlation (Python 3.9 compatible; fairness_env uses 0.6)
+dcor>=0.6,<0.7
+
 # Plotting / viz
 matplotlib>=3.6
 seaborn>=0.12

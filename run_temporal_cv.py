@@ -19,7 +19,7 @@ import os
 from pathlib import Path
 import sys
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -55,6 +55,7 @@ from canonical_experiment import (
     frozen_baseline_hash,
     frozen_baseline_path,
     git_state,
+    lgbm_params_hash,
     model_grid_hash,
     package_versions,
     read_json,
@@ -290,6 +291,66 @@ def _prepend_explicit_zero(rho_values: List[float]) -> List[float]:
     """Keep rho=0 as an explicit control, never inside a geometric sequence."""
     positives = [float(x) for x in rho_values if float(x) != 0.0]
     return [0.0] + positives
+
+
+def _parse_name_list(raw: Optional[str]) -> List[str]:
+    if raw is None or str(raw).strip() == "":
+        return []
+    return [part.strip() for part in str(raw).split(",") if part.strip()]
+
+
+def _parse_rho_chunk(raw: Optional[str]) -> Tuple[Optional[int], Optional[int]]:
+    if raw is None or str(raw).strip() == "":
+        return None, None
+    text = str(raw).strip()
+    if "/" not in text:
+        raise ValueError("--rho-chunk must look like INDEX/N_CHUNKS (0-based).")
+    left, right = text.split("/", 1)
+    idx = int(left)
+    n_chunks = int(right)
+    if n_chunks < 1 or idx < 0 or idx >= n_chunks:
+        raise ValueError(f"invalid --rho-chunk {text!r}")
+    return idx, n_chunks
+
+
+def _slice_chunk(items: Sequence[Any], index: int, n_chunks: int) -> List[Any]:
+    values = list(items)
+    n = len(values)
+    start = (int(index) * n) // int(n_chunks)
+    end = ((int(index) + 1) * n) // int(n_chunks)
+    return values[start:end]
+
+
+def _filter_model_specs(
+    specs: List[Dict[str, Any]],
+    *,
+    only_model_names: Optional[Sequence[str]] = None,
+    rho_chunk: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Optionally keep one family and/or one disjoint rho chunk. No ranking."""
+    out = list(specs)
+    if only_model_names:
+        if isinstance(only_model_names, str):
+            allowed = set(_parse_name_list(only_model_names))
+        else:
+            allowed = {str(x).strip() for x in only_model_names if str(x).strip()}
+        out = [spec for spec in out if str(spec.get("name")) in allowed]
+    idx, n_chunks = _parse_rho_chunk(rho_chunk)
+    if n_chunks is not None:
+        out = _slice_chunk(out, int(idx), int(n_chunks))
+    if not out:
+        raise ValueError("model-spec filter produced an empty grid")
+    return out
+
+
+def _requires_cv_protocol(
+    *,
+    run_test: bool,
+    run_forward: bool,
+    is_baseline_report: bool,
+    allow_incomplete_cv: bool,
+) -> bool:
+    return bool(run_test or run_forward) and (not bool(is_baseline_report)) and (not bool(allow_incomplete_cv))
 
 
 # LightGBM's own built-in defaults for keys that model_params.yaml may not specify.
@@ -804,6 +865,30 @@ def _load_and_split_data(
     return df_train_validate, df_test, df_assess, predictor_cols, categorical_cols
 
 
+def _native_lgbm_estimator(lgbm_params: dict):
+    """Native LGBMRegressor with early stopping explicitly disabled."""
+    params = {
+        k: v
+        for k, v in dict(lgbm_params).items()
+        if k not in {"early_stopping_rounds", "early_stopping_round"}
+    }
+    try:
+        return lgb.LGBMRegressor(early_stopping_rounds=None, **params)
+    except TypeError:
+        try:
+            return lgb.LGBMRegressor(early_stopping_round=None, **params)
+        except TypeError:
+            return lgb.LGBMRegressor(**params)
+
+
+def _load_lgbm_params_from_config_json(path: Path) -> Dict[str, Any]:
+    blob = read_json(path)
+    for key in ("lgbm_params", "best_lgbm_params", "parameters"):
+        if isinstance(blob.get(key), dict):
+            return dict(blob[key])
+    raise ValueError(f"No LightGBM parameter dict found in {path}")
+
+
 def _build_model_specs(
     *,
     lgbm_params: dict,
@@ -836,7 +921,7 @@ def _build_model_specs(
             "name": "LGBMRegressor",
             "config": dict(lgbm_base_config),
             "requires_linear_pipeline": False,
-            "factory": lambda: lgb.LGBMRegressor(**dict(lgbm_params)),
+            "factory": (lambda params=dict(lgbm_params): _native_lgbm_estimator(params)),
         }
     )
 
@@ -1043,6 +1128,7 @@ def _evaluate_models_on_test_set(
     invalid_config_ids: Optional[List[str]] = None,
     artifact_prefix: str = "test",
     stage: str = "held_out_test",
+    skip_aggregate_write: bool = False,
 ) -> Dict[str, str]:
     """
     Fit each config on the training frame and evaluate once on the held-out frame.
@@ -1086,6 +1172,16 @@ def _evaluate_models_on_test_set(
                 "metrics_file": shard_metrics_root / f"{config_id}.parquet",
                 "predictions_file": shard_preds_root / f"{config_id}.parquet",
                 "status_file": shard_status_root / f"{config_id}.json",
+                "config_eval_signature": _stable_hash(
+                    {
+                        "stage": stage,
+                        "config_id": str(config_id),
+                        "model_name": model_name,
+                        "model_config": model_config,
+                        "fairness_ratio_mode": fairness_ratio_mode,
+                        "artifact_prefix": artifact_prefix,
+                    }
+                ),
             }
         )
 
@@ -1172,7 +1268,8 @@ def _evaluate_models_on_test_set(
         status_payload = _read_json_if_exists(job["status_file"])
         completed = status_payload.get("status") in {"completed", "completed_with_numeric_warning"}
         artifacts_ok = job["metrics_file"].exists() and job["predictions_file"].exists()
-        same_signature = str(status_payload.get("eval_signature", "")) == str(eval_signature)
+        stored_sig = str(status_payload.get("eval_signature", ""))
+        same_signature = stored_sig in {str(eval_signature), str(job.get("config_eval_signature", ""))}
         if completed and artifacts_ok and same_signature:
             reusable_jobs += 1
             _log(
@@ -1241,7 +1338,7 @@ def _evaluate_models_on_test_set(
             model_status_file,
             {
                 "status": "started",
-                "eval_signature": eval_signature,
+                "eval_signature": job.get("config_eval_signature", eval_signature),
                 "config_id": config_id,
                 "model_name": model_name,
                 "ratio_mode": metric_ratio_mode,
@@ -1332,7 +1429,7 @@ def _evaluate_models_on_test_set(
                 model_status_file,
                 {
                     "status": "completed_with_numeric_warning" if bool(numeric_fields["numeric_guard_flagged"]) else "completed",
-                    "eval_signature": eval_signature,
+                    "eval_signature": job.get("config_eval_signature", eval_signature),
                     "config_id": config_id,
                     "model_name": model_name,
                     "ratio_mode": metric_ratio_mode,
@@ -1359,7 +1456,7 @@ def _evaluate_models_on_test_set(
                 model_status_file,
                 {
                     "status": "failed",
-                    "eval_signature": eval_signature,
+                    "eval_signature": job.get("config_eval_signature", eval_signature),
                     "config_id": config_id,
                     "model_name": model_name,
                     "ratio_mode": metric_ratio_mode,
@@ -1389,8 +1486,33 @@ def _evaluate_models_on_test_set(
             raise FileNotFoundError(f"Missing held-out metrics shard for config_id={job['config_id']}: {metrics_file}")
         if not predictions_file.exists():
             raise FileNotFoundError(f"Missing held-out predictions shard for config_id={job['config_id']}: {predictions_file}")
-        test_metric_frames.append(pd.read_parquet(metrics_file))
-        pred_rows.append(pd.read_parquet(predictions_file))
+        if not skip_aggregate_write:
+            test_metric_frames.append(pd.read_parquet(metrics_file))
+            pred_rows.append(pd.read_parquet(predictions_file))
+
+    if skip_aggregate_write:
+        _write_json_atomic(
+            status_path,
+            {
+                "status": "shards_complete",
+                "eval_signature": eval_signature,
+                "analysis_dir": str(analysis_dir),
+                "n_models": int(len(spec_jobs)),
+                "timestamp_utc": pd.Timestamp.utcnow().isoformat(),
+                "shard_metrics_dir": str(shard_metrics_root),
+                "shard_predictions_dir": str(shard_preds_root),
+            },
+        )
+        _log(
+            "held-out shard artifacts written without aggregate files",
+            n_models=int(len(spec_jobs)),
+            analysis_dir=str(analysis_dir),
+        )
+        return {
+            f"{artifact_prefix}_run_metrics_dir": str(shard_metrics_root),
+            f"{artifact_prefix}_run_predictions_dir": str(shard_preds_root),
+            f"{artifact_prefix}_run_status_dir": str(shard_status_root),
+        }
 
     test_metrics_df = pd.concat(test_metric_frames, ignore_index=True) if test_metric_frames else pd.DataFrame()
     if "config_id" in test_metrics_df.columns:
@@ -1490,7 +1612,7 @@ def _evaluate_models_on_test_set(
     return out
 
 
-_VALID_STAGES = ("baseline-search", "cv", "test", "forward", "all")
+_VALID_STAGES = ("baseline-search", "cv", "test", "forward", "all", "baseline-report")
 
 
 def _frozen_baseline_path(result_root: str) -> Path:
@@ -1612,6 +1734,10 @@ def run_full_pipeline(
     stage: str = "all",
     allow_unverified_baseline: bool = False,
     allow_incomplete_cv: bool = False,
+    lgbm_config_json: Optional[str] = None,
+    only_model_names: Optional[Sequence[str]] = None,
+    rho_chunk: Optional[str] = None,
+    skip_aggregate_write: bool = False,
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -1684,16 +1810,64 @@ def run_full_pipeline(
     stage_norm = str(stage).strip().lower().replace("_", "-")
     if stage_norm not in VALID_STAGES:
         raise ValueError(f"stage must be one of {VALID_STAGES}, got {stage!r}")
+    is_baseline_report = stage_norm == "baseline-report"
     run_search = bool(baseline_search) or stage_norm == "baseline-search"
     run_cv = stage_norm in {"cv", "all"}
-    run_test = stage_norm in {"test", "all"}
-    run_forward = stage_norm in {"forward", "all"}
+    run_test = stage_norm in {"test", "all", "baseline-report"}
+    run_forward = stage_norm in {"forward", "all", "baseline-report"}
 
     model_setup_start = time.perf_counter()
     lgbm_params = _build_lgbm_params_from_files(model_params=model_params, ccao_params=params, seed=seed, use_ccao_fallback=use_ccao_fallback)
     baseline_search_artifacts: Dict[str, Any] = {}
     frozen_path = frozen_baseline_path(result_root)
-    if run_search:
+    result_root_resolved = str(Path(result_root).resolve())
+    if lgbm_config_json and "robust_rolling_origin_cv_v2" in result_root_resolved:
+        raise RuntimeError(
+            "Refusing to apply a Section-2 LightGBM config inside "
+            "output/robust_rolling_origin_cv_v2; that namespace holds the "
+            "seven-fold search freeze and must not be overwritten."
+        )
+    if lgbm_config_json and run_search:
+        raise RuntimeError("Cannot combine --lgbm-config-json with baseline search.")
+    if run_search and frozen_path.is_file():
+        existing_freeze = read_json(frozen_path)
+        if str(existing_freeze.get("source", "")) == "section2_manuscript":
+            raise RuntimeError(
+                f"Refusing to overwrite Section-2 freeze at {frozen_path} with a search winner."
+            )
+    if lgbm_config_json:
+        cfg_path = Path(str(lgbm_config_json))
+        section2_params = _load_lgbm_params_from_config_json(cfg_path)
+        cfg_hash = lgbm_params_hash(section2_params)
+        if frozen_path.is_file():
+            frozen = read_json(frozen_path)
+            frozen_params = dict(frozen.get("best_lgbm_params", frozen.get("lgbm_params", {})))
+            frozen_hash = lgbm_params_hash(frozen_params)
+            if frozen_hash != cfg_hash:
+                raise RuntimeError(
+                    f"frozen_baseline.json parameter hash {frozen_hash} does not match "
+                    f"--lgbm-config-json hash {cfg_hash}."
+                )
+            lgbm_params = frozen_params
+            _log("loaded frozen Section-2 LightGBM params", path=str(frozen_path), param_hash=cfg_hash)
+        else:
+            lgbm_params = dict(section2_params)
+            write_json(
+                frozen_path,
+                {
+                    "best_lgbm_params": lgbm_params,
+                    "source": "section2_manuscript",
+                    "search_criterion": "none_section2_manuscript_freeze",
+                    "n_folds_protocol": "paper_v6_seven_fold_expanding_15mo",
+                    "seed": int(seed),
+                    "lgbm_params_sha256": cfg_hash,
+                    "section2_lgbm_config_json": str(cfg_path.resolve()),
+                    "versions": package_versions(),
+                    **git_state(),
+                },
+            )
+            _log("wrote Section-2 freeze", path=str(frozen_path), param_hash=cfg_hash)
+    elif run_search:
         baseline_search_artifacts = _run_baseline_lgbm_search(
             result_root=result_root,
             params=params,
@@ -1761,16 +1935,33 @@ def run_full_pipeline(
         include_cvar_models=bool(include_cvar_models),
         include_logistic_proxy=False,
     )
+    canonical_model_grid_hash = model_grid_hash(model_specs)
+    if is_baseline_report:
+        model_specs = [s for s in model_specs if s["name"] in {"LinearRegression", "LGBMRegressor"}]
+    if only_model_names or rho_chunk:
+        model_specs = _filter_model_specs(
+            model_specs,
+            only_model_names=only_model_names,
+            rho_chunk=rho_chunk,
+        )
     _log(
         "model specs built",
         n_models=int(len(model_specs)),
         n_smooth_rhos=int(len(smooth_rhos)),
         n_cov_rhos=int(len(cov_rhos)),
         n_ratio_modes=int(len(ratio_modes)),
+        baseline_report=bool(is_baseline_report),
+        only_model_names=list(only_model_names or []),
+        rho_chunk=rho_chunk,
         elapsed_sec=f"{time.perf_counter() - model_setup_start:.2f}",
     )
+    spec_path = (
+        Path(result_root) / "baseline_reporting" / "experiment_spec.json"
+        if is_baseline_report
+        else Path(result_root) / "experiment_spec.json"
+    )
     write_json(
-        Path(result_root) / "experiment_spec.json",
+        spec_path,
         {
             "stage": stage_norm,
             "lgbm_params": lgbm_params,
@@ -1781,7 +1972,10 @@ def run_full_pipeline(
             "include_logistic_proxy": False,
             "early_stopping_rounds": None,
             "match_native_init": True,
+            "canonical_model_grid_hash": canonical_model_grid_hash,
             "model_grid_hash": model_grid_hash(model_specs),
+            "only_model_names": list(only_model_names or []),
+            "rho_chunk": rho_chunk,
             "frozen_baseline_hash": frozen_baseline_hash(frozen_path),
             "split_protocol": split_protocol,
             "bootstrap_protocol": bootstrap_protocol,
@@ -1863,7 +2057,12 @@ def run_full_pipeline(
                 f"CV completion status is {completion['status']!r}; "
                 "refusing to continue. See cv_completion.json."
             )
-    elif run_test or run_forward:
+    elif _requires_cv_protocol(
+        run_test=run_test,
+        run_forward=run_forward,
+        is_baseline_report=is_baseline_report,
+        allow_incomplete_cv=bool(allow_incomplete_cv),
+    ):
         protocol_file = Path(result_root) / "protocol" / f"data_id={data_id}" / f"split_id={split_id}" / "folds.json"
         if not protocol_file.is_file():
             raise RuntimeError(f"CV protocol not found at {protocol_file}. Run --stage cv first.")
@@ -1873,12 +2072,23 @@ def run_full_pipeline(
             split_id=split_id,
             frozen_baseline_sha=frozen_baseline_hash(frozen_path),
             model_grid_sha=model_grid_hash(model_specs),
-            allow_incomplete=bool(allow_incomplete_cv),
+            allow_incomplete=False,
         )
         cv_out["flagged_config_ids"] = list(completion.get("invalid_config_ids", []))
         cv_out["invalid_config_ids"] = list(completion.get("invalid_config_ids", []))
+    elif (run_test or run_forward) and not is_baseline_report:
+        _log(
+            "skipping CV protocol/completion gate",
+            reason="allow_incomplete_cv",
+            n_models=int(len(model_specs)),
+        )
 
-    analysis_dir = Path(result_root) / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
+    if is_baseline_report:
+        analysis_dir = (
+            Path(result_root) / "baseline_reporting" / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
+        )
+    else:
+        analysis_dir = Path(result_root) / "analysis" / f"data_id={data_id}" / f"split_id={split_id}"
     test_artifacts: Dict[str, str] = {}
     assess_artifacts: Dict[str, str] = {}
     if run_test:
@@ -1900,6 +2110,7 @@ def run_full_pipeline(
         parallel_cpu_fraction=parallel_cpu_fraction,
         parallel_max_workers=parallel_max_workers,
         invalid_config_ids=[str(x) for x in cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", []))],
+        skip_aggregate_write=bool(skip_aggregate_write),
     )
         _log("held-out test evaluation finished", elapsed_sec=f"{time.perf_counter() - test_eval_start:.2f}")
 
@@ -1925,6 +2136,7 @@ def run_full_pipeline(
             invalid_config_ids=[str(x) for x in cv_out.get("flagged_config_ids", cv_out.get("invalid_config_ids", []))],
             artifact_prefix="assess",
             stage="assessment_year",
+            skip_aggregate_write=bool(skip_aggregate_write),
         )
         _log(
             "assessment-year evaluation finished",
@@ -2160,8 +2372,20 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         "--stage",
         type=str,
         default=str(cfg.get("stage", "all")),
-        choices=["baseline-search", "cv", "test", "forward", "all"],
+        choices=["baseline-search", "cv", "test", "forward", "all", "baseline-report"],
         help="Run one experiment stage or the full sequence. Later stages reuse frozen artifacts.",
+    )
+    p.add_argument(
+        "--lgbm-config-json",
+        type=str,
+        default=cfg.get("lgbm_config_json", None),
+        help="Optional JSON freeze of the exact LightGBM parameter vector (Section-2 config).",
+    )
+    p.add_argument(
+        "--max-folds",
+        type=int,
+        default=cfg.get("max_folds", None),
+        help="Optional smoke-only cap on the number of rolling-origin folds.",
     )
     p.add_argument(
         "--allow-unverified-baseline",
@@ -2173,7 +2397,25 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         "--allow-incomplete-cv",
         action=argparse.BooleanOptionalAction,
         default=bool(cfg.get("allow_incomplete_cv", False)),
-        help="Allow test/forward without a complete compatible CV artifact. Smoke tests only.",
+        help="Allow test/forward without a complete compatible CV artifact. Independent OOS and smoke tests.",
+    )
+    p.add_argument(
+        "--only-model-names",
+        type=str,
+        default=None,
+        help="Comma-separated model names to keep, e.g. LGBCovPenalty or LGBSmoothPenalty.",
+    )
+    p.add_argument(
+        "--rho-chunk",
+        type=str,
+        default=None,
+        help="Disjoint slice of the remaining specs as INDEX/N_CHUNKS (0-based). No overlap across chunks.",
+    )
+    p.add_argument(
+        "--skip-aggregate-write",
+        action="store_true",
+        default=False,
+        help="Write per-config shards only; skip concatenated metrics/prediction files.",
     )
     return p
 
@@ -2237,6 +2479,7 @@ if __name__ == "__main__":
             "step_months": int(args.step_months),
             "min_train_rows": int(args.min_train_rows),
             "min_val_rows": int(args.min_val_rows),
+            **({"max_folds": int(args.max_folds)} if getattr(args, "max_folds", None) is not None else {}),
         },
         bootstrap_protocol={
             "n_bootstrap": int(args.n_bootstrap),
@@ -2257,6 +2500,10 @@ if __name__ == "__main__":
         stage=str(args.stage),
         allow_unverified_baseline=bool(args.allow_unverified_baseline),
         allow_incomplete_cv=bool(args.allow_incomplete_cv),
+        lgbm_config_json=(None if not getattr(args, "lgbm_config_json", None) else str(args.lgbm_config_json)),
+        only_model_names=(_parse_name_list(getattr(args, "only_model_names", None))),
+        rho_chunk=(None if not getattr(args, "rho_chunk", None) else str(args.rho_chunk)),
+        skip_aggregate_write=bool(getattr(args, "skip_aggregate_write", False)),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")

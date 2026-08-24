@@ -7,7 +7,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from run_temporal_cv import _build_model_specs, _build_rho_values, _prepend_explicit_zero
+from run_temporal_cv import (
+    _build_model_specs,
+    _build_rho_values,
+    _filter_model_specs,
+    _prepend_explicit_zero,
+    _requires_cv_protocol,
+)
 from utils.motivation_utils import build_rolling_origin_protocol, split_ccao_assessment_universe
 
 
@@ -114,3 +120,53 @@ def test_seven_fold_protocol_on_real_development_sample():
     for fold, (n_tr, n_va) in zip(folds, expected):
         assert int(fold["train_size"]) == n_tr
         assert int(fold["val_size"]) == n_va
+
+
+def test_rho_chunks_are_disjoint_and_complete():
+    specs, _ = _canonical_specs()
+    cov = [s for s in specs if s["name"] == "LGBCovPenalty"]
+    n_chunks = 8
+    parts = [
+        _filter_model_specs(cov, only_model_names=["LGBCovPenalty"], rho_chunk=f"{i}/{n_chunks}")
+        for i in range(n_chunks)
+    ]
+    rhos = [[float(s["config"]["rho"]) for s in part] for part in parts]
+    flat = [r for chunk in rhos for r in chunk]
+    orig = [float(s["config"]["rho"]) for s in cov]
+    assert flat == orig
+    assert len(flat) == 51
+    seen = []
+    for chunk in rhos:
+        for r in chunk:
+            assert r not in seen
+            seen.append(r)
+    names = {s["name"] for part in parts for s in part}
+    assert names == {"LGBCovPenalty"}
+
+
+def test_family_filter_excludes_baselines():
+    specs, _ = _canonical_specs()
+    subset = _filter_model_specs(specs, only_model_names=["LGBSmoothPenalty"])
+    assert {s["name"] for s in subset} == {"LGBSmoothPenalty"}
+    assert len(subset) == 51
+
+
+def test_incomplete_cv_protocol_gate_is_skippable():
+    assert _requires_cv_protocol(
+        run_test=True,
+        run_forward=False,
+        is_baseline_report=False,
+        allow_incomplete_cv=False,
+    )
+    assert not _requires_cv_protocol(
+        run_test=True,
+        run_forward=True,
+        is_baseline_report=False,
+        allow_incomplete_cv=True,
+    )
+    assert not _requires_cv_protocol(
+        run_test=True,
+        run_forward=True,
+        is_baseline_report=True,
+        allow_incomplete_cv=False,
+    )

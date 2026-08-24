@@ -466,6 +466,12 @@ def compute_rolling_origin_protocol_ids(
         min_train_rows=int(split_protocol.get("min_train_rows", 200)),
         min_val_rows=int(split_protocol.get("min_val_rows", 100)),
     )
+    max_folds = split_protocol.get("max_folds")
+    if max_folds is not None:
+        n_keep = int(max_folds)
+        if n_keep < 1:
+            raise ValueError("max_folds must be >= 1 when provided.")
+        folds = folds[:n_keep]
     fold_signature = {
         "split_protocol": split_protocol,
         "folds": [
@@ -949,7 +955,7 @@ def run_robust_rolling_origin_cv(
     if n_workers == 1:
         job_results = [_execute_single_job(job) for job in pending_jobs]
     else:
-        job_results = Parallel(n_jobs=n_workers, backend=parallel_backend)(
+        job_results = Parallel(n_jobs=n_workers, backend=parallel_backend, timeout=None)(
             delayed(_execute_single_job)(job) for job in pending_jobs
         )
 

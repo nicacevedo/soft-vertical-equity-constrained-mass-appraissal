@@ -16,7 +16,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 import numpy as np
 import yaml
 
-VALID_STAGES = ("baseline-search", "cv", "test", "forward", "all")
+VALID_STAGES = ("baseline-search", "cv", "test", "forward", "all", "baseline-report")
 
 
 def frozen_baseline_path(result_root: str) -> Path:
@@ -132,6 +132,11 @@ def frozen_baseline_hash(path: Path) -> str:
     if not path.is_file():
         return ""
     return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+
+
+def lgbm_params_hash(params: Dict[str, Any]) -> str:
+    blob = json.dumps(dict(params), sort_keys=True, default=str).encode("utf-8")
+    return hashlib.sha256(blob).hexdigest()
 
 
 def expected_config_ids(specs: Sequence[Dict[str, Any]]) -> List[str]:

@@ -295,6 +295,65 @@ def test_mki_matches_paper_formula_and_handles_ties():
     np.testing.assert_allclose(mki(phat2, p2, na_rm=True), _mki_paper(phat2, p2), rtol=1e-12, atol=1e-12)
 
 
+def test_mki_adversarial_ties_use_documented_secondary_key():
+    """Equal sale prices in an order that conflicts with AV-descending tie-breaks.
+
+    Production MKI sorts sale price ascending, then assessed/predicted descending
+    (Quintos). The paper formula is silent on ties; after applying that secondary
+    key it matches production. Naive stable argsort on price alone need not.
+    Production numerics are unchanged.
+    """
+    p = np.array([100.0, 100.0, 100.0, 200.0, 300.0])
+    phat = np.array([80.0, 150.0, 120.0, 210.0, 290.0])
+    prod = mki(phat, p, na_rm=True)
+    order = np.lexsort((-phat, p))
+    paper_ordered = _mki_paper(phat[order], p[order])
+    np.testing.assert_allclose(prod, paper_ordered, rtol=1e-12, atol=1e-12)
+    naive = _mki_paper(phat, p)
+    assert not np.isclose(prod, naive)
+
+
+def test_vei_profile_defaults_match_production_grouping():
+    import inspect
+    from utils.motivation_utils import vei, vei_percentile_group_profile
+
+    sig = inspect.signature(vei_percentile_group_profile)
+    assert sig.parameters["n_bootstrap"].default == 1000
+    assert sig.parameters["ci"].default == 0.90
+    assert sig.parameters["rng_seed"].default == 2025
+    rng = np.random.default_rng(2025)
+    sale = rng.uniform(80.0, 400.0, size=600)
+    assessed = sale * rng.uniform(0.8, 1.2, size=600)
+    point = vei(assessed, sale, na_rm=True)
+    profile = vei_percentile_group_profile(assessed, sale)
+    assert not profile.empty
+    assert int(profile["n_groups"].iloc[0]) == 10
+    first = float(profile.loc[profile["group"] == 1, "median_ratio"].iloc[0])
+    last = float(profile.loc[profile["group"] == 10, "median_ratio"].iloc[0])
+    med = float(profile["overall_median_ratio"].iloc[0])
+    reconstructed = 100.0 * (last - first) / med
+    np.testing.assert_allclose(point, reconstructed, rtol=1e-10, atol=1e-10)
+
+
+def test_native_lgbm_factory_disables_early_stopping():
+    rhos = _prepend_explicit_zero(_build_rho_values([0.1, 100.0], rho_count=2, rho_scale="geom"))
+    specs = _build_model_specs(
+        lgbm_params=_tiny_lgbm_params(),
+        rho_values_smooth=rhos,
+        rho_values_cov=rhos,
+        keep_values=[1.0],
+        ratio_modes=["diff"],
+        fairness_ratio_mode="diff",
+        include_cvar_models=False,
+        include_logistic_proxy=False,
+    )
+    native = next(s for s in specs if s["name"] == "LGBMRegressor")["factory"]()
+    params = native.get_params()
+    for key in ("early_stopping_rounds", "early_stopping_round"):
+        if key in params:
+            assert params[key] in (None, 0, False)
+
+
 def test_section2_table_schema_and_units():
     y = np.log(np.array([100.0, 200.0, 400.0, 800.0]))
     pred = y + np.array([0.05, -0.02, 0.01, -0.04])
