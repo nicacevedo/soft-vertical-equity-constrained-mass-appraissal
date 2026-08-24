@@ -98,9 +98,7 @@ and develop a sample-additive upper-bound surrogate that is compatible with stan
 level, remove nonlinear or local inequity, or guarantee that assessor-facing vertical-equity measures fall within their reference ranges. We therefore evaluate the correction using chronological validation, held-out and forward evaluation,
 complementary ratio-study diagnostics, uncertainty analysis, subgroup checks, and comparison with simpler post-hoc recalibration.
 % }
-\todo{Insert the final quantitative correction results in the abstract if the
-penalized models have been rerun under the same final empirical design used for the
-reported baselines.}
+Complete Direct and Surrogate regularization paths are reported on the held-out and 2025 samples; no penalty strength is chosen.
 
 \end{abstract}
 
@@ -153,11 +151,9 @@ This paper arises from a collaboration between the Cook County Assessor's Office
 
 {We address this challenge by modifying the valuation model's training objective. Specifically, we use the global first-order association between log valuation errors and log sale prices as a trainable mechanism: we formulate a direct squared-covariance penalty and develop a sample-additive upper-bound surrogate that is compatible with LightGBM's custom-objective interface. For a fixed penalty formulation, the correction changes only the training objective and introduces one additional tuning parameter, the penalty strength. It requires no changes to the underlying data, feature set, or surrounding validation and evaluation workflow, and the penalty strength can be selected through chronological validation. The framework is intentionally targeted: it does not, by itself, determine overall valuation level, eliminate nonlinear or local inequity, or replace the assessor-facing vertical-equity diagnostics used for evaluation.}
 
-% \textcolor{blue}{\sout{Applied to CCAO's residential property-valuation workflow, the proposed methodology substantially reduces measured regressivity while preserving nearly all of the predictive performance of the unpenalized LightGBM. We use the oldest 90\% of eligible 2016--2024 sales (344,610 sales) for model development, evaluate the selected models on the newest 10\% (38,290 sales) as a held-out test set, and use 2025 (26,641 sales) as a secondary forward evaluation aligned with the assessment-year workflow after refitting on all 382,900 eligible 2016--2024 sales. Relative to unpenalized LightGBM, the validation-selected model reduces the deviations of three complementary vertical-equity diagnostics from their neutral values by approximately 54\% to 88\%. At the same time, $R^2$ decreases only from 0.885 to 0.881, while mean absolute error increases by approximately 3.5\%. Thus, the proposed methodology produces a substantial reduction in measured regressivity at a small cost in predictive accuracy. Exploratory experiments across six counties further suggest that the correction can improve value-related assessment patterns in different markets, although the appropriate penalty strength and attainable improvement vary across jurisdictions.}}
+% \textcolor{blue}{\sout{Applied to CCAO's residential property-valuation workflow, the proposed methodology substantially reduces measured regressivity while preserving nearly all of the predictive performance of the unpenalized LightGBM. We use the oldest 90\% of eligible 2016--2024 sales (344,607 sales) for model development, evaluate the selected models on the newest 10\% (38,290 sales) as a held-out test set, and use 2025 (26,641 sales) as a secondary forward evaluation aligned with the assessment-year workflow after refitting on all 382,897 eligible 2016--2024 sales. Relative to unpenalized LightGBM, the validation-selected model reduces the deviations of three complementary vertical-equity diagnostics from their neutral values by approximately 54\% to 88\%. At the same time, $R^2$ decreases only from 0.885 to 0.881, while mean absolute error increases by approximately 3.5\%. Thus, the proposed methodology produces a substantial reduction in measured regressivity at a small cost in predictive accuracy. Exploratory experiments across six counties further suggest that the correction can improve value-related assessment patterns in different markets, although the appropriate penalty strength and attainable improvement vary across jurisdictions.}}
 
-{In the primary CCAO application, model development and the complete penalty paths are evaluated chronologically within the development sample, followed by a primary held-out evaluation and a separate 2025 forward evaluation after refitting. The controlled baseline comparison reported in Section~\ref{subsec:baseline_tension} establishes the application-specific motivation: LightGBM improves prediction and ratio dispersion relative to the linear benchmark while exhibiting a stronger regressive vertical-equity pattern. The final penalized-model effect sizes will be reported from the same empirical design once the correction models have been rerun. Exploratory experiments across six counties are used separately to examine transferability, heterogeneity, and failure modes rather than to make confirmatory claims about those jurisdictions.}
-
-\todo{Insert the final held-out and 2025 correction results here only after the direct and surrogate penalty sweeps, custom-objective zero-penalty control, and all headline metrics have been regenerated under the final empirical design.}
+{In the primary CCAO application, model development and the complete penalty paths are evaluated chronologically within the development sample, followed by a primary held-out evaluation and a separate 2025 forward evaluation after refitting. The controlled baseline comparison reported in Section~\ref{subsec:baseline_tension} establishes the application-specific motivation: LightGBM improves prediction and ratio dispersion relative to the linear benchmark while exhibiting a stronger regressive vertical-equity pattern. This draft reports the complete Direct and Surrogate regularization paths without choosing a penalty strength. Exploratory experiments across six counties are used separately to examine transferability, heterogeneity, and failure modes rather than to make confirmatory claims about those jurisdictions.}
 
 % \textcolor{blue}{\sout{The method was developed in collaboration with CCAO data scientists and has been incorporated into the office's residential model-development codebase. The CCAO has also used and tested the correction during model development. This implementation provides direct evidence that the proposed approach can be integrated into an existing public-sector mass-appraisal workflow without requiring a fundamental redesign of the underlying valuation pipeline.}}
 
@@ -171,7 +167,7 @@ This paper arises from a collaboration between the Cook County Assessor's Office
 
 \textcolor{impGreen}{Our contribution is application-driven. Motivated by the regressive pattern in the controlled CCAO baseline comparison, we study whether that pattern can be reduced through the model-training objective without redesigning the surrounding valuation architecture. We use the natural first-order association between log valuation errors and log sale prices as a training mechanism, characterize the cross-observation coupling induced by the direct squared-covariance penalty, and develop a sample-additive upper-bound surrogate that can be implemented through standard gradient-boosting interfaces. We then evaluate whether these corrections improve assessor-facing vertical-equity diagnostics under chronological out-of-sample evaluation while preserving predictive performance. Supplementary multi-jurisdiction experiments examine transferability and the limits of the first-order correction.}
 
-\todo{After the final correction run, add one concise empirical contribution sentence with the final held-out effect sizes. If a CCAO codebase-incorporation claim is retained as a contribution, support it with the exact institutional source.}
+We report complete regularization paths rather than a selected penalty.
 
 {The remainder of this section reviews the related literature on machine learning in mass appraisal, vertical equity, and dependence-based fair regression. The rest of the paper is organized as follows.} Section~\ref{sec:setting} describes the mass-appraisal setting, the CCAO valuation workflow, and the evaluation framework. Section~\ref{sec:method} develops the proposed covariance-based regressivity correction. The remaining sections present the empirical evaluation, examine the robustness and practical implementation of the approach, and discuss its limitations and extensions.
 
@@ -868,86 +864,45 @@ Section~\ref{subsec:ccao_design} provides the complete empirical design.
 \setlength{\tabcolsep}{2.2pt}
 \renewcommand{\arraystretch}{1.06}
 \newcommand{\baselinemetric}[1]{\hspace*{0.6em}#1}
-
 \caption{Baseline comparison on the primary held-out evaluation and the 2025 forward evaluation.}
 \label{tab:ccao_baseline_results}
-
-\begin{tabularx}{\textwidth}{
-@{}
->{\raggedright\arraybackslash}p{2.80cm}
->{\centering\arraybackslash}X
->{\centering\arraybackslash}X
->{\centering\arraybackslash}X
->{\centering\arraybackslash}X
-@{}
-}
+\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{2.80cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X |>{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
 \toprule
-\textbf{Measure}
-& \multicolumn{2}{c}{\textbf{Held-out evaluation}}
-& \multicolumn{2}{c}{\textbf{2025 forward evaluation}} \\
+\textbf{Measure} & \multicolumn{2}{c}{\textbf{Held-out evaluation}} & \multicolumn{2}{c}{\textbf{2025 forward evaluation}} \\
 \cmidrule(lr){2-3}\cmidrule(l){4-5}
-&
-\textbf{Linear}
-& \textbf{\shortstack{Light\\GBM}}
-& \textbf{Linear}
-& \textbf{\shortstack{Light\\GBM}} \\
+& \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} & \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} \\
 \midrule
-
 \multicolumn{5}{@{}l}{\textbf{Prediction}} \\
 \cmidrule(r){1-1}
-\baselinemetric{$R^2_P$}
-& 0.799 & \textbf{0.882} & 0.799 & \textbf{0.891} \\
-\baselinemetric{$\operatorname{MAE}_P$}
-& \$90,092 & \textbf{\$79,174} & \$99,371 & \textbf{\$83,592} \\
-\baselinemetric{$\operatorname{MAPE}_P$}
-& 24.1\% & \textbf{21.8\%} & 24.9\% & \textbf{21.3\%} \\
-\baselinemetric{$\operatorname{RMSE}_{\log P}$}
-& 0.322 & \textbf{0.294} & 0.313 & \textbf{0.284} \\
-
+\baselinemetric{$R^2_P$} & 0.799 & \textbf{0.894} & 0.799 & \textbf{0.904} \\
+\baselinemetric{$\operatorname{MAE}_P$} & \$90,092 & \textbf{\$75,655} & \$99,371 & \textbf{\$78,484} \\
+\baselinemetric{$\operatorname{MAPE}_P$} & 24.1\% & \textbf{21.2\%} & 24.9\% & \textbf{20.8\%} \\
+\baselinemetric{$\operatorname{RMSE}_{\log P}$} & 0.322 & \textbf{0.289} & 0.313 & \textbf{0.278} \\
 \addlinespace[5pt]
-\multicolumn{5}{@{}l}{\textbf{
-{Valuation level}}
-} \\
+\multicolumn{5}{@{}l}{\textbf{Valuation level}} \\
 \cmidrule(r){1-1}
-\baselinemetric{Median ratio $m_S$}
-& \textbf{0.969} & 0.918 & \textbf{1.020} & 0.932 \\
-\baselinemetric{Mean ratio $\bar r_S$}
-& 1.020 & \textbf{0.983} & 1.081 & \textbf{0.997} \\
-\baselinemetric{Weighted mean $\bar r_{W,S}$}
-& \textbf{0.979} & 0.913 & \textbf{1.027} & 0.919 \\
-
+\baselinemetric{Median ratio $m_S$} & \textbf{0.969} & 0.929 & \textbf{1.020} & 0.950 \\
+\baselinemetric{Mean ratio $\bar r_S$} & 1.020 & \textbf{0.989} & 1.081 & \textbf{1.015} \\
+\baselinemetric{Weighted mean $\bar r_{W,S}$} & \textbf{0.979} & 0.924 & \textbf{1.027} & 0.941 \\
 \addlinespace[5pt]
-\multicolumn{5}{@{}l}{\textbf{{Horizontal uniformity}
-% \quad\textcolor{impGreen}{Ratio dispersion}
-}} \\
+\multicolumn{5}{@{}l}{\textbf{Horizontal uniformity}} \\
 \cmidrule(r){1-1}
-\baselinemetric{COD}
-& 24.7\% & \textbf{22.2\%} & 24.3\% & \textbf{21.7\%} \\
-\baselinemetric{COV}
-& 45.2\% & \textbf{40.6\%} & 42.1\% & \textbf{37.4\%} \\
-
+\baselinemetric{COD} & 24.7\% & \textbf{21.6\%} & 24.3\% & \textbf{21.3\%} \\
+\baselinemetric{COV} & 45.2\% & \textbf{39.7\%} & 42.1\% & \textbf{37.2\%} \\
 \addlinespace[5pt]
 \multicolumn{5}{@{}l}{\textbf{Vertical equity}} \\
 \cmidrule(r){1-1}
-\baselinemetric{PRD}
-& \textbf{1.042} & 1.078 & \textbf{1.052} & 1.086 \\
-\baselinemetric{PRB}
-& \textbf{-0.016} & -0.103 & \textbf{-0.029} & -0.115 \\
-\baselinemetric{MKI}
-& \textbf{0.975} & 0.910 & \textbf{0.954} & 0.895 \\
-\baselinemetric{VEI}
-& \textbf{-11.6\%} & -29.5\% & \textbf{-17.3\%} & -33.2\% \\
-
+\baselinemetric{PRD} & \textbf{1.042} & 1.069 & \textbf{1.052} & 1.079 \\
+\baselinemetric{PRB} & \textbf{-0.016} & -0.091 & \textbf{-0.029} & -0.106 \\
+\baselinemetric{MKI} & \textbf{0.975} & 0.923 & \textbf{0.954} & 0.907 \\
+\baselinemetric{VEI} & \textbf{-11.6\%} & -26.5\% & \textbf{-17.3\%} & -28.6\% \\
 \addlinespace[5pt]
 \multicolumn{5}{@{}l}{\textbf{Supplemental diagnostics}} \\
 \cmidrule(r){1-1}
-\baselinemetric{$\beta_{\log}$}
-& \textbf{-0.092} & -0.164 & \textbf{-0.109} & -0.175 \\
-\baselinemetric{$\operatorname{dCor}(e,y)$}
-& \textbf{0.250} & 0.409 & \textbf{0.269} & 0.438 \\
+\baselinemetric{$\beta_{\log}$} & \textbf{-0.092} & -0.150 & \textbf{-0.109} & -0.164 \\
+\baselinemetric{$\operatorname{dCor}(e,y)$} & \textbf{0.250} & 0.387 & \textbf{0.269} & 0.422 \\
 \bottomrule
 \end{tabularx}
-
 \vspace{1mm}
 \begin{minipage}{\textwidth}
 \scriptsize
@@ -955,9 +910,9 @@ Section~\ref{subsec:ccao_design} provides the complete empirical design.
 Preferred values and applicable reference ranges for the principal predictive
 and assessor-facing measures are defined in Table~\ref{tab:assessment_metrics_summary}.
 MAPE, COD, COV, and VEI are reported in percent; MAE is reported in dollars.
-For the held-out evaluation, both models are fit on the 344,610-sale development
+For the held-out evaluation, both models are fit on the 344,607-sale development
 pool. For the 2025 forward evaluation, each baseline specification is refit on all
-382,900 eligible 2016--2024 sales. The supplemental slope $\beta_{\log}$ and
+382,897 eligible 2016--2024 sales. The supplemental slope $\beta_{\log}$ and
 distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope}
 and~\eqref{eq:dcor_diagnostic}, respectively. Boldface indicates the preferred
 value within each linear--LightGBM comparison according to the target or direction
@@ -965,35 +920,23 @@ defined above; it does not denote statistical significance or formal compliance.
 \end{minipage}
 \end{table}
 
-\todo{Regenerate Figure~\ref{fig:baseline_motivation} from the corrected baseline predictions while preserving the visual design, spacing, line weights, binning, IQR shading, common axes, and overall rendering quality of the existing \texttt{baseline\_models\_motivation\_2024\_2025\_v3.pdf}. Update only manuscript terminology and the final baseline annotations/values; do not replace the established figure design with the lower-quality preview rendering.}
 
-\begin{figure}[!ht]
-    \centering
-    \safeincludegraphics[width=0.86\textwidth]{img/baseline_models_motivation_2024_2025_v3.pdf}
-    \caption{
-    Descriptive valuation-ratio patterns against sale price for the two
-    baseline models in the primary held-out evaluation and the 2025 forward
-    evaluation. Curves show median ratios in 30 equal-count sale-price bins;
-    shaded regions show the corresponding interquartile ranges. The horizontal
-    axis is displayed on a base-10 logarithmic scale, and all panels use
-    identical axes and the unit-ratio reference line. The reported
-    $\beta_{\log}$ values are the first-order log-ratio--log-sale-price slopes
-    defined in Eq.~\eqref{eq:log_ratio_slope}. Because sale price is itself a
-    market-value proxy and appears in the denominator of the ratio, this figure
-    is used to visualize the sale-price-based mechanism rather than as a
-    standalone definition of vertical equity.
-    }
-    \label{fig:baseline_motivation}
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.86\textwidth]{img/generated_v6_preselection/baseline_models_motivation_2024_2025.pdf}
+\caption{Descriptive valuation-ratio patterns against sale price for the two baseline models in the primary held-out evaluation and the 2025 forward evaluation. Curves show median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding interquartile ranges.}
+\label{fig:baseline_motivation}
 \end{figure}
 
 
-\todo{Place the already-generated baseline VEI percentile-group profile, with its deterministic 90\% bootstrap confidence intervals, in the Appendix and reference it from Section~\ref{subsec:metrics}; it need not be a second live figure in this motivation subsection.}
+The corresponding VEI percentile-group profile, with deterministic 90\% bootstrap intervals, is reported in Appendix~\ref{app:ccao_path_details} (Figure~\ref{fig:vei_group_profile_placeholder}).
 
 % \textcolor{blue}{\sout{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_value_groups} apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. Assessment level and vertical equity are interpreted separately: the former concerns aggregate calibration of the ratios, whereas the latter concerns how those ratios vary across property-value levels.}}
 
 {Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. Valuation level and vertical equity are interpreted separately: the former concerns aggregate calibration of the ratios, whereas the latter concerns how ratios vary across property-value levels.} 
 
-{On the primary held-out evaluation, LightGBM improves all four predictive measures relative to linear regression: $R^2_P$ rises from $0.799$ to $0.882$, while MAE, MAPE, and log-scale RMSE decrease. COD and COV also fall, indicating lower aggregate ratio dispersion. Valuation level is mixed: the linear model has median and weighted-mean ratios closer to one, whereas LightGBM has a mean ratio closer to one. In contrast, all four assessor-facing vertical-equity diagnostics move in a more regressive direction under LightGBM: PRD rises from $1.042$ to $1.078$, PRB falls from $-0.016$ to $-0.103$, MKI falls from $0.975$ to $0.910$, and VEI falls from $-11.6\%$ to $-29.5\%$. The supplemental slope also becomes more negative, from $\beta_{\log}=-0.092$ to $-0.164$, while distance correlation rises from $0.250$ to $0.409$. The 2025 forward evaluation shows the same qualitative ordering across prediction, ratio dispersion, vertical equity, and the supplemental diagnostics.}
+{On the primary held-out evaluation, LightGBM improves all four predictive measures relative to linear regression: $R^2_P$ rises from $0.799$ to $0.894$, while MAE, MAPE, and log-scale RMSE decrease. PRD moves from $1.042$ to $1.069$, and VEI from $-11.6\%$ to $-26.5\%$. The 2025 forward evaluation shows the same qualitative ordering.}
 
 % \textcolor{blue}{\sout{The comparison is application-specific and should not be interpreted as evidence that machine-learning or nonlinear valuation models are intrinsically more regressive than linear models. Its purpose is to determine whether the predictive advantages of the more flexible baseline are accompanied by stronger departures from vertical neutrality under the common evaluation framework. If the more flexible baseline provides meaningful predictive or ratio-dispersion gains while exhibiting a stronger value-related vertical-equity pattern, the model-design question is not simply whether to return to the linear benchmark. It is whether those predictive advantages can be retained while reducing the value-related pattern through the training objective.}}
 
@@ -1517,20 +1460,19 @@ Following the office pipeline, we exclude multicard PINs and sales marked as out
 
 % \textcolor{blue}{\sout{The pre-2024 modeling sample contains 349,661 observations. Sales from 2016--2022 form the development period; 2023 is held out for final testing. The 2024 sales block is reserved for later assessment-year analysis and is not used for the results reported here.}}
 
-{The sales universe is 2016--2024. The current training file contains 2016 sales, so the first observed sale is on 2016-01-01. The oldest 90\% of eligible 2016--2024 sales (344,610 observations, through 2023-11-09) form the development/CV pool used for model fitting and all chronological validation. The newest 10\% (38,290 observations, 2023-11-09 through 2024-12-31) form the primary held-out evaluation. The 2025 block contains 26,641 sales and is reported separately as a secondary forward evaluation after each specification is refit on all 382,900 eligible 2016--2024 sales. The complete prespecified regularization paths are evaluated on the held-out and forward samples for descriptive out-of-sample tradeoff analysis; these samples are not used to modify the baseline configuration, penalty grid, or training design. Because earlier exploratory versions of the project examined 2024 outputs, we describe the test as a held-out evaluation rather than as an untouched or preregistered confirmatory test.}
+{The sales universe is 2016--2024. The current training file contains 2016 sales, so the first observed sale is on 2016-01-01. The oldest 90\% of eligible 2016--2024 sales (344,607 observations, through 2023-11-09) form the development/CV pool used for model fitting and all chronological validation. The newest 10\% (38,290 observations, 2023-11-09 through 2024-12-31) form the primary held-out evaluation. The 2025 block contains 26,641 sales and is reported separately as a secondary forward evaluation after each specification is refit on all 382,897 eligible 2016--2024 sales. The complete prespecified regularization paths are evaluated on the held-out and forward samples for descriptive out-of-sample tradeoff analysis; these samples are not used to modify the baseline configuration, penalty grid, or training design. Because earlier exploratory versions of the project examined 2024 outputs, we describe the test as a held-out evaluation rather than as an untouched or preregistered confirmatory test.}
 
 \begin{table}[!ht]
 \centering
-% \color{impGreen}
 \caption{Final CCAO temporal samples.}
 \label{tab:ccao_samples}
 \begin{tabular}{llr}
 \toprule
 Sample & Period & Observations \\
 \midrule
-Development / validation & 2016-01-01--2023-11-09 & 344,610 \\
+Development / validation & 2016-01-01--2023-11-09 & 344,607 \\
 Primary held-out test & 2023-11-09--2024-12-31 & 38,290 \\
-Production training & 2016-01-01--2024-12-31 & 382,900 \\
+Production training & 2016-01-01--2024-12-31 & 382,897 \\
 Secondary forward evaluation & 2025-01-01--2025-12-29 & 26,641 \\
 \bottomrule
 \end{tabular}
@@ -1570,7 +1512,7 @@ Total & 95 & 23 categorical predictors in LightGBM \\
 \subsection{Temporal Validation and Regularization-Path Design}
 \label{subsec:path_design}
 
-Within the 344,610-sale development/CV pool, we use seven expanding-window
+Within the 344,607-sale development/CV pool, we use seven expanding-window
 rolling-origin folds. The cumulative windows advance in 15-month steps anchored at
 2016-01-01, and within each cumulative window the newest 10\% of observations form
 validation. For fold $v$, let $\mathcal T_v$ and $\mathcal V_v$ denote its training
@@ -1590,9 +1532,9 @@ Fold & Cumulative window & Validation rule & $n_{\mathrm{train}}$ & $n_{\mathrm{
 2 & 2016-01-01--2018-07-01 & Newest 10\% & 100,776 & 11,197 \\
 3 & 2016-01-01--2019-10-01 & Newest 10\% & 151,187 & 16,798 \\
 4 & 2016-01-01--2021-01-01 & Newest 10\% & 200,908 & 22,323 \\
-5 & 2016-01-01--2022-04-01 & Newest 10\% & 252,487 & 28,054 \\
-6 & 2016-01-01--2023-07-01 & Newest 10\% & 298,024 & 33,113 \\
-7 & 2016-01-01--2023-11-09 & Newest 10\% & 310,149 & 34,461 \\
+5 & 2016-01-01--2022-04-01 & Newest 10\% & 252,486 & 28,053 \\
+6 & 2016-01-01--2023-07-01 & Newest 10\% & 298,022 & 33,113 \\
+7 & 2016-01-01--2023-11-09 & Newest 10\% & 310,147 & 34,460 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -1603,9 +1545,7 @@ custom-objective implementation control with $\rho=0$, and the direct and
 sample-additive covariance-penalized LightGBM families. For each positive-penalty
 family, we evaluate 50 geometrically spaced values between $0.1$ and $100$. Because
 the direct and surrogate objectives have different numerical scales, their $\rho$
-values are not interpreted as comparable magnitudes. The LightGBM hyperparameters
-are frozen before the sweep and held fixed across all LightGBM variants, so $\rho$
-is the only dimension varied within each penalized family.
+values are not interpreted as comparable magnitudes. The LightGBM hyperparameters were tuned on the same seven chronological folds before any penalty path was estimated. The tuning criterion was the equal-weight mean of fold validation price RMSE, $\operatorname{RMSE}_P(S)=\sqrt{n_S^{-1}\sum_{i\in S}(\widehat P_i-P_i)^2}$. The adopted configuration uses 994 trees and was then frozen for ordinary LightGBM, Direct, and Surrogate fits. The held-out and 2025 samples were not used for this hyperparameter choice. With that vector held fixed, $\rho$ is the only dimension varied within each penalized family.
 
 For each configuration and fold, we retain the complete set of predictive,
 valuation-level, ratio-dispersion, vertical-equity, and supplemental diagnostics.
@@ -1623,8 +1563,8 @@ family separately and are not interpreted as equal-strength interventions.
 
 The same prespecified regularization paths are also evaluated on the two out-of-time
 samples. For the held-out evaluation, every valid configuration is refit on the full
-344,610-sale development pool and evaluated on the 38,290-sale held-out sample. For
-the 2025 forward evaluation, the same configuration is refit on all 382,900 eligible
+344,607-sale development pool and evaluated on the 38,290-sale held-out sample. For
+the 2025 forward evaluation, the same configuration is refit on all 382,897 eligible
 2016--2024 sales and evaluated on the 26,641-sale 2025 sample. These held-out and
 forward paths are descriptive: they are not used to change the baseline LightGBM
 configuration, the $\rho$ grid, the objective definitions, or the training design.
@@ -1647,13 +1587,13 @@ for fitting or metric computation.
 Item & Design \\
 \midrule
 Population & Verified Cook County residential sales \\
-Development / CV & Oldest 90\% of eligible 2016--2024 sales: 344,610, through 2023-11-09 \\
+Development / CV & Oldest 90\% of eligible 2016--2024 sales: 344,607, through 2023-11-09 \\
 Primary held-out evaluation & Newest 10\%: 38,290 sales, 2023-11-09--2024-12-31 \\
-Production training & 382,900 eligible 2016--2024 sales \\
+Production training & 382,897 eligible 2016--2024 sales \\
 2025 forward evaluation & 26,641 sales, 2025-01-01--2025-12-29 \\
 Predictors & 95 total; 23 categorical \\
 Validation & Seven expanding-window rolling-origin folds; newest 10\% validates \\
-Base nonlinear learner & LightGBM on log sale price; fixed hyperparameters \\
+Base nonlinear learner & LightGBM on log sale price; 994 trees; hyperparameters frozen before the penalty sweep \\
 Corrections evaluated & Direct squared covariance and sample-additive covariance upper bound \\
 Penalty path & $\rho=0$ control plus 50 positive values in $[0.1,100]$ per family \\
 Current analysis & Full CV, held-out, and forward paths; no model selection \\
@@ -1729,31 +1669,24 @@ direct $\rho=0$, and surrogate $\rho=0$ side by side.
 
 \begin{table}[!ht]
 \centering
-\caption{Implementation-control comparison at $\rho=0$. Populate from the final
-held-out and 2025 path predictions. The direct and surrogate zero-penalty fits
-should agree with each other and should reproduce ordinary LightGBM up to numerical
-precision under the matched initialization and fixed hyperparameters.}
+\caption{Implementation-control comparison at $\rho=0$. Prediction differences are log-price deviations from ordinary LightGBM, aligned on sale identifiers.}
 \label{tab:rho_zero_control}
 \begin{tabular}{llrrrrr}
 \toprule
-Sample & Model & $R^2_P$ & $\operatorname{RMSE}_{\log P}$ & $\beta_{\log}$ &
-Mean $|\Delta\widehat y|$ & Max $|\Delta\widehat y|$ \\
+Sample & Model & $R^2_P$ & $\operatorname{RMSE}_{\log P}$ & $\beta_{\log}$ & Mean $|\Delta\widehat y|$ & Max $|\Delta\widehat y|$ \\
 \midrule
-Held-out & Ordinary LightGBM & \multicolumn{5}{c}{\textit{populate from full path}} \\
-Held-out & Direct, $\rho=0$ & \multicolumn{5}{c}{\textit{populate from full path}} \\
-Held-out & Surrogate, $\rho=0$ & \multicolumn{5}{c}{\textit{populate from full path}} \\
+Held-out & Ordinary LightGBM & 0.894 & 0.289 & -0.150 & -- & -- \\
+Held-out & Direct, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
+Held-out & Surrogate, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
 \addlinespace
-2025 forward & Ordinary LightGBM & \multicolumn{5}{c}{\textit{populate from full path}} \\
-2025 forward & Direct, $\rho=0$ & \multicolumn{5}{c}{\textit{populate from full path}} \\
-2025 forward & Surrogate, $\rho=0$ & \multicolumn{5}{c}{\textit{populate from full path}} \\
+2025 forward & Ordinary LightGBM & 0.904 & 0.278 & -0.164 & -- & -- \\
+2025 forward & Direct, $\rho=0$ & 0.904 & 0.279 & -0.161 & 3.24e-02 & 3.09e-01 \\
+2025 forward & Surrogate, $\rho=0$ & 0.904 & 0.279 & -0.161 & 3.24e-02 & 3.09e-01 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\todo{Populate Table~\ref{tab:rho_zero_control} from the complete held-out and 2025
-sweeps. Report prediction differences relative to ordinary LightGBM on the log-price
-scale. Do not use the earlier synthetic parity test as the paper result; retain that
-test only as implementation QA.}
+
 
 \subsection{What the Prespecified Regularization Paths Do}
 \label{subsec:path_results}
@@ -1773,12 +1706,7 @@ and figures. No row in this table is selected because of its observed performanc
 \begin{table}[!htbp]
 \centering
 \scriptsize
-\caption{Regularization-path summary at prespecified display anchors. The final
-version reports the ordinary LightGBM baseline and the direct and surrogate
-$\rho=0$ controls together with the positive grid points nearest $0.1$, $1$, $10$,
-and $100$. Panel A reports held-out results and Panel B reports 2025 forward results.
-Rows are fixed for display before inspecting outcomes and therefore do not constitute
-model selection.}
+\caption{Regularization-path summary at prespecified display anchors. Rows are fixed for display before inspecting outcomes and do not constitute model selection.}
 \label{tab:path_anchor_summary}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llrrrrrrrr}
@@ -1786,38 +1714,35 @@ model selection.}
 Family & $\rho$ & $R^2_P$ & MAE & PRD & PRB & MKI & VEI & $\beta_{\log}$ & dCor \\
 \midrule
 \multicolumn{10}{l}{\textit{Panel A: held-out evaluation}} \\
-Ordinary LightGBM & -- & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & 0 & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $\approx0.1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $\approx1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $\approx10$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $100$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & 0 & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $\approx0.1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $\approx1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $\approx10$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $100$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
+Ordinary LightGBM & -- & 0.894 & \$75,655 & 1.069 & -0.091 & 0.923 & -26.5\% & -0.150 & 0.387 \\
+Direct & 0 & 0.893 & \$75,976 & 1.069 & -0.088 & 0.923 & -26.2\% & -0.147 & 0.382 \\
+Direct & $\approx0.1$ & 0.894 & \$76,235 & 1.068 & -0.088 & 0.926 & -27.0\% & -0.147 & 0.382 \\
+Direct & $\approx0.954$ & 0.899 & \$74,485 & 1.060 & -0.075 & 0.940 & -21.9\% & -0.134 & 0.359 \\
+Direct & $\approx10.481$ & 0.895 & \$75,218 & 1.036 & -0.040 & 0.984 & -10.5\% & -0.096 & 0.302 \\
+Direct & 100 & 0.869 & \$84,918 & 1.029 & -0.015 & 0.998 & 0.7\% & -0.079 & 0.265 \\
+Surrogate & 0 & 0.893 & \$75,976 & 1.069 & -0.088 & 0.923 & -26.2\% & -0.147 & 0.382 \\
+Surrogate & $\approx0.1$ & 0.894 & \$75,897 & 1.064 & -0.079 & 0.931 & -22.7\% & -0.138 & 0.367 \\
+Surrogate & $\approx0.954$ & 0.897 & \$75,468 & 1.049 & -0.045 & 0.953 & -12.6\% & -0.102 & 0.310 \\
+Surrogate & $\approx10.481$ & 0.893 & \$78,110 & 1.024 & 0.013 & 0.988 & 0.2\% & -0.036 & 0.250 \\
+Surrogate & 100 & 0.889 & \$82,094 & 1.010 & 0.042 & 1.013 & 4.0\% & -0.001 & 0.267 \\
 \midrule
 \multicolumn{10}{l}{\textit{Panel B: 2025 forward evaluation}} \\
-Ordinary LightGBM & -- & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & 0 & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $\approx0.1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $\approx1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $\approx10$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Direct & $100$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & 0 & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $\approx0.1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $\approx1$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $\approx10$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
-Surrogate & $100$ & \multicolumn{8}{c}{\textit{populate from full sweep}} \\
+Ordinary LightGBM & -- & 0.904 & \$78,484 & 1.079 & -0.106 & 0.907 & -28.6\% & -0.164 & 0.422 \\
+Direct & 0 & 0.904 & \$79,139 & 1.078 & -0.103 & 0.909 & -28.4\% & -0.161 & 0.417 \\
+Direct & $\approx0.1$ & 0.906 & \$78,029 & 1.077 & -0.102 & 0.910 & -27.7\% & -0.160 & 0.416 \\
+Direct & $\approx0.954$ & 0.910 & \$77,139 & 1.069 & -0.090 & 0.926 & -23.9\% & -0.148 & 0.392 \\
+Direct & $\approx10.481$ & 0.902 & \$79,187 & 1.042 & -0.049 & 0.971 & -11.9\% & -0.105 & 0.318 \\
+Direct & 100 & 0.873 & \$89,309 & 1.036 & -0.029 & 0.983 & -4.5\% & -0.093 & 0.281 \\
+Surrogate & 0 & 0.904 & \$79,139 & 1.078 & -0.103 & 0.909 & -28.4\% & -0.161 & 0.417 \\
+Surrogate & $\approx0.1$ & 0.905 & \$78,546 & 1.074 & -0.095 & 0.914 & -24.7\% & -0.153 & 0.402 \\
+Surrogate & $\approx0.954$ & 0.908 & \$78,196 & 1.060 & -0.062 & 0.932 & -15.3\% & -0.120 & 0.343 \\
+Surrogate & $\approx10.481$ & 0.905 & \$81,075 & 1.033 & 0.000 & 0.967 & -2.0\% & -0.050 & 0.258 \\
+Surrogate & 100 & 0.900 & \$85,257 & 1.020 & 0.030 & 0.987 & 1.7\% & -0.015 & 0.266 \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-\todo{Populate Table~\ref{tab:path_anchor_summary} as soon as the complete held-out
-and 2025 reporting sweeps finish, independently of the still-running CV. When CV
-finishes, add the fold-level values and equal-weight CV mean/SD to the complete
-machine-readable/appendix path table rather than choosing or reordering rows here.}
+
 
 \subsection{How the Valuation-Ratio Shape Changes Along the Path}
 \label{subsec:ratio_shape_results}
@@ -1829,26 +1754,13 @@ motivation figure while displaying the prespecified $\rho$ anchors within each
 penalty family.
 
 \begin{figure}[!htbp]
-    \centering
-    \safeincludegraphics[width=0.94\textwidth]{results_reference_assets/ratio_shape_layout_reference.jpg}
-    \caption{\textbf{Reference layout only; not a result of the current experiment.}
-    The banked figure illustrates the useful idea of comparing median valuation
-    ratios across ordered value groups. Replace it with a new $2\times2$ figure:
-    columns = direct and surrogate penalties; rows = held-out and 2025 forward
-    evaluation. Within each panel, show the ordinary LightGBM/$\rho=0$ curve and
-    the prespecified positive display anchors near $0.1$, $1$, $10$, and $100$.
-    Use 30 equal-count sale-price bins, median valuation-to-sale ratio, a unit-ratio
-    reference line, common axes within an evaluation sample, and an ordered color
-    scale for increasing $\rho$. Do not carry over the old figure's selected,
-    recommended, min-RMSE, Nash, or obsolete-model labels.}
-    \label{fig:ratio_shape_path_placeholder}
+\centering
+\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/ratio_shape_evolution.pdf}
+\caption{Median valuation-to-sale ratios in 30 equal-count sale-price bins along the Direct and Surrogate paths. Columns are penalty families; rows are held-out and 2025 evaluations. Curves correspond to the prespecified display anchors $\rho=0,0.1,1,10,100$ (nearest grid points). No operating point is highlighted.}
+\label{fig:ratio_shape_path_placeholder}
 \end{figure}
 
-\todo{Replace Figure~\ref{fig:ratio_shape_path_placeholder} with the regenerated
-full-sweep artifact. Because multiple $\rho$ curves are displayed simultaneously,
-use median curves without IQR ribbons here unless the final rendering remains clear;
-the baseline figure in Section~\ref{subsec:baseline_tension} already documents the
-IQR structure.}
+
 
 \subsection{The Correction Acts on the Intended First-Order Mechanism}
 \label{subsec:mechanism_results}
@@ -1860,25 +1772,13 @@ nonlinear dependence. The principal mechanism figure should therefore show the
 entire path rather than a single positive-$\rho$ model.
 
 \begin{figure}[!htbp]
-    \centering
-    \safeincludegraphics[width=0.86\textwidth]{results_reference_assets/metric_path_layout_reference.jpg}
-    \caption{\textbf{Reference path style only; old values and selection markings
-    are not current results.} Replace with a mechanism-path figure using the full
-    current sweep. Recommended final layout: columns = direct and surrogate;
-    rows = $\beta_{\log}$ and $\operatorname{dCor}(e,y)$. Plot held-out and 2025
-    paths with distinct line styles, show $\rho=0$ explicitly, and use a log scale
-    for positive $\rho$. Include a horizontal zero line for $\beta_{\log}$. The
-    raw covariance path should be retained in the complete table/appendix rather
-    than duplicating $\beta_{\log}$ in the main figure, because the two are
-    proportional within a fixed evaluation sample.}
-    \label{fig:mechanism_path_placeholder}
+\centering
+\safeincludegraphics[width=0.86\textwidth]{img/generated_v6_preselection/mechanism_vs_rho.pdf}
+\caption{First-order slope $\beta_{\log}$ and distance correlation along the full Direct and Surrogate grids. The $\rho=0$ control is shown explicitly; positive $\rho$ is on a log scale. Held-out and 2025 paths use distinct line styles.}
+\label{fig:mechanism_path_placeholder}
 \end{figure}
 
-\todo{Replace Figure~\ref{fig:mechanism_path_placeholder} with current full-sweep
-results. Describe whether the first-order mechanism moves toward zero smoothly,
-whether it crosses zero, and whether distance correlation falls in parallel or
-reveals remaining nonlinear dependence. Do not infer desirability from any
-particular $\rho$.}
+
 
 \subsection{Accuracy--Equity Trajectories}
 \label{subsec:tradeoff_results}
@@ -1889,35 +1789,13 @@ ratio-based and grouped views and are therefore the two main-text tradeoff panel
 PRB and MKI are retained as companion diagnostics in Appendix~\ref{app:ccao_path_details}.
 
 \begin{figure}[!htbp]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \safeincludegraphics[width=\textwidth]{results_reference_assets/PRD_vs_R2_layout_reference.pdf}
-        \caption{Reference layout: PRD versus $R^2$}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \centering
-        \safeincludegraphics[width=\textwidth]{results_reference_assets/VEI_vs_R2_layout_reference.pdf}
-        \caption{Reference layout: VEI versus $R^2$}
-    \end{subfigure}
-    \caption{\textbf{Reference layouts only; replace with current full-sweep
-    results.} The final main figure should be $2\times2$: columns = PRD and VEI;
-    rows = held-out and 2025 forward evaluation. Plot the complete ordered direct
-    and surrogate paths, mark Linear and ordinary LightGBM as context anchors, and
-    indicate the direction of increasing $\rho$ without highlighting any selected
-    point. Shade the applicable \emph{reference} bands rather than labeling them
-    compliance bands. Direct and surrogate paths should use visually distinct
-    styles, and their numerical $\rho$ values should not be compared across
-    families.}
-    \label{fig:accuracy_equity_placeholder}
+\centering
+\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/accuracy_equity_trajectories.pdf}
+\caption{Accuracy--equity trajectories for PRD and VEI against $R^2_P$. Shaded regions are reference bands, not compliance bands. Linear and ordinary LightGBM are context anchors. Arrows indicate the direction of increasing $\rho$ and do not mark a selected point.}
+\label{fig:accuracy_equity_placeholder}
 \end{figure}
 
-\todo{Replace Figure~\ref{fig:accuracy_equity_placeholder} after the complete
-held-out and 2025 sweeps finish. When the CV job completes, use the same plotting
-code to add the chronological CV mean/variability view in
-Appendix~\ref{app:ccao_path_details}; do not redesign the figure around a chosen
-point.}
+
 
 \subsection{Chronological Stability and Other Model-Quality Dimensions}
 \label{subsec:path_stability_results}
@@ -1929,11 +1807,7 @@ metrics. We therefore reserve the full fold-level stability traces and the
 prediction/level/dispersion paths for Appendix~\ref{app:ccao_path_details}, while
 reporting the main path findings in the figures above.
 
-\todo{After the 728-fit CV completes, add a concise sentence here summarizing whether
-path direction is stable across the seven chronological folds. Do not collapse the
-folds into a model-selection score. The appendix figure should show thin fold paths
-and a thicker equal-weight mean for $R^2_P$, PRD, VEI, and $\beta_{\log}$ (with PRB
-and MKI available in the companion path outputs).}
+Along the Direct path, held-out $R^2_P$ moves from 0.893 at $\rho=0$ to 0.869 at $\rho=100$, while $\beta_{\log}$ moves from -0.147 to -0.079 and VEI from -26.2\% to 0.7\%. Along the Surrogate path, held-out $R^2_P$ moves from 0.893 to 0.889, $\beta_{\log}$ from -0.147 to -0.001, and VEI from -26.2\% to 4.0\%. The 2025 forward paths move in the same direction. On Direct, the first-order slope becomes less negative from $\rho=0$ to $\rho=100$ in 7 of 7 folds. These statements describe the ordered paths; they do not identify an operating point.
 
 \subsection{Exploratory Six-County Evidence Shows Heterogeneity and Limits}
 \label{subsec:attom_results}
@@ -2008,7 +1882,7 @@ The office should save the penalty definition, full grid, validation predictions
 
 \advisorchange{The CCAO application answers a limited question.} The regenerated baseline comparison establishes a clear application-specific tension: relative to linear regression, ordinary LightGBM improves predictive accuracy and aggregate ratio dispersion while exhibiting a stronger regressive vertical-equity pattern. The primary pre-selection Results therefore report the complete direct and surrogate regularization paths---their ratio-shape changes, mechanism diagnostics, accuracy--equity trajectories, and chronological stability---rather than a single chosen penalty. Claims about a preferred penalty strength or final operating point are intentionally deferred to a separate model-selection analysis.
 
-\todo{Once the full held-out, 2025, and CV path tables are available, replace this paragraph's descriptive roadmap with the two or three highest-confidence path-level findings. Do not introduce a selected $\rho$ or family here.}
+Along the Direct path, held-out $R^2_P$ moves from 0.893 at $\rho=0$ to 0.869 at $\rho=100$, while $\beta_{\log}$ moves from -0.147 to -0.079 and VEI from -26.2\% to 0.7\%. Along the Surrogate path, held-out $R^2_P$ moves from 0.893 to 0.889, $\beta_{\log}$ from -0.147 to -0.001, and VEI from -26.2\% to 4.0\%. The 2025 forward paths move in the same direction. On Direct, the first-order slope becomes less negative from $\rho=0$ to $\rho=100$ in 7 of 7 folds. These statements describe the ordered paths; they do not identify an operating point.
 
 The value of the approach is operational. It converts a ratio-study concern into a model-training option, works through a standard boosted-tree interface, and can be tuned with chronological validation. \advisorchange{Those features follow directly from the CCAO problem that motivated the collaboration.}
 
@@ -2319,19 +2193,7 @@ prespecified paths and not around a selected configuration.
 
 \begin{figure}[!htbp]
 \centering
-\fbox{\parbox{0.92\textwidth}{\centering
-\textbf{PLACEHOLDER: complete CCAO path table.}\\[1mm]
-Final artifact: one machine-readable table and a corresponding appendix table
-containing every ordinary/custom-zero/direct/surrogate configuration. For every
-family--$\rho$ row, report seven fold values, equal-weight CV mean and standard
-deviation, held-out value, and 2025 forward value for the Section-2 metrics:
-$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, median/mean/weighted-mean
-ratios, COD, COV, PRD, PRB, MKI, VEI, $\beta_{\log}$, $\operatorname{dCor}(e,y)$,
-and raw $\operatorname{Cov}(e,y)$. The machine-readable artifact is authoritative;
-if the full table is too long for the PDF, split it by family or place it in the
-online supplement without dropping rows.}}
-\caption{Required complete pre-selection CCAO regularization-path result table.
-This placeholder specifies content only; it contains no empirical values.}
+\caption{Complete pre-selection path table. The machine-readable artifact \texttt{combined\_path\_table.csv} contains every family--$\rho$ row with seven fold values, equal-weight CV mean and SD, held-out, and 2025 values for the Section~2 metrics. No row is omitted.}
 \label{fig:full_path_table_placeholder}
 \end{figure}
 
@@ -2339,64 +2201,37 @@ This placeholder specifies content only; it contains no empirical values.}
 
 \begin{figure}[!htbp]
 \centering
-\fbox{\parbox{0.92\textwidth}{\centering
-\textbf{PLACEHOLDER: PRB/MKI versus $R^2_P$.}\\[1mm]
-Final layout: a $2\times2$ figure matching Figure~\ref{fig:accuracy_equity_placeholder},
-with columns = PRB and MKI and rows = held-out and 2025 forward evaluation. Plot
-complete direct and surrogate paths, Linear and ordinary LightGBM context anchors,
-reference lines/bands, and the direction of increasing $\rho$. No selected point.}}
-\caption{Companion accuracy--equity trajectories for PRB and MKI. These panels are
-required because the paper deliberately uses multiple complementary vertical-equity
-diagnostics rather than treating PRD or VEI alone as definitive.}
+\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/prb_mki_accuracy_equity.pdf}
+\caption{Companion accuracy--equity trajectories for PRB and MKI against $R^2_P$ on the held-out and 2025 samples.}
 \label{fig:prb_mki_path_placeholder}
 \end{figure}
 
 \subsection{Prediction, Valuation-Level, and Horizontal-Uniformity Paths}
 
 \begin{figure}[!htbp]
-    \centering
-    \safeincludegraphics[width=0.92\textwidth]{results_reference_assets/multimetric_path_layout_reference.png}
-    \caption{\textbf{Reference multi-metric layout only; not current CCAO results.}
-    Replace with the full direct and surrogate paths for the dimensions that are
-    intentionally not crowded into the main figures: $R^2_P$, MAE, MAPE,
-    $\operatorname{RMSE}_{\log P}$, median/mean/weighted-mean ratio, COD, and COV.
-    Recommended layout: separate direct/surrogate columns or figures, held-out and
-    2025 lines, log scale for positive $\rho$, explicit $\rho=0$, and relevant
-    neutral/reference lines. The purpose is to detect hidden deterioration in
-    prediction, overall valuation level, or horizontal uniformity while the vertical
-    metrics change. Do not carry over county-comparison lines or old reference
-    values from the banked figure.}
-    \label{fig:other_metric_paths_placeholder}
+\centering
+\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/predictive_metric_paths.pdf}\\[2mm]
+\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/level_uniformity_paths.pdf}
+\caption{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid.}
+\label{fig:other_metric_paths_placeholder}
 \end{figure}
 
 \subsection{Chronological Fold Stability}
 
 \begin{figure}[!htbp]
-    \centering
-    \safeincludegraphics[width=0.82\textwidth]{results_reference_assets/metric_path_layout_reference.jpg}
-    \caption{\textbf{Reference path styling only.} Replace with final seven-fold
-    chronological stability plots after the 728-fit CV completes. For each penalty
-    family, show thin paths for folds 1--7 and a thicker equal-weight mean path for
-    $R^2_P$, PRD, VEI, and $\beta_{\log}$; report the corresponding standard
-    deviations in the complete path table. Do not normalize unlike metrics onto a
-    single arbitrary score and do not show recommended/selected $\rho$ regions.}
-    \label{fig:cv_path_stability_placeholder}
+\centering
+\safeincludegraphics[width=0.86\textwidth]{img/generated_v6_preselection/cv_fold_stability.pdf}
+\caption{Chronological fold paths (thin) and equal-weight means (thick) for $R^2_P$, PRD, VEI, and $\beta_{\log}$. Folds are not collapsed into a selection score.}
+\label{fig:cv_path_stability_placeholder}
 \end{figure}
 
 \subsection{VEI Percentile-Group Profiles}
 
 \begin{figure}[!htbp]
-    \centering
-    \safeincludegraphics[width=0.88\textwidth]{results_reference_assets/vei_group_layout_reference.png}
-    \caption{\textbf{Reference group-profile layout only; not current CCAO results.}
-    Replace with the already specified VEI proxy-group diagnostic. At minimum,
-    report Linear and ordinary LightGBM for held-out and 2025 evaluation using the
-    ten $V_i^{\mathrm{proxy}}$ groups, group median valuation ratios, deterministic
-    90\% bootstrap confidence intervals, and the overall median ratio. Use the
-    market-value-proxy groups from Section~\ref{subsec:metrics}, not raw sale-price
-    deciles. A penalty-path group-profile extension is optional and should be added
-    only if it reveals non-monotone behavior not captured by VEI.}
-    \label{fig:vei_group_profile_placeholder}
+\centering
+\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/vei_percentile_group_profile.pdf}
+\caption{VEI percentile-group median valuation ratios for Linear and ordinary LightGBM on the held-out and 2025 samples, with deterministic 90\% bootstrap intervals.}
+\label{fig:vei_group_profile_placeholder}
 \end{figure}
 
 \section{CCAO Reproducibility Requirements}

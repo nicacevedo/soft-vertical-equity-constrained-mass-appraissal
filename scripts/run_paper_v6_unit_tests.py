@@ -18,6 +18,7 @@ MODULES = [
     "tests.test_canonical_metrics",
     "tests.test_canonical_objectives",
     "tests.test_paper_v6_guards",
+    "tests.test_paper_v6_reporting",
 ]
 
 
