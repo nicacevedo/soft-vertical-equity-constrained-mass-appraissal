@@ -30,7 +30,7 @@ sys.path.insert(0, str(REPO))
 sys.path.insert(0, str(REPO / "scripts"))
 
 import paper_v6_preselection_pipeline as pipe
-from utils.motivation_utils import IAAO_PRD_RANGE, IAAO_VEI_RANGE, vei_percentile_group_profile
+from utils.motivation_utils import IAAO_PRD_RANGE, IAAO_PRB_RANGE, IAAO_VEI_RANGE, vei_percentile_group_profile
 
 RESULT_ROOT = REPO / "output" / "paper_v6_preselection_994"
 PAPER_TEX = REPO / "paper" / "paper_v6.tex"
@@ -39,6 +39,9 @@ IMG_REL = "img/generated_v6_preselection"
 DISPLAY_TARGETS = (0.0, 0.1, 1.0, 10.0, 100.0)
 N_DEV, N_HOLDOUT, N_PROD, N_2025 = 344_607, 38_290, 382_897, 26_641
 SELECTION_RE = re.compile(r"\b(best|winner|winning|optimal|selected|preferred)\b", re.I)
+RECAL_COLOR = "#78716C"
+IAAO_MKI_RANGE = (0.95, 1.05)
+FINAL_DIR = RESULT_ROOT / "final_local_results"
 
 
 def sha256_file(path: Path) -> str:
@@ -95,6 +98,54 @@ def fmt_rho(x: float) -> str:
     if abs(v - 100.0) < 1e-8:
         return "100"
     return f"{v:.3f}".rstrip("0").rstrip(".")
+
+
+def fmt_sci(x: float) -> str:
+    return f"{float(x):.2e}"
+
+
+def fmt_b(x: float) -> str:
+    return f"{float(x):.3f}"
+
+
+def padded_lim(values, *, pad: float = 0.08, include: Sequence[float] = ()) -> Tuple[float, float]:
+    arr = np.asarray(list(values), dtype=float)
+    arr = arr[np.isfinite(arr)]
+    extra = np.asarray(list(include), dtype=float)
+    extra = extra[np.isfinite(extra)]
+    if extra.size:
+        arr = np.concatenate([arr, extra]) if arr.size else extra
+    if arr.size == 0:
+        return (0.0, 1.0)
+    lo, hi = float(np.min(arr)), float(np.max(arr))
+    span = hi - lo
+    if span <= 0:
+        span = max(abs(hi), 0.05)
+    return lo - pad * span, hi + pad * span
+
+
+def in_range(val: float, lo: float, hi: float) -> bool:
+    return bool(np.isfinite(val) and lo <= val <= hi)
+
+
+def maybe_bold(text: str, flag: bool) -> str:
+    return r"\textbf{" + text + "}" if flag else text
+
+
+def load_recalibration_path() -> pd.DataFrame:
+    path = FINAL_DIR / "recalibration_path.parquet"
+    if not path.is_file():
+        path = FINAL_DIR / "recalibration_path.csv"
+    if not path.is_file():
+        raise FileNotFoundError("recalibration_path artifact missing")
+    return pd.read_parquet(path) if path.suffix == ".parquet" else pd.read_csv(path)
+
+
+def load_rho0_audit() -> pd.DataFrame:
+    path = FINAL_DIR / "rho0_split_audit.csv"
+    if not path.is_file():
+        raise FileNotFoundError("rho0_split_audit.csv missing")
+    return pd.read_csv(path)
 
 
 def combined_row(combined: pd.DataFrame, family: str, rho: Optional[float] = None) -> pd.Series:
@@ -250,6 +301,7 @@ def plot_baseline_motivation() -> Path:
     xmin, xmax = profile["median_sale_price"].min(), profile["median_sale_price"].max()
     pad = 0.04 * (np.log10(xmax) - np.log10(xmin))
     xlim = (10 ** (np.log10(xmin) - pad), 10 ** (np.log10(xmax) + pad))
+    ymin, ymax = padded_lim(profile[["median_ratio", "ratio_q25", "ratio_q75"]].to_numpy().ravel(), pad=0.08)
     colors = {"LinearRegression": "#0072B2", "LGBMRegressor": "#D55E00"}
     titles = {"LinearRegression": "Linear regression", "LGBMRegressor": "Unpenalized LightGBM"}
     split_labs = {"heldout": "Held-out", "forward_2025": "2025"}
@@ -264,7 +316,7 @@ def plot_baseline_motivation() -> Path:
             ax.axhline(1.0, color="#111827", ls=(0, (2, 2)), lw=0.9)
             ax.set_xscale("log", base=10)
             ax.set_xlim(*xlim)
-            ax.set_ylim(0.55, 1.45)
+            ax.set_ylim(ymin, ymax)
             ax.xaxis.set_major_locator(LogLocator(base=10, subs=(1.0, 2.0, 5.0)))
             ax.xaxis.set_major_formatter(
                 LogFormatterSciNotation(base=10, labelOnlyBase=False, minor_thresholds=(np.inf, np.inf))
@@ -274,12 +326,11 @@ def plot_baseline_motivation() -> Path:
             sale = sub["sale_price"].to_numpy(dtype=float)
             ratio = sub["assessment_ratio"].to_numpy(dtype=float)
             ok = np.isfinite(sale) & (sale > 0) & np.isfinite(ratio) & (ratio > 0)
-            slope = np.polyfit(np.log10(sale[ok]), ratio[ok], 1)[0]
             ylog = np.log(sale[ok])
             plog = np.log(sale[ok] * ratio[ok])
             beta = float(np.cov(plog - ylog, ylog, ddof=0)[0, 1] / np.var(ylog, ddof=0))
             ax.legend(
-                handles=[Line2D([], [], ls="None", label=rf"Slope = {slope:.3f}   $\beta_{{\log}}$ = {beta:.3f}")],
+                handles=[Line2D([], [], ls="None", label=rf"$\beta_{{\log}}$ = {beta:.3f}")],
                 loc="lower left",
                 frameon=False,
                 handlelength=0,
@@ -313,6 +364,7 @@ def plot_ratio_shape(anchors: Sequence[float]) -> Path:
     evals = (("heldout", "Held-out"), ("forward_2025", "2025 forward"))
     fams = ("Direct", "Surrogate")
     x_all: List[float] = []
+    y_all: List[float] = []
     for r, (ev, evlab) in enumerate(evals):
         for c, fam in enumerate(fams):
             ax = axes[r, c]
@@ -322,6 +374,7 @@ def plot_ratio_shape(anchors: Sequence[float]) -> Path:
                 ratio = pred["y_pred"].to_numpy(dtype=float) / sale
                 prof = equal_count_bins(sale, ratio)
                 x_all.extend(prof["median_sale_price"].tolist())
+                y_all.extend(prof["median_ratio"].tolist())
                 color = cmap(0.12 + 0.8 * i / max(len(anchors) - 1, 1))
                 ax.plot(
                     prof["median_sale_price"],
@@ -334,7 +387,6 @@ def plot_ratio_shape(anchors: Sequence[float]) -> Path:
                 )
             ax.axhline(1.0, color="#111827", ls=(0, (2, 2)), lw=0.8)
             ax.set_xscale("log", base=10)
-            ax.set_ylim(0.55, 1.45)
             ax.grid(True, color="#E5E7EB", lw=0.7)
             ax.set_axisbelow(True)
             if r == 0:
@@ -346,21 +398,33 @@ def plot_ratio_shape(anchors: Sequence[float]) -> Path:
             if r == 0 and c == 1:
                 ax.legend(fontsize=7, frameon=False, loc="lower left")
     xmin, xmax = min(x_all), max(x_all)
+    ymin, ymax = padded_lim(y_all, pad=0.08, include=(1.0,))
     for ax in axes.ravel():
         ax.set_xlim(xmin / 1.05, xmax * 1.05)
+        ax.set_ylim(ymin, ymax)
     fig.tight_layout()
     return save_fig(fig, "ratio_shape_evolution")
 
 
 def plot_mechanism(combined: pd.DataFrame) -> Path:
     set_style()
-    fig, axes = plt.subplots(2, 2, figsize=(8.4, 6.2), sharex=True)
-    metrics = (("Beta_log", r"$\beta_{\log}$", True), ("dCor_e_y", r"$\mathrm{dCor}(e,y)$", False))
+    fig, axes = plt.subplots(3, 2, figsize=(8.4, 8.2), sharex=True)
+    metrics = (
+        ("Beta_log", r"$\beta_{\log}$", True),
+        ("Delta_NL", r"$\Delta_{\mathrm{NL}}$", True),
+        ("dCor_e_y", r"$\mathrm{dCor}(e,y)$", False),
+    )
     styles = {"heldout": ("-", "o"), "forward_2025": ("--", "s")}
-    for c, fam in enumerate(("Direct", "Surrogate")):
-        sub = combined.loc[combined["family"] == fam].sort_values("rho")
-        for r, (col, ylab, zero) in enumerate(metrics):
+    for r, (col, ylab, zero) in enumerate(metrics):
+        row_vals: List[float] = []
+        for fam in ("Direct", "Surrogate"):
+            sub = combined.loc[combined["family"] == fam]
+            for ev in ("heldout", "forward_2025"):
+                row_vals.extend(pd.to_numeric(sub[f"{col}__{ev}"], errors="coerce").tolist())
+        ylim = padded_lim(row_vals, pad=0.08, include=(0.0,) if zero else ())
+        for c, fam in enumerate(("Direct", "Surrogate")):
             ax = axes[r, c]
+            sub = combined.loc[combined["family"] == fam].sort_values("rho")
             color = pipe.DIRECT_COLOR if fam == "Direct" else pipe.SURR_COLOR
             for ev, (ls, mk) in styles.items():
                 ax.plot(
@@ -376,6 +440,7 @@ def plot_mechanism(combined: pd.DataFrame) -> Path:
             ax.set_xscale("log")
             ax.set_xticks([0.07, 0.1, 1, 10, 100])
             ax.set_xticklabels(["0", "0.1", "1", "10", "100"])
+            ax.set_ylim(*ylim)
             if zero:
                 ax.axhline(0.0, color="#111827", lw=0.8, ls=":")
             ax.grid(True, color="#E5E7EB", lw=0.7)
@@ -384,7 +449,7 @@ def plot_mechanism(combined: pd.DataFrame) -> Path:
                 ax.set_title(fam)
             if c == 0:
                 ax.set_ylabel(ylab)
-            if r == 1:
+            if r == 2:
                 ax.set_xlabel(r"Penalty strength $\rho$")
             if r == 0 and c == 1:
                 ax.legend(frameon=False, fontsize=8)
@@ -392,7 +457,7 @@ def plot_mechanism(combined: pd.DataFrame) -> Path:
     return save_fig(fig, "mechanism_vs_rho")
 
 
-def plot_accuracy_equity(combined: pd.DataFrame) -> Path:
+def plot_accuracy_equity(combined: pd.DataFrame, recal: pd.DataFrame) -> Path:
     set_style()
     fig, axes = plt.subplots(2, 2, figsize=(8.6, 6.4))
     specs = (
@@ -403,9 +468,21 @@ def plot_accuracy_equity(combined: pd.DataFrame) -> Path:
     )
     lin = combined_row(combined, "Linear")
     lgb = combined_row(combined, "LightGBM")
+    r2_by_col: Dict[int, List[float]] = {0: [], 1: []}
+    y_by_col: Dict[int, List[float]] = {0: [], 1: []}
     for r, c, ev, met, title, ylab, band in specs:
         ax = axes[r, c]
         ax.axhspan(band[0], band[1], color="#9CA3AF", alpha=0.18, lw=0, label="Reference band")
+        rec_sub = recal.loc[recal["evaluation"] == ev].sort_values("j")
+        ax.plot(
+            rec_sub["R2_price"].to_numpy(dtype=float),
+            rec_sub[met].to_numpy(dtype=float),
+            color=RECAL_COLOR,
+            lw=1.8,
+            marker=".",
+            ms=3.5,
+            label="Centered recalibration",
+        )
         for fam, color in (("Direct", pipe.DIRECT_COLOR), ("Surrogate", pipe.SURR_COLOR)):
             sub = combined.loc[combined["family"] == fam].sort_values("rho")
             x = sub[f"R2_price__{ev}"].to_numpy(dtype=float)
@@ -413,6 +490,13 @@ def plot_accuracy_equity(combined: pd.DataFrame) -> Path:
             ax.plot(x, y, color=color, marker="o", ms=3.2, lw=1.3, label=fam)
             if len(x) >= 2:
                 ax.annotate("", xy=(x[-1], y[-1]), xytext=(x[-2], y[-2]), arrowprops=dict(arrowstyle="-|>", color=color, lw=1.0))
+            r2_by_col[c].extend(x.tolist())
+            y_by_col[c].extend(y.tolist())
+        r2_by_col[c].extend(rec_sub["R2_price"].tolist())
+        r2_by_col[c].append(metric(lin, "R2_price", ev))
+        r2_by_col[c].append(metric(lgb, "R2_price", ev))
+        y_by_col[c].extend(rec_sub[met].tolist())
+        y_by_col[c].extend([metric(lin, met, ev), metric(lgb, met, ev)])
         ax.scatter([metric(lin, "R2_price", ev)], [metric(lin, met, ev)], marker="D", s=36, color=pipe.LINEAR_COLOR, zorder=5, label="Linear")
         ax.scatter([metric(lgb, "R2_price", ev)], [metric(lgb, met, ev)], marker="s", s=36, color=pipe.NATIVE_COLOR, zorder=5, label="LightGBM")
         ax.set_xlabel(r"$R^2_P$")
@@ -422,47 +506,75 @@ def plot_accuracy_equity(combined: pd.DataFrame) -> Path:
         ax.set_axisbelow(True)
         if r == 0 and c == 1:
             ax.legend(frameon=False, fontsize=7)
+    for c in (0, 1):
+        xlim = padded_lim(r2_by_col[c], pad=0.06)
+        ylim = padded_lim(y_by_col[c], pad=0.08)
+        axes[0, c].set_xlim(*xlim)
+        axes[1, c].set_xlim(*xlim)
+        axes[0, c].set_ylim(*ylim)
+        axes[1, c].set_ylim(*ylim)
     fig.tight_layout()
     return save_fig(fig, "accuracy_equity_trajectories")
 
 
-def plot_prb_mki(combined: pd.DataFrame) -> Path:
-    long = []
-    for fam in ("Direct", "Surrogate"):
-        sub = combined.loc[combined["family"] == fam]
-        for ev in ("heldout", "forward_2025"):
-            long.append(
-                pd.DataFrame(
-                    {
-                        "family": fam,
-                        "evaluation": ev,
-                        "rho": sub["rho"].to_numpy(),
-                        "R2_price": sub[f"R2_price__{ev}"].to_numpy(),
-                        "PRB": sub[f"PRB__{ev}"].to_numpy(),
-                        "MKI": sub[f"MKI__{ev}"].to_numpy(),
-                    }
-                )
-            )
-    oos = pd.concat(long, ignore_index=True)
-    orig_fig = getattr(pipe, "FIG_OUT", None)
-    orig_out = getattr(pipe, "FIG_OUT", None)
-    pipe.FIG_OUT = PAPER_IMG
-    if hasattr(pipe, "FIG_OUT"):
-        pipe.FIG_OUT = PAPER_IMG
-    PAPER_IMG.mkdir(parents=True, exist_ok=True)
-    pdf = pipe.plot_accuracy_equity_r2(oos, ["PRB", "MKI"], "prb_mki_accuracy_equity")
-    for dest in (orig_fig, orig_out, getattr(pipe, "FIG_OUT", None)):
-        if dest is None:
-            continue
-        dest = Path(dest)
-        dest.mkdir(parents=True, exist_ok=True)
-        if pdf.resolve() != (dest / pdf.name).resolve():
-            shutil.copy2(pdf, dest / pdf.name)
-    if orig_fig is not None:
-        pipe.FIG_OUT = orig_fig
-    if orig_out is not None:
-        pipe.FIG_OUT = orig_out
-    return pdf
+def plot_prb_mki(combined: pd.DataFrame, recal: pd.DataFrame) -> Path:
+    set_style()
+    fig, axes = plt.subplots(2, 2, figsize=(8.6, 6.5))
+    specs = (
+        (0, 0, "heldout", "PRB", "Held-out PRB", "PRB", True, False),
+        (0, 1, "heldout", "MKI", "Held-out MKI", "MKI", False, True),
+        (1, 0, "forward_2025", "PRB", "2025 PRB", "PRB", True, False),
+        (1, 1, "forward_2025", "MKI", "2025 MKI", "MKI", False, True),
+    )
+    lin = combined_row(combined, "Linear")
+    lgb = combined_row(combined, "LightGBM")
+    r2_by_col: Dict[int, List[float]] = {0: [], 1: []}
+    y_by_col: Dict[int, List[float]] = {0: [], 1: []}
+    for r, c, ev, met, title, ylab, prb_band, mki_line in specs:
+        ax = axes[r, c]
+        if prb_band:
+            ax.axhspan(IAAO_PRB_RANGE[0], IAAO_PRB_RANGE[1], color="#9CA3AF", alpha=0.18, lw=0, label="PRB reference band")
+        if mki_line:
+            ax.axhline(1.0, color="#111827", ls=":", lw=0.9, label="MKI = 1")
+        rec_sub = recal.loc[recal["evaluation"] == ev].sort_values("j")
+        ax.plot(
+            rec_sub["R2_price"].to_numpy(dtype=float),
+            rec_sub[met].to_numpy(dtype=float),
+            color=RECAL_COLOR,
+            lw=1.8,
+            marker=".",
+            ms=3.5,
+            label="Centered recalibration",
+        )
+        for fam, color in (("Direct", pipe.DIRECT_COLOR), ("Surrogate", pipe.SURR_COLOR)):
+            sub = combined.loc[combined["family"] == fam].sort_values("rho")
+            x = sub[f"R2_price__{ev}"].to_numpy(dtype=float)
+            y = sub[f"{met}__{ev}"].to_numpy(dtype=float)
+            ax.plot(x, y, color=color, marker="o", ms=3.2, lw=1.3, label=fam)
+            r2_by_col[c].extend(x.tolist())
+            y_by_col[c].extend(y.tolist())
+        r2_by_col[c].extend(rec_sub["R2_price"].tolist())
+        r2_by_col[c].extend([metric(lin, "R2_price", ev), metric(lgb, "R2_price", ev)])
+        y_by_col[c].extend(rec_sub[met].tolist())
+        y_by_col[c].extend([metric(lin, met, ev), metric(lgb, met, ev)])
+        ax.scatter([metric(lin, "R2_price", ev)], [metric(lin, met, ev)], marker="D", s=36, color=pipe.LINEAR_COLOR, zorder=5, label="Linear")
+        ax.scatter([metric(lgb, "R2_price", ev)], [metric(lgb, met, ev)], marker="s", s=36, color=pipe.NATIVE_COLOR, zorder=5, label="LightGBM")
+        ax.set_xlabel(r"$R^2_P$")
+        ax.set_ylabel(ylab)
+        ax.set_title(title)
+        ax.grid(True, color="#E5E7EB", lw=0.7)
+        ax.set_axisbelow(True)
+        if r == 0 and c == 1:
+            ax.legend(frameon=False, fontsize=7)
+    for c in (0, 1):
+        xlim = padded_lim(r2_by_col[c], pad=0.06)
+        ylim = padded_lim(y_by_col[c], pad=0.08)
+        axes[0, c].set_xlim(*xlim)
+        axes[1, c].set_xlim(*xlim)
+        axes[0, c].set_ylim(*ylim)
+        axes[1, c].set_ylim(*ylim)
+    fig.tight_layout()
+    return save_fig(fig, "prb_mki_accuracy_equity")
 
 
 def plot_metric_paths(combined: pd.DataFrame, metrics: Sequence[Tuple[str, str]], stem: str) -> Path:
@@ -470,17 +582,33 @@ def plot_metric_paths(combined: pd.DataFrame, metrics: Sequence[Tuple[str, str]]
     fig, axes = plt.subplots(len(metrics), 2, figsize=(8.4, 2.15 * len(metrics)), sharex=True)
     if len(metrics) == 1:
         axes = np.array([axes])
+    percent_cols = {"MAPE", "COV"}
     for r, (col, ylab) in enumerate(metrics):
+        row_vals: List[float] = []
+        for fam in ("Direct", "Surrogate"):
+            sub = combined.loc[combined["family"] == fam]
+            for ev in ("heldout", "forward_2025"):
+                vals = pd.to_numeric(sub[f"{col}__{ev}"], errors="coerce").to_numpy(dtype=float)
+                if col in percent_cols:
+                    vals = 100.0 * vals
+                row_vals.extend(vals.tolist())
+        ylim = padded_lim(row_vals, pad=0.08)
         for c, fam in enumerate(("Direct", "Surrogate")):
             ax = axes[r, c]
             sub = combined.loc[combined["family"] == fam].sort_values("rho")
             color = pipe.DIRECT_COLOR if fam == "Direct" else pipe.SURR_COLOR
             x = rho_x(sub["rho"].to_numpy(dtype=float))
-            ax.plot(x, sub[f"{col}__heldout"], color=color, marker="o", ms=3, lw=1.3, label="Held-out")
-            ax.plot(x, sub[f"{col}__forward_2025"], color=color, ls="--", marker="s", ms=3, lw=1.2, label="2025")
+            y_h = sub[f"{col}__heldout"].to_numpy(dtype=float)
+            y_f = sub[f"{col}__forward_2025"].to_numpy(dtype=float)
+            if col in percent_cols:
+                y_h = 100.0 * y_h
+                y_f = 100.0 * y_f
+            ax.plot(x, y_h, color=color, marker="o", ms=3, lw=1.3, label="Held-out")
+            ax.plot(x, y_f, color=color, ls="--", marker="s", ms=3, lw=1.2, label="2025")
             ax.set_xscale("log")
             ax.set_xticks([0.07, 0.1, 1, 10, 100])
             ax.set_xticklabels(["0", "0.1", "1", "10", "100"])
+            ax.set_ylim(*ylim)
             ax.grid(True, color="#E5E7EB", lw=0.7)
             if r == 0:
                 ax.set_title(fam)
@@ -602,6 +730,7 @@ def make_baseline_table(combined: pd.DataFrame) -> str:
             r"\multicolumn{5}{@{}l}{\textbf{Supplemental diagnostics}} \\",
             r"\cmidrule(r){1-1}",
             row(r"$\beta_{\log}$", "Beta_log", "num", target=0.0),
+            row(r"$\Delta_{\mathrm{NL}}$", "Delta_NL", "num", False),
             row(r"$\operatorname{dCor}(e,y)$", "dCor_e_y", "num", False),
         ]
     )
@@ -614,7 +743,7 @@ def make_baseline_table(combined: pd.DataFrame) -> str:
 \newcommand{{\baselinemetric}}[1]{{\hspace*{{0.6em}}#1}}
 \caption{{Baseline comparison on the primary held-out evaluation and the 2025 forward evaluation.}}
 \label{{tab:ccao_baseline_results}}
-\begin{{tabularx}}{{\textwidth}}{{@{{}} >{{\raggedright\arraybackslash}}p{{2.80cm}} >{{\centering\arraybackslash}}X >{{\centering\arraybackslash}}X |>{{\centering\arraybackslash}}X >{{\centering\arraybackslash}}X @{{}}}}
+\begin{{tabularx}}{{\textwidth}}{{@{{}} >{{\raggedright\arraybackslash}}p{{2.80cm}} >{{\centering\arraybackslash}}X >{{\centering\arraybackslash}}X >{{\centering\arraybackslash}}X >{{\centering\arraybackslash}}X @{{}}}}
 \toprule
 \textbf{{Measure}} & \multicolumn{{2}}{{c}}{{\textbf{{Held-out evaluation}}}} & \multicolumn{{2}}{{c}}{{\textbf{{2025 forward evaluation}}}} \\
 \cmidrule(lr){{2-3}}\cmidrule(l){{4-5}}
@@ -632,10 +761,10 @@ and assessor-facing measures are defined in Table~\ref{{tab:assessment_metrics_s
 MAPE, COD, COV, and VEI are reported in percent; MAE is reported in dollars.
 For the held-out evaluation, both models are fit on the {fmt_int(N_DEV)}-sale development
 pool. For the 2025 forward evaluation, each baseline specification is refit on all
-{fmt_int(N_PROD)} eligible 2016--2024 sales. The supplemental slope $\beta_{{\log}}$ and
-distance correlation are defined in Eqs.~\eqref{{eq:log_ratio_slope}}
-and~\eqref{{eq:dcor_diagnostic}}, respectively. Boldface indicates the preferred
-value within each linear--LightGBM comparison according to the target or direction
+{fmt_int(N_PROD)} eligible 2016--2024 sales. The supplemental slope $\beta_{{\log}}$,
+nonlinear lack-of-fit $\Delta_{{\mathrm{{NL}}}}$, and distance correlation are defined in
+Eqs.~\eqref{{eq:log_ratio_slope}}, \eqref{{eq:nonlinear_lack_of_fit}}, and~\eqref{{eq:dcor_diagnostic}}, respectively.
+Boldface indicates the preferred value within each linear--LightGBM comparison according to the target or direction
 defined above; it does not denote statistical significance or formal compliance.
 \end{{minipage}}
 \end{{table}}
@@ -688,9 +817,17 @@ Fold & Cumulative window & Validation rule & $n_{{\mathrm{{train}}}}$ & $n_{{\ma
 """
 
 
-def make_rho0_table(combined: pd.DataFrame, control: Dict[str, float]) -> str:
-    def line(sample: str, label: str, row: pd.Series, mean_d: str, max_d: str) -> str:
-        split = "heldout" if sample.startswith("Held") else "forward_2025"
+def make_rho0_table(combined: pd.DataFrame, audit: pd.DataFrame) -> str:
+    def audit_row(split: str, model: str) -> pd.Series:
+        sub = audit.loc[(audit["split"] == split) & (audit["model"] == model)]
+        if sub.empty:
+            raise RuntimeError(f"missing rho0 audit row {split} {model}")
+        return sub.iloc[0]
+
+    def line(sample: str, label: str, row: pd.Series, split: str, model: str) -> str:
+        rec = audit_row(split, model)
+        mean_d = "--" if pd.isna(rec["mean_abs_delta_log"]) else fmt_sci(rec["mean_abs_delta_log"])
+        max_d = "--" if pd.isna(rec["max_abs_delta_log"]) else fmt_sci(rec["max_abs_delta_log"])
         return (
             f"{sample} & {label} & {fmt_r2(metric(row, 'R2_price', split))} & "
             f"{fmt_3(metric(row, 'RMSE_log', split))} & {fmt_3(metric(row, 'Beta_log', split))} & "
@@ -700,25 +837,21 @@ def make_rho0_table(combined: pd.DataFrame, control: Dict[str, float]) -> str:
     native_h = combined_row(combined, "LightGBM")
     d0 = combined_row(combined, "Direct", 0.0)
     s0 = combined_row(combined, "Surrogate", 0.0)
-    dm = f"{control.get('direct_mean_abs_delta_log', control.get('direct_mean_abs_delta_log', 0.0)):.2e}"
-    dx = f"{control.get('direct_max_abs_delta_log', control.get('direct_max_abs_delta_log', 0.0)):.2e}"
-    sm = f"{control.get('surrogate_mean_abs_delta_log', control.get('surrogate_mean_abs_delta_log', 0.0)):.2e}"
-    sx = f"{control.get('surrogate_max_abs_delta_log', control.get('surrogate_max_abs_delta_log', 0.0)):.2e}"
     body = "\n".join(
         [
-            line("Held-out", "Ordinary LightGBM", native_h, "--", "--"),
-            line("Held-out", r"Direct, $\rho=0$", d0, dm, dx),
-            line("Held-out", r"Surrogate, $\rho=0$", s0, sm, sx),
+            line("Held-out", "Ordinary LightGBM", native_h, "heldout", "Ordinary LightGBM"),
+            line("Held-out", r"Direct, $\rho=0$", d0, "heldout", "Direct rho=0"),
+            line("Held-out", r"Surrogate, $\rho=0$", s0, "heldout", "Surrogate rho=0"),
             r"\addlinespace",
-            line("2025 forward", "Ordinary LightGBM", native_h, "--", "--"),
-            line("2025 forward", r"Direct, $\rho=0$", d0, dm, dx),
-            line("2025 forward", r"Surrogate, $\rho=0$", s0, sm, sx),
+            line("2025 forward", "Ordinary LightGBM", native_h, "forward_2025", "Ordinary LightGBM"),
+            line("2025 forward", r"Direct, $\rho=0$", d0, "forward_2025", "Direct rho=0"),
+            line("2025 forward", r"Surrogate, $\rho=0$", s0, "forward_2025", "Surrogate rho=0"),
         ]
     )
     return rf"""
 \begin{{table}}[!ht]
 \centering
-\caption{{Implementation-control comparison at $\rho=0$. Prediction differences are log-price deviations from ordinary LightGBM, aligned on sale identifiers.}}
+\caption{{Implementation-control comparison at $\rho=0$. Prediction differences are log-price deviations from ordinary LightGBM, aligned on sale identifiers and computed independently on the held-out and 2025 samples.}}
 \label{{tab:rho_zero_control}}
 \begin{{tabular}}{{llrrrrr}}
 \toprule
@@ -732,46 +865,201 @@ Sample & Model & $R^2_P$ & $\operatorname{{RMSE}}_{{\log P}}$ & $\beta_{{\log}}$
 
 
 def make_path_table(combined: pd.DataFrame, anchors: Sequence[float]) -> str:
-    def row(label: str, rho_tex: str, fam: str, rho: Optional[float], split: str) -> str:
-        rec = combined_row(combined, fam, rho)
-        return (
-            f"{label} & {rho_tex} & {fmt_r2(metric(rec, 'R2_price', split))} & {fmt_mae(metric(rec, 'MAE_price', split))} & "
-            f"{fmt_3(metric(rec, 'PRD', split))} & {fmt_3(metric(rec, 'PRB', split))} & {fmt_3(metric(rec, 'MKI', split))} & "
-            f"{fmt_pct(metric(rec, 'VEI', split))} & {fmt_3(metric(rec, 'Beta_log', split))} & {fmt_3(metric(rec, 'dCor_e_y', split))} \\\\"
+    def fmt_anchor_rho(rho: float) -> str:
+        if abs(rho) < 1e-12:
+            return "0"
+        if abs(rho - 100.0) < 1e-8:
+            return "100"
+        return rf"$\approx{fmt_rho(rho)}$"
+
+    lin = combined_row(combined, "Linear")
+    lgb = combined_row(combined, "LightGBM")
+
+    def as_good_as_both(val: float, split: str, name: str, *, higher: Optional[bool] = None, target: Optional[float] = None) -> bool:
+        a = metric(lin, name, split)
+        b = metric(lgb, name, split)
+        if higher is True:
+            return bool(np.isfinite(val) and val + 1e-10 >= a and val + 1e-10 >= b)
+        if higher is False:
+            return bool(np.isfinite(val) and val - 1e-10 <= a and val - 1e-10 <= b)
+        if target is None:
+            return False
+        return bool(
+            np.isfinite(val)
+            and abs(val - target) <= abs(a - target) + 1e-10
+            and abs(val - target) <= abs(b - target) + 1e-10
         )
 
-    def panel(split: str) -> str:
-        lines = [row("Ordinary LightGBM", "--", "LightGBM", None, split)]
-        for fam in ("Direct", "Surrogate"):
-            for rho in anchors:
-                tex = "0" if rho == 0 else (fmt_rho(rho) if abs(rho - 100) < 1e-8 else rf"$\approx{fmt_rho(rho)}$")
-                if abs(rho - 100) < 1e-8:
-                    tex = "100"
-                elif rho == 0:
-                    tex = "0"
+    def mark(cell: str, bold: bool, star: bool) -> str:
+        out = maybe_bold(cell, bold) if bold else cell
+        if star:
+            out = out + r"\textsuperscript{*}"
+        return out
+
+    def cells(rec: pd.Series, split: str, fam: str) -> str:
+        specs = (
+            ("R2_price", fmt_r2, True, None, False),
+            ("MAE_price", fmt_mae, False, None, False),
+            ("PRD", fmt_3, None, 1.0, True),
+            ("PRB", fmt_3, None, 0.0, True),
+            ("MKI", fmt_3, None, 1.0, True),
+            ("VEI", fmt_pct, None, 0.0, True),
+            ("Beta_log", fmt_3, None, 0.0, False),
+            ("Delta_NL", fmt_3, False, None, False),
+            ("dCor_e_y", fmt_3, False, None, False),
+        )
+        ranges = {"PRD": IAAO_PRD_RANGE, "PRB": IAAO_PRB_RANGE, "MKI": IAAO_MKI_RANGE, "VEI": IAAO_VEI_RANGE}
+        parts = []
+        for name, fmt, higher, target, can_star in specs:
+            val = metric(rec, name, split)
+            if fam in {"Linear", "LightGBM"}:
+                other = lgb if fam == "Linear" else lin
+                ov = metric(other, name, split)
+                if higher is True:
+                    bold = val + 1e-10 >= ov
+                elif higher is False:
+                    bold = val - 1e-10 <= ov
                 else:
-                    tex = rf"$\approx{fmt_rho(rho)}$"
-                lines.append(row(fam, tex, fam, float(rho), split))
+                    bold = abs(val - float(target)) <= abs(ov - float(target)) + 1e-10
+            else:
+                bold = as_good_as_both(val, split, name, higher=higher, target=target)
+            star = bool(can_star and in_range(val, *ranges[name]))
+            parts.append(mark(fmt(val), bold, star))
+        return " & ".join(parts) + r" \\"
+
+    def row(label: str, rho_tex: str, fam: str, rho: Optional[float], split: str) -> str:
+        rec = combined_row(combined, fam, rho)
+        return f"{label} & {rho_tex} & {cells(rec, split, fam)}"
+
+    def panel(split: str) -> str:
+        lines = [
+            r"\multicolumn{11}{l}{\textbf{Baseline models}} \\",
+            r"\cmidrule(lr){1-11}",
+            row("Linear regression", "--", "Linear", None, split),
+            row("Ordinary LightGBM", "--", "LightGBM", None, split),
+            r"\addlinespace[3pt]",
+            r"\multicolumn{11}{l}{\textbf{Direct penalty}} \\",
+            r"\cmidrule(lr){1-11}",
+        ]
+        for rho in anchors:
+            lines.append(row("Direct", fmt_anchor_rho(float(rho)), "Direct", float(rho), split))
+        lines.extend(
+            [
+                r"\addlinespace[3pt]",
+                r"\multicolumn{11}{l}{\textbf{Surrogate penalty}} \\",
+                r"\cmidrule(lr){1-11}",
+            ]
+        )
+        for rho in anchors:
+            lines.append(row("Surrogate", fmt_anchor_rho(float(rho)), "Surrogate", float(rho), split))
         return "\n".join(lines)
 
     return rf"""
 \begin{{table}}[!htbp]
 \centering
 \scriptsize
-\caption{{Regularization-path summary at prespecified display anchors. Rows are fixed for display before inspecting outcomes and do not constitute model selection.}}
+\renewcommand{{\arraystretch}}{{1.08}}
+\caption{{Regularization-path summary at prespecified display anchors.
+Rows are fixed for display before inspecting outcomes and do not constitute
+model selection. Boldface identifies point estimates that equal or improve
+upon both baselines for the corresponding metric; an asterisk identifies
+point estimates that fall within the applicable reference range.}}
 \label{{tab:path_anchor_summary}}
 \resizebox{{\textwidth}}{{!}}{{%
-\begin{{tabular}}{{llrrrrrrrr}}
+\begin{{tabular}}{{llrrrrrrrrr}}
 \toprule
-Family & $\rho$ & $R^2_P$ & MAE & PRD & PRB & MKI & VEI & $\beta_{{\log}}$ & dCor \\
+Method & $\rho$
+& $R^2_P$
+& MAE
+& PRD
+& PRB
+& MKI
+& VEI
+& $\beta_{{\log}}$
+& $\Delta_{{\mathrm{{NL}}}}$
+& dCor \\
 \midrule
-\multicolumn{{10}}{{l}}{{\textit{{Panel A: held-out evaluation}}}} \\
+\multicolumn{{11}}{{l}}{{\textit{{Panel A: Held-out evaluation}}}} \\
+\addlinespace[2pt]
 {panel("heldout")}
 \midrule
-\multicolumn{{10}}{{l}}{{\textit{{Panel B: 2025 forward evaluation}}}} \\
+\addlinespace[2pt]
+\multicolumn{{11}}{{l}}{{\textit{{Panel B: 2025 forward evaluation}}}} \\
+\addlinespace[2pt]
 {panel("forward_2025")}
 \bottomrule
 \end{{tabular}}}}
+\vspace{{1mm}}
+\begin{{minipage}}{{\textwidth}}
+\scriptsize
+\emph{{Notes.}}
+Display anchors are prespecified and are not selected on the basis of observed
+performance. Positive $\rho$ values are shown to two decimal places; Direct and
+Surrogate penalty magnitudes are not numerically comparable across families.
+Boldface indicates a point estimate equal to or better than both baseline models
+for that metric. An asterisk indicates that the reported point estimate falls
+within the applicable reference range: PRD $[0.98,1.03]$, PRB $[-0.05,0.05]$,
+MKI $[0.95,1.05]$, and VEI $[-10\%,10\%]$. Higher $R^2_P$ and lower MAE, dCor, and
+$\Delta_{{\mathrm{{NL}}}}$ are preferred; PRD and MKI are compared by distance from one,
+while PRB, VEI, and $\beta_{{\log}}$ are compared by distance from zero.
+$\Delta_{{\mathrm{{NL}}}}$ has no external reference band. Boldface and asterisks do not
+denote statistical significance, formal compliance, or model selection.
+\end{{minipage}}
+\end{{table}}
+"""
+
+
+def make_recalibration_table(combined: pd.DataFrame, recal: pd.DataFrame, spec: Dict[str, Any]) -> str:
+    native = combined_row(combined, "LightGBM")
+    source = str(spec.get("b_star_source", "validation-neutral"))
+    b_star = float(spec["b_star"])
+
+    def rec_at(ev: str, j: int) -> pd.Series:
+        sub = recal.loc[(recal["evaluation"] == ev) & (recal["j"] == int(j))]
+        if sub.empty:
+            raise RuntimeError(f"missing recalibration row evaluation={ev} j={j}")
+        return sub.iloc[0]
+
+    def line(sample: str, label: str, b: float, rec: pd.Series) -> str:
+        return (
+            f"{sample} & {label} & {fmt_b(b)} & {fmt_r2(rec['R2_price'])} & {fmt_mae(rec['MAE_price'])} & "
+            f"{fmt_3(rec['PRD'])} & {fmt_3(rec['PRB'])} & {fmt_3(rec['MKI'])} & {fmt_pct(rec['VEI'])} & "
+            f"{fmt_3(rec['Beta_log'])} & {fmt_3(rec['Delta_NL'])} & {fmt_3(rec['dCor_e_y'])} \\\\"
+        )
+
+    h1 = rec_at("heldout", 0)
+    hs = rec_at("heldout", 50)
+    f1 = rec_at("forward_2025", 0)
+    fs = rec_at("forward_2025", 50)
+    body = "\n".join(
+        [
+            line("Held-out", r"Ordinary LightGBM ($b=1$)", 1.0, h1),
+            line("Held-out", r"Centered recalibration ($b^\star$)", b_star, hs),
+            r"\addlinespace",
+            line("2025 forward", r"Ordinary LightGBM ($b=1$)", 1.0, f1),
+            line("2025 forward", r"Centered recalibration ($b^\star$)", b_star, fs),
+        ]
+    )
+    native_r2 = fmt_r2(metric(native, "R2_price", "heldout"))
+    return rf"""
+\begin{{table}}[!ht]
+\centering
+\scriptsize
+\caption{{Primary CCAO centered-recalibration benchmark. The map is Eq.~\eqref{{eq:centered_recalibration}} applied to ordinary LightGBM log-price predictions. $b^\star$ is the {source} value that zeros pooled chronological-validation $\beta_{{\log}}$; held-out and 2025 outcomes are not used to choose $b$.}}
+\label{{tab:ccao_recalibration_placeholder}}
+\begin{{tabular}}{{llrrrrrrrrrr}}
+\toprule
+Sample & Model & $b$ & $R^2_P$ & MAE & PRD & PRB & MKI & VEI & $\beta_{{\log}}$ & $\Delta_{{\mathrm{{NL}}}}$ & dCor \\
+\midrule
+{body}
+\bottomrule
+\end{{tabular}}
+\vspace{{1mm}}
+\begin{{minipage}}{{\textwidth}}
+\scriptsize
+\emph{{Notes.}}
+$b=1$ reproduces ordinary LightGBM (held-out $R^2_P={native_r2}$). The same frozen $b^\star$ is used for 2025; only $\bar y_T$ is replaced by the 2016--2024 training mean. No Direct or Surrogate $\rho$ is selected in this table.
+\end{{minipage}}
 \end{{table}}
 """
 
@@ -849,14 +1137,31 @@ def path_findings(combined: pd.DataFrame, anchors: Sequence[float]) -> str:
     )
 
 
-def rho0_control_from_preds() -> Dict[str, float]:
-    native = native_slice(load_baseline_split("heldout"))
-    d0 = load_oos_pred("Direct", 0.0, "heldout")
-    s0 = load_oos_pred("Surrogate", 0.0, "heldout")
-    return pipe.compute_rho0_control(native, d0, s0)
+def rho0_control_from_preds() -> pd.DataFrame:
+    return load_rho0_audit()
 
 
-def compile_pdf() -> Path:
+def replace_live_latex_environment(tex: str, env: str, label: str, new_env: str) -> str:
+    needle = r"\label{" + label + "}"
+    pos = 0
+    while True:
+        hit = tex.find(needle, pos)
+        if hit < 0:
+            raise RuntimeError(f"LaTeX label {label} not found.")
+        line_start = tex.rfind("\n", 0, hit) + 1
+        if tex[line_start:hit].lstrip().startswith("%"):
+            pos = hit + len(needle)
+            continue
+        break
+    begin = tex.rfind(r"\begin{" + env + "}", 0, hit)
+    if begin < 0:
+        raise RuntimeError(f"Could not find \\begin{{{env}}} before {label}.")
+    end_token = r"\end{" + env + "}"
+    end = tex.find(end_token, hit)
+    if end < 0:
+        raise RuntimeError(f"Could not find \\end{{{env}}} after {label}.")
+    end += len(end_token)
+    return tex[:begin] + new_env.strip() + tex[end:]
     env = os.environ.copy()
     cmd = ["latexmk", "-pdf", "-interaction=nonstopmode", "-halt-on-error", "paper_v6.tex"]
     proc = subprocess.run(cmd, cwd=str(REPO / "paper"), env=env, text=True, capture_output=True)
@@ -888,14 +1193,18 @@ def qa_tex(text: str) -> List[str]:
     for stale in ("344,610", "382,900", "populate from full"):
         if stale in live:
             problems.append(f"stale live text: {stale}")
-    if "PLACEHOLDER" in live:
-        problems.append("stale live text: PLACEHOLDER")
+    if "pending" in live_l and "tab:rho_zero_control" in text:
+        if r"\textit{pending}" in live:
+            problems.append("live pending rho0 2025 cells")
     if SELECTION_RE.search(live) and "no model selection" not in live_l:
         pass
     for lab in (
         "tab:ccao_baseline_results",
         "tab:rho_zero_control",
         "tab:path_anchor_summary",
+        "tab:ccao_recalibration_placeholder",
+        "eq:nonlinear_lack_of_fit",
+        "eq:centered_recalibration",
         "fig:baseline_motivation",
         "fig:ratio_shape_path_placeholder",
         "fig:mechanism_path_placeholder",
@@ -919,18 +1228,24 @@ def populate() -> int:
     combined = pd.read_csv(combined_path)
     if combined.empty or len(combined) < 100:
         raise RuntimeError(f"combined table looks incomplete: {len(combined)} rows")
+    if "Delta_NL__heldout" not in combined.columns or "Delta_NL__forward_2025" not in combined.columns:
+        raise RuntimeError("combined path table is missing OOS Delta_NL columns")
     anchors = display_rhos(combined)
     control = rho0_control_from_preds()
+    recal = load_recalibration_path()
+    rec_spec = pipe.load_json(FINAL_DIR / "recalibration_spec.json")
+    if not rec_spec:
+        raise RuntimeError("recalibration_spec.json missing")
 
     figs = {
         "baseline": plot_baseline_motivation(),
         "ratio": plot_ratio_shape(anchors),
         "mechanism": plot_mechanism(combined),
-        "tradeoff": plot_accuracy_equity(combined),
-        "prb": plot_prb_mki(combined),
+        "tradeoff": plot_accuracy_equity(combined, recal),
+        "prb": plot_prb_mki(combined, recal),
         "pred": plot_metric_paths(
             combined,
-            (("R2_price", r"$R^2_P$"), ("MAE_price", "MAE"), ("MAPE", "MAPE"), ("RMSE_log", r"RMSE$_{\log}$")),
+            (("R2_price", r"$R^2_P$"), ("MAE_price", "MAE"), ("MAPE", r"MAPE (\%)"), ("RMSE_log", r"RMSE$_{\log}$")),
             "predictive_metric_paths",
         ),
         "level": plot_metric_paths(
@@ -940,7 +1255,7 @@ def populate() -> int:
                 ("mean_ratio", "Mean ratio"),
                 ("weighted_mean_ratio", "Weighted mean ratio"),
                 ("COD", "COD"),
-                ("COV", "COV"),
+                ("COV", r"COV (\%)"),
             ),
             "level_uniformity_paths",
         ),
@@ -957,6 +1272,7 @@ def populate() -> int:
         ("table", "tab:ccao_design"): make_design_table(),
         ("table", "tab:rho_zero_control"): make_rho0_table(combined, control),
         ("table", "tab:path_anchor_summary"): make_path_table(combined, anchors),
+        ("table", "tab:ccao_recalibration_placeholder"): make_recalibration_table(combined, recal, rec_spec),
         ("figure", "fig:baseline_motivation"): figure_env(
             "fig:baseline_motivation",
             f"{IMG_REL}/baseline_models_motivation_2024_2025.pdf",
@@ -971,18 +1287,18 @@ def populate() -> int:
         ("figure", "fig:mechanism_path_placeholder"): figure_env(
             "fig:mechanism_path_placeholder",
             f"{IMG_REL}/mechanism_vs_rho.pdf",
-            r"First-order slope $\beta_{\log}$ and distance correlation along the full Direct and Surrogate grids. The $\rho=0$ control is shown explicitly; positive $\rho$ is on a log scale. Held-out and 2025 paths use distinct line styles.",
+            r"First-order slope $\beta_{\log}$, nonlinear conditional-mean lack-of-fit $\Delta_{\mathrm{NL}}$, and distance correlation along the full Direct and Surrogate grids. The $\rho=0$ control is shown explicitly; positive $\rho$ is on a log scale. Held-out and 2025 paths use distinct line styles. Within each metric row, Direct and Surrogate use the same vertical scale.",
             "0.86\\textwidth",
         ),
         ("figure", "fig:accuracy_equity_placeholder"): figure_env(
             "fig:accuracy_equity_placeholder",
             f"{IMG_REL}/accuracy_equity_trajectories.pdf",
-            r"Accuracy--equity trajectories for PRD and VEI against $R^2_P$. Shaded regions are reference bands, not compliance bands. Linear and ordinary LightGBM are context anchors. Arrows indicate the direction of increasing $\rho$ and do not mark a selected point.",
+            r"Accuracy--equity trajectories for PRD and VEI against $R^2_P$. Shaded regions are reference bands, not compliance bands. Linear and ordinary LightGBM are context anchors. The stone-colored curve is the frozen centered-recalibration $b$-path and is not connected to Direct or Surrogate. Arrows indicate the direction of increasing $\rho$ and do not mark a selected point.",
         ),
         ("figure", "fig:prb_mki_path_placeholder"): figure_env(
             "fig:prb_mki_path_placeholder",
             f"{IMG_REL}/prb_mki_accuracy_equity.pdf",
-            r"Companion accuracy--equity trajectories for PRB and MKI against $R^2_P$ on the held-out and 2025 samples.",
+            r"Companion accuracy--equity trajectories for PRB and MKI against $R^2_P$ on the held-out and 2025 samples. The shaded PRB interval is the IAAO reference band $[-0.05,0.05]$; the dotted line marks MKI $=1$. The stone-colored curve is the frozen centered-recalibration $b$-path.",
         ),
         ("figure", "fig:other_metric_paths_placeholder"): figure_env_two(
             "fig:other_metric_paths_placeholder",
@@ -1010,7 +1326,11 @@ def populate() -> int:
 """,
     }
     for (env, label), new_env in replacements.items():
-        tex = pipe.replace_latex_environment_by_label(tex, env, label, new_env)
+        if rf"\label{{{label}}}" not in tex:
+            if label == "fig:full_path_table_placeholder":
+                continue
+            raise RuntimeError(f"LaTeX label {label} not found.")
+        tex = replace_live_latex_environment(tex, env, label, new_env)
 
     hyper = (
         "The LightGBM hyperparameters were tuned on the same seven chronological folds "
@@ -1129,6 +1449,7 @@ def populate() -> int:
         "sha256": sha,
         "sample_counts": {"development": N_DEV, "heldout": N_HOLDOUT, "production": N_PROD, "forward_2025": N_2025},
         "compiled_here": False,
+        "no_tex_compilation": True,
     }
     pipe.write_json(RESULT_ROOT / "paper_outputs" / "paper_results_manifest.json", manifest)
     print("paper/paper_v6.tex has been populated with the completed 994-tree pre-selection results.")

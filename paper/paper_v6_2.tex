@@ -1096,7 +1096,7 @@ supplemental shape diagnostic, with zero as the idealized affine benchmark but
 with no assessor-standard reference range.
 }
 
-\newtext{The finite-sample estimator used in the primary held-out and 2025 evaluations is frozen before inspecting the penalized paths: a deterministic five-fold assignment from sale identifiers, an affine regression of $e$ on $Z$, and a cubic $B$-spline regression with eight quantile knots, both fit on complementary training portions and scored out of fold. Reported $\Delta_{\mathrm{NL}}$ is the non-negative truncation of $(\mathrm{MSE}_{\mathrm{aff}}-\mathrm{MSE}_{\mathrm{spl}})/\widehat{\mathrm{Var}}(e)$. This is an out-of-time shape diagnostic for the primary held-out and 2025 paths; it is not computed fold-by-fold in the already completed chronological CV.}
+\todo[inline]{\textcolor{impGreen}{Before finalizing the empirical results, state the exact cross-fitted smooth-regression estimator used for $\Delta_{\mathrm{NL}}$ (basis/smoother, folds, and smoothing rule). Fix this estimator before comparing penalty families or $\rho$ values, and use the same rule for every model within an evaluation split.}}
 
 % \oldtext{Second, we report the \emph{distance correlation}, denoted by}
 {\color{impGreen}Third, we report the \emph{distance correlation}, denoted by}
@@ -1190,7 +1190,7 @@ Section~\ref{subsec:ccao_design} provides the complete empirical design.
 \multicolumn{5}{@{}l}{\textbf{Supplemental diagnostics}} \\
 \cmidrule(r){1-1}
 \baselinemetric{$\beta_{\log}$} & \textbf{-0.092} & -0.150 & \textbf{-0.109} & -0.164 \\
-\baselinemetric{$\Delta_{\mathrm{NL}}$} & 0.131 & \textbf{0.119} & 0.122 & \textbf{0.121} \\
+\newtext{\baselinemetric{$\Delta_{\mathrm{NL}}$}} & \newtext{\textit{pending}} & \newtext{\textit{pending}} & \newtext{\textit{pending}} & \newtext{\textit{pending}} \\
 \baselinemetric{$\operatorname{dCor}(e,y)$} & \textbf{0.250} & 0.387 & \textbf{0.269} & 0.422 \\
 \bottomrule
 \end{tabularx}
@@ -1203,10 +1203,9 @@ and assessor-facing measures are defined in Table~\ref{tab:assessment_metrics_su
 MAPE, COD, COV, and VEI are reported in percent; MAE is reported in dollars.
 For the held-out evaluation, both models are fit on the 344,607-sale development
 pool. For the 2025 forward evaluation, each baseline specification is refit on all
-382,897 eligible 2016--2024 sales. The supplemental slope $\beta_{\log}$,
-nonlinear lack-of-fit $\Delta_{\mathrm{NL}}$, and distance correlation are defined in
-Eqs.~\eqref{eq:log_ratio_slope}, \eqref{eq:nonlinear_lack_of_fit}, and~\eqref{eq:dcor_diagnostic}, respectively.
-Boldface indicates the preferred value within each linear--LightGBM comparison according to the target or direction
+382,897 eligible 2016--2024 sales. \oldtext{The supplemental slope $\beta_{\log}$ and distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope} and~\eqref{eq:dcor_diagnostic}, respectively.}
+\newtext{The supplemental slope $\beta_{\log}$, nonlinear lack-of-fit $\Delta_{\mathrm{NL}}$, and distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope}, \eqref{eq:nonlinear_lack_of_fit}, and~\eqref{eq:dcor_diagnostic}, respectively. The $\Delta_{\mathrm{NL}}$ cells are placeholders to be populated from the same frozen baseline prediction artifacts used for the other diagnostics.} Boldface indicates the preferred
+value within each linear--LightGBM comparison according to the target or direction
 defined above; it does not denote statistical significance or formal compliance.
 \end{minipage}
 \end{table}
@@ -1215,6 +1214,7 @@ defined above; it does not denote statistical significance or formal compliance.
 
 \begin{figure}[!htbp]
 \centering
+\todo[inline]{\textcolor{impGreen}{Regenerate Figure~\ref{fig:baseline_motivation} from the same frozen baseline predictions after the local-results update. Remove the generic raw-price ``Slope'' annotation and retain only the defined $\beta_{\log}$ mechanism annotation; use common axis limits across the four panels; choose the common ratio-axis range from the displayed profiles so no median/IQR is clipped; and keep a consistent mathematical log-scale tick formatter across all sale-price profile figures.}}
 \safeincludegraphics[width=0.86\textwidth]{img/generated_v6_preselection/baseline_models_motivation_2024_2025.pdf}
 \caption{Descriptive valuation-ratio patterns against sale price for the two baseline models in the primary held-out evaluation and the 2025 forward evaluation. Curves show median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding interquartile ranges.}
 \label{fig:baseline_motivation}
@@ -1771,8 +1771,8 @@ Following the office pipeline, we exclude multicard PINs and sales marked as out
 Sample & Period & Observations \\
 \midrule
 Development / validation & 2016-01-01--2023-11-09 & 344,607 \\
-Primary held-out test & 2023-11-09--2024-12-31 & 38,290 \\
-Production training & 2016-01-01--2024-12-31 & 382,897 \\
+\makecell[l]{\newtext{Primary held-out evaluation}} & 2023-11-09--2024-12-31 & 38,290 \\
+\makecell[l]{\newtext{Full 2016--2024 refit sample}} & 2016-01-01--2024-12-31 & 382,897 \\
 Secondary forward evaluation & 2025-01-01--2025-12-29 & 26,641 \\
 \bottomrule
 \end{tabular}
@@ -1891,11 +1891,11 @@ Item & Design \\
 Population & Verified Cook County residential sales \\
 Development / CV & Oldest 90\% of eligible 2016--2024 sales: 344,607, through 2023-11-09 \\
 Primary held-out evaluation & Newest 10\%: 38,290 sales, 2023-11-09--2024-12-31 \\
-Production training & 382,897 eligible 2016--2024 sales \\
+\makecell[l]{\newtext{Full 2016--2024 refit sample}} & 382,897 eligible 2016--2024 sales \\
 2025 forward evaluation & 26,641 sales, 2025-01-01--2025-12-29 \\
 Predictors & 95 total; 23 categorical \\
 Validation & Seven expanding-window rolling-origin folds; newest 10\% validates \\
-Base nonlinear learner & LightGBM on log sale price; 994 trees; hyperparameters frozen before the penalty sweep \\
+Base nonlinear learner & LightGBM on log sale price; 994 trees;  hyperparameters frozen before the  \\& penalty sweep \\
 Corrections evaluated & Direct squared covariance and sample-additive covariance upper bound \\
 Penalty path & $\rho=0$ control plus 50 positive values in $[0.1,100]$ per family \\
 Current analysis & Full CV, held-out, and forward paths; no model selection \\
@@ -1934,7 +1934,8 @@ b\bigl(f_0(x)-\bar y_{\mathcal T}\bigr),
 \qquad b>0,
 \end{equation}
 where $\bar y_{\mathcal T}$ is computed from training data only and $b=1$ recovers the baseline predictor. This spread-changing map can alter the log-ratio--log-price slope. By contrast, multiplying every price prediction by a common positive constant only adds a constant to every log residual and leaves $\operatorname{Cov}(e,y)$ unchanged.}
-\newtext{The same family is the primary CCAO post-hoc comparator. The scalar $b^\star$ is chosen so that pooled chronological-validation $\beta_{\log}$ equals zero, using each fold's own training mean and the already stored out-of-fold ordinary LightGBM predictions; held-out and 2025 outcomes do not enter $b^\star$. The display path $b_j=1+(j/50)(b^\star-1)$ is a deterministic evaluation grid, not a model-selection grid. Results are reported in Section~\ref{subsec:scaling_results}.}
+
+\todo[inline]{\textcolor{impGreen}{Before final submission, add the centered-recalibration comparator in Eq.~\eqref{eq:centered_recalibration} to the primary CCAO experiment under the same chronological protocol. Determine any path/grid or fitted value of $b$ using development/training-validation information only; do not use held-out or 2025 outcomes to choose it. Until this comparison is displayed, do not claim that in-processing regularization adds value beyond simple spread recalibration in the primary CCAO application.}}
 
 % \paragraph{\textcolor{blue}{\sout{Richer information.}}}
 % \textcolor{blue}{\sout{Spatial, temporal, neighborhood, and property-characteristic improvements can reduce omitted structure and may improve both accuracy and equity. They are complements to the penalty, not substitutes assumed away by the paper. The preferred sequence is to build the strongest defensible AVM first and then test whether an explicit vertical-equity safeguard still adds value.}}
@@ -1957,7 +1958,7 @@ This is an exploratory transfer benchmark, not an audit of the six assessor offi
 \section{Results}
 \label{sec:results}
 
-\newtext{The remaining primary CCAO local results in this section are the split-specific $\rho=0$ implementation-control audit, the frozen out-of-time $\Delta_{\mathrm{NL}}$ diagnostic, and the validation-neutral centered-recalibration benchmark. Fold-level $\Delta_{\mathrm{NL}}$ is not added to the already completed chronological CV.}
+\todo[inline]{\textcolor{impGreen}{Final local-results gate for this section: (i) resolve the split-specific native/custom $\rho=0$ control; (ii) compute the fixed-estimator $\Delta_{\mathrm{NL}}$ for baselines, every chronological fold, every held-out/2025 Direct/Surrogate path point, and centered recalibration; (iii) run the primary CCAO centered-recalibration benchmark using development information only; and (iv) regenerate the affected tables/figures with the axis/unit corrections specified below. These are the only new primary CCAO result computations required by the present pre-selection revision. Do not add matched-$s$ experiments, demographic subgroup sweeps, extra dependence metrics, post-hoc red/green ``safety'' bands, curve blurring, or exhaustive pairwise tradeoff matrices unless a later claim specifically requires them.}}
 
 \subsection{Accuracy Alone Does Not Remove the CCAO Ratio Trend}
 \label{subsec:ccao_baseline_results}
@@ -1979,13 +1980,15 @@ Surrogate zero-penalty fits coincide in the reported aggregate metrics, as expec
 because both reduce to the same custom squared-error objective. They are not,
 however, numerically identical to ordinary LightGBM: on the held-out sample,
 $R^2_P$ is $0.894$ for ordinary LightGBM and $0.893$ for the custom-objective
-controls, while $\beta_{\log}$ is $-0.150$ and $-0.147$, respectively.
-\oldtext{The current control therefore does not yet establish exact native/custom prediction parity. Until the source of this discrepancy is resolved, we interpret positive-$\rho$ changes relative to the corresponding custom-objective $\rho=0$ control rather than attributing the native-to-custom difference to regularization.}
-\newtext{The split-specific audit in Table~\ref{tab:rho_zero_control} recovers the same qualitative gap on both out-of-time samples: mean absolute log-price deviations from ordinary LightGBM are $3.24\times 10^{-2}$ held-out and $3.06\times 10^{-2}$ in 2025, with Direct and Surrogate $\rho=0$ predictions identical to each other. The frozen 994-tree parameter vector, seed, and categorical handling are shared. The remaining difference is the LightGBM native-versus-custom training path: ordinary LightGBM uses the built-in squared-error objective with default averaging initialization, whereas the custom $\rho=0$ path centers labels, disables average initialization, and adds the training mean back after boosting. At $\rho=0$ the supplied gradient and Hessian match native $L^2$ algebraically. Positive-$\rho$ paths were not refit. We therefore retain the custom-objective $\rho=0$ fit as the within-family reference and do not attribute the native-to-custom difference to regularization.}
+controls, while $\beta_{\log}$ is $-0.150$ and $-0.147$, respectively. The current
+control therefore does not yet establish exact native/custom prediction parity.
+Until the source of this discrepancy is resolved, we interpret positive-$\rho$
+changes relative to the corresponding custom-objective $\rho=0$ control rather
+than attributing the native-to-custom difference to regularization.
 
 \begin{table}[!ht]
 \centering
-\caption{Implementation-control comparison at $\rho=0$. Prediction differences are log-price deviations from ordinary LightGBM, aligned on sale identifiers and computed independently on the held-out and 2025 samples.}
+\caption{Implementation-control comparison at $\rho=0$. Held-out prediction differences are log-price deviations from ordinary LightGBM, aligned on sale identifiers. The 2025 prediction-difference cells are withheld pending independent recomputation from the forward prediction artifacts.}
 \label{tab:rho_zero_control}
 \begin{tabular}{llrrrrr}
 \toprule
@@ -1996,11 +1999,15 @@ Held-out & Direct, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
 Held-out & Surrogate, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
 \addlinespace
 2025 forward & Ordinary LightGBM & 0.904 & 0.278 & -0.164 & -- & -- \\
-2025 forward & Direct, $\rho=0$ & 0.904 & 0.279 & -0.161 & 3.06e-02 & 2.83e-01 \\
-2025 forward & Surrogate, $\rho=0$ & 0.904 & 0.279 & -0.161 & 3.06e-02 & 2.83e-01 \\
+2025 forward & Direct, $\rho=0$ & 0.904 & 0.279 & -0.161 & \textit{pending} & \textit{pending} \\
+2025 forward & Surrogate, $\rho=0$ & 0.904 & 0.279 & -0.161 & \textit{pending} & \textit{pending} \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\todo[inline]{\textcolor{impGreen}{Local validity gate: recompute the native-versus-custom $\rho=0$ control independently for the held-out and 2025 forward prediction artifacts, aligned on sale identifiers. Do not reuse held-out mean/max prediction-deviation summaries in the forward rows. Verify the native/custom fits under the identical frozen 994-tree parameter vector, seed, categorical handling, initialization, objective normalization, and training data. Then regenerate Table~\ref{tab:rho_zero_control} and this subsection from those split-specific artifacts. If numerical parity is recovered, report it; otherwise retain the custom-$\rho=0$ fit as the within-family reference and document the reproducible implementation-path cause. Positive-$\rho$ sweeps need not be rerun unless this audit reveals an error in the penalized objective itself.}}
+
+
 
 
 \subsection{What the Prespecified Regularization Paths Do}
@@ -2396,16 +2403,20 @@ and figures. No row in this table is selected because of its observed performanc
 
 % \end{table}
 
+\todo[inline]{\textcolor{impGreen}{Compute $\Delta_{\mathrm{NL}}$ from the frozen row-level prediction artifacts using one estimator specification fixed before family/path comparison. Populate the pending $\Delta_{\mathrm{NL}}$ column below for Linear, ordinary LightGBM, both custom $\rho=0$ controls, and every prespecified Direct/Surrogate display anchor on held-out and 2025. The same metric must also be written for every full-grid path point and chronological fold in the machine-readable artifacts. Zero is the affine benchmark; there is no external acceptance band, and anchors must not be selected or omitted on the basis of this diagnostic.}}
+
 \begin{table}[!htbp]
 \centering
 \scriptsize
 \renewcommand{\arraystretch}{1.08}
+
 \caption{Regularization-path summary at prespecified display anchors.
 Rows are fixed for display before inspecting outcomes and do not constitute
 model selection. Boldface identifies point estimates that equal or improve
 upon both baselines for the corresponding metric; an asterisk identifies
 point estimates that fall within the applicable reference range.}
 \label{tab:path_anchor_summary}
+
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llrrrrrrrrr}
 \toprule
@@ -2417,57 +2428,328 @@ Method & $\rho$
 & MKI
 & VEI
 & $\beta_{\log}$
-& $\Delta_{\mathrm{NL}}$
+& \newtext{$\Delta_{\mathrm{NL}}$}
 & dCor \\
+% \midrule 
+% \multicolumn{11}{l}{} \\
 \midrule
 \multicolumn{11}{l}{\textit{Panel A: Held-out evaluation}} \\
 \addlinespace[2pt]
+
 \multicolumn{11}{l}{\textbf{Baseline models}} \\
 \cmidrule(lr){1-11}
-Linear regression & -- & 0.799 & \$90,092 & \textbf{1.042} & \textbf{-0.016}\textsuperscript{*} & \textbf{0.975}\textsuperscript{*} & \textbf{-11.6\%} & \textbf{-0.092} & 0.131 & \textbf{0.250} \\
-Ordinary LightGBM & -- & \textbf{0.894} & \textbf{\$75,655} & 1.069 & -0.091 & 0.923 & -26.5\% & -0.150 & \textbf{0.119} & 0.387 \\
+Linear regression
+& --
+& 0.799
+& \$90,092
+& \textbf{1.042}
+& \textbf{-0.016}\textsuperscript{*}
+& \textbf{0.975}\textsuperscript{*}
+& \textbf{-11.6\%}
+& \textbf{-0.092}
+& \newtext{\textit{pending}}
+& \textbf{0.250} \\
+
+Ordinary LightGBM
+& --
+& \textbf{0.894}
+& \textbf{\$75,655}
+& 1.069
+& -0.091
+& 0.923
+& -26.5\%
+& -0.150
+& \newtext{\textit{pending}}
+& 0.387 \\
+
 \addlinespace[3pt]
 \multicolumn{11}{l}{\textbf{Direct penalty}} \\
 \cmidrule(lr){1-11}
-Direct & 0 & 0.893 & \$75,976 & 1.069 & -0.088 & 0.923 & -26.2\% & -0.147 & \textbf{0.116} & 0.382 \\
-Direct & $\approx0.1$ & 0.894 & \$76,235 & 1.068 & -0.088 & 0.926 & -27.0\% & -0.147 & 0.119 & 0.382 \\
-Direct & $\approx0.954$ & \textbf{0.899} & \textbf{\$74,485} & 1.060 & -0.075 & 0.940 & -21.9\% & -0.134 & 0.122 & 0.359 \\
-Direct & $\approx10.481$ & \textbf{0.895} & \textbf{\$75,218} & \textbf{1.036} & -0.040\textsuperscript{*} & \textbf{0.984}\textsuperscript{*} & \textbf{-10.5\%} & -0.096 & 0.132 & 0.302 \\
-Direct & 100 & 0.869 & \$84,918 & \textbf{1.029}\textsuperscript{*} & \textbf{-0.015}\textsuperscript{*} & \textbf{0.998}\textsuperscript{*} & \textbf{0.7\%}\textsuperscript{*} & \textbf{-0.079} & \textbf{0.115} & 0.265 \\
+Direct
+& 0
+& 0.893
+& \$75,976
+& 1.069
+& -0.088
+& 0.923
+& -26.2\%
+& -0.147
+& \newtext{\textit{pending}}
+& 0.382 \\
+
+Direct
+& $\approx 0.10$
+& \textbf{0.894}
+& \$76,235
+& 1.068
+& -0.088
+& 0.926
+& -27.0\%
+& -0.147
+& \newtext{\textit{pending}}
+& 0.382 \\
+
+Direct
+& $\approx 0.95$
+& \textbf{0.899}
+& \textbf{\$74,485}
+& 1.060
+& -0.075
+& 0.940
+& -21.9\%
+& -0.134
+& \newtext{\textit{pending}}
+& 0.359 \\
+
+Direct
+& $\approx 10.48$
+& \textbf{0.895}
+& \textbf{\$75,218}
+& \textbf{1.036}
+& -0.040\textsuperscript{*}
+& \textbf{0.984}\textsuperscript{*}
+& \textbf{-10.5\%}
+& -0.096
+& \newtext{\textit{pending}}
+& 0.302 \\
+
+Direct
+& 100
+& 0.869
+& \$84,918
+& \textbf{1.029}\textsuperscript{*}
+& \textbf{-0.015}\textsuperscript{*}
+& \textbf{0.998}\textsuperscript{*}
+& \textbf{0.7\%}\textsuperscript{*}
+& \textbf{-0.079}
+& \newtext{\textit{pending}}
+& 0.265 \\
+
 \addlinespace[3pt]
 \multicolumn{11}{l}{\textbf{Surrogate penalty}} \\
 \cmidrule(lr){1-11}
-Surrogate & 0 & 0.893 & \$75,976 & 1.069 & -0.088 & 0.923 & -26.2\% & -0.147 & \textbf{0.116} & 0.382 \\
-Surrogate & $\approx0.1$ & 0.894 & \$75,897 & 1.064 & -0.079 & 0.931 & -22.7\% & -0.138 & \textbf{0.113} & 0.367 \\
-Surrogate & $\approx0.954$ & \textbf{0.897} & \textbf{\$75,468} & 1.049 & -0.045\textsuperscript{*} & 0.953\textsuperscript{*} & -12.6\% & -0.102 & \textbf{0.099} & 0.310 \\
-Surrogate & $\approx10.481$ & 0.893 & \$78,110 & \textbf{1.024}\textsuperscript{*} & \textbf{0.013}\textsuperscript{*} & \textbf{0.988}\textsuperscript{*} & \textbf{0.2\%}\textsuperscript{*} & \textbf{-0.036} & \textbf{0.103} & 0.250 \\
-Surrogate & 100 & 0.889 & \$82,094 & \textbf{1.010}\textsuperscript{*} & 0.042\textsuperscript{*} & \textbf{1.013}\textsuperscript{*} & \textbf{4.0\%}\textsuperscript{*} & \textbf{-0.001} & 0.124 & 0.267 \\
+Surrogate
+& 0
+& 0.893
+& \$75,976
+& 1.069
+& -0.088
+& 0.923
+& -26.2\%
+& -0.147
+& \newtext{\textit{pending}}
+& 0.382 \\
+
+Surrogate
+& $\approx 0.10$
+& \textbf{0.894}
+& \$75,897
+& 1.064
+& -0.079
+& 0.931
+& -22.7\%
+& -0.138
+& \newtext{\textit{pending}}
+& 0.367 \\
+
+Surrogate
+& $\approx 0.95$
+& \textbf{0.897}
+& \textbf{\$75,468}
+& 1.049
+& -0.045\textsuperscript{*}
+& 0.953\textsuperscript{*}
+& -12.6\%
+& -0.102
+& \newtext{\textit{pending}}
+& 0.310 \\
+
+Surrogate
+& $\approx 10.48$
+& 0.893
+& \$78,110
+& \textbf{1.024}\textsuperscript{*}
+& \textbf{0.013}\textsuperscript{*}
+& \textbf{0.988}\textsuperscript{*}
+& \textbf{0.2\%}\textsuperscript{*}
+& \textbf{-0.036}
+& \newtext{\textit{pending}}
+& \textbf{0.250} \\
+
+Surrogate
+& 100
+& 0.889
+& \$82,094
+& \textbf{1.010}\textsuperscript{*}
+& 0.042\textsuperscript{*}
+& \textbf{1.013}\textsuperscript{*}
+& \textbf{4.0\%}\textsuperscript{*}
+& \textbf{-0.001}
+& \newtext{\textit{pending}}
+& 0.267 \\
+
+
 \midrule
 \addlinespace[2pt]
 \multicolumn{11}{l}{\textit{Panel B: 2025 forward evaluation}} \\
 \addlinespace[2pt]
+
 \multicolumn{11}{l}{\textbf{Baseline models}} \\
 \cmidrule(lr){1-11}
-Linear regression & -- & 0.799 & \$99,371 & \textbf{1.052} & \textbf{-0.029}\textsuperscript{*} & \textbf{0.954}\textsuperscript{*} & \textbf{-17.3\%} & \textbf{-0.109} & 0.122 & \textbf{0.269} \\
-Ordinary LightGBM & -- & \textbf{0.904} & \textbf{\$78,484} & 1.079 & -0.106 & 0.907 & -28.6\% & -0.164 & \textbf{0.121} & 0.422 \\
+Linear regression
+& --
+& 0.799
+& \$99,371
+& \textbf{1.052}
+& \textbf{-0.029}\textsuperscript{*}
+& \textbf{0.954}\textsuperscript{*}
+& \textbf{-17.3\%}
+& \textbf{-0.109}
+& \newtext{\textit{pending}}
+& \textbf{0.269} \\
+
+Ordinary LightGBM
+& --
+& \textbf{0.904}
+& \textbf{\$78,484}
+& 1.079
+& -0.106
+& 0.907
+& -28.6\%
+& -0.164
+& \newtext{\textit{pending}}
+& 0.422 \\
+
 \addlinespace[3pt]
 \multicolumn{11}{l}{\textbf{Direct penalty}} \\
 \cmidrule(lr){1-11}
-Direct & 0 & 0.904 & \$79,139 & 1.078 & -0.103 & 0.909 & -28.4\% & -0.161 & 0.121 & 0.417 \\
-Direct & $\approx0.1$ & \textbf{0.906} & \textbf{\$78,029} & 1.077 & -0.102 & 0.910 & -27.7\% & -0.160 & 0.121 & 0.416 \\
-Direct & $\approx0.954$ & \textbf{0.910} & \textbf{\$77,139} & 1.069 & -0.090 & 0.926 & -23.9\% & -0.148 & 0.127 & 0.392 \\
-Direct & $\approx10.481$ & 0.902 & \$79,187 & \textbf{1.042} & -0.049\textsuperscript{*} & \textbf{0.971}\textsuperscript{*} & \textbf{-11.9\%} & \textbf{-0.105} & 0.134 & 0.318 \\
-Direct & 100 & 0.873 & \$89,309 & \textbf{1.036} & -0.029\textsuperscript{*} & \textbf{0.983}\textsuperscript{*} & \textbf{-4.5\%}\textsuperscript{*} & \textbf{-0.093} & \textbf{0.119} & 0.281 \\
+Direct
+& 0
+& \textbf{0.904}
+& \$79,139
+& 1.078
+& -0.103
+& 0.909
+& -28.4\%
+& -0.161
+& \newtext{\textit{pending}}
+& 0.417 \\
+
+Direct
+& $\approx 0.10$
+& \textbf{0.906}
+& \textbf{\$78,029}
+& 1.077
+& -0.102
+& 0.910
+& -27.7\%
+& -0.160
+& \newtext{\textit{pending}}
+& 0.416 \\
+
+Direct
+& $\approx 0.95$
+& \textbf{0.910}
+& \textbf{\$77,139}
+& 1.069
+& -0.090
+& 0.926
+& -23.9\%
+& -0.148
+& \newtext{\textit{pending}}
+& 0.392 \\
+
+Direct
+& $\approx 10.48$
+& 0.902
+& \$79,187
+& \textbf{1.042}
+& -0.049\textsuperscript{*}
+& \textbf{0.971}\textsuperscript{*}
+& \textbf{-11.9\%}
+& \textbf{-0.105}
+& \newtext{\textit{pending}}
+& 0.318 \\
+
+Direct
+& 100
+& 0.873
+& \$89,309
+& \textbf{1.036}
+& \textbf{-0.029}\textsuperscript{*}
+& \textbf{0.983}\textsuperscript{*}
+& \textbf{-4.5\%}\textsuperscript{*}
+& \textbf{-0.093}
+& \newtext{\textit{pending}}
+& 0.281 \\
+
 \addlinespace[3pt]
 \multicolumn{11}{l}{\textbf{Surrogate penalty}} \\
 \cmidrule(lr){1-11}
-Surrogate & 0 & 0.904 & \$79,139 & 1.078 & -0.103 & 0.909 & -28.4\% & -0.161 & 0.121 & 0.417 \\
-Surrogate & $\approx0.1$ & \textbf{0.905} & \$78,546 & 1.074 & -0.095 & 0.914 & -24.7\% & -0.153 & \textbf{0.116} & 0.402 \\
-Surrogate & $\approx0.954$ & \textbf{0.908} & \textbf{\$78,196} & 1.060 & -0.062 & 0.932 & \textbf{-15.3\%} & -0.120 & \textbf{0.096} & 0.343 \\
-Surrogate & $\approx10.481$ & \textbf{0.905} & \$81,075 & \textbf{1.033} & \textbf{0.000}\textsuperscript{*} & \textbf{0.967}\textsuperscript{*} & \textbf{-2.0\%}\textsuperscript{*} & \textbf{-0.050} & \textbf{0.092} & \textbf{0.258} \\
-Surrogate & 100 & 0.900 & \$85,257 & \textbf{1.020}\textsuperscript{*} & 0.030\textsuperscript{*} & \textbf{0.987}\textsuperscript{*} & \textbf{1.7\%}\textsuperscript{*} & \textbf{-0.015} & \textbf{0.111} & \textbf{0.266} \\
+Surrogate
+& 0
+& \textbf{0.904}
+& \$79,139
+& 1.078
+& -0.103
+& 0.909
+& -28.4\%
+& -0.161
+& \newtext{\textit{pending}}
+& 0.417 \\
+
+Surrogate
+& $\approx 0.10$
+& \textbf{0.905}
+& \$78,546
+& 1.074
+& -0.095
+& 0.914
+& -24.7\%
+& -0.153
+& \newtext{\textit{pending}}
+& 0.402 \\
+
+Surrogate
+& $\approx 0.95$
+& \textbf{0.908}
+& \textbf{\$78,196}
+& 1.060
+& -0.062
+& 0.932
+& \textbf{-15.3\%}
+& -0.120
+& \newtext{\textit{pending}}
+& 0.343 \\
+
+Surrogate
+& $\approx 10.48$
+& \textbf{0.905}
+& \$81,075
+& \textbf{1.033}
+& \textbf{0.000}\textsuperscript{*}
+& \textbf{0.967}\textsuperscript{*}
+& \textbf{-2.0\%}\textsuperscript{*}
+& \textbf{-0.050}
+& \newtext{\textit{pending}}
+& \textbf{0.258} \\
+
+Surrogate
+& 100
+& 0.900
+& \$85,257
+& \textbf{1.020}\textsuperscript{*}
+& 0.030\textsuperscript{*}
+& \textbf{0.987}\textsuperscript{*}
+& \textbf{1.7\%}\textsuperscript{*}
+& \textbf{-0.015}
+& \newtext{\textit{pending}}
+& \textbf{0.266} \\
+
 \bottomrule
-\end{tabular}}
+\end{tabular}
+}
+
 \vspace{1mm}
 \begin{minipage}{\textwidth}
 \scriptsize
@@ -2478,12 +2760,13 @@ Surrogate penalty magnitudes are not numerically comparable across families.
 Boldface indicates a point estimate equal to or better than both baseline models
 for that metric. An asterisk indicates that the reported point estimate falls
 within the applicable reference range: PRD $[0.98,1.03]$, PRB $[-0.05,0.05]$,
-MKI $[0.95,1.05]$, and VEI $[-10\%,10\%]$. Higher $R^2_P$ and lower MAE, dCor, and
-$\Delta_{\mathrm{NL}}$ are preferred; PRD and MKI are compared by distance from one,
-while PRB, VEI, and $\beta_{\log}$ are compared by distance from zero.
-$\Delta_{\mathrm{NL}}$ has no external reference band. Boldface and asterisks do not
-denote statistical significance, formal compliance, or model selection.
+MKI $[0.95,1.05]$, and VEI $[-10\%,10\%]$. Higher $R^2_P$ and lower MAE and
+\oldtext{dCor are preferred; PRD and MKI are compared by distance from one, while PRB, VEI, and $\beta_{\log}$ are compared by distance from zero.}
+\newtext{dCor and $\Delta_{\mathrm{NL}}$ are preferred when lower; PRD and MKI are compared by distance from one, while PRB, VEI, and $\beta_{\log}$ are compared by distance from zero. Pending $\Delta_{\mathrm{NL}}$ entries are not used for boldface until populated.} Boldface and
+asterisks do not denote statistical significance, formal compliance, or model
+selection.
 \end{minipage}
+
 \end{table} 
 
 Because the native and custom-objective zero-penalty fits are not yet numerically
@@ -2509,7 +2792,8 @@ figure and the prespecified $\rho$ display anchors within each penalty family.
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/ratio_shape_evolution.pdf}
+\todo[inline]{\textcolor{impGreen}{Regenerate this figure from the unchanged prespecified display anchors using one common x-range, one common y-range, and identical sale-price log ticks across all four panels. Choose the shared y-range from the complete displayed profiles rather than a fixed hard-coded bound so no low-price median curve is clipped. Do not change opacity, omit curves, or visually de-emphasize anchors on the basis of $\Delta_{\mathrm{NL}}$ or dCor outcomes.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v6_preselection/ratio_shape_evolution.pdf}
 \caption{Median valuation-to-sale ratios in 30 equal-count sale-price bins along the Direct and Surrogate paths. Columns are penalty families; rows are held-out and 2025 evaluations. Curves correspond to the prespecified display anchors $\rho=0,0.1,1,10,100$ (nearest grid points). No operating point is highlighted.}
 \label{fig:ratio_shape_path_placeholder}
 \end{figure}
@@ -2522,7 +2806,8 @@ develops a pronounced non-monotone trough through the lower and middle sale-pric
 range before recovering at higher prices. \newtext{This visual contrast is descriptive rather than a structural guarantee: Direct covariance controls the affine residual--price component but does not protect against nonlinear conditional-mean departures at stronger regularization. Nonlinear shape is therefore evaluated for both families with the common $\Delta_{\mathrm{NL}}$ diagnostic rather than inferred from visual smoothness alone.} 
 % \oldtext{Consequently, a near-neutral global slope or grouped high-versus-low statistic need not imply a locally flat valuation-ratio profile.}
 \newtext{Consequently, a near-neutral global slope or high-versus-low grouped statistic need not imply a flat valuation-ratio profile across the value distribution.}
-\newtext{The frozen $\Delta_{\mathrm{NL}}$ diagnostic separates these families. Along the Direct anchors, held-out $\Delta_{\mathrm{NL}}$ remains near $0.116$--$0.132$ and is $0.115$ at $\rho=100$; the 2025 Direct path is similarly stable, ending at $0.119$. The Surrogate path instead falls through moderate regularization, from $0.116$ at $\rho=0$ to $0.099$ near $\rho=0.954$ held-out and from $0.121$ to $0.092$ near $\rho=10.481$ in 2025, then rises at $\rho=100$ to $0.124$ and $0.111$, respectively. That rebound coincides with the non-monotone Surrogate ratio trough above. We do not label the departure as S-shaped from these scalar values alone.}
+
+\todo[inline]{\textcolor{impGreen}{Insert the $\Delta_{\mathrm{NL}}$ path result here once computed. The key descriptive comparison is whether the nonlinear lack-of-fit remains flat/decreases through the moderate-$\rho$ region and then rises at stronger regularization, and whether any rise coincides with the non-monotone ratio profiles above. Report Direct and Surrogate separately and avoid labeling the departure specifically as ``S-shaped'' unless the plotted conditional-mean shape supports that description.}}
 
 \subsection{The Correction Acts on the Intended First-Order Mechanism}
 \label{subsec:mechanism_results}
@@ -2531,10 +2816,12 @@ range before recovering at higher prices. \newtext{This visual contrast is descr
 
 {\color{impGreen}The direct training target is covariance, and $\beta_{\log}$ is its signed first-order slope equivalent up to the fixed variance of log sale price within an evaluation sample. The nonlinear lack-of-fit $\Delta_{\mathrm{NL}}$ complements this first-order mechanism by isolating conditional-mean structure that remains after the best affine residual--price trend is removed, while distance correlation provides a broader omnibus check for remaining distributional dependence. These diagnostics answer distinct questions and are therefore traced along the complete paths rather than evaluated only at a single positive-$\rho$ model.}
 
+\todo[inline]{\textcolor{impGreen}{Regenerate Figure~\ref{fig:mechanism_path_placeholder} as a $3\times2$ mechanism/shape figure: rows $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and dCor; columns Direct and Surrogate. Use the complete grids, show the $\rho=0$ control explicitly, keep held-out/2025 as line styles, and use identical y-limits within each metric row across the two families. Keep the $\Delta_{\mathrm{NL}}$ estimator fixed across every path point. Use a zero reference line for $\beta_{\log}$ and the affine benchmark $0$ for $\Delta_{\mathrm{NL}}$; do not invent a red/green acceptance band for $\Delta_{\mathrm{NL}}$ or dCor because neither has an assessor-standard cutoff.}}
+
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.86\textwidth]{img/generated_v6_preselection/mechanism_vs_rho.pdf}
-\caption{First-order slope $\beta_{\log}$, nonlinear conditional-mean lack-of-fit $\Delta_{\mathrm{NL}}$, and distance correlation along the full Direct and Surrogate grids. The $\rho=0$ control is shown explicitly; positive $\rho$ is on a log scale. Held-out and 2025 paths use distinct line styles. Within each metric row, Direct and Surrogate use the same vertical scale.}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v6_preselection/mechanism_vs_rho.pdf}
+\caption{\oldtext{First-order slope $\beta_{\log}$ and distance correlation along the full Direct and Surrogate grids. The $\rho=0$ control is shown explicitly; positive $\rho$ is on a log scale. Held-out and 2025 paths use distinct line styles.} \newtext{First-order slope $\beta_{\log}$, nonlinear conditional-mean lack-of-fit $\Delta_{\mathrm{NL}}$, and distance correlation along the full Direct and Surrogate grids. The $\rho=0$ control is shown explicitly; positive $\rho$ is on a log scale. Held-out and 2025 paths use distinct line styles. Within each metric row, Direct and Surrogate use the same vertical scale.}}
 \label{fig:mechanism_path_placeholder}
 \end{figure}
 
@@ -2550,7 +2837,8 @@ $\rho=10.481$ and then rises to $0.267$ at $\rho=100$; the 2025 path shows
 the same rebound from $0.258$ to $0.266$. 
 % \oldtext{This behavior is consistent with the non-monotone ratio shapes above and shows that reducing the targeted first-order association does not eliminate broader nonlinear sale-price-related dependence.} 
 \newtext{This rebound is consistent with the non-monotone ratio shapes above and shows that broader sale-price-related dependence can remain even as the targeted first-order association approaches zero. Because distance correlation is an omnibus dependence measure, the rebound does not by itself establish that nonlinear conditional-mean structure has increased; that distinction is assessed with $\Delta_{\mathrm{NL}}$.}
-\newtext{Figure~\ref{fig:mechanism_path_placeholder} traces that distinction on the complete grids. On Direct, $\lvert\beta_{\log}\rvert$ declines from $\rho=0$ to $\rho=100$ while $\Delta_{\mathrm{NL}}$ stays in a narrow band and is not increasing at the strongest penalty. On Surrogate, $\lvert\beta_{\log}\rvert$ continues to fall as $\Delta_{\mathrm{NL}}$ first declines and then rises at high $\rho$, including the held-out movement from $0.099$ near $\rho=0.954$ to $0.124$ at $\rho=100$. First-order slope reduction and nonlinear lack-of-fit are therefore not the same object, and the Surrogate path is the clearer CCAO example of that separation.}
+
+\todo[inline]{\textcolor{impGreen}{Add the corresponding $\Delta_{\mathrm{NL}}$ results here. Highest-value evidence: identify whether $\lvert\beta_{\log}\rvert$ continues to decrease while $\Delta_{\mathrm{NL}}$ begins to increase at stronger $\rho$. Report the turning behavior, if present, for both Direct and Surrogate and for both held-out and 2025 evaluations. Treat dCor as the broader dependence diagnostic and $\Delta_{\mathrm{NL}}$ as the conditional-mean shape diagnostic; do not conflate the two.}}
 
 \subsection{Accuracy--Equity Trajectories}
 \label{subsec:tradeoff_results}
@@ -2561,13 +2849,12 @@ ratio-based and grouped views and are therefore the two main-text tradeoff panel
 PRB and MKI are retained as companion diagnostics in Appendix~\ref{app:ccao_path_details}.
 \begin{figure}[!htbp]
 \centering
+\todo[inline]{\textcolor{impGreen}{Regenerate the PRD/VEI accuracy--equity figure from the frozen paths after the primary CCAO centered-recalibration benchmark is computed. Use a common $R^2_P$ range across all panels and a common vertical range wherever the same fairness metric is repeated across held-out/2025 panels. Overlay the validation-fitted centered-recalibration result as a distinct neutral marker on held-out and 2025 panels; do not connect it to the $\rho$ paths or imply it is a penalty-path point. Keep the existing reference-band language as descriptive rather than compliance-oriented.}}
 \safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/accuracy_equity_trajectories.pdf}
-\caption{Accuracy--equity trajectories for PRD and VEI against $R^2_P$. Shaded regions are reference bands, not compliance bands. Linear and ordinary LightGBM are context anchors. The stone-colored curve is the frozen centered-recalibration $b$-path and is not connected to Direct or Surrogate. Arrows indicate the direction of increasing $\rho$ and do not mark a selected point.}
+\caption{Accuracy--equity trajectories for PRD and VEI against $R^2_P$. Shaded regions are reference bands, not compliance bands. Linear and ordinary LightGBM are context anchors. Arrows indicate the direction of increasing $\rho$ and do not mark a selected point.}
 \label{fig:accuracy_equity_placeholder}
 \end{figure}
-The trajectories are therefore not simple monotone accuracy--equity frontiers.
-\newtext{The stone-colored curve is the frozen centered-recalibration $b$-path from Table~\ref{tab:ccao_recalibration_placeholder}; it is not a Direct or Surrogate $\rho$ point.}
-At
+The trajectories are therefore not simple monotone accuracy--equity frontiers. At
 moderate regularization, parts of both paths move toward more neutral PRD and VEI
 while preserving or improving price-scale fit relative to the corresponding
 custom-objective $\rho=0$ control. 
@@ -2662,38 +2949,39 @@ Middlesex, MA & 28.50 & 1.083 & 1.051 & -0.088 & -0.009 & +5.33 \\
 \newtext{The exploratory multi-county benchmark includes validation-fitted centered recalibration maps of the baseline log predictions, as defined in Eq.~\eqref{eq:centered_recalibration}. These maps can change the spread of predictions after model fitting and therefore alter a global ratio--value trend; a constant multiplicative level adjustment cannot.}
 
 % \oldtext{The existing comparisons do not support a general claim that the custom objective dominates the simpler recalibration. The in-processing penalty may still be useful when the target must influence tree construction or when the method will be extended to geographic, class-specific, or other structured constraints.}
-\newtext{These exploratory comparisons do not support a general claim that the custom objective dominates the simpler recalibration.}
-\oldtext{They also do not yet identify the incremental value of in-processing regularization in the primary CCAO application because the corresponding centered-recalibration path is not yet displayed there. The in-processing penalty may still be useful when changing the training objective produces out-of-time gains that cannot be reproduced by this simpler benchmark, or when future extensions impose structured constraints during model fitting.}
-\newtext{Table~\ref{tab:ccao_recalibration_placeholder} reports the primary CCAO centered-recalibration benchmark. Validation-neutral $b^\star=1.167$ nearly zeros held-out $\beta_{\log}$ ($-0.150$ to $-0.007$) and moves PRD and PRB into their reference bands, but held-out $R^2_P$ falls from $0.894$ to $0.789$ and VEI overshoots from $-26.5\%$ to $+16.2\%$; the 2025 evaluation shows the same accuracy cost. The displayed Direct and Surrogate paths can move the same first-order diagnostics at moderate $\rho$ without that collapse in $R^2_P$. Centered recalibration therefore reproduces part of the first-order correction, while the incremental content of in-processing on these CCAO samples is an accuracy-preserving path rather than uniqueness of slope correction. No Direct or Surrogate $\rho$ is selected on the basis of this comparison.}
+\newtext{These exploratory comparisons do not support a general claim that the custom objective dominates the simpler recalibration. They also do not yet identify the incremental value of in-processing regularization in the primary CCAO application because the corresponding centered-recalibration path is not yet displayed there. The in-processing penalty may still be useful when changing the training objective produces out-of-time gains that cannot be reproduced by this simpler benchmark, or when future extensions impose structured constraints during model fitting.}
 \newtext{For the current paper, the defensible comparison is to report both approaches using only training and validation information and to treat simple recalibration as a benchmark for the incremental value of in-processing regularization.}
 
+\todo[inline]{\textcolor{impGreen}{Run the primary CCAO centered-recalibration benchmark in Eq.~\eqref{eq:centered_recalibration} under the same chronological design. Fit/tune $b$ using development/rolling-validation information only; then refit the baseline on the same full development samples used by the main experiment and apply the frozen recalibration to held-out and 2025. Populate Table~\ref{tab:ccao_recalibration_placeholder} and overlay the same result in the accuracy--equity figures. Save the complete validation record for $b$ and the row-level recalibrated predictions. Do not use held-out or 2025 outcomes to choose $b$, and do not select a Direct/Surrogate $\rho$ merely to make the comparison favorable.}}
+
 {\color{impGreen}
-\begin{table}[!ht]
+\begin{table}[!htbp]
 \centering
 \scriptsize
-\caption{Primary CCAO centered-recalibration benchmark. The map is Eq.~\eqref{eq:centered_recalibration} applied to ordinary LightGBM log-price predictions. $b^\star$ is the validation-neutral value that zeros pooled chronological-validation $\beta_{\log}$; held-out and 2025 outcomes are not used to choose $b$.}
+\renewcommand{\arraystretch}{1.06}
+\caption{Primary CCAO centered-recalibration benchmark. The recalibration parameter is determined using development/chronological-validation information only; held-out and 2025 values are reported after the choice is frozen.}
 \label{tab:ccao_recalibration_placeholder}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{llrrrrrrrrrr}
 \toprule
 Sample & Model & $b$ & $R^2_P$ & MAE & PRD & PRB & MKI & VEI & $\beta_{\log}$ & $\Delta_{\mathrm{NL}}$ & dCor \\
 \midrule
-Held-out & Ordinary LightGBM ($b=1$) & 1.000 & 0.894 & \$75,655 & 1.069 & -0.091 & 0.923 & -26.5\% & -0.150 & 0.119 & 0.387 \\
-Held-out & Centered recalibration ($b^\star$) & 1.167 & 0.789 & \$89,277 & 0.984 & 0.036 & 1.079 & 16.2\% & -0.007 & 0.138 & 0.254 \\
+Held-out & Ordinary LightGBM & 1 & 0.894 & \$75,655 & 1.069 & -0.091 & 0.923 & -26.5\% & -0.150 & \textit{pending} & 0.387 \\
+Held-out & Centered recalibration & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} \\
 \addlinespace
-2025 forward & Ordinary LightGBM ($b=1$) & 1.000 & 0.904 & \$78,484 & 1.079 & -0.106 & 0.907 & -28.6\% & -0.164 & 0.121 & 0.422 \\
-2025 forward & Centered recalibration ($b^\star$) & 1.167 & 0.784 & \$98,740 & 0.992 & 0.021 & 1.061 & 13.5\% & -0.024 & 0.147 & 0.256 \\
+2025 forward & Ordinary LightGBM & 1 & 0.904 & \$78,484 & 1.079 & -0.106 & 0.907 & -28.6\% & -0.164 & \textit{pending} & 0.422 \\
+2025 forward & Centered recalibration & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} & \textit{pending} \\
 \bottomrule
-\end{tabular}
+\end{tabular}}
 \vspace{1mm}
-\begin{minipage}{\textwidth}
+\begin{minipage}{0.98\textwidth}
 \scriptsize
-\emph{Notes.}
-$b=1$ reproduces ordinary LightGBM (held-out $R^2_P=0.894$). The same frozen $b^\star$ is used for 2025; only $\bar y_T$ is replaced by the 2016--2024 training mean. No Direct or Surrogate $\rho$ is selected in this table.
+\emph{Notes.} The table is a local-pipeline placeholder. The final version should be generated from the frozen baseline and recalibrated prediction artifacts, with the same metric implementations used elsewhere in the primary CCAO analysis. $\Delta_{\mathrm{NL}}$ uses the fixed estimator specified with Eq.~\eqref{eq:nonlinear_lack_of_fit}. This table does not select or rank a penalized $\rho$.
 \end{minipage}
 \end{table}
 }
 
-\newtext{The accuracy--equity figures overlay the same frozen $b$-path as an unconnected stone-colored curve. That overlay is a benchmark, not a selected operating point.}
+\todo{After Table~\ref{tab:ccao_recalibration_placeholder} is populated, rewrite the surrounding comparison using only what the held-out/2025 evidence supports. If centered recalibration reproduces the relevant path improvements, state that directly; if in-processing provides incremental gains, identify the specific dimensions and evaluation periods. Otherwise move any stronger comparative interpretation to Discussion/Limitations.}
 
 \subsection{Assessor Implementation}
 \label{sec:implementation_workflow}
@@ -2751,17 +3039,13 @@ multiple vertical-equity diagnostics toward neutrality.
 
 The evidence also limits the paper's claim. Better data may improve accuracy and equity together. 
 % \oldtext{The covariance target is countywide and first-order; it does not set assessment level, guarantee any ratio-study range, or remove local inequity.}
-\newtext{The motivating covariance target is countywide and first-order; neither penalty determines valuation level, guarantees any ratio-study range, or removes local inequity.}
-\oldtext{The current CCAO experiment includes a custom-objective zero-penalty implementation check, but the present native/custom comparison does not yet establish exact prediction parity; that discrepancy must be resolved before final attribution of the native-to-custom difference. The exploratory county benchmark does not establish confirmatory external validity, and post-hoc recalibration may reproduce part of the gain.}
-\newtext{The current CCAO experiment includes a custom-objective zero-penalty implementation check. Native and custom $\rho=0$ predictions are not identical; the remaining gap is a reproducible LightGBM native-versus-custom code-path difference, so positive-$\rho$ changes are read relative to the custom $\rho=0$ control. The exploratory county benchmark does not establish confirmatory external validity. Centered recalibration can nearly zero the first-order slope, but on the primary CCAO samples it does so with a large $R^2_P$ cost and a VEI overshoot, whereas moderate in-processing path points move equity diagnostics with smaller accuracy loss. For these reasons, the penalty should enter the same review process as any other model change and should never be treated as an equity certificate.}
+\newtext{The motivating covariance target is countywide and first-order; neither penalty determines valuation level, guarantees any ratio-study range, or removes local inequity.} The current CCAO experiment includes a custom-objective zero-penalty implementation check, but the present native/custom comparison does not yet establish exact prediction parity; that discrepancy must be resolved before final attribution of the native-to-custom difference. The exploratory county benchmark does not establish confirmatory external validity, and post-hoc recalibration may reproduce part of the gain. For these reasons, the penalty should enter the same review process as any other model change and should never be treated as an equity certificate.
 
 \subsection{Limitations}
 
 \advisorchange{First, the CCAO application uses sold properties.} Results on sales do not establish performance for the full unsold inventory, particularly when the sale sample is not representative. \advisorchange{Second, the primary application is a Python translation} of the CCAO workflow rather than an official production run. 
 % \oldtext{Third, the penalty targets log-scale covariance, while PRD, PRB, and VEI are price-scale statistics with different functional forms.} 
-\newtext{Third, the Direct penalty targets log-scale covariance while the Surrogate penalizes its sample-additive upper bound; PRD, PRB, and VEI are price-scale statistics with different functional forms.} \newtext{Relatedly, neither Direct nor Surrogate directly minimizes the nonlinear lack-of-fit $\Delta_{\mathrm{NL}}$; strong regularization can therefore reduce the targeted first-order slope without guaranteeing a flatter conditional-mean residual--price relationship.} Fourth, the current pre-selection analysis does not yet identify a deployment-oriented penalty strength; that decision is intentionally deferred. Fifth, fold-level variation and the reported group-level uncertainty should accompany any later operational decision. Sixth, a countywide correction can average away local regressivity and progressivity. Seventh, the ATTOM benchmark is exploratory, uses commercially harmonized data, and does not reproduce the six offices' institutional data or a single confirmatory model-selection protocol.
-\oldtext{Finally, the current evidence does not show that in-processing regularization is better than post-hoc recalibration.}
-\newtext{Finally, post-hoc centered recalibration remains a required benchmark: it can reproduce a large first-order slope correction, but the primary CCAO $b^\star$ comparison does not show that this simpler map matches the accuracy--equity paths of in-processing at moderate $\rho$.}
+\newtext{Third, the Direct penalty targets log-scale covariance while the Surrogate penalizes its sample-additive upper bound; PRD, PRB, and VEI are price-scale statistics with different functional forms.} \newtext{Relatedly, neither Direct nor Surrogate directly minimizes the nonlinear lack-of-fit $\Delta_{\mathrm{NL}}$; strong regularization can therefore reduce the targeted first-order slope without guaranteeing a flatter conditional-mean residual--price relationship.} Fourth, the current pre-selection analysis does not yet identify a deployment-oriented penalty strength; that decision is intentionally deferred. Fifth, fold-level variation and the reported group-level uncertainty should accompany any later operational decision. Sixth, a countywide correction can average away local regressivity and progressivity. Seventh, the ATTOM benchmark is exploratory, uses commercially harmonized data, and does not reproduce the six offices' institutional data or a single confirmatory model-selection protocol. Finally, the current evidence does not show that in-processing regularization is better than post-hoc recalibration.
 
 \subsection{Future Work}
 
@@ -3006,8 +3290,7 @@ $\widetilde y_i=y_i-b$ with zero initial score and add $b$ back to predictions.
 Equivalently, the fitted model predicts on the original log-price scale as
 $f(x)=b+\widetilde f(x)$. 
 % \oldtext{This makes the custom-objective starting prediction match the native squared-error LightGBM initialization while leaving $e_i=f(x_i)-y_i$ and $c_i=y_i-\bar y$ unchanged.}
-\newtext{This construction is designed to match the native squared-error LightGBM starting prediction while leaving $e_i=f(x_i)-y_i$ and $c_i=y_i-\bar y$ unchanged.}
-\newtext{The empirical $\rho=0$ audit shows that this initialization does not produce prediction parity with native LightGBM beyond the initial score. Direct and Surrogate $\rho=0$ predictions coincide with each other, and the remaining native/custom gap is the custom-objective API path rather than a positive-$\rho$ objective error.}
+\newtext{This construction is designed to match the native squared-error LightGBM starting prediction while leaving $e_i=f(x_i)-y_i$ and $c_i=y_i-\bar y$ unchanged.}\todo{After resolving the empirical $\rho=0$ discrepancy, document whether the native and custom implementations also achieve prediction parity beyond the initial score.}
 
 The mathematical objectives in the main text are written as sample averages. In
 the LightGBM custom-objective implementation we multiply the complete objective by
@@ -3035,9 +3318,8 @@ Thus the direct implementation uses the exact covariance gradient and only the
 diagonal of its dense covariance curvature, whereas the surrogate derivatives are
 exactly observation-additive. The $\rho=0$ custom-objective path is retained as an
 implementation control.
-\newtext{The native-versus-custom $\rho=0$ gap is the LightGBM custom-objective training path documented in Section~\ref{subsec:zero_control_results}, not a positive-$\rho$ objective error.}
 
-\todo[inline]{\textcolor{impGreen}{Before freezing the final empirical artifacts, audit the exact executed code against the normalization in Eqs.~\eqref{eq:baseline_learning}, \eqref{eq:direct_penalty}, and \eqref{eq:surrogate_learning} and against the $n/2$ LightGBM scaling stated here. Record the exact code/configuration hash. Because the empirical paths are indexed by numerical values of $\rho$, any factor-of-two or sample-size convention must be reconciled explicitly rather than absorbed silently into a relabeled $\rho$.}}
+\todo[inline]{\textcolor{impGreen}{Before freezing the final empirical artifacts, audit the exact executed code against the normalization in Eqs.~\eqref{eq:baseline_learning}, \eqref{eq:direct_penalty}, and \eqref{eq:surrogate_learning} and against the $n/2$ LightGBM scaling stated here. Record the exact code/configuration hash. Because the empirical paths are indexed by numerical values of $\rho$, any factor-of-two or sample-size convention must be reconciled explicitly rather than absorbed silently into a relabeled $\rho$. Combine this audit with resolution of the native-versus-custom $\rho=0$ discrepancy.}}
 
 \subsection{Direct Penalty in Boosting}
 
@@ -3119,14 +3401,15 @@ Section~\ref{subsec:metrics} evaluation metrics. The compact main-text table use
 only the prespecified display anchors; no path row is omitted from the
 machine-readable results because of its observed performance.
 
-\newtext{The machine-readable combined path table now includes held-out and 2025 $\Delta_{\mathrm{NL}}$ for Linear, ordinary LightGBM, and every Direct/Surrogate grid point. The frozen estimator specification is archived with those values. Fold-level $\Delta_{\mathrm{NL}}$ is not added to the already completed chronological CV. Split-specific $\rho=0$ prediction-parity audits and the centered-recalibration validation record, including $b^\star$ and row-level recalibrated predictions, are stored in the same result root.}
+\todo[inline]{\textcolor{impGreen}{Extend the machine-readable CCAO artifacts to include $\Delta_{\mathrm{NL}}$ for Linear, ordinary LightGBM, custom $\rho=0$, every Direct/Surrogate chronological fold and out-of-time path point, and the centered-recalibration benchmark. Store the fixed $\Delta_{\mathrm{NL}}$ estimator specification (fold assignment rule, smoother/basis, tuning rule, seed if any) alongside the values. Also save the split-specific $\rho=0$ prediction-parity audit and the validation record for the recalibration parameter so every paper table/figure can be regenerated from the same frozen artifact set.}}
 
 \subsection{Companion PRB and MKI Accuracy--Equity Paths}
 
 \begin{figure}[!htbp]
 \centering
+\todo[inline]{\textcolor{impGreen}{Regenerate this figure with an in-figure Direct/Surrogate legend, human-readable panel titles, the PRB reference band $[-0.05,0.05]$, and the MKI neutral reference line at 1. Use common $R^2_P$ limits across panels and common vertical limits whenever the same metric is repeated across held-out/2025. Overlay the frozen primary CCAO centered-recalibration result as a distinct unconnected marker after it is computed.}}
 \safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/prb_mki_accuracy_equity.pdf}
-\caption{Companion accuracy--equity trajectories for PRB and MKI against $R^2_P$ on the held-out and 2025 samples. The shaded PRB interval is the IAAO reference band $[-0.05,0.05]$; the dotted line marks MKI $=1$. The stone-colored curve is the frozen centered-recalibration $b$-path.}
+\caption{Companion accuracy--equity trajectories for PRB and MKI against $R^2_P$ on the held-out and 2025 samples. Blue and orange paths denote the Direct and Surrogate families, respectively.}
 \label{fig:prb_mki_path_placeholder}
 \end{figure}
 
@@ -3134,8 +3417,9 @@ machine-readable results because of its observed performance.
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/predictive_metric_paths.pdf}\\[2mm]
-\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/level_uniformity_paths.pdf}
+\todo[inline]{\textcolor{impGreen}{Regenerate the MAPE and COV panels in percentage units (MAPE (\%) and COV (\%)) to match Section~\ref{subsec:metrics} and Tables~\ref{tab:assessment_metrics_summary}--\ref{tab:ccao_baseline_results}. For every metric row, use the same y-limits in the Direct and Surrogate panels so visual differences are not created by rescaling. Keep the existing common $\rho$ ticks and held-out/2025 line-style convention.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v6_preselection/predictive_metric_paths.pdf}\\[2mm]
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v6_preselection/level_uniformity_paths.pdf}
 \caption{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid.}
 \label{fig:other_metric_paths_placeholder}
 \end{figure}
@@ -3144,7 +3428,8 @@ machine-readable results because of its observed performance.
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.86\textwidth]{img/generated_v6_preselection/cv_fold_stability.pdf}
+\todo[inline]{\textcolor{impGreen}{When regenerating the chronological-stability artifact, enforce identical y-limits across Direct/Surrogate for each metric row. Compute and archive fold-level $\Delta_{\mathrm{NL}}$ on the same seven folds. Add a $\Delta_{\mathrm{NL}}$ row to this appendix figure only if it remains legible; otherwise keep the fold-level values in the machine-readable table and retain the current four-row figure.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v6_preselection/cv_fold_stability.pdf}
 \caption{Chronological fold paths (thin) and equal-weight means (thick) for $R^2_P$, PRD, VEI, and $\beta_{\log}$. Folds are not collapsed into a selection score.}
 \label{fig:cv_path_stability_placeholder}
 \end{figure}
@@ -3153,8 +3438,8 @@ machine-readable results because of its observed performance.
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.92\textwidth]{img/generated_v6_preselection/vei_percentile_group_profile.pdf}
-\caption{VEI percentile-group median valuation ratios for Linear and ordinary LightGBM on the held-out and 2025 samples, with deterministic 90\% bootstrap intervals.}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v6_preselection/vei_percentile_group_profile.pdf}
+\caption{VEI percentile-group median valuation ratios for Linear and ordinary LightGBM on the held-out and 2025 samples, with deterministic 90\% bootstrap intervals. The dashed horizontal line marks the unit valuation ratio, and the dotted horizontal line marks the overall median valuation ratio for the corresponding model and evaluation sample.}
 \label{fig:vei_group_profile_placeholder}
 \end{figure}
 
