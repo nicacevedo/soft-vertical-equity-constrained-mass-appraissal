@@ -2571,7 +2571,7 @@ figure and the prespecified $\rho$ display anchors within each penalty family.
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/ratio_shape_evolution.pdf}
-\caption{Median valuation-to-sale ratios in 30 equal-count sale-price bins along the Direct and Surrogate paths. Columns are penalty families; rows are held-out and 2025 evaluations. Curves correspond to the prespecified display anchors $\rho=0,0.1,1,10,100$ (nearest grid points). No operating point is highlighted.}
+\caption{Valuation-ratio profiles against sale price at the prespecified display anchors. The horizontal line at 1 is the principal neutrality reference; lines at 0.9 and 1.1 are aggregate appraisal-level reference guides and are not binwise acceptance criteria.}
 \label{fig:ratio_shape_path_placeholder}
 \end{figure}
 
@@ -2599,7 +2599,7 @@ range before recovering at higher prices. \newtext{This visual contrast is descr
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/mechanism_vs_rho.pdf}
-\caption{First-order slope $\beta_{\log}$, correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$, and distance correlation along the full Direct and Surrogate grids. The $\rho=0$ control is shown explicitly; positive $\rho$ is on a log scale. Held-out and 2025 paths use distinct line styles. Within each metric row, Direct and Surrogate use the same vertical scale.}
+\caption{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. Gray shading, where present, is the CV-derived descriptive transition span for that family; it is not a selected or recommended penalty interval.}
 \label{fig:mechanism_path_placeholder}
 \end{figure}
 
@@ -2627,8 +2627,8 @@ PRB and MKI are retained as companion diagnostics in Appendix~\ref{app:ccao_path
 % \oldtext{The previous headline accuracy--equity figure overlaid a centered-recalibration path with the Direct and Surrogate paths.}
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/accuracy_equity_trajectories_inprocessing_only.pdf}
-\caption{\latesttext{Accuracy--equity trajectories for PRD and VEI against $R^2_P$ for the Direct and Surrogate regularization paths. Shaded regions are reference bands, not compliance bands. Linear and ordinary LightGBM are context anchors. Arrows indicate the direction of increasing $\rho$ and do not mark a selected point.}}
+\safeincludegraphics[width=0.98\textwidth]{img/generated_v12_994/accuracy_equity_trajectories_inprocessing_only.pdf}
+\caption{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Arrows indicate increasing $\rho$ and do not mark a selected point.}
 \label{fig:accuracy_equity_placeholder}
 \end{figure}
 \newtext{The trajectories are not simple monotone accuracy--equity frontiers. At moderate regularization, parts of both paths move toward more neutral PRD and VEI while preserving or improving price-scale fit relative to the corresponding custom-objective $\rho=0$ control.} 
@@ -3615,7 +3615,7 @@ No $\rho$ is selected.
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/paper_transition_event_locations.pdf}
-\caption{\latesttext{Turning-event locations for the five fixed criteria $R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD. Large circles mark equal-weight chronological-CV events; small dots mark the seven chronological folds; squares mark held-out events; triangles mark 2025 events. Direct shading is the frozen CV-derived descriptive span $[0.1,1.099]$; $\rho=0.1$ is the smallest positive tested grid value, not an estimated lower threshold. Surrogate has no common five-metric positive CV span because CV $\operatorname{RMSE}_{\log P}$ is minimized at $\rho=0$. The shaded interval is not a selected, preferred, optimal, safe, or recommended penalty range.}}
+\caption{Turning-event locations for the five fixed criteria. Gray shading, where present, is the frozen CV-derived descriptive transition span and is not a selected or recommended penalty interval.}
 \label{fig:transition_event_locations}
 \end{figure}
 
@@ -3686,8 +3686,13 @@ post-hoc near-optimality tolerance.}
 \centering
 \safeincludegraphics[width=0.7\textwidth]{img/generated_v12_994/predictive_metric_paths.pdf}\\[2mm]
 \safeincludegraphics[width=0.7\textwidth]{img/generated_v12_994/level_uniformity_paths.pdf}
-\caption{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid.}
+\caption{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Gray shading, where present, is the CV-derived descriptive transition span.}
 \label{fig:other_metric_paths_placeholder}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vertical_equity_metric_paths.pdf}
+\caption{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Gray shading, where present, is the CV-derived descriptive transition span.}
+\label{fig:vertical_equity_metric_paths}
 \end{figure}
 
 \subsection{\newtext{Exact Rolling-Origin Fold Structure}}
@@ -3722,6 +3727,51 @@ Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_fold_stability.pdf}
 \caption{Chronological fold paths (thin) and equal-weight means (thick) for $R^2_P$, PRD, VEI, and $\beta_{\log}$. Folds are not collapsed into a selection score.}
 \label{fig:cv_path_stability_placeholder}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_predictive_metric_paths.pdf}
+\caption{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). Gray shading, where present, is the CV-derived descriptive transition span.}
+\label{fig:cv_predictive_metric_paths}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_level_uniformity_paths.pdf}
+\caption{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick).}
+\label{fig:cv_level_uniformity_paths}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_vertical_equity_metric_paths.pdf}
+\caption{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick).}
+\label{fig:cv_vertical_equity_metric_paths}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_mechanism_metric_paths.pdf}
+\caption{Chronological-fold mechanism paths for $\beta_{\log}$ and distance correlation (thin gray) and equal-weight CV means (thick). $\Delta_{\mathrm{NL}}$ is not shown because it is not computed for CV.}
+\label{fig:cv_mechanism_metric_paths}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/ratio_shape_cv_transition_span_only.pdf}
+\caption{Ratio-shape profiles restricted to the prespecified display anchors that lie inside each family's frozen CV-derived descriptive transition span. Families without a valid common positive span show no penalized curves.}
+\label{fig:ratio_shape_cv_transition_span_only}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_equity_vs_accuracy_heldout.pdf}
+\caption{Held-out assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths.}
+\label{fig:tradeoff_equity_vs_accuracy_heldout}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_equity_vs_accuracy_2025.pdf}
+\caption{2025 assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths.}
+\label{fig:tradeoff_equity_vs_accuracy_2025}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_mechanism_vs_accuracy_heldout.pdf}
+\caption{Held-out mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical).}
+\label{fig:tradeoff_mechanism_vs_accuracy_heldout}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_mechanism_vs_accuracy_2025.pdf}
+\caption{2025 mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical).}
+\label{fig:tradeoff_mechanism_vs_accuracy_2025}
 \end{figure}
 
 \subsection{VEI Percentile-Group Profiles}

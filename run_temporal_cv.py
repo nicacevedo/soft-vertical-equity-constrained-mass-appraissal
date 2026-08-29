@@ -293,6 +293,14 @@ def _prepend_explicit_zero(rho_values: List[float]) -> List[float]:
     return [0.0] + positives
 
 
+def _finalize_rho_values(rho_values: List[float], *, explicit_zero: bool) -> List[float]:
+    """Optionally keep the explicit rho=0 control. Default remains prepend-zero."""
+    positives = [float(x) for x in rho_values if float(x) != 0.0]
+    if explicit_zero:
+        return [0.0] + positives
+    return positives
+
+
 def _parse_name_list(raw: Optional[str]) -> List[str]:
     if raw is None or str(raw).strip() == "":
         return []
@@ -1738,6 +1746,7 @@ def run_full_pipeline(
     only_model_names: Optional[Sequence[str]] = None,
     rho_chunk: Optional[str] = None,
     skip_aggregate_write: bool = False,
+    explicit_zero: bool = True,
 ) -> Dict[str, Any]:
     """
     Run the full pipeline end-to-end:
@@ -1923,8 +1932,14 @@ def run_full_pipeline(
     else:
         _log("using unverified model_params.yaml baseline", reason="allow_unverified_baseline")
 
-    smooth_rhos = _prepend_explicit_zero([float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)])
-    cov_rhos = _prepend_explicit_zero([float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)])
+    smooth_rhos = _finalize_rho_values(
+        [float(x) for x in (rho_values if rho_values_smooth is None else rho_values_smooth)],
+        explicit_zero=bool(explicit_zero),
+    )
+    cov_rhos = _finalize_rho_values(
+        [float(x) for x in (rho_values if rho_values_cov is None else rho_values_cov)],
+        explicit_zero=bool(explicit_zero),
+    )
     model_specs = _build_model_specs(
         lgbm_params=lgbm_params,
         rho_values_smooth=smooth_rhos,
@@ -2417,6 +2432,15 @@ def _build_arg_parser(cfg: dict) -> argparse.ArgumentParser:
         default=False,
         help="Write per-config shards only; skip concatenated metrics/prediction files.",
     )
+    p.add_argument(
+        "--no-explicit-zero",
+        action="store_true",
+        default=False,
+        help=(
+            "Do not prepend the explicit rho=0 control. Canonical default remains prepend-zero. "
+            "Use only for lower-tail extensions that must not rerun rho=0."
+        ),
+    )
     return p
 
 
@@ -2504,6 +2528,7 @@ if __name__ == "__main__":
         only_model_names=(_parse_name_list(getattr(args, "only_model_names", None))),
         rho_chunk=(None if not getattr(args, "rho_chunk", None) else str(args.rho_chunk)),
         skip_aggregate_write=bool(getattr(args, "skip_aggregate_write", False)),
+        explicit_zero=(not bool(getattr(args, "no_explicit_zero", False))),
     )
     print("=" * 90)
     print("TEMPORAL CV COMPLETED")
