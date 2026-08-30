@@ -26,7 +26,27 @@ from utils.transition_regions import FOLD_IDS, PRIMARY_METRICS, family_frame, is
 
 SPAN_FACE = "#9CA3AF"
 SPAN_ALPHA = 0.15
+SPAN_DASH = dict(color="#6B7280", ls=(0, (3.0, 2.2)), lw=0.75, alpha=0.9, zorder=1)
+GRID_COLOR = "#D1D5DB"
+NEUTRAL_LINE = dict(color="#111827", ls=":", lw=1.05, zorder=3)
 IAAO_MKI_RANGE = (0.95, 1.05)
+NEUTRAL_HLINE = {
+    "PRD": 1.0,
+    "PRB": 0.0,
+    "MKI": 1.0,
+    "VEI": 0.0,
+    "median_ratio": 1.0,
+    "mean_ratio": 1.0,
+    "weighted_mean_ratio": 1.0,
+    "Beta_log": 0.0,
+}
+NEUTRAL_VLINE = {
+    "PRD": 1.0,
+    "PRB": 0.0,
+    "MKI": 1.0,
+    "VEI": 0.0,
+    "Beta_log": 0.0,
+}
 
 # Okabe–Ito-inspired categorical mapping for the five display anchors.
 ANCHOR_COLOR = {
@@ -89,6 +109,72 @@ def shade_cv_span(ax, low: Optional[float], high: Optional[float]) -> None:
     ax.axvspan(float(low), float(high), color=SPAN_FACE, alpha=SPAN_ALPHA, lw=0, zorder=0)
 
 
+def shade_cv_span_with_bounds(ax, low: Optional[float], high: Optional[float]) -> None:
+    """Frozen CV-derived descriptive transition span: fill plus dashed endpoints."""
+    shade_cv_span(ax, low, high)
+    if low is None or high is None:
+        return
+    if not (np.isfinite(low) and np.isfinite(high)):
+        return
+    ax.axvline(float(low), **SPAN_DASH)
+    ax.axvline(float(high), **SPAN_DASH)
+
+
+def apply_major_grid(ax) -> None:
+    """Subtle major-only reference grid behind data; no minor-log clutter."""
+    from matplotlib.ticker import NullLocator
+
+    ax.set_axisbelow(True)
+    ax.grid(True, which="major", axis="both", color=GRID_COLOR, linewidth=0.45, alpha=0.42, zorder=0)
+    ax.grid(False, which="minor")
+    if str(ax.get_xscale()) == "log":
+        ax.xaxis.set_minor_locator(NullLocator())
+
+
+def nearby_targets(values: Sequence[float], targets: Sequence[Optional[float]], *, rel: float = 0.35) -> Tuple[float, ...]:
+    arr = np.asarray([float(v) for v in values if v is not None and np.isfinite(float(v))], dtype=float)
+    if arr.size == 0:
+        return ()
+    lo, hi = float(np.min(arr)), float(np.max(arr))
+    span = hi - lo
+    if span <= 0:
+        span = max(abs(hi), 1e-6)
+    pad = rel * span
+    keep: List[float] = []
+    for t in targets:
+        if t is None:
+            continue
+        tv = float(t)
+        if not np.isfinite(tv):
+            continue
+        if (lo - pad) <= tv <= (hi + pad):
+            keep.append(tv)
+    return tuple(keep)
+
+
+def draw_neutral_hline(ax, metric: str) -> None:
+    if metric in {"Delta_NL", "dCor_e_y"}:
+        return
+    if metric not in NEUTRAL_HLINE:
+        return
+    ax.axhline(float(NEUTRAL_HLINE[metric]), **NEUTRAL_LINE)
+
+
+def draw_neutral_vline(ax, metric: str) -> None:
+    if metric in {"Delta_NL", "dCor_e_y"}:
+        return
+    if metric not in NEUTRAL_VLINE:
+        return
+    ax.axvline(float(NEUTRAL_VLINE[metric]), **NEUTRAL_LINE)
+
+
+def maybe_percent(col: str, vals: np.ndarray) -> np.ndarray:
+    out = np.asarray(vals, dtype=float)
+    if col in PERCENT_PATH_METRICS:
+        return 100.0 * out
+    return out
+
+
 def family_span(span_df: pd.DataFrame, family: str) -> Tuple[Optional[float], Optional[float], bool]:
     row = span_df.loc[span_df["family"] == family]
     if row.empty:
@@ -122,7 +208,7 @@ def _save(plt, fig, stem: Path) -> List[str]:
     return [str(pdf), str(png)]
 
 
-def _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, *, mechanism=False):
+def _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, *, mechanism=False, v3: bool = False):
     fig, axes = plt.subplots(len(metrics), 2, figsize=(8.8, 2.2 * len(metrics)), sharex=True)
     if len(metrics) == 1:
         axes = np.asarray([axes])
@@ -133,29 +219,34 @@ def _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, *, 
             sub = combined.loc[combined["family"] == fam]
             for ev in ("heldout", "forward_2025"):
                 vals = pd.to_numeric(sub[f"{col}__{ev}"], errors="coerce").to_numpy(dtype=float)
-                if col in PERCENT_PATH_METRICS:
-                    vals = 100.0 * vals
+                vals = maybe_percent(col, vals)
                 row_vals.extend(vals.tolist())
         include = (0.0,) if force_zero_ylim else ()
+        if v3:
+            include = include + nearby_targets(row_vals, [NEUTRAL_HLINE.get(col)])
         ylim = padded_lim(row_vals, pad=0.08, include=include)
         for c, fam in enumerate(FAMILY_DISPLAY):
             ax = axes[r, c]
             low, high, ok = family_span(span_df, fam)
             if ok:
-                shade_cv_span(ax, low, high)
+                if v3:
+                    shade_cv_span_with_bounds(ax, low, high)
+                else:
+                    shade_cv_span(ax, low, high)
             sub = combined.loc[combined["family"] == fam].sort_values("rho")
             color = DIRECT_COLOR if fam == "Direct" else SURR_COLOR
             x = rho_plot_x(sub["rho"].to_numpy(dtype=float), min_positive=min_positive, q=q)
-            y_h = pd.to_numeric(sub[f"{col}__heldout"], errors="coerce").to_numpy(dtype=float)
-            y_f = pd.to_numeric(sub[f"{col}__forward_2025"], errors="coerce").to_numpy(dtype=float)
-            if col in PERCENT_PATH_METRICS:
-                y_h = 100.0 * y_h
-                y_f = 100.0 * y_f
-            ax.plot(x, y_h, color=color, marker="o", ms=3, lw=1.3, label="Held-out")
-            ax.plot(x, y_f, color=color, ls="--", marker="s", ms=3, lw=1.2, label="2025")
-            if zero_line:
+            y_h = maybe_percent(col, pd.to_numeric(sub[f"{col}__heldout"], errors="coerce").to_numpy(dtype=float))
+            y_f = maybe_percent(col, pd.to_numeric(sub[f"{col}__forward_2025"], errors="coerce").to_numpy(dtype=float))
+            ax.plot(x, y_h, color=color, marker="o", ms=3, lw=1.3, label="Held-out", zorder=4)
+            ax.plot(x, y_f, color=color, ls="--", marker="s", ms=3, lw=1.2, label="2025", zorder=4)
+            if v3:
+                draw_neutral_hline(ax, col)
+            elif zero_line:
                 ax.axhline(0.0, color="#111827", ls=":", lw=0.8)
             log_rho_axes(ax, min_positive=min_positive, q=q)
+            if v3:
+                apply_major_grid(ax)
             ax.set_ylim(*ylim)
             if r == 0:
                 ax.set_title(fam)
@@ -164,22 +255,22 @@ def _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, *, 
             if r == len(metrics) - 1:
                 ax.set_xlabel(r"Penalty strength $\rho$")
             if r == 0 and c == 1:
-                ax.legend(frameon=False, fontsize=7)
+                ax.legend(frameon=False, fontsize=7, loc="best")
     fig.tight_layout()
     return _save(plt, fig, stem)
 
 
-def plot_predictive(plt, combined, span_df, min_positive, q, stem):
+def plot_predictive(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
     metrics = (
         ("R2_price", r"$R^2_P$", False, False),
         ("MAE_price", r"MAE$_P$", False, False),
         ("MAPE", r"MAPE$_P$ (\%)", False, False),
         ("RMSE_log", r"RMSE$_{\log P}$", False, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3)
 
 
-def plot_level_uniformity(plt, combined, span_df, min_positive, q, stem):
+def plot_level_uniformity(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
     metrics = (
         ("median_ratio", "Median ratio", False, False),
         ("mean_ratio", "Mean ratio", False, False),
@@ -187,29 +278,29 @@ def plot_level_uniformity(plt, combined, span_df, min_positive, q, stem):
         ("COD", "COD", False, False),
         ("COV", "COV (\%)", False, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3)
 
 
-def plot_vertical_equity(plt, combined, span_df, min_positive, q, stem):
+def plot_vertical_equity(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
     metrics = (
         ("PRD", "PRD", False, False),
         ("PRB", "PRB", True, False),
         ("MKI", "MKI", False, False),
         ("VEI", "VEI", True, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3)
 
 
-def plot_mechanism(plt, combined, span_df, min_positive, q, stem):
+def plot_mechanism(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
     metrics = (
         ("Beta_log", r"$\beta_{\log}$", True, True),
         ("Delta_NL", r"$\Delta_{\mathrm{NL}}$", False, False),
         ("dCor_e_y", r"$\mathrm{dCor}(e,y)$", False, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, mechanism=True)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, mechanism=True, v3=v3)
 
 
-def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mean: List[Dict[str, Any]]):
+def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mean: List[Dict[str, Any]], *, v3: bool = False):
     fig, axes = plt.subplots(len(metrics), 2, figsize=(8.8, 2.15 * len(metrics)), sharex=True)
     if len(metrics) == 1:
         axes = np.asarray([axes])
@@ -218,22 +309,28 @@ def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mea
         for fam in FAMILY_DISPLAY:
             sub = family_frame(combined, fam)
             for k in FOLD_IDS:
-                vals = pd.to_numeric(sub[f"{col}__fold_{k}"], errors="coerce").to_numpy(dtype=float)
+                vals = maybe_percent(col, pd.to_numeric(sub[f"{col}__fold_{k}"], errors="coerce").to_numpy(dtype=float)) if v3 else pd.to_numeric(sub[f"{col}__fold_{k}"], errors="coerce").to_numpy(dtype=float)
                 row_vals.extend(vals.tolist())
-            row_vals.extend(pd.to_numeric(sub[f"{col}__CV_mean"], errors="coerce").tolist())
-        ylim = padded_lim(row_vals, pad=0.08)
+            cvv = pd.to_numeric(sub[f"{col}__CV_mean"], errors="coerce").to_numpy(dtype=float)
+            row_vals.extend((maybe_percent(col, cvv) if v3 else cvv).tolist())
+        include = nearby_targets(row_vals, [NEUTRAL_HLINE.get(col)]) if v3 else ()
+        ylim = padded_lim(row_vals, pad=0.08, include=include)
         for c, fam in enumerate(FAMILY_DISPLAY):
             ax = axes[r, c]
             low, high, ok = family_span(span_df, fam)
             if ok:
-                shade_cv_span(ax, low, high)
+                if v3:
+                    shade_cv_span_with_bounds(ax, low, high)
+                else:
+                    shade_cv_span(ax, low, high)
             sub = family_frame(combined, fam).sort_values("rho")
             x = rho_plot_x(sub["rho"].to_numpy(dtype=float), min_positive=min_positive, q=q)
             folds = []
             for k in FOLD_IDS:
                 yk = pd.to_numeric(sub[f"{col}__fold_{k}"], errors="coerce").to_numpy(dtype=float)
-                ax.plot(x, yk, color="#9CA3AF", lw=0.85, alpha=0.75)
                 folds.append(yk)
+                y_plot = maybe_percent(col, yk) if v3 else yk
+                ax.plot(x, y_plot, color="#9CA3AF", lw=0.85, alpha=0.75, zorder=3)
             mean = np.nanmean(np.vstack(folds), axis=0)
             cv_mean = pd.to_numeric(sub[f"{col}__CV_mean"], errors="coerce").to_numpy(dtype=float)
             if not np.allclose(mean, cv_mean, equal_nan=True, rtol=1e-10, atol=1e-10):
@@ -241,8 +338,13 @@ def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mea
             else:
                 qa_mean.append({"family": fam, "metric": col, "ok": True, "n_folds": 7})
             color = DIRECT_COLOR if fam == "Direct" else SURR_COLOR
-            ax.plot(x, cv_mean, color=color, lw=2.15, label="Equal-weight CV")
+            y_mean = maybe_percent(col, cv_mean) if v3 else cv_mean
+            ax.plot(x, y_mean, color=color, lw=2.15, label="Equal-weight CV", zorder=4)
+            if v3:
+                draw_neutral_hline(ax, col)
             log_rho_axes(ax, min_positive=min_positive, q=q)
+            if v3:
+                apply_major_grid(ax)
             ax.set_ylim(*ylim)
             if r == 0:
                 ax.set_title(fam)
@@ -254,7 +356,7 @@ def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mea
     return _save(plt, fig, stem)
 
 
-def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, empty_note: Optional[str] = None):
+def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, empty_note: Optional[str] = None, v3: bool = False):
     fig, axes = plt.subplots(2, 2, figsize=(8.8, 6.6), sharex=True, sharey=True)
     x_all: List[float] = []
     y_all: List[float] = []
@@ -282,12 +384,15 @@ def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, em
                     ls=ls,
                     marker=mk,
                     ms=3.2,
+                    zorder=4,
                     label=rf"$\rho$={0 if is_rho_zero(float(rho)) else (100 if abs(float(rho)-100)<1e-8 else f'{float(rho):.3g}')}",
                 )
             ax.axhline(1.0, color="#111827", ls="-", lw=1.15, zorder=2)
             ax.axhline(0.9, color="#9CA3AF", ls=":", lw=0.8, zorder=1)
             ax.axhline(1.1, color="#9CA3AF", ls=":", lw=0.8, zorder=1)
             ax.set_xscale("log", base=10)
+            if v3:
+                apply_major_grid(ax)
             if r == 0:
                 ax.set_title(fam)
             if c == 0:
@@ -313,14 +418,14 @@ def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, em
     return _save(plt, fig, stem)
 
 
-def plot_ratio_shape(plt, result_root, combined, stem):
+def plot_ratio_shape(plt, result_root, combined, stem, *, v3: bool = False):
     grid = combined.loc[combined["family"] == "Direct", "rho"].to_numpy(dtype=float)
     anchors = ratio_shape_anchors(grid)
     by = {fam: anchors for fam in FAMILY_DISPLAY}
-    return _ratio_shape_core(plt, result_root, combined, by, stem)
+    return _ratio_shape_core(plt, result_root, combined, by, stem, v3=v3)
 
 
-def plot_ratio_shape_span_only(plt, result_root, combined, span_df, stem):
+def plot_ratio_shape_span_only(plt, result_root, combined, span_df, stem, *, v3: bool = False):
     grid = combined.loc[combined["family"] == "Direct", "rho"].to_numpy(dtype=float)
     full = ratio_shape_anchors(grid)
     by: Dict[str, List[float]] = {}
@@ -343,6 +448,7 @@ def plot_ratio_shape_span_only(plt, result_root, combined, span_df, stem):
         by,
         stem,
         empty_note="No common positive CV transition span\nunder the frozen five-metric rule.",
+        v3=v3,
     )
 
 
@@ -352,41 +458,54 @@ def _band(ax, lo, hi, label=None):
     ax.axvspan(lo, hi, color="#9CA3AF", alpha=0.16, lw=0, label=label)
 
 
-def plot_main_tradeoff(plt, combined, stem):
+def plot_main_tradeoff(plt, combined, stem, *, v3: bool = False, omit_linear: bool = False):
     fig, axes = plt.subplots(2, 4, figsize=(11.6, 5.6))
     cols = (
-        ("PRD", "PRD", IAAO_PRD_RANGE, None),
-        ("PRB", "PRB", IAAO_PRB_RANGE, None),
+        ("PRD", "PRD", IAAO_PRD_RANGE, 1.0),
+        ("PRB", "PRB", IAAO_PRB_RANGE, 0.0),
         ("MKI", "MKI", IAAO_MKI_RANGE, 1.0),
-        ("VEI", r"VEI (\%)", IAAO_VEI_RANGE, None),
+        ("VEI", r"VEI (\%)", IAAO_VEI_RANGE, 0.0),
     )
     evals = (("heldout", "Held-out"), ("forward_2025", "2025"))
     lin = combined_row(combined, "Linear")
     lgb = combined_row(combined, "LightGBM")
     for r, (ev, evlab) in enumerate(evals):
-        for c, (met, xlab, band, neutral) in enumerate(cols):
+        for c, (met, xlab, band, _legacy_neutral) in enumerate(cols):
             ax = axes[r, c]
             if band is not None:
                 _band(ax, band[0], band[1], "Reference band")
-            if neutral is not None:
-                ax.axvline(neutral, color="#111827", ls=":", lw=0.9)
+            if v3:
+                draw_neutral_vline(ax, met)
+            elif met == "MKI":
+                ax.axvline(1.0, color="#111827", ls=":", lw=0.9)
             r2s: List[float] = []
             xs: List[float] = []
             for fam, color in (("Direct", DIRECT_COLOR), ("Surrogate", SURR_COLOR)):
                 sub = combined.loc[combined["family"] == fam].sort_values("rho")
                 x = pd.to_numeric(sub[f"{met}__{ev}"], errors="coerce").to_numpy(dtype=float)
                 y = pd.to_numeric(sub[f"R2_price__{ev}"], errors="coerce").to_numpy(dtype=float)
-                ax.plot(x, y, color=color, marker="o", ms=2.8, lw=1.2, label=fam)
+                ax.plot(x, y, color=color, marker="o", ms=2.8, lw=1.2, label=fam, zorder=4)
                 if len(x) >= 2:
                     ax.annotate("", xy=(x[-1], y[-1]), xytext=(x[-2], y[-2]), arrowprops=dict(arrowstyle="-|>", color=color, lw=0.9))
                 xs.extend(x.tolist())
                 r2s.extend(y.tolist())
-            for row, mk, colr, lab in ((lin, "D", LINEAR_COLOR, "Linear"), (lgb, "s", NATIVE_COLOR, "LightGBM")):
+            points = [(lgb, "s", NATIVE_COLOR, "LightGBM")]
+            if not omit_linear:
+                points = [(lin, "D", LINEAR_COLOR, "Linear")] + points
+            for row, mk, colr, lab in points:
                 ax.scatter([metric_val(row, met, ev)], [metric_val(row, "R2_price", ev)], marker=mk, s=32, color=colr, zorder=5, label=lab)
                 xs.append(metric_val(row, met, ev))
                 r2s.append(metric_val(row, "R2_price", ev))
-            ax.set_xlim(*padded_lim(xs, pad=0.08))
+            x_include = ()
+            if v3:
+                refs = [NEUTRAL_VLINE.get(met)]
+                if band is not None:
+                    refs.extend(list(band))
+                x_include = nearby_targets(xs, refs)
+            ax.set_xlim(*padded_lim(xs, pad=0.08, include=x_include))
             ax.set_ylim(*padded_lim(r2s, pad=0.06))
+            if v3:
+                apply_major_grid(ax)
             if r == 1:
                 ax.set_xlabel(xlab)
             if c == 0:
@@ -394,34 +513,36 @@ def plot_main_tradeoff(plt, combined, stem):
             if r == 0:
                 ax.set_title(met)
             if r == 0 and c == 3:
-                ax.legend(frameon=False, fontsize=6.2)
+                ax.legend(frameon=False, fontsize=6.2, loc="best")
     fig.tight_layout()
     return _save(plt, fig, stem)
 
 
-def plot_prb_mki(plt, combined, stem):
+def plot_prb_mki(plt, combined, stem, *, v3: bool = False):
     fig, axes = plt.subplots(2, 2, figsize=(8.6, 5.6))
     cols = (
-        ("PRB", "PRB", IAAO_PRB_RANGE, None),
+        ("PRB", "PRB", IAAO_PRB_RANGE, 0.0),
         ("MKI", "MKI", IAAO_MKI_RANGE, 1.0),
     )
     evals = (("heldout", "Held-out"), ("forward_2025", "2025"))
     lin = combined_row(combined, "Linear")
     lgb = combined_row(combined, "LightGBM")
     for r, (ev, evlab) in enumerate(evals):
-        for c, (met, xlab, band, neutral) in enumerate(cols):
+        for c, (met, xlab, band, _legacy_neutral) in enumerate(cols):
             ax = axes[r, c]
             if band is not None:
                 _band(ax, band[0], band[1], "Reference band")
-            if neutral is not None:
-                ax.axvline(neutral, color="#111827", ls=":", lw=0.9)
+            if v3:
+                draw_neutral_vline(ax, met)
+            elif met == "MKI":
+                ax.axvline(1.0, color="#111827", ls=":", lw=0.9)
             xs: List[float] = []
             ys: List[float] = []
             for fam, color in (("Direct", DIRECT_COLOR), ("Surrogate", SURR_COLOR)):
                 sub = combined.loc[combined["family"] == fam].sort_values("rho")
                 x = pd.to_numeric(sub[f"{met}__{ev}"], errors="coerce").to_numpy(dtype=float)
                 y = pd.to_numeric(sub[f"R2_price__{ev}"], errors="coerce").to_numpy(dtype=float)
-                ax.plot(x, y, color=color, marker="o", ms=2.8, lw=1.2, label=fam)
+                ax.plot(x, y, color=color, marker="o", ms=2.8, lw=1.2, label=fam, zorder=4)
                 if len(x) >= 2:
                     ax.annotate("", xy=(x[-1], y[-1]), xytext=(x[-2], y[-2]), arrowprops=dict(arrowstyle="-|>", color=color, lw=0.9))
                 xs.extend(x.tolist())
@@ -430,8 +551,16 @@ def plot_prb_mki(plt, combined, stem):
                 ax.scatter([metric_val(row, met, ev)], [metric_val(row, "R2_price", ev)], marker=mk, s=32, color=colr, zorder=5, label=lab)
                 xs.append(metric_val(row, met, ev))
                 ys.append(metric_val(row, "R2_price", ev))
-            ax.set_xlim(*padded_lim(xs, pad=0.08))
+            x_include = ()
+            if v3:
+                refs = [NEUTRAL_VLINE.get(met)]
+                if band is not None:
+                    refs.extend(list(band))
+                x_include = nearby_targets(xs, refs)
+            ax.set_xlim(*padded_lim(xs, pad=0.08, include=x_include))
             ax.set_ylim(*padded_lim(ys, pad=0.06))
+            if v3:
+                apply_major_grid(ax)
             if r == 1:
                 ax.set_xlabel(xlab)
             if c == 0:
@@ -439,12 +568,12 @@ def plot_prb_mki(plt, combined, stem):
             if r == 0:
                 ax.set_title(met)
             if r == 0 and c == 1:
-                ax.legend(frameon=False, fontsize=6.2)
+                ax.legend(frameon=False, fontsize=6.2, loc="best")
     fig.tight_layout()
     return _save(plt, fig, stem)
 
 
-def plot_tradeoff_atlas(plt, combined, xmetrics, stem, *, ymetrics=None, zero_x=None, no_zero=None):
+def plot_tradeoff_atlas(plt, combined, xmetrics, stem, *, ymetrics=None, zero_x=None, no_zero=None, v3: bool = False):
     ymetrics = ymetrics or (("R2_price", r"$R^2_P$"), ("MAE_price", r"MAE$_P$"), ("MAPE", r"MAPE$_P$"), ("RMSE_log", r"RMSE$_{\log P}$"))
     zero_x = set(zero_x or [])
     no_zero = set(no_zero or [])
@@ -463,7 +592,9 @@ def plot_tradeoff_atlas(plt, combined, xmetrics, stem, *, ymetrics=None, zero_x=
             ax = axes[r, c]
             if band is not None:
                 _band(ax, band[0], band[1])
-            if xmet in zero_x:
+            if v3:
+                draw_neutral_vline(ax, xmet)
+            elif xmet in zero_x:
                 ax.axvline(0.0, color="#111827", ls=":", lw=0.8)
             xs: List[float] = []
             ys: List[float] = []
@@ -471,7 +602,7 @@ def plot_tradeoff_atlas(plt, combined, xmetrics, stem, *, ymetrics=None, zero_x=
                 sub = combined.loc[combined["family"] == fam].sort_values("rho")
                 x = pd.to_numeric(sub[f"{xmet}__{ev}"], errors="coerce").to_numpy(dtype=float)
                 y = pd.to_numeric(sub[f"{ymet}__{ev}"], errors="coerce").to_numpy(dtype=float)
-                ax.plot(x, y, color=color, marker="o", ms=2.4, lw=1.05, label=fam)
+                ax.plot(x, y, color=color, marker="o", ms=2.4, lw=1.05, label=fam, zorder=4)
                 xs.extend(x.tolist())
                 ys.extend(y.tolist())
             for row, mk, colr in ((lin, "D", LINEAR_COLOR), (lgb, "s", NATIVE_COLOR)):
@@ -479,8 +610,15 @@ def plot_tradeoff_atlas(plt, combined, xmetrics, stem, *, ymetrics=None, zero_x=
                 xs.append(metric_val(row, xmet, ev))
                 ys.append(metric_val(row, ymet, ev))
             include_x = (0.0,) if xmet in zero_x and xmet not in no_zero else ()
+            if v3:
+                refs = [NEUTRAL_VLINE.get(xmet)]
+                if band is not None:
+                    refs.extend(list(band))
+                include_x = nearby_targets(xs, refs)
             ax.set_xlim(*padded_lim(xs, pad=0.08, include=include_x))
             ax.set_ylim(*padded_lim(ys, pad=0.08))
+            if v3:
+                apply_major_grid(ax)
             if r == len(ymetrics) - 1:
                 ax.set_xlabel(xlab)
             if c == 0:
@@ -488,19 +626,18 @@ def plot_tradeoff_atlas(plt, combined, xmetrics, stem, *, ymetrics=None, zero_x=
             if r == 0:
                 ax.set_title(xlab)
             if r == 0 and c == len(xmetrics) - 1:
-                ax.legend(frameon=False, fontsize=6)
+                ax.legend(frameon=False, fontsize=6, loc="best")
     fig.tight_layout()
     return _save(plt, fig, stem)
 
 
-def plot_event_locations(plt, combined, tables, min_positive, q, stem):
+def plot_event_locations(plt, combined, tables, min_positive, q, stem, *, v3: bool = False):
     from matplotlib.lines import Line2D
 
     events_cv = tables["transition_events_cv_mean.csv"]
     events_fold = tables["transition_events_by_fold.csv"]
     conc = tables["transition_temporal_concordance.csv"]
     span_df = tables["transition_span_summary.csv"]
-    lofo = tables["transition_lofo_sensitivity.csv"]
     metrics = [m for m, _d in PRIMARY_METRICS]
     ymap = {m: i for i, m in enumerate(reversed(metrics))}
     labels = {
@@ -515,10 +652,10 @@ def plot_event_locations(plt, combined, tables, min_positive, q, stem):
         color = DIRECT_COLOR if fam == "Direct" else SURR_COLOR
         low, high, ok = family_span(span_df, fam)
         if ok:
-            shade_cv_span(ax, low, high)
-        if fam in set(lofo["family"].astype(str)) and ok:
-            part = lofo.loc[(lofo["family"] == fam) & (lofo.get("valid_span", True) == True)] if "valid_span" in lofo.columns else lofo.loc[lofo["family"] == fam]
-            # LOFO envelope from summary columns if present
+            if v3:
+                shade_cv_span_with_bounds(ax, low, high)
+            else:
+                shade_cv_span(ax, low, high)
         for metric in metrics:
             y = ymap[metric]
             folds = events_fold.loc[(events_fold["family"] == fam) & (events_fold["metric"] == metric)]
@@ -543,6 +680,8 @@ def plot_event_locations(plt, combined, tables, min_positive, q, stem):
                     zorder=6,
                 )
         log_rho_axes(ax, min_positive=min_positive, q=q)
+        if v3:
+            apply_major_grid(ax)
         ax.set_ylim(-0.9, 4.6)
         ax.set_yticks(list(ymap.values()))
         ax.set_yticklabels([labels[m] for m in reversed(metrics)])
@@ -552,6 +691,81 @@ def plot_event_locations(plt, combined, tables, min_positive, q, stem):
             ax.text(0.02, 0.97, "Gray: CV-derived descriptive transition span", transform=ax.transAxes, fontsize=6.2, va="top", color="#374151")
         else:
             ax.text(0.02, 0.97, "No common five-metric positive CV span", transform=ax.transAxes, fontsize=6.2, va="top", color="#374151")
+    handles = [
+        Line2D([0], [0], marker="o", color="w", markerfacecolor="#1D4ED8", ms=8, label="Full-CV event"),
+        Line2D([0], [0], marker="o", color="w", markerfacecolor="#1D4ED8", ms=4, alpha=0.5, label="Fold events"),
+        Line2D([0], [0], marker="s", color="w", markerfacecolor="white", markeredgecolor="#111827", ms=6, label="Held-out"),
+        Line2D([0], [0], marker="^", color="w", markerfacecolor="white", markeredgecolor="#111827", ms=6, label="2025"),
+    ]
+    fig.legend(handles=handles, loc="upper center", ncol=4, frameon=False, bbox_to_anchor=(0.5, 1.03))
+    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    return _save(plt, fig, stem)
+
+
+def plot_descriptive_event_locations(
+    plt,
+    events: pd.DataFrame,
+    span_df: pd.DataFrame,
+    min_positive: float,
+    q: float,
+    stem: Path,
+    *,
+    labels: Dict[str, str],
+    metric_order: Sequence[str],
+    note: str,
+):
+    from matplotlib.lines import Line2D
+
+    ymap = {m: i for i, m in enumerate(reversed(list(metric_order)))}
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.8), sharey=True)
+    for ax, fam in zip(axes, FAMILY_DISPLAY):
+        color = DIRECT_COLOR if fam == "Direct" else SURR_COLOR
+        low, high, ok = family_span(span_df, fam)
+        if ok:
+            shade_cv_span_with_bounds(ax, low, high)
+        part = events.loc[events["family"] == fam]
+        for metric in metric_order:
+            y = ymap[metric]
+            folds = part.loc[(part["metric"] == metric) & (part["split"].astype(str).str.startswith("fold_"))]
+            if not folds.empty:
+                xf = rho_plot_x(pd.to_numeric(folds["event_rho"], errors="coerce").to_numpy(dtype=float), min_positive=min_positive, q=q)
+                ax.scatter(xf, np.full_like(xf, y, dtype=float), s=12, color=color, alpha=0.45, zorder=4)
+            cv = part.loc[(part["metric"] == metric) & (part["split"] == "cv_mean")]
+            if not cv.empty and pd.notna(cv.iloc[0]["event_rho"]):
+                ax.scatter(
+                    rho_plot_x([float(cv.iloc[0]["event_rho"])], min_positive=min_positive, q=q)[0],
+                    y,
+                    s=70,
+                    marker="o",
+                    color=color,
+                    zorder=5,
+                    edgecolors="white",
+                    linewidths=0.6,
+                )
+            for split, mk in (("heldout", "s"), ("forward_2025", "^")):
+                row = part.loc[(part["metric"] == metric) & (part["split"] == split)]
+                if row.empty or pd.isna(row.iloc[0]["event_rho"]):
+                    continue
+                ax.scatter(
+                    rho_plot_x([float(row.iloc[0]["event_rho"])], min_positive=min_positive, q=q)[0],
+                    y,
+                    s=42,
+                    marker=mk,
+                    facecolors="white",
+                    edgecolors="#111827",
+                    linewidths=1.0,
+                    zorder=6,
+                )
+        log_rho_axes(ax, min_positive=min_positive, q=q)
+        apply_major_grid(ax)
+        ax.set_ylim(-0.9, float(len(metric_order)) - 0.4)
+        ax.set_yticks(list(ymap.values()))
+        ax.set_yticklabels([labels[m] for m in reversed(list(metric_order))])
+        ax.set_title(fam)
+        ax.set_xlabel(r"Penalty strength $\rho$")
+        if ok:
+            ax.text(0.02, 0.97, "Gray: CV-derived descriptive transition span", transform=ax.transAxes, fontsize=6.2, va="top", color="#374151")
+        ax.text(0.02, 0.02, note, transform=ax.transAxes, fontsize=5.8, va="bottom", color="#374151")
     handles = [
         Line2D([0], [0], marker="o", color="w", markerfacecolor="#1D4ED8", ms=8, label="Full-CV event"),
         Line2D([0], [0], marker="o", color="w", markerfacecolor="#1D4ED8", ms=4, alpha=0.5, label="Fold events"),
