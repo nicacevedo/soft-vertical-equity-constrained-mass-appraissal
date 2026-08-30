@@ -1969,8 +1969,8 @@ penalized configuration is selected in the present analysis.
 \latesttext{The five-metric transition rule was fixed in the original path analysis and was left unchanged for the lower-tail extension: it uses $R^2_P$, $\operatorname{MAE}_P$, $\operatorname{MAPE}_P$, $\operatorname{RMSE}_{\log P}$, and COD. On the equal-weight chronological-CV path, the event for $R^2_P$ is its maximum and the events for the other four metrics are their minima, all evaluated on the observed discrete $\rho$ grid. For a penalty family, a common CV transition span is reported only when all five events occur at positive interior grid points; when that condition holds, the span is the smallest interval containing the five event locations. We then recompute the event construction foldwise and in seven leave-one-fold-out aggregations as stability diagnostics. For the v2 lower-tail extension, all 32 new values were first evaluated on the seven chronological folds and the augmented full-CV transition result was frozen before those same new values were evaluated on the held-out and 2025 samples. Because the broader out-of-time paths had already been inspected during paper development, the resulting held-out and 2025 comparison is interpreted as retrospective temporal concordance rather than prospective validation.}
 
 \oldtext{For Direct, we additionally report direction-aware \emph{span regret} on the held-out and 2025 paths: the difference between the split-specific global discrete-grid optimum of a metric and the best value attainable while restricting $\rho$ to the frozen CV span, with the sign defined so that regret is nonnegative. Normalized regret divides this quantity by the metric's full-path range when that range is nonzero. No smoothing, interpolation, near-optimality tolerance, or post-hoc threshold is used. The transition analysis is descriptive and does not select a penalty strength or redefine the prespecified display anchors.}
-\latesttext{No smoothing, interpolation, near-optimality tolerance, or post-hoc threshold is used. The transition analysis is descriptive and does not select a penalty strength or redefine the prespecified display anchors.}
-\todo{V2 transition update: the old Direct-only span-regret result is no longer used as a final paper result because Surrogate now also has a valid frozen CV span. Regenerate the same direction-aware regret diagnostic symmetrically for both families from the final augmented v2 paths before deciding whether to restore a regret table. Do not infer or hand-reconstruct the missing Surrogate values.}
+\oldtext{No smoothing, interpolation, near-optimality tolerance, or post-hoc threshold is used. The transition analysis is descriptive and does not select a penalty strength or redefine the prespecified display anchors.}
+\latesttext{For each family with a valid frozen CV transition span, report direction-aware out-of-time span regret as the difference between the split-specific global observed-grid optimum and the best value attainable within that family's frozen CV span, normalized by the full-path metric range when nonzero. No smoothing, interpolation, near-optimality tolerance, or post-hoc threshold is used. The transition analysis is descriptive and does not select a penalty strength or redefine the prespecified display anchors.}
 
 % \oldtext{For compact main-text displays only, we use a small set of \emph{prespecified display anchors}: $\rho=0$ together with the positive grid points nearest $0.1$, $1$, $10$, and $100$.}
 \newtext{For compact main-text tables, we use the positive grid points nearest $0.1$, $1$, $10$, and $100$ as prespecified display anchors and show ordinary LightGBM as the unpenalized baseline.} These anchors are chosen before inspecting the sweep outcomes and are
@@ -2076,7 +2076,8 @@ This is an exploratory transfer benchmark, not an audit of the six assessor offi
 \oldtext{The primary CCAO Results report the complete Direct and Surrogate regularization paths together with two complementary checks: the $\rho=0$ implementation control and the fixed cross-fitted correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$. $\Delta_{\mathrm{NL}}$ is reported for the primary held-out and 2025 forward evaluations but is not computed retrospectively for the completed chronological CV. No penalty family, penalty strength, or deployment operating point is selected.}
 \newtext{The primary CCAO Results report the complete Direct and Surrogate regularization paths together with the fixed cross-fitted correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$. $\Delta_{\mathrm{NL}}$ is reported for the primary held-out and 2025 forward evaluations but is not computed retrospectively for the completed chronological CV. No penalty family, penalty strength, or deployment operating point is selected.}
 \oldtext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability, retrospective temporal concordance, and Direct span-regret calculations. This diagnostic characterizes the path and does not define a selected or recommended range.}
-\latesttext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability and retrospective temporal concordance. This diagnostic characterizes the path and does not define a selected or recommended range.}
+\oldtext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability and retrospective temporal concordance. This diagnostic characterizes the path and does not define a selected or recommended range.}
+\latesttext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability, retrospective exact concordance, and family-symmetric value-based span regret. This diagnostic characterizes the path and does not define a selected or recommended range.}
 
 \subsection{Accuracy Alone Does Not Remove the CCAO Ratio Trend}
 \label{subsec:ccao_baseline_results}
@@ -2570,7 +2571,6 @@ formal compliance, or model selection.
 \end{oldrevisionblock}
 
 {\color{latestPurple}
-\todo[inline]{Canonical v2 table-source values for penalized-model MAPE and $\operatorname{RMSE}_{\log P}$ were not attached to this manuscript. Cells marked \emph{source} are intentionally left unpopulated rather than reconstructed from figures or older runs. Replace only those cells from \texttt{representative\_rho\_primary\_source.tex} (or its canonical CSV/parquet counterpart).}
 \begin{table}[!htbp]
 \centering
 \scriptsize
@@ -2599,17 +2599,17 @@ Ordinary LightGBM & -- & \textbf{0.894} & \textbf{\$75,655} & \textbf{21.2\%} & 
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Direct penalty}} \\
 \cmidrule(lr){1-10}
-Direct & $\approx0.1$ & 0.894 & \$76,235 & \textit{source} & \textit{source} & 1.068 & -0.088 & 0.926 & -27.0\% \\
-Direct & $\approx0.954$ & \textbf{0.899} & \textbf{\$74,485} & \textit{source} & \textit{source} & 1.060 & -0.075 & 0.940 & -21.9\% \\
-Direct & $\approx10.481$ & \textbf{0.895} & \textbf{\$75,218} & \textit{source} & \textit{source} & \textbf{1.036} & -0.040\textsuperscript{*} & \textbf{0.984} & \textbf{-10.5\%} \\
-Direct & 100 & 0.869 & \$84,918 & \textit{source} & \textit{source} & \textbf{1.029} & \textbf{-0.015} & \textbf{0.998} & \textbf{0.7\%} \\
+Direct & $\approx0.1$ & 0.894 & \$76,235 & \oldtext{\textit{source}}\latesttext{21.3\%} & \oldtext{\textit{source}}\latesttext{0.291} & 1.068 & -0.088 & 0.926 & -27.0\% \\
+Direct & $\approx0.954$ & \textbf{0.899} & \textbf{\$74,485} & \oldtext{\textit{source}}\latesttext{\textbf{21.1\%}} & \oldtext{\textit{source}}\latesttext{0.290} & 1.060 & -0.075 & 0.940 & -21.9\% \\
+Direct & $\approx10.481$ & \textbf{0.895} & \textbf{\$75,218} & \oldtext{\textit{source}}\latesttext{21.4\%} & \oldtext{\textit{source}}\latesttext{0.294} & \textbf{1.036} & -0.040\textsuperscript{*} & \textbf{0.984} & \textbf{-10.5\%} \\
+Direct & 100 & 0.869 & \$84,918 & \oldtext{\textit{source}}\latesttext{23.9\%} & \oldtext{\textit{source}}\latesttext{0.325} & \textbf{1.029} & \textbf{-0.015} & \textbf{0.998} & \textbf{0.7\%} \\
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Surrogate penalty}} \\
 \cmidrule(lr){1-10}
-Surrogate & $\approx0.1$ & 0.894 & \$75,897 & \textit{source} & \textit{source} & 1.064 & -0.079 & 0.931 & -22.7\% \\
-Surrogate & $\approx0.954$ & \textbf{0.897} & \textbf{\$75,468} & \textit{source} & \textit{source} & 1.049 & -0.045\textsuperscript{*} & 0.953\textsuperscript{*} & -12.6\% \\
-Surrogate & $\approx10.481$ & 0.893 & \$78,110 & \textit{source} & \textit{source} & \textbf{1.024} & \textbf{0.013} & \textbf{0.988} & \textbf{0.2\%} \\
-Surrogate & 100 & 0.889 & \$82,094 & \textit{source} & \textit{source} & \textbf{1.010} & 0.042\textsuperscript{*} & \textbf{1.013} & \textbf{4.0\%} \\
+Surrogate & $\approx0.1$ & 0.894 & \$75,897 & \oldtext{\textit{source}}\latesttext{\textbf{21.1\%}} & \oldtext{\textit{source}}\latesttext{0.292} & 1.064 & -0.079 & 0.931 & -22.7\% \\
+Surrogate & $\approx0.954$ & \textbf{0.897} & \textbf{\$75,468} & \oldtext{\textit{source}}\latesttext{\textbf{21.0\%}} & \oldtext{\textit{source}}\latesttext{0.298} & 1.049 & -0.045\textsuperscript{*} & 0.953\textsuperscript{*} & -12.6\% \\
+Surrogate & $\approx10.481$ & 0.893 & \$78,110 & \oldtext{\textit{source}}\latesttext{21.6\%} & \oldtext{\textit{source}}\latesttext{0.329} & \textbf{1.024} & \textbf{0.013} & \textbf{0.988} & \textbf{0.2\%} \\
+Surrogate & 100 & 0.889 & \$82,094 & \oldtext{\textit{source}}\latesttext{22.8\%} & \oldtext{\textit{source}}\latesttext{0.357} & \textbf{1.010} & 0.042\textsuperscript{*} & \textbf{1.013} & \textbf{4.0\%} \\
 \midrule
 \addlinespace[2pt]
 \multicolumn{10}{l}{\textit{Panel B: 2025 forward evaluation}} \\
@@ -2621,17 +2621,17 @@ Ordinary LightGBM & -- & \textbf{0.904} & \textbf{\$78,484} & \textbf{20.8\%} & 
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Direct penalty}} \\
 \cmidrule(lr){1-10}
-Direct & $\approx0.1$ & \textbf{0.906} & \textbf{\$78,029} & \textit{source} & \textit{source} & 1.077 & -0.102 & 0.910 & -27.7\% \\
-Direct & $\approx0.954$ & \textbf{0.910} & \textbf{\$77,139} & \textit{source} & \textit{source} & 1.069 & -0.090 & 0.926 & -23.9\% \\
-Direct & $\approx10.481$ & 0.902 & \$79,187 & \textit{source} & \textit{source} & \textbf{1.042} & -0.049\textsuperscript{*} & \textbf{0.971} & \textbf{-11.9\%} \\
-Direct & 100 & 0.873 & \$89,309 & \textit{source} & \textit{source} & \textbf{1.036} & -0.029\textsuperscript{*} & \textbf{0.983} & \textbf{-4.5\%} \\
+Direct & $\approx0.1$ & \textbf{0.906} & \textbf{\$78,029} & \oldtext{\textit{source}}\latesttext{\textbf{20.7\%}} & \oldtext{\textit{source}}\latesttext{\textbf{0.278}} & 1.077 & -0.102 & 0.910 & -27.7\% \\
+Direct & $\approx0.954$ & \textbf{0.910} & \textbf{\$77,139} & \oldtext{\textit{source}}\latesttext{\textbf{20.7\%}} & \oldtext{\textit{source}}\latesttext{0.279} & 1.069 & -0.090 & 0.926 & -23.9\% \\
+Direct & $\approx10.481$ & 0.902 & \$79,187 & \oldtext{\textit{source}}\latesttext{20.9\%} & \oldtext{\textit{source}}\latesttext{0.281} & \textbf{1.042} & -0.049\textsuperscript{*} & \textbf{0.971} & \textbf{-11.9\%} \\
+Direct & 100 & 0.873 & \$89,309 & \oldtext{\textit{source}}\latesttext{23.1\%} & \oldtext{\textit{source}}\latesttext{0.307} & \textbf{1.036} & -0.029\textsuperscript{*} & \textbf{0.983} & \textbf{-4.5\%} \\
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Surrogate penalty}} \\
 \cmidrule(lr){1-10}
-Surrogate & $\approx0.1$ & \textbf{0.905} & \$78,546 & \textit{source} & \textit{source} & 1.074 & -0.095 & 0.914 & -24.7\% \\
-Surrogate & $\approx0.954$ & \textbf{0.908} & \textbf{\$78,196} & \textit{source} & \textit{source} & 1.060 & -0.062 & 0.932 & \textbf{-15.3\%} \\
-Surrogate & $\approx10.481$ & \textbf{0.905} & \$81,075 & \textit{source} & \textit{source} & \textbf{1.033} & \textbf{0.000} & \textbf{0.967} & \textbf{-2.0\%} \\
-Surrogate & 100 & 0.900 & \$85,257 & \textit{source} & \textit{source} & \textbf{1.020} & 0.030\textsuperscript{*} & \textbf{0.987} & \textbf{1.7\%} \\
+Surrogate & $\approx0.1$ & \textbf{0.905} & \$78,546 & \oldtext{\textit{source}}\latesttext{\textbf{20.6\%}} & \oldtext{\textit{source}}\latesttext{0.279} & 1.074 & -0.095 & 0.914 & -24.7\% \\
+Surrogate & $\approx0.954$ & \textbf{0.908} & \textbf{\$78,196} & \oldtext{\textit{source}}\latesttext{\textbf{20.4\%}} & \oldtext{\textit{source}}\latesttext{0.284} & 1.060 & -0.062 & 0.932 & \textbf{-15.3\%} \\
+Surrogate & $\approx10.481$ & \textbf{0.905} & \$81,075 & \oldtext{\textit{source}}\latesttext{20.9\%} & \oldtext{\textit{source}}\latesttext{0.310} & \textbf{1.033} & \textbf{0.000} & \textbf{0.967} & \textbf{-2.0\%} \\
+Surrogate & 100 & 0.900 & \$85,257 & \oldtext{\textit{source}}\latesttext{22.0\%} & \oldtext{\textit{source}}\latesttext{0.336} & \textbf{1.020} & 0.030\textsuperscript{*} & \textbf{0.987} & \textbf{1.7\%} \\
 \bottomrule
 \end{tabular}}
 \vspace{1mm}
@@ -2690,7 +2690,7 @@ range before recovering at higher prices. \newtext{This visual contrast is descr
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/mechanism_vs_rho.pdf}
-\caption{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. Gray shading, where present, is the CV-derived descriptive transition span for that family; it is not a selected or recommended penalty interval.}
+\caption{\oldtext{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. Gray shading, where present, is the CV-derived descriptive transition span for that family; it is not a selected or recommended penalty interval.}\latesttext{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span; they are not a selected or recommended penalty interval.}}
 \label{fig:mechanism_path_placeholder}
 \end{figure}
 
@@ -2719,7 +2719,7 @@ performance and vertical-equity diagnostics.
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.98\textwidth]{img/generated_v12_994/accuracy_equity_trajectories_inprocessing_only.pdf}
-\caption{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Arrows indicate increasing $\rho$ and do not mark a selected point.}
+\caption{\oldtext{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Arrows indicate increasing $\rho$ and do not mark a selected point.}\latesttext{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims. Arrows indicate increasing $\rho$ and do not mark a selected point.}}
 \label{fig:accuracy_equity_placeholder}
 \end{figure}
 \newtext{The trajectories are not simple monotone accuracy--equity frontiers. At moderate regularization, parts of both paths move toward more neutral PRD and VEI while preserving or improving price-scale fit relative to the corresponding custom-objective $\rho=0$ control.} 
@@ -2747,7 +2747,7 @@ reporting the main path findings in the figures above.}
 
 \oldtext{The Surrogate does not support the same five-metric construction in the full chronological-CV aggregate because $\operatorname{RMSE}_{\log P}$ is minimized at the $\rho=0$ boundary; only two of seven leave-one-fold-out aggregations produce a common positive-interior span. Thus, moderate Surrogate regularization can still improve several predictive and assessor-facing criteria, but those improvements do not organize into the same common five-metric CV transition structure as Direct. Appendix~\ref{app:ccao_path_details} reports the event locations, leave-one-fold-out diagnostics, and Direct regret values. These are descriptive path-stability results and do not select a model family or operating point.}
 \latesttext{The lower-tail extension also changes the Surrogate conclusion. Its CV $\operatorname{RMSE}_{\log P}$ event moves from the $\rho=0$ boundary to the positive interior point $\rho=0.00222$, and its MAE event moves below $0.1$. The five Surrogate CV events therefore define their own descriptive span, $\rho\in[0.00222,0.954]$, and all seven Surrogate leave-one-fold-out aggregations now support a positive-interior five-event span. This does not make the Surrogate span a selected or portable operating range: only one of five held-out events and one of five 2025 events (MAE in each case) fall inside it. Taken together, the two families show that reproducible within-CV transition structure is distinct from temporal portability of the exact operating location. Appendix~\ref{app:ccao_path_details} reports the event locations and leave-one-fold-out diagnostics. These are descriptive path-stability results and do not select a model family or operating point.}
-\todo{V2 result update: this subsection now uses only the frozen augmented-grid findings supplied by the completed run. Reintroduce value-based span regret only after the same v2 calculation is available for both Direct and Surrogate.}
+\latesttext{The family-specific CV spans remain Direct $\rho\in[0.0494,1.099]$ and Surrogate $\rho\in[0.00222,0.954]$. They should be interpreted as envelopes of the five prediction/COD turning events, not as equity-neutrality intervals. Appendix Figures~\ref{fig:vertical_equity_event_locations} and~\ref{fig:mechanism_event_locations} show that the closest-to-neutral locations for PRD, PRB, MKI, and VEI generally occur at much larger $\rho$ for both families; predictive/COD turning and equity neutrality therefore occur at distinct scales. Exact out-of-time event concordance remains weak, but the family-symmetric value-based span-regret result in Table~\ref{tab:transition_regret} is more nuanced. Direct normalized regret is roughly $0.005$--$0.056$ on the held-out sample and $0.004$--$0.037$ in 2025. Surrogate MAE regret is $0$ on both held-out and 2025 evaluations; Surrogate $\operatorname{RMSE}_{\log P}$ normalized regret is at most $0.003$; the largest reported Surrogate normalized regret is 2025 $R^2_P\approx 0.083$. The corresponding metric-value losses are generally limited in magnitude over the observed paths, although no materiality threshold is imposed. Direct $\operatorname{RMSE}_{\log P}$ and Surrogate $R^2_P$ CV events are particularly value-flat, while MAE events are comparatively sharper; exact event-$\rho$ movement therefore should not be interpreted as equal substantive movement for all criteria.}
 
 \subsection{Exploratory Six-County Evidence Shows Heterogeneity and Limits}
 \label{subsec:attom_results}
@@ -2830,7 +2830,8 @@ multiple vertical-equity diagnostics toward neutrality.
 \newtext{Second, stronger regularization exposes the limits of a global first-order target. The Surrogate provides the clearest current CCAO example: $\beta_{\log}$ and grouped diagnostics can approach neutrality while the ratio-shape profile remains non-monotone and distance correlation rebounds. The methodological limitation is broader than that example, however: neither Direct nor Surrogate directly controls the non-affine conditional-mean structure measured by $\Delta_{\mathrm{NL}}$. Global first-order neutrality is therefore informative but not sufficient evidence of a flat value-related profile, broader residual--price independence, or locally uniform vertical equity.}
 
 \oldtext{The transition analysis adds a separate temporal qualification. A targeted mechanism can be directionally stable without yielding a stable multi-metric operating point. Direct exhibits an internally reproducible five-metric CV transition span, including seven-of-seven leave-one-fold-out support, but the exact held-out and forward turning locations show limited concordance with that interval and the value-based regret result is mixed across metrics. The Surrogate does not support the analogous common positive span in the full CV aggregate. Chronological validation is therefore valuable for characterizing the regularization path, but the evidence does not support treating a particular raw-$\rho$ interval as an intrinsic or temporally invariant property of either objective. Any later deployment calibration should specify explicitly which predictive, valuation, and equity criteria define the operating decision and re-evaluate that decision across time.}
-\latesttext{The transition analysis adds a separate temporal qualification. After resolving the lower tail of the grid, both Direct and Surrogate exhibit positive-interior five-metric CV transition spans with seven-of-seven leave-one-fold-out support. Exact out-of-time event portability remains weak, however: Direct has zero of five held-out and zero of five 2025 events inside its frozen span, while Surrogate has one of five in each period. Chronological validation is therefore useful for characterizing repeatable path structure, but the evidence does not support treating either raw-$\rho$ interval as an intrinsic or temporally invariant operating region. Any later deployment calibration should specify explicitly which predictive, valuation, and equity criteria define the operating decision and re-evaluate that decision across time.}
+\oldtext{The transition analysis adds a separate temporal qualification. After resolving the lower tail of the grid, both Direct and Surrogate exhibit positive-interior five-metric CV transition spans with seven-of-seven leave-one-fold-out support. Exact out-of-time event portability remains weak, however: Direct has zero of five held-out and zero of five 2025 events inside its frozen span, while Surrogate has one of five in each period. Chronological validation is therefore useful for characterizing repeatable path structure, but the evidence does not support treating either raw-$\rho$ interval as an intrinsic or temporally invariant operating region. Any later deployment calibration should specify explicitly which predictive, valuation, and equity criteria define the operating decision and re-evaluate that decision across time.}
+\latesttext{The transition analysis adds a separate temporal qualification. After resolving the lower tail of the grid, both Direct and Surrogate exhibit positive-interior five-metric CV transition spans with seven-of-seven leave-one-fold-out support. Exact out-of-time event portability remains weak, however: Direct has zero of five held-out and zero of five 2025 events inside its frozen span, while Surrogate has one of five in each period. The augmented evidence distinguishes a reproducible prediction/COD transition structure from the much larger penalties at which assessor-facing measures or mechanism diagnostics become closest to neutrality. Therefore there is no single empirically supported ``safe'' $\rho$ interval, and a future deployment choice requires an explicit operating criterion. Chronological validation is therefore useful for characterizing repeatable path structure, but the evidence does not support treating either raw-$\rho$ interval as an intrinsic or temporally invariant operating region. Any later deployment calibration should specify explicitly which predictive, valuation, and equity criteria define the operating decision and re-evaluate that decision across time.}
 
 % \oldtext{The value of the approach is operational. It converts a ratio-study concern into a model-training option, works through a standard boosted-tree interface, and can be tuned with chronological validation.}
 \newtext{The value of the approach is operational. It converts a ratio-study concern into a model-training option that can be incorporated into a standard boosted-tree workflow: the Surrogate is exactly observation-additive, while the Direct implementation uses the exact covariance gradient with diagonal curvature through the standard LightGBM interface. Both can be evaluated through the same chronological-validation and ratio-study workflow used for the baseline model.} \advisorchange{Those features follow directly from the CCAO problem that motivated the collaboration.}
@@ -3639,7 +3640,6 @@ Median, mean, weighted-mean ratio, COD, and COV are assessor-facing valuation-le
 \end{minipage}
 \end{table}
 
-\todo[inline]{Canonical v2 table-source values for penalized-model median ratio, mean ratio, weighted mean ratio, COD, and COV were not attached to this manuscript. Cells marked \emph{source} are intentionally left unpopulated rather than reconstructed from figures or older runs. Replace only those cells from \texttt{representative\_rho\_secondary\_source.tex} (or its canonical CSV/parquet counterpart).}
 \begin{table}[!htbp]
 \centering
 \scriptsize
@@ -3668,17 +3668,17 @@ Ordinary LightGBM & -- & 0.929 & \textbf{0.989} & 0.924 & \textbf{21.6\%} & \tex
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Direct penalty}} \\
 \cmidrule(lr){1-10}
-Direct & $\approx0.1$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.147 & 0.119 & 0.382 \\
-Direct & $\approx0.954$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.134 & 0.122 & 0.359 \\
-Direct & $\approx10.481$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.096 & 0.132 & 0.302 \\
-Direct & 100 & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textbf{-0.079} & \textbf{0.115} & 0.265 \\
+Direct & $\approx0.1$ & \oldtext{\textit{source}}\latesttext{0.924} & \oldtext{\textit{source}}\latesttext{0.983} & \oldtext{\textit{source}}\latesttext{0.920} & \oldtext{\textit{source}}\latesttext{21.6\%} & \oldtext{\textit{source}}\latesttext{39.8\%} & -0.147 & 0.119 & 0.382 \\
+Direct & $\approx0.954$ & \oldtext{\textit{source}}\latesttext{0.936} & \oldtext{\textit{source}}\latesttext{\textbf{0.993}} & \oldtext{\textit{source}}\latesttext{0.936} & \oldtext{\textit{source}}\latesttext{21.6\%} & \oldtext{\textit{source}}\latesttext{39.9\%} & -0.134 & 0.122 & 0.359 \\
+Direct & $\approx10.481$ & \oldtext{\textit{source}}\latesttext{0.953} & \oldtext{\textit{source}}\latesttext{\textbf{1.005}} & \oldtext{\textit{source}}\latesttext{0.970} & \oldtext{\textit{source}}\latesttext{21.9\%} & \oldtext{\textit{source}}\latesttext{\textbf{39.4\%}} & -0.096 & 0.132 & 0.302 \\
+Direct & 100 & \oldtext{\textit{source}}\latesttext{0.968} & \oldtext{\textit{source}}\latesttext{1.022} & \oldtext{\textit{source}}\latesttext{\textbf{0.993}} & \oldtext{\textit{source}}\latesttext{24.5\%} & \oldtext{\textit{source}}\latesttext{41.5\%} & \textbf{-0.079} & \textbf{0.115} & 0.265 \\
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Surrogate penalty}} \\
 \cmidrule(lr){1-10}
-Surrogate & $\approx0.1$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.138 & \textbf{0.113} & 0.367 \\
-Surrogate & $\approx0.954$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.102 & \textbf{0.099} & 0.310 \\
-Surrogate & $\approx10.481$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textbf{-0.036} & \textbf{0.103} & 0.250 \\
-Surrogate & 100 & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textbf{-0.001} & 0.124 & 0.267 \\
+Surrogate & $\approx0.1$ & \oldtext{\textit{source}}\latesttext{0.927} & \oldtext{\textit{source}}\latesttext{0.982} & \oldtext{\textit{source}}\latesttext{0.923} & \oldtext{\textit{source}}\latesttext{\textbf{21.5\%}} & \oldtext{\textit{source}}\latesttext{39.9\%} & -0.138 & \textbf{0.113} & 0.367 \\
+Surrogate & $\approx0.954$ & \oldtext{\textit{source}}\latesttext{0.929} & \oldtext{\textit{source}}\latesttext{0.975} & \oldtext{\textit{source}}\latesttext{0.930} & \oldtext{\textit{source}}\latesttext{\textbf{21.4\%}} & \oldtext{\textit{source}}\latesttext{\textbf{38.2\%}} & -0.102 & \textbf{0.099} & 0.310 \\
+Surrogate & $\approx10.481$ & \oldtext{\textit{source}}\latesttext{0.927} & \oldtext{\textit{source}}\latesttext{0.953} & \oldtext{\textit{source}}\latesttext{0.931} & \oldtext{\textit{source}}\latesttext{22.2\%} & \oldtext{\textit{source}}\latesttext{\textbf{38.5\%}} & \textbf{-0.036} & \textbf{0.103} & 0.250 \\
+Surrogate & 100 & \oldtext{\textit{source}}\latesttext{0.923} & \oldtext{\textit{source}}\latesttext{0.937} & \oldtext{\textit{source}}\latesttext{0.928} & \oldtext{\textit{source}}\latesttext{23.5\%} & \oldtext{\textit{source}}\latesttext{40.3\%} & \textbf{-0.001} & 0.124 & 0.267 \\
 \midrule
 \addlinespace[2pt]
 \multicolumn{10}{l}{\textit{Panel B: 2025 forward evaluation}} \\
@@ -3690,17 +3690,17 @@ Ordinary LightGBM & -- & 0.950 & \textbf{1.015} & 0.941 & \textbf{21.3\%} & \tex
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Direct penalty}} \\
 \cmidrule(lr){1-10}
-Direct & $\approx0.1$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.160 & 0.121 & 0.416 \\
-Direct & $\approx0.954$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.148 & 0.127 & 0.392 \\
-Direct & $\approx10.481$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textbf{-0.105} & 0.134 & 0.318 \\
-Direct & 100 & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textbf{-0.093} & \textbf{0.119} & 0.281 \\
+Direct & $\approx0.1$ & \oldtext{\textit{source}}\latesttext{0.952} & \oldtext{\textit{source}}\latesttext{\textbf{1.015}} & \oldtext{\textit{source}}\latesttext{0.942} & \oldtext{\textit{source}}\latesttext{\textbf{21.2\%}} & \oldtext{\textit{source}}\latesttext{\textbf{37.2\%}} & -0.160 & 0.121 & 0.416 \\
+Direct & $\approx0.954$ & \oldtext{\textit{source}}\latesttext{0.957} & \oldtext{\textit{source}}\latesttext{1.019} & \oldtext{\textit{source}}\latesttext{0.954} & \oldtext{\textit{source}}\latesttext{\textbf{21.2\%}} & \oldtext{\textit{source}}\latesttext{37.2\%} & -0.148 & 0.127 & 0.392 \\
+Direct & $\approx10.481$ & \oldtext{\textit{source}}\latesttext{0.978} & \oldtext{\textit{source}}\latesttext{1.032} & \oldtext{\textit{source}}\latesttext{\textbf{0.991}} & \oldtext{\textit{source}}\latesttext{21.3\%} & \oldtext{\textit{source}}\latesttext{37.4\%} & \textbf{-0.105} & 0.134 & 0.318 \\
+Direct & 100 & \oldtext{\textit{source}}\latesttext{\textbf{0.992}} & \oldtext{\textit{source}}\latesttext{1.049} & \oldtext{\textit{source}}\latesttext{\textbf{1.012}} & \oldtext{\textit{source}}\latesttext{23.3\%} & \oldtext{\textit{source}}\latesttext{40.3\%} & \textbf{-0.093} & \textbf{0.119} & 0.281 \\
 \addlinespace[3pt]
 \multicolumn{10}{l}{\textbf{Surrogate penalty}} \\
 \cmidrule(lr){1-10}
-Surrogate & $\approx0.1$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.153 & \textbf{0.116} & 0.402 \\
-Surrogate & $\approx0.954$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & -0.120 & \textbf{0.096} & 0.343 \\
-Surrogate & $\approx10.481$ & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textbf{-0.050} & \textbf{0.092} & \textbf{0.258} \\
-Surrogate & 100 & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textit{source} & \textbf{-0.015} & \textbf{0.111} & \textbf{0.266} \\
+Surrogate & $\approx0.1$ & \oldtext{\textit{source}}\latesttext{0.948} & \oldtext{\textit{source}}\latesttext{\textbf{1.009}} & \oldtext{\textit{source}}\latesttext{0.939} & \oldtext{\textit{source}}\latesttext{\textbf{21.1\%}} & \oldtext{\textit{source}}\latesttext{\textbf{36.8\%}} & -0.153 & \textbf{0.116} & 0.402 \\
+Surrogate & $\approx0.954$ & \oldtext{\textit{source}}\latesttext{0.950} & \oldtext{\textit{source}}\latesttext{\textbf{1.003}} & \oldtext{\textit{source}}\latesttext{0.946} & \oldtext{\textit{source}}\latesttext{\textbf{20.9\%}} & \oldtext{\textit{source}}\latesttext{\textbf{36.1\%}} & -0.120 & \textbf{0.096} & 0.343 \\
+Surrogate & $\approx10.481$ & \oldtext{\textit{source}}\latesttext{0.949} & \oldtext{\textit{source}}\latesttext{0.979} & \oldtext{\textit{source}}\latesttext{0.948} & \oldtext{\textit{source}}\latesttext{21.5\%} & \oldtext{\textit{source}}\latesttext{\textbf{35.9\%}} & \textbf{-0.050} & \textbf{0.092} & \textbf{0.258} \\
+Surrogate & 100 & \oldtext{\textit{source}}\latesttext{0.948} & \oldtext{\textit{source}}\latesttext{0.964} & \oldtext{\textit{source}}\latesttext{0.945} & \oldtext{\textit{source}}\latesttext{22.7\%} & \oldtext{\textit{source}}\latesttext{\textbf{36.8\%}} & \textbf{-0.015} & \textbf{0.111} & \textbf{0.266} \\
 \bottomrule
 \end{tabular}}
 \vspace{1mm}
@@ -3717,13 +3717,15 @@ The three valuation-level ratios are compared by distance from one; COD and COV 
 
 
 \oldtext{The supplementary transition analysis is computed read-only from the same frozen 994-tree regularization paths. Its frozen protocol, event tables, fold and leave-one-fold-out summaries, retrospective temporal-concordance calculations, span-regret diagnostics, event-sharpness diagnostics, and paper-asset manifest are archived in the transition-analysis replication artifacts. No model is refit and the original path grid and display anchors are unchanged.}
-\latesttext{The v2 transition analysis is computed read-only from the final augmented 994-tree path table. The original $0.1$--$100$ fits and v1 transition artifacts are preserved unchanged; v2 appends 32 lower-tail positive values per family under the same frozen data, split, seed, predictor set, and 994-tree configuration. The 448 new chronological-CV fits were completed first, the augmented CV transition state was frozen, and only then were the same 32 new values evaluated on the held-out and 2025 samples (128 additional out-of-time fits). The five-metric transition rule and the prespecified display anchors remain unchanged. The lower-grid protocol, event tables, fold and leave-one-fold-out summaries, retrospective temporal-concordance calculations, event-sharpness diagnostics, paper-asset manifest, and hashes linking v1 and v2 are archived in the transition-analysis replication artifacts.}
+\oldtext{The v2 transition analysis is computed read-only from the final augmented 994-tree path table. The original $0.1$--$100$ fits and v1 transition artifacts are preserved unchanged; v2 appends 32 lower-tail positive values per family under the same frozen data, split, seed, predictor set, and 994-tree configuration. The 448 new chronological-CV fits were completed first, the augmented CV transition state was frozen, and only then were the same 32 new values evaluated on the held-out and 2025 samples (128 additional out-of-time fits). The five-metric transition rule and the prespecified display anchors remain unchanged. The lower-grid protocol, event tables, fold and leave-one-fold-out summaries, retrospective temporal-concordance calculations, event-sharpness diagnostics, paper-asset manifest, and hashes linking v1 and v2 are archived in the transition-analysis replication artifacts.}
+\latesttext{The v2 transition analysis is computed read-only from the final augmented 994-tree path table. The original $0.1$--$100$ fits and v1 transition artifacts are preserved unchanged; v2 appends 32 lower-tail positive values per family under the same frozen data, split, seed, predictor set, and 994-tree configuration. The 448 new chronological-CV fits were completed first, the augmented CV transition state was frozen, and only then were the same 32 new values evaluated on the held-out and 2025 samples (128 additional out-of-time fits). The five-metric transition rule and the prespecified display anchors remain unchanged. The lower-grid protocol, event tables, fold and leave-one-fold-out summaries, retrospective temporal-concordance calculations, the completed v3 artifacts \texttt{transition\_oos\_span\_regret\_v3}, \texttt{transition\_lofo\_endpoint\_summary\_v3}, \texttt{vertical\_equity\_event\_locations}, \texttt{mechanism\_event\_locations}, and \texttt{event\_sharpness\_summary\_v3}, the v3 figure QA manifest, paper-asset manifest, and hashes linking v1, v2, and v3 are archived in the transition-analysis replication artifacts.}
 
 \subsection{\texorpdfstring{\textcolor{latestPurple}{Cross-Metric Turning Points and Temporal Concordance}}{Cross-Metric Turning Points and Temporal Concordance}}
 \label{subsec:transition_appendix}
 
 \oldtext{The main text reports only the interpretation of the five-metric transition diagnostic. The objects below provide the auditable event locations and value-based checks. The Direct interval is always described as a \emph{CV-derived descriptive transition span}, never as a recommended, safe, optimal, or deployment range.}
-\latesttext{The main text reports only the interpretation of the five-metric transition diagnostic. The objects below provide the auditable event locations and fold/leave-one-fold-out stability checks. Any family-specific interval is described only as a \emph{CV-derived descriptive transition span}, never as a recommended, safe, optimal, preferred, or deployment range.}
+\oldtext{The main text reports only the interpretation of the five-metric transition diagnostic. The objects below provide the auditable event locations and fold/leave-one-fold-out stability checks. Any family-specific interval is described only as a \emph{CV-derived descriptive transition span}, never as a recommended, safe, optimal, preferred, or deployment range.}
+\latesttext{The main text reports only the interpretation of the five-metric transition diagnostic. The objects below provide the auditable event locations, fold/leave-one-fold-out stability checks, and family-symmetric value-based span regret. Any family-specific interval is described only as a \emph{CV-derived descriptive transition span}, never as a recommended, safe, optimal, preferred, or deployment range.}
 
 \begin{table}[!htbp]
 \centering
@@ -3754,8 +3756,8 @@ First-positive-grid note
 & \oldtext{$\rho=0.1$ is the smallest positive tested value, not an estimated lower threshold}\latesttext{lower span endpoint $0.0494$ is interior; smallest positive tested value is $0.00110$}
 & \oldtext{---}\latesttext{lower span endpoint $0.00222$ is interior; smallest positive tested value is $0.00110$} \\
 LOFO five-event support
-& \oldtext{7/7; valid endpoints $[0.1,\,0.153]$ to $[1.099,\,1.265]$}\latesttext{7/7}
-& \oldtext{2/7}\latesttext{7/7} \\
+& \oldtext{7/7; valid endpoints $[0.1,\,0.153]$ to $[1.099,\,1.265]$}\oldtext{7/7}\latesttext{7/7; lower $[0.004498,\,0.065513]$, upper $[1.098541,\,1.264855]$}
+& \oldtext{2/7}\oldtext{7/7}\latesttext{7/7; lower $[0.001099,\,0.010481]$, upper $[0.828643,\,1.676833]$} \\
 Held-out exact concordance
 & \oldtext{1/5}\latesttext{0/5}
 & \oldtext{0/5}\latesttext{1/5 (MAE)} \\
@@ -3776,23 +3778,38 @@ A common span is reported only when all five events are positive and interior.
 \latesttext{The five-metric rule is unchanged from v1; only the near-zero grid resolution was extended before the new lower-tail out-of-time fits were run.}
 Held-out and 2025 comparisons are retrospective temporal concordance, not prospective confirmation.
 No $\rho$ is selected.
+\latesttext{Leave-one-fold-out 7/7 records that a positive-interior five-event span exists in every omitted-fold aggregation; it does not imply precise endpoint stability. Direct $\log_{10}$-width min/median/max is $1.286/1.347/2.449$ with $0/7$ first-positive lower-bound hits; Surrogate $\log_{10}$-width min/median/max is $2.204/2.633/2.939$ with $1/7$ first-positive lower-bound hits. Lower-end location is materially less stable than the upper end.}
 \end{minipage}
 \end{table}
 
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/paper_transition_event_locations.pdf}
-\caption{Turning-event locations for the five fixed criteria. Gray shading, where present, is the frozen CV-derived descriptive transition span and is not a selected or recommended penalty interval.}
+\caption{\oldtext{Turning-event locations for the five fixed criteria. Gray shading, where present, is the frozen CV-derived descriptive transition span and is not a selected or recommended penalty interval.}\latesttext{Turning-event locations for the five fixed prediction/COD criteria. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span; they are not a selected or recommended penalty interval.}}
 \label{fig:transition_event_locations}
 \end{figure}
 
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/vertical_equity_event_locations.pdf}
+\caption{\latesttext{Closest-to-neutral observed-grid locations for PRD, PRB, MKI, and VEI. Gray fill and dashed vertical boundaries mark the already-frozen five-primary-metric CV-derived descriptive transition span; these events do not redefine that span and do not select $\rho$.}}
+\label{fig:vertical_equity_event_locations}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/mechanism_event_locations.pdf}
+\caption{\latesttext{Mechanism turning-event locations corresponding to minimum $|\beta_{\log}|$ and minimum dCor. Gray fill and dashed vertical boundaries mark the frozen five-primary-metric CV-derived descriptive transition span as context only. No CV $\Delta_{\mathrm{NL}}$ event is shown because $\Delta_{\mathrm{NL}}$ was not computed retrospectively for chronological CV. These events do not define a selected or recommended range.}}
+\label{fig:mechanism_event_locations}
+\end{figure}
+
+\begin{oldrevisionblock}
 \begin{table}[!htbp]
 \centering
 \scriptsize
 \setlength{\tabcolsep}{2.6pt}
 \renewcommand{\arraystretch}{1.08}
 \caption{\oldtext{Value-based cost of restricting the Direct out-of-time paths to the frozen CV-derived descriptive span. No small/large regret threshold is imposed.}}
-\label{tab:transition_regret}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrrrrr}
 \toprule
@@ -3821,28 +3838,83 @@ No $\rho$ is selected.
 \oldtext{\emph{Notes.} This Direct-only table belongs to the v1 span analysis. Its values are not carried forward as final v2 evidence because the final augmented experiment gives both families valid CV spans and therefore requires the regret diagnostic to be regenerated symmetrically.}
 \end{minipage}
 \end{table}
-\todo{Optional value-based portability check: only restore a span-regret table if the same deterministic v2 calculation is generated for both Direct and Surrogate using their own frozen family-specific CV spans. The crossed-out Direct-only v1 table above is revision history and must not be used in the clean manuscript. Exact concordance is sufficient for the current descriptive transition result, so do not delay the paper solely to recreate this optional diagnostic.}
+\end{oldrevisionblock}
+
+{\color{latestPurple}
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{Value-based cost of restricting each out-of-time path to its family-specific frozen CV-derived descriptive transition span. No materiality threshold is imposed.}
+\label{tab:transition_regret}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrr}
+\toprule
+Family & Metric & $\rho^{*}$ & $\rho_{\mathrm{span}}$ & raw regret & norm.\ regret & $\log_{10}$ dist. \\
+\midrule
+\multicolumn{7}{l}{\textit{Panel A: Held-out evaluation}} \\
+\addlinespace[2pt]
+Direct & $R^2_P$ & 3.393 & 1.099 & 0.0018 & 0.056 & 0.490 \\
+Direct & $\operatorname{MAE}_P$ & 1.931 & 0.829 & \$485 & 0.044 & 0.245 \\
+Direct & $\operatorname{MAPE}_P$ & 1.265 & 0.829 & 0.033 pp & 0.011 & 0.061 \\
+Direct & $\operatorname{RMSE}_{\log P}$ & 0.0160 & 0.0569 & 0.000461 & 0.013 & 0.490 \\
+Direct & COD & 1.265 & 1.099 & 0.01451 & 0.005 & 0.061 \\
+Surrogate & $R^2_P$ & 2.947 & 0.954 & 0.0004 & 0.042 & 0.490 \\
+Surrogate & $\operatorname{MAE}_P$ & 0.0494 & 0.0494 & \$0 & 0 & 0 \\
+Surrogate & $\operatorname{MAPE}_P$ & 1.265 & 0.954 & 0.001 pp & 0.001 & 0.122 \\
+Surrogate & $\operatorname{RMSE}_{\log P}$ & 0.00168 & 0.00391 & 0 & 0.000 & 0.122 \\
+Surrogate & COD & 1.265 & 0.954 & 0.01622 & 0.007 & 0.122 \\
+\midrule
+\multicolumn{7}{l}{\textit{Panel B: 2025 forward evaluation}} \\
+\addlinespace[2pt]
+Direct & $R^2_P$ & 1.931 & 1.099 & 0.0014 & 0.037 & 0.245 \\
+Direct & $\operatorname{MAE}_P$ & 2.560 & 1.099 & \$289 & 0.023 & 0.367 \\
+Direct & $\operatorname{MAPE}_P$ & 2.223 & 0.309 & 0.052 pp & 0.020 & 0.306 \\
+Direct & $\operatorname{RMSE}_{\log P}$ & 0.0121 & 0.625 & 0.000108 & 0.004 & 0.612 \\
+Direct & COD & 2.223 & 0.309 & 0.06171 & 0.027 & 0.306 \\
+Surrogate & $R^2_P$ & 2.947 & 0.954 & 0.0008 & 0.083 & 0.490 \\
+Surrogate & $\operatorname{MAE}_P$ & 0.115 & 0.115 & \$0 & 0 & 0 \\
+Surrogate & $\operatorname{MAPE}_P$ & 1.456 & 0.954 & 0.095 pp & 0.057 & 0.184 \\
+Surrogate & $\operatorname{RMSE}_{\log P}$ & 0.00193 & 0.00222 & 0.000157 & 0.003 & 0.061 \\
+Surrogate & COD & 1.456 & 0.829 & 0.09823 & 0.053 & 0.184 \\
+\bottomrule
+\end{tabular}}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+Each family is restricted to its own frozen CV-derived descriptive transition span.
+Normalized regret is raw regret divided by the full-path metric range when that range is nonzero.
+Zero means the out-of-time global observed-grid optimum is available within the frozen span.
+Exact event concordance and value-based regret answer different questions.
+No interpolation, near-optimality tolerance, or materiality threshold is imposed, and no $\rho$ is selected.
+\end{minipage}
+\end{table}
+}
 
 \oldtext{Exact event concordance is deliberately interpreted jointly with Table~\ref{tab:transition_regret}: a turning point can move outside the CV interval even when the best value available inside the interval is close to the global discrete-grid optimum. Event-sharpness diagnostics are retained in the machine-readable replication package to document this issue without defining a post-hoc near-optimality tolerance.}
-\latesttext{Exact event concordance is used here only as a strict location diagnostic. Event-sharpness diagnostics remain in the machine-readable replication package rather than being promoted to an additional selection rule.}
+\oldtext{Exact event concordance is used here only as a strict location diagnostic. Event-sharpness diagnostics remain in the machine-readable replication package rather than being promoted to an additional selection rule.}
+\latesttext{Exact event concordance is used here only as a strict location diagnostic. Machine-readable event-sharpness diagnostics document flat versus sharp events without defining a near-optimality tolerance or a new $\rho$ interval.}
 
 \oldtext{The appendix previously included a separate PRB/MKI-versus-$R^2_P$ companion figure.}
 \latesttext{That standalone companion is removed from the active presentation because PRB and MKI now appear in the four-metric main accuracy--equity figure and in the complete appendix tradeoff atlas.}
 
 \subsection{Prediction, Valuation-Level, and Horizontal-Uniformity Paths}
 
-\latesttext{Throughout the $\rho$-evolution figures below, gray shading denotes the family-specific CV-derived descriptive transition span when one exists. It is a path-description aid, not a selected, safe, preferred, or recommended penalty interval.}
+\oldtext{Throughout the $\rho$-evolution figures below, gray shading denotes the family-specific CV-derived descriptive transition span when one exists. It is a path-description aid, not a selected, safe, preferred, or recommended penalty interval.}
+\latesttext{Throughout the $\rho$-evolution figures below, gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span when one exists. It is a path-description aid, not a selected, safe, preferred, or recommended penalty interval.}
 
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.7\textwidth]{img/generated_v12_994/predictive_metric_paths.pdf}\\[2mm]
 \safeincludegraphics[width=0.7\textwidth]{img/generated_v12_994/level_uniformity_paths.pdf}
-\caption{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Gray shading, where present, is the CV-derived descriptive transition span.}
+\caption{\oldtext{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Gray shading, where present, is the CV-derived descriptive transition span.}\latesttext{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Valuation-level panels include the ratio $=1$ reference.}}
 \label{fig:other_metric_paths_placeholder}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vertical_equity_metric_paths.pdf}
-\caption{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Gray shading, where present, is the CV-derived descriptive transition span.}
+\caption{\oldtext{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Gray shading, where present, is the CV-derived descriptive transition span.}\latesttext{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}}
 \label{fig:vertical_equity_metric_paths}
 \end{figure}
 
@@ -3877,47 +3949,47 @@ Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
 \latesttext{That summary figure is removed from the active presentation because the comprehensive fold figures immediately below now report prediction, valuation level and horizontal uniformity, vertical equity, and mechanism paths separately for all available CV metrics.}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_predictive_metric_paths.pdf}
-\caption{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). Gray shading, where present, is the CV-derived descriptive transition span.}
+\caption{\oldtext{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). Gray shading, where present, is the CV-derived descriptive transition span.}\latesttext{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span.}}
 \label{fig:cv_predictive_metric_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_level_uniformity_paths.pdf}
-\caption{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick).}
+\caption{\oldtext{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick).}\latesttext{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick). Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Valuation-level panels include the ratio $=1$ reference.}}
 \label{fig:cv_level_uniformity_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_vertical_equity_metric_paths.pdf}
-\caption{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick).}
+\caption{\oldtext{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick).}\latesttext{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick). Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}}
 \label{fig:cv_vertical_equity_metric_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_mechanism_metric_paths.pdf}
-\caption{Chronological-fold mechanism paths for $\beta_{\log}$ and distance correlation (thin gray) and equal-weight CV means (thick). $\Delta_{\mathrm{NL}}$ is not shown because it is not computed for CV.}
+\caption{\oldtext{Chronological-fold mechanism paths for $\beta_{\log}$ and distance correlation (thin gray) and equal-weight CV means (thick). $\Delta_{\mathrm{NL}}$ is not shown because it is not computed for CV.}\latesttext{Chronological-fold mechanism paths for $\beta_{\log}$ and distance correlation (thin gray) and equal-weight CV means (thick). The $\beta_{\log}=0$ line is a first-order neutrality reference; dCor is not given an assessor-style zero target. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. $\Delta_{\mathrm{NL}}$ is not shown because it is not computed for CV.}}
 \label{fig:cv_mechanism_metric_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/ratio_shape_cv_transition_span_only.pdf}
-\caption{Ratio-shape profiles restricted to the prespecified display anchors that lie inside each family's frozen CV-derived descriptive transition span. Families without a valid common positive span show no penalized curves.}
+\caption{\oldtext{Ratio-shape profiles restricted to the prespecified display anchors that lie inside each family's frozen CV-derived descriptive transition span. Families without a valid common positive span show no penalized curves.}\latesttext{Ratio-shape profiles restricted to the prespecified display anchors that lie inside each family's frozen CV-derived descriptive transition span. The horizontal line at 1 is the principal neutrality reference; lines at 0.9 and 1.1 are aggregate appraisal-level reference guides and are not binwise acceptance criteria.}}
 \label{fig:ratio_shape_cv_transition_span_only}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_equity_vs_accuracy_heldout.pdf}
-\caption{Held-out assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths.}
+\caption{\oldtext{Held-out assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths.}\latesttext{Held-out assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims.}}
 \label{fig:tradeoff_equity_vs_accuracy_heldout}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_equity_vs_accuracy_2025.pdf}
-\caption{2025 assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths.}
+\caption{\oldtext{2025 assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths.}\latesttext{2025 assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims.}}
 \label{fig:tradeoff_equity_vs_accuracy_2025}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_mechanism_vs_accuracy_heldout.pdf}
-\caption{Held-out mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical).}
+\caption{\oldtext{Held-out mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical).}\latesttext{Held-out mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical). The dotted vertical line at $\beta_{\log}=0$ is a first-order neutrality reference where applicable; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets.}}
 \label{fig:tradeoff_mechanism_vs_accuracy_heldout}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_mechanism_vs_accuracy_2025.pdf}
-\caption{2025 mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical).}
+\caption{\oldtext{2025 mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical).}\latesttext{2025 mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical). The dotted vertical line at $\beta_{\log}=0$ is a first-order neutrality reference where applicable; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets.}}
 \label{fig:tradeoff_mechanism_vs_accuracy_2025}
 \end{figure}
 
@@ -3935,7 +4007,8 @@ Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
 
 % \oldtext{A replication package for the CCAO application should contain the complete penalty grid; fold-level, held-out, and forward predictions for every valid configuration; the frozen baseline hyperparameters and configuration hash; the ordinary LightGBM and custom-objective $\rho=0$ prediction-parity audit for both out-of-time splits; the fixed cross-fitted $\Delta_{\mathrm{NL}}$ estimator specification and resulting values; and the complete primary centered-recalibration validation record and predictions.}
 \oldtext{The planned CCAO replication package should contain the complete penalty grid; fold-level, held-out, and forward predictions for every valid configuration; the fixed baseline hyperparameters and configuration hash; the ordinary-LightGBM/custom-objective $\rho=0$ parity audit; the fixed $\Delta_{\mathrm{NL}}$ estimator specification and resulting values; and the complete centered-recalibration validation record and predictions.}
-\newtext{The planned CCAO replication package should contain the complete penalty grid; fold-level, held-out, and forward predictions for every valid configuration; the fixed baseline hyperparameters and configuration hash; the ordinary-LightGBM/custom-objective $\rho=0$ parity audit; and the fixed $\Delta_{\mathrm{NL}}$ estimator specification and resulting values.} \oldtext{It should also archive the frozen transition-analysis protocol and status files, exact event tables, fold and leave-one-fold-out summaries, Direct span-regret and event-sharpness tables, the canonical paper-asset manifest, and hashes linking those outputs to the same 994-tree data/configuration/split identity.}\latesttext{It should also archive the original and augmented grid manifests and hashes, the v2 CV-freeze status, exact family-specific event tables, fold and leave-one-fold-out summaries, retrospective concordance outputs, event-sharpness diagnostics, any regenerated family-symmetric span-regret table, the canonical paper-asset manifest, and hashes linking all v2 outputs to the same 994-tree data/configuration/split identity.} Before operational use, the same analysis should report block-bootstrap intervals and ratio curves by township, property class, value range, and time. These outputs separate model-selection uncertainty, implementation effects, and local variation.
+\newtext{The planned CCAO replication package should contain the complete penalty grid; fold-level, held-out, and forward predictions for every valid configuration; the fixed baseline hyperparameters and configuration hash; the ordinary-LightGBM/custom-objective $\rho=0$ parity audit; and the fixed $\Delta_{\mathrm{NL}}$ estimator specification and resulting values.} \oldtext{It should also archive the frozen transition-analysis protocol and status files, exact event tables, fold and leave-one-fold-out summaries, Direct span-regret and event-sharpness tables, the canonical paper-asset manifest, and hashes linking those outputs to the same 994-tree data/configuration/split identity.}\oldtext{It should also archive the original and augmented grid manifests and hashes, the v2 CV-freeze status, exact family-specific event tables, fold and leave-one-fold-out summaries, retrospective concordance outputs, event-sharpness diagnostics, any regenerated family-symmetric span-regret table, the canonical paper-asset manifest, and hashes linking all v2 outputs to the same 994-tree data/configuration/split identity.}
+\latesttext{It should also archive the original and augmented grid manifests and hashes, the v2 CV-freeze status, exact family-specific event tables, fold and leave-one-fold-out summaries, retrospective concordance outputs, the completed v3 artifacts \texttt{transition\_oos\_span\_regret\_v3}, \texttt{transition\_lofo\_endpoint\_summary\_v3}, \texttt{vertical\_equity\_event\_locations}, \texttt{mechanism\_event\_locations}, and \texttt{event\_sharpness\_summary\_v3}, the v3 figure QA manifest, the canonical paper-asset manifest, and hashes linking all v2/v3 outputs to the same 994-tree data/configuration/split identity.} Before operational use, the same analysis should report block-bootstrap intervals and ratio curves by township, property class, value range, and time. These outputs separate model-selection uncertainty, implementation effects, and local variation.
 \todo{Before submission, verify which listed artifacts are actually included in the released replication package. If all are archived, replace ``should contain'' with an assertive description; otherwise delete items that are not released rather than promising them.}
 
 \oldtext{Exploratory ATTOM Benchmark and Recalibration}
