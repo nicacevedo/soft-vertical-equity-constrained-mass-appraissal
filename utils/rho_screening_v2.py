@@ -562,6 +562,8 @@ def cluster_predictive_events(
     x: np.ndarray,
     rho: np.ndarray,
     h: float,
+    *,
+    empty_status: str = "DIRECT_GUARDRAIL_AMBIGUOUS",
 ) -> Dict[str, Any]:
     pts: List[Tuple[int, str, float]] = []
     for m, ev in events.items():
@@ -579,7 +581,7 @@ def cluster_predictive_events(
             "guardrail_rho": None,
             "guardrail_x": None,
             "metrics": [],
-            "status": "DIRECT_GUARDRAIL_AMBIGUOUS",
+            "status": empty_status,
         }
     clusters: List[List[Tuple[int, str, float]]] = []
     cur = [pts[0]]
@@ -612,7 +614,7 @@ def cluster_predictive_events(
             "guardrail_rho": None,
             "guardrail_x": None,
             "metrics": [],
-            "status": "DIRECT_GUARDRAIL_AMBIGUOUS",
+            "status": empty_status,
         }
     gidx = min(i for i, _m, _x in qualifying["members"])
     return {
@@ -636,6 +638,166 @@ def cluster_predictive_events(
         "guardrail_x": float(x[gidx]),
         "metrics": qualifying["metrics"],
         "status": "OK",
+    }
+
+
+def advantage_exhausted(metric: str, value: float, value_at_rho0: float) -> bool:
+    """True when a lower-is-better metric is at/above rho=0, or R^2 is at/below rho=0."""
+    v = float(value)
+    v0 = float(value_at_rho0)
+    if not (np.isfinite(v) and np.isfinite(v0)):
+        return False
+    if metric in HIGHER_BETTER_RAW:
+        return v <= v0 + EPS
+    return v >= v0 - EPS
+
+
+def predictive_harm_event(
+    rho: np.ndarray,
+    x: np.ndarray,
+    values: np.ndarray,
+    value_at_rho0: float,
+    det_index: Optional[int],
+    metric: str,
+) -> Dict[str, Any]:
+    """First observed positive-rho grid point at/after a supported deterioration
+    breakpoint where advantage vs the within-family rho=0 origin is exhausted.
+
+    Does not interpolate a crossing. Does not recompute the deterioration breakpoint.
+    """
+    rho = np.asarray(rho, dtype=float)
+    x = np.asarray(x, dtype=float)
+    values = np.asarray(values, dtype=float)
+    abstain: Dict[str, Any] = {
+        "event": None,
+        "rho": None,
+        "index": None,
+        "x": None,
+        "raw_path_qa": None,
+        "classification": "INVALID",
+        "reason": None,
+        "metric": metric,
+        "role": "predictive_harm",
+        "deterioration_index": None if det_index is None else int(det_index),
+        "qa": None,
+    }
+    if det_index is None:
+        abstain["reason"] = "no_supported_deterioration_breakpoint"
+        return abstain
+    i_det = int(det_index)
+    n = int(values.size)
+    harm_idx = None
+    for j in range(i_det, n):
+        if advantage_exhausted(metric, values[j], value_at_rho0):
+            harm_idx = j
+            break
+    if harm_idx is None:
+        abstain["reason"] = "advantage_never_exhausted"
+        return abstain
+    y_cost = predictive_cost(metric, values, value_at_rho0)
+    still_worse_than_bend = bool(y_cost[harm_idx] >= y_cost[i_det] - EPS)
+    if not still_worse_than_bend:
+        abstain["reason"] = "not_in_worsening_regime"
+        abstain["index"] = int(harm_idx)
+        return abstain
+    window_end = min(n - 1, harm_idx + RAW_NEIGHBOR_STEPS)
+    win = values[harm_idx : window_end + 1]
+    if win.size < 2:
+        abstain["reason"] = "isolated_terminal_crossing"
+        abstain["index"] = int(harm_idx)
+        return abstain
+    n_stay = int(sum(1 for v in win if advantage_exhausted(metric, float(v), value_at_rho0)))
+    stay_majority = n_stay > win.size / 2.0
+    qa = raw_path_qa(x, y_cost, harm_idx, want_positive=True)
+    isolated = bool(qa.get("post_majority", {}).get("isolated", True)) and not stay_majority
+    recovering = np.isfinite(qa.get("raw_post_slope", float("nan"))) and float(qa["raw_post_slope"]) < -EPS
+    if isolated or (not stay_majority) or recovering:
+        abstain["reason"] = "isolated_or_unsustained_baseline_crossing"
+        abstain["index"] = int(harm_idx)
+        abstain["qa"] = qa
+        abstain["raw_path_qa"] = "ambiguous"
+        return abstain
+    return {
+        "event": "predictive_harm",
+        "rho": float(rho[harm_idx]),
+        "index": int(harm_idx),
+        "x": float(x[harm_idx]),
+        "raw_path_qa": "supported",
+        "classification": "VALID",
+        "reason": "advantage_exhausted_after_deterioration",
+        "metric": metric,
+        "role": "predictive_harm",
+        "deterioration_index": i_det,
+        "qa": qa,
+        "n_window_exhausted": n_stay,
+        "window_size": int(win.size),
+    }
+
+
+def nl_caution_eligible(dnl: Optional[Dict[str, Any]], nl_lofo_stable: Optional[bool] = None) -> bool:
+    """Supported, raw-QA-supported post-valley Delta_NL rebound. LOFO is required
+    when a stability flag is supplied; synthetics may omit it.
+    """
+    rec = dnl or {}
+    ok = rec.get("event") == "nonlinear_rebound" and rec.get("raw_path_qa") == "supported" and rec.get("index") is not None
+    if nl_lofo_stable is not None:
+        ok = bool(ok and nl_lofo_stable)
+    return bool(ok)
+
+
+def surrogate_upper_guardrail(
+    *,
+    harm_cluster: Dict[str, Any],
+    nl_event: Optional[Dict[str, Any]],
+    harm_lofo_stable: Optional[bool] = None,
+    nl_lofo_stable: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """Final Surrogate upper guardrail: min of predictive-harm and NL-caution.
+
+    Predictive-bend clusters are not eligible. If neither event qualifies,
+    return SURROGATE_GUARDRAIL_AMBIGUOUS rather than falling back to the bend.
+    """
+    harm_ok = harm_cluster.get("guardrail_index") is not None and harm_cluster.get("status") == "OK"
+    if harm_lofo_stable is not None:
+        harm_ok = bool(harm_ok and harm_lofo_stable)
+    nl_ok = nl_caution_eligible(nl_event, nl_lofo_stable)
+    cands: List[Dict[str, Any]] = []
+    if harm_ok:
+        cands.append(
+            {
+                "index": int(harm_cluster["guardrail_index"]),
+                "rho": float(harm_cluster["guardrail_rho"]),
+                "driver": "predictive-harm",
+            }
+        )
+    if nl_ok:
+        cands.append(
+            {
+                "index": int(nl_event["index"]),
+                "rho": float(nl_event["rho"]),
+                "driver": "nonlinear-structure-caution",
+            }
+        )
+    if not cands:
+        return {
+            "rho_guardrail": None,
+            "index_guardrail": None,
+            "guardrail_driver": None,
+            "status_name": "SURROGATE_GUARDRAIL_AMBIGUOUS",
+            "predictive_harm_eligible": False,
+            "nl_caution_eligible": False,
+            "nl_caution_status": "AMBIGUOUS",
+        }
+    chosen = min(cands, key=lambda c: (float(c["rho"]), int(c["index"])))
+    return {
+        "rho_guardrail": chosen["rho"],
+        "index_guardrail": chosen["index"],
+        "guardrail_driver": chosen["driver"],
+        "status_name": "OK",
+        "predictive_harm_eligible": bool(harm_ok),
+        "nl_caution_eligible": bool(nl_ok),
+        "nl_caution_status": "NL_CAUTION" if nl_ok else "AMBIGUOUS",
+        "candidates": cands,
     }
 
 
@@ -751,6 +913,23 @@ def screen_positive_path(
         cod_event["role"] = "uniformity_support"
     act = activity_onset(rho, benefit_events)
     cluster = cluster_predictive_events(pred_events, x, rho, h)
+    harm_events: Dict[str, Dict[str, Any]] = {}
+    for m in PREDICTIVE_COST_METRICS:
+        harm_events[m] = predictive_harm_event(
+            rho,
+            x,
+            np.asarray(predictive_raw[m], dtype=float),
+            float(predictive_rho0[m]),
+            pred_events[m].get("index"),
+            m,
+        )
+    harm_cluster = cluster_predictive_events(
+        harm_events,
+        x,
+        rho,
+        h,
+        empty_status="NO_PREDICTIVE_HARM_CLUSTER",
+    )
     dnl = None
     if delta_nl is not None:
         y_nl = np.asarray(delta_nl, dtype=float)
@@ -772,6 +951,10 @@ def screen_positive_path(
         "predictive_cluster": cluster,
         "rho_predictive_guardrail": cluster.get("guardrail_rho"),
         "index_predictive_guardrail": cluster.get("guardrail_index"),
+        "predictive_harm_events": harm_events,
+        "predictive_harm_cluster": harm_cluster,
+        "rho_predictive_harm_guardrail": harm_cluster.get("guardrail_rho"),
+        "index_predictive_harm_guardrail": harm_cluster.get("guardrail_index"),
         "delta_nl": dnl,
         "dcor": dcor_cls,
         "cluster_width": None if not np.isfinite(h) else CLUSTER_WIDTH_H_MULT * h,

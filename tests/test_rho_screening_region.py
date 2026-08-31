@@ -22,6 +22,7 @@ from utils.rho_screening_v2 import (  # noqa: E402
     min_segment_points,
     screen_positive_path,
     select_pwl,
+    surrogate_upper_guardrail,
 )
 
 
@@ -67,6 +68,10 @@ def _predictive_bundle(
     }
     rho0 = {"R2_price": r2_0, "MAE_price": mae_0, "MAPE": mape_0, "RMSE_log": rmse_0}
     return raw, rho0
+
+
+def _interp_path(x: np.ndarray, x_knots: list, y_knots: list) -> np.ndarray:
+    return np.interp(x, np.asarray(x_knots, dtype=float), np.asarray(y_knots, dtype=float))
 
 
 def test_min_segment_is_grid_length_rule():
@@ -179,6 +184,105 @@ def test_one_segment_available_when_grid_is_short():
     assert two["available"] is False
 
 
+def test_d_surrogate_nl_caution_binds_not_early_bend():
+    """Early predictive bend while still better than rho=0; NL rebound next; harm later.
+
+    The early bend must not bind. Stable NL caution must bind. Scale-equivariant indices.
+    """
+    rho = _geo_rho(n=40, start=0.005, ratio=1.20)
+    x = log10_rho(rho)
+    onset_x = x[6]
+    sat_x = x[34]
+    benefit = _benefit_bundle(x, onset_x, sat_x)
+    r2_0, mae_0, mape_0, rmse_0 = 0.90, 100.0, 0.20, 0.30
+    pred_raw = {
+        "R2_price": _interp_path(x, [x[0], x[10], x[28], x[-1]], [0.925, 0.96, 0.90, 0.84]),
+        "MAE_price": _interp_path(x, [x[0], x[10], x[28], x[-1]], [95.0, 88.0, 100.0, 118.0]),
+        "MAPE": _interp_path(x, [x[0], x[32], x[-1]], [0.18, 0.185, 0.22]),
+        "RMSE_log": _interp_path(x, [x[0], x[32], x[-1]], [0.27, 0.275, 0.34]),
+    }
+    pred0 = {"R2_price": r2_0, "MAE_price": mae_0, "MAPE": mape_0, "RMSE_log": rmse_0}
+    dnl = _pwl(x, [x[8], x[18]], [0.01, -0.45, 0.60], 0.22)
+    out = screen_positive_path(
+        rho,
+        benefit_raw=benefit,
+        predictive_raw=pred_raw,
+        predictive_rho0=pred0,
+        delta_nl=dnl,
+    )
+    bend_idx = out["index_predictive_guardrail"]
+    nl_idx = out["delta_nl"]["index"]
+    harm_idx = out["index_predictive_harm_guardrail"]
+    assert bend_idx is not None
+    assert nl_idx is not None
+    assert out["delta_nl"]["event"] == "nonlinear_rebound"
+    assert out["delta_nl"]["raw_path_qa"] == "supported"
+    assert bend_idx < int(nl_idx)
+    if harm_idx is not None:
+        assert int(harm_idx) > int(nl_idx)
+    final = surrogate_upper_guardrail(
+        harm_cluster=out["predictive_harm_cluster"],
+        nl_event=out["delta_nl"],
+    )
+    assert final["guardrail_driver"] == "nonlinear-structure-caution"
+    assert final["index_guardrail"] == int(nl_idx)
+    assert final["index_guardrail"] != bend_idx
+
+    scaled = rho * SCALE_EQUIVARIANCE_FACTOR
+    out_s = screen_positive_path(
+        scaled,
+        benefit_raw=benefit,
+        predictive_raw=pred_raw,
+        predictive_rho0=pred0,
+        delta_nl=dnl,
+    )
+    final_s = surrogate_upper_guardrail(
+        harm_cluster=out_s["predictive_harm_cluster"],
+        nl_event=out_s["delta_nl"],
+    )
+    assert out_s["index_predictive_guardrail"] == bend_idx
+    assert out_s["delta_nl"]["index"] == nl_idx
+    assert out_s["index_predictive_harm_guardrail"] == harm_idx
+    assert final_s["index_guardrail"] == final["index_guardrail"]
+    assert final_s["guardrail_driver"] == "nonlinear-structure-caution"
+
+
+def test_e_surrogate_predictive_harm_binds_before_nl():
+    """Predictive harm occurs before any Delta_NL rebound and must bind."""
+    rho = _geo_rho(n=40, start=0.004, ratio=1.19)
+    x = log10_rho(rho)
+    onset_x = x[6]
+    sat_x = x[34]
+    benefit = _benefit_bundle(x, onset_x, sat_x)
+    r2_0, mae_0, mape_0, rmse_0 = 0.90, 100.0, 0.20, 0.30
+    pred_raw = {
+        "R2_price": _interp_path(x, [x[0], x[8], x[14], x[-1]], [0.915, 0.935, 0.90, 0.80]),
+        "MAE_price": _interp_path(x, [x[0], x[8], x[14], x[-1]], [96.0, 90.0, 100.0, 135.0]),
+        "MAPE": _interp_path(x, [x[0], x[30], x[-1]], [0.18, 0.185, 0.23]),
+        "RMSE_log": _interp_path(x, [x[0], x[30], x[-1]], [0.27, 0.275, 0.36]),
+    }
+    pred0 = {"R2_price": r2_0, "MAE_price": mae_0, "MAPE": mape_0, "RMSE_log": rmse_0}
+    dnl = _pwl(x, [x[8], x[30]], [0.01, -0.45, 0.60], 0.22)
+    out = screen_positive_path(
+        rho,
+        benefit_raw=benefit,
+        predictive_raw=pred_raw,
+        predictive_rho0=pred0,
+        delta_nl=dnl,
+    )
+    harm_idx = out["index_predictive_harm_guardrail"]
+    nl_idx = out["delta_nl"]["index"]
+    assert harm_idx is not None
+    assert nl_idx is not None
+    assert int(harm_idx) < int(nl_idx)
+    final = surrogate_upper_guardrail(
+        harm_cluster=out["predictive_harm_cluster"],
+        nl_event=out["delta_nl"],
+    )
+    assert final["guardrail_driver"] == "predictive-harm"
+    assert final["index_guardrail"] == int(harm_idx)
+
+
 def run_all() -> dict:
     results = []
     ok = True
@@ -188,6 +292,8 @@ def run_all() -> dict:
         ("B_surrogate_like_scale", test_b_surrogate_like_nl_from_shape_and_scale_equivariance),
         ("C_no_pathology", test_c_no_pathology_does_not_invent_guardrail),
         ("short_grid", test_one_segment_available_when_grid_is_short),
+        ("D_nl_caution_not_early_bend", test_d_surrogate_nl_caution_binds_not_early_bend),
+        ("E_predictive_harm_before_nl", test_e_surrogate_predictive_harm_binds_before_nl),
     ]:
         rec = {"name": name, "pass": False, "error": None}
         try:
