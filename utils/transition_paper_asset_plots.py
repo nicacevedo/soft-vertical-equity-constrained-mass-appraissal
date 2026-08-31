@@ -75,11 +75,20 @@ def name_col(df: pd.DataFrame) -> str:
     return "model_name" if "model_name" in df.columns else "model"
 
 
-def find_pred_file(result_root: Path, config_id: str, shard: str) -> Path:
-    matches = list((result_root / "reporting_preview").glob(f"**/{shard}/{config_id}.parquet"))
-    if not matches:
-        raise FileNotFoundError(f"no {shard} parquet for {config_id}")
-    return matches[0]
+def find_pred_file(
+    result_root: Path,
+    config_id: str,
+    shard: str,
+    extra_roots: Sequence[Path] = (),
+) -> Path:
+    roots = [Path(result_root), *[Path(r) for r in extra_roots]]
+    searched: List[str] = []
+    for root in roots:
+        matches = list((root / "reporting_preview").glob(f"**/{shard}/{config_id}.parquet"))
+        if matches:
+            return matches[0]
+        searched.append(str(root))
+    raise FileNotFoundError(f"no {shard} parquet for {config_id} in {searched}")
 
 
 def combined_row(combined: pd.DataFrame, family: str, rho: Optional[float] = None) -> pd.Series:
@@ -109,10 +118,17 @@ def load_baseline_split(result_root: Path, split: str) -> pd.DataFrame:
     return load_pred(baseline_dir(result_root) / fname)
 
 
-def load_oos_pred(result_root: Path, combined: pd.DataFrame, family: str, rho: float, evaluation: str) -> pd.DataFrame:
+def load_oos_pred(
+    result_root: Path,
+    combined: pd.DataFrame,
+    family: str,
+    rho: float,
+    evaluation: str,
+    extra_roots: Sequence[Path] = (),
+) -> pd.DataFrame:
     row = combined_row(combined, family, rho)
     shard = "test_run_predictions" if evaluation == "heldout" else "assess_run_predictions"
-    return load_pred(find_pred_file(result_root, str(row["config_id"]), shard))
+    return load_pred(find_pred_file(result_root, str(row["config_id"]), shard, extra_roots=extra_roots))
 
 
 def fmt_rho(x: float) -> str:

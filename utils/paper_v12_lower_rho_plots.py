@@ -21,12 +21,27 @@ from utils.transition_paper_asset_plots import (
     metric_val,
     padded_lim,
 )
-from utils.transition_paper_assets import IAAO_PRB_RANGE, IAAO_PRD_RANGE, IAAO_VEI_RANGE, ratio_shape_anchors
+from utils.transition_paper_assets import (
+    IAAO_PRB_RANGE,
+    IAAO_PRD_RANGE,
+    IAAO_VEI_RANGE,
+    decade_ratio_shape_anchors,
+    ratio_shape_anchors,
+)
 from utils.transition_regions import FOLD_IDS, PRIMARY_METRICS, family_frame, is_rho_zero, numerically_equal
 
 SPAN_FACE = "#9CA3AF"
 SPAN_ALPHA = 0.15
 SPAN_DASH = dict(color="#6B7280", ls=(0, (3.0, 2.2)), lw=0.75, alpha=0.9, zorder=1)
+# v4 two-band styling (used only when two_band=True / FINAL_BEND_STATUS=PASS)
+PRED_COD_SPAN_FACE = "#94A3B8"
+PRED_COD_SPAN_ALPHA = 0.16
+PRED_COD_SPAN_DASH = dict(color="#64748B", ls=(0, (3.0, 2.2)), lw=0.85, alpha=0.95, zorder=1)
+BEND_SPAN_FACE = "#D6B56A"
+BEND_SPAN_ALPHA = 0.16
+BEND_SPAN_DASH = dict(color="#B45309", ls=(0, (3.0, 1.4, 0.8, 1.4)), lw=0.85, alpha=0.95, zorder=1)
+PRED_COD_SPAN_LABEL = "CV prediction/COD transition span"
+BEND_SPAN_LABEL = "Post-hoc CV equity/mechanism bend span"
 GRID_COLOR = "#D1D5DB"
 NEUTRAL_LINE = dict(color="#111827", ls=":", lw=1.05, zorder=3)
 IAAO_MKI_RANGE = (0.95, 1.05)
@@ -48,9 +63,11 @@ NEUTRAL_VLINE = {
     "Beta_log": 0.0,
 }
 
-# Okabe–Ito-inspired categorical mapping for the five display anchors.
+# Okabe–Ito-inspired categorical mapping for the five/six display anchors.
+# Historical keys 0/0.1/1/10/100 are unchanged; 0.01 is additive for v4 decade display.
 ANCHOR_COLOR = {
     0.0: "#000000",
+    0.01: "#CC79A7",
     0.1: "#0072B2",
     1.0: "#E69F00",
     10.0: "#009E73",
@@ -58,12 +75,22 @@ ANCHOR_COLOR = {
 }
 ANCHOR_STYLE = {
     0.0: ("-", "o"),
+    0.01: ((0, (1, 1.4)), "P"),
     0.1: ("--", "s"),
     1.0: ("-.", "D"),
     10.0: (":", "^"),
     100.0: ((0, (3, 1, 1, 1)), "v"),
 }
 ANCHOR_TARGETS = (0.0, 0.1, 1.0, 10.0, 100.0)
+DECADE_ANCHOR_TARGETS = (0.0, 0.01, 0.1, 1.0, 10.0, 100.0)
+DECADE_LEGEND_NOMINAL = {
+    0.0: r"$\rho$=0",
+    0.01: r"$\rho\approx0.01$",
+    0.1: r"$\rho$=0.1",
+    1.0: r"$\rho\approx1$",
+    10.0: r"$\rho\approx10$",
+    100.0: r"$\rho$=100",
+}
 
 
 def rho_plot_x(rho, *, min_positive: float, q: float) -> np.ndarray:
@@ -118,6 +145,68 @@ def shade_cv_span_with_bounds(ax, low: Optional[float], high: Optional[float]) -
         return
     ax.axvline(float(low), **SPAN_DASH)
     ax.axvline(float(high), **SPAN_DASH)
+
+
+def shade_pred_cod_span(ax, low: Optional[float], high: Optional[float]) -> None:
+    if low is None or high is None:
+        return
+    if not (np.isfinite(low) and np.isfinite(high)):
+        return
+    ax.axvspan(float(low), float(high), color=PRED_COD_SPAN_FACE, alpha=PRED_COD_SPAN_ALPHA, lw=0, zorder=0)
+    ax.axvline(float(low), **PRED_COD_SPAN_DASH)
+    ax.axvline(float(high), **PRED_COD_SPAN_DASH)
+
+
+def shade_bend_span(ax, low: Optional[float], high: Optional[float]) -> None:
+    if low is None or high is None:
+        return
+    if not (np.isfinite(low) and np.isfinite(high)):
+        return
+    ax.axvspan(float(low), float(high), color=BEND_SPAN_FACE, alpha=BEND_SPAN_ALPHA, lw=0, zorder=0)
+    ax.axvline(float(low), **BEND_SPAN_DASH)
+    ax.axvline(float(high), **BEND_SPAN_DASH)
+
+
+def family_bend_span(bend_df: Optional[pd.DataFrame], family: str) -> Tuple[Optional[float], Optional[float], bool]:
+    if bend_df is None or bend_df.empty:
+        return None, None, False
+    row = bend_df.loc[bend_df["family"] == family]
+    if row.empty:
+        return None, None, False
+    r = row.iloc[0]
+    status = str(r.get("status", r.get("classification", "")))
+    if status not in {"VALID", "VALID_POSITIVE_INTERIOR_SPAN", "PASS"}:
+        if not bool(r.get("valid", False)):
+            return None, None, False
+    low = r.get("rho_bend_low", r.get("rho_low"))
+    high = r.get("rho_bend_high", r.get("rho_high"))
+    if low is None or high is None or not (np.isfinite(float(low)) and np.isfinite(float(high))):
+        return None, None, False
+    return float(low), float(high), True
+
+
+def shade_spans_for_path(
+    ax,
+    pred_low: Optional[float],
+    pred_high: Optional[float],
+    pred_ok: bool,
+    *,
+    v3: bool = False,
+    two_band: bool = False,
+    bend_df: Optional[pd.DataFrame] = None,
+    family: Optional[str] = None,
+) -> None:
+    if two_band and pred_ok:
+        shade_pred_cod_span(ax, pred_low, pred_high)
+        blow, bhigh, bok = family_bend_span(bend_df, str(family))
+        if bok:
+            shade_bend_span(ax, blow, bhigh)
+        return
+    if pred_ok:
+        if v3:
+            shade_cv_span_with_bounds(ax, pred_low, pred_high)
+        else:
+            shade_cv_span(ax, pred_low, pred_high)
 
 
 def apply_major_grid(ax) -> None:
@@ -186,14 +275,14 @@ def family_span(span_df: pd.DataFrame, family: str) -> Tuple[Optional[float], Op
     return float(r["rho_transition_low"]), float(r["rho_transition_high"]), True
 
 
-def anchor_key(rho: float) -> float:
-    for t in ANCHOR_TARGETS:
+def anchor_key(rho: float, *, decade: bool = False) -> float:
+    targets = DECADE_ANCHOR_TARGETS if decade else ANCHOR_TARGETS
+    for t in targets:
         if abs(float(rho) - float(t)) < 1e-8 or (t == 0.0 and is_rho_zero(float(rho))):
             return float(t)
         if t > 0 and numerically_equal(float(rho), float(t), atol=1e-8, rtol=1e-8):
             return float(t)
-    # nearest display target
-    return float(min(ANCHOR_TARGETS, key=lambda t: abs(float(rho) - float(t))))
+    return float(min(targets, key=lambda t: abs(float(rho) - float(t))))
 
 
 def _save(plt, fig, stem: Path) -> List[str]:
@@ -208,7 +297,20 @@ def _save(plt, fig, stem: Path) -> List[str]:
     return [str(pdf), str(png)]
 
 
-def _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, *, mechanism=False, v3: bool = False):
+def _oos_path_figure(
+    plt,
+    combined,
+    span_df,
+    metrics,
+    min_positive,
+    q,
+    stem,
+    *,
+    mechanism=False,
+    v3: bool = False,
+    two_band: bool = False,
+    bend_span_df: Optional[pd.DataFrame] = None,
+):
     fig, axes = plt.subplots(len(metrics), 2, figsize=(8.8, 2.2 * len(metrics)), sharex=True)
     if len(metrics) == 1:
         axes = np.asarray([axes])
@@ -228,11 +330,9 @@ def _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, *, 
         for c, fam in enumerate(FAMILY_DISPLAY):
             ax = axes[r, c]
             low, high, ok = family_span(span_df, fam)
-            if ok:
-                if v3:
-                    shade_cv_span_with_bounds(ax, low, high)
-                else:
-                    shade_cv_span(ax, low, high)
+            shade_spans_for_path(
+                ax, low, high, ok, v3=v3, two_band=two_band, bend_df=bend_span_df, family=fam
+            )
             sub = combined.loc[combined["family"] == fam].sort_values("rho")
             color = DIRECT_COLOR if fam == "Direct" else SURR_COLOR
             x = rho_plot_x(sub["rho"].to_numpy(dtype=float), min_positive=min_positive, q=q)
@@ -255,22 +355,34 @@ def _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, *, 
             if r == len(metrics) - 1:
                 ax.set_xlabel(r"Penalty strength $\rho$")
             if r == 0 and c == 1:
-                ax.legend(frameon=False, fontsize=7, loc="best")
+                if two_band:
+                    from matplotlib.lines import Line2D
+                    from matplotlib.patches import Patch
+
+                    handles = [
+                        Line2D([0], [0], color=color, marker="o", lw=1.3, label="Held-out"),
+                        Line2D([0], [0], color=color, marker="s", ls="--", lw=1.2, label="2025"),
+                        Patch(facecolor=PRED_COD_SPAN_FACE, alpha=PRED_COD_SPAN_ALPHA, edgecolor="#64748B", linestyle="--", label=PRED_COD_SPAN_LABEL),
+                        Patch(facecolor=BEND_SPAN_FACE, alpha=BEND_SPAN_ALPHA, edgecolor="#B45309", linestyle="-.", label=BEND_SPAN_LABEL),
+                    ]
+                    ax.legend(handles=handles, frameon=False, fontsize=6.2, loc="best")
+                else:
+                    ax.legend(frameon=False, fontsize=7, loc="best")
     fig.tight_layout()
     return _save(plt, fig, stem)
 
 
-def plot_predictive(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
+def plot_predictive(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False, two_band: bool = False, bend_span_df: Optional[pd.DataFrame] = None):
     metrics = (
         ("R2_price", r"$R^2_P$", False, False),
         ("MAE_price", r"MAE$_P$", False, False),
         ("MAPE", r"MAPE$_P$ (\%)", False, False),
         ("RMSE_log", r"RMSE$_{\log P}$", False, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3, two_band=two_band, bend_span_df=bend_span_df)
 
 
-def plot_level_uniformity(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
+def plot_level_uniformity(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False, two_band: bool = False, bend_span_df: Optional[pd.DataFrame] = None):
     metrics = (
         ("median_ratio", "Median ratio", False, False),
         ("mean_ratio", "Mean ratio", False, False),
@@ -278,29 +390,42 @@ def plot_level_uniformity(plt, combined, span_df, min_positive, q, stem, *, v3: 
         ("COD", "COD", False, False),
         ("COV", "COV (\%)", False, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3, two_band=two_band, bend_span_df=bend_span_df)
 
 
-def plot_vertical_equity(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
+def plot_vertical_equity(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False, two_band: bool = False, bend_span_df: Optional[pd.DataFrame] = None):
     metrics = (
         ("PRD", "PRD", False, False),
         ("PRB", "PRB", True, False),
         ("MKI", "MKI", False, False),
         ("VEI", "VEI", True, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, v3=v3, two_band=two_band, bend_span_df=bend_span_df)
 
 
-def plot_mechanism(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False):
+def plot_mechanism(plt, combined, span_df, min_positive, q, stem, *, v3: bool = False, two_band: bool = False, bend_span_df: Optional[pd.DataFrame] = None):
     metrics = (
         ("Beta_log", r"$\beta_{\log}$", True, True),
         ("Delta_NL", r"$\Delta_{\mathrm{NL}}$", False, False),
         ("dCor_e_y", r"$\mathrm{dCor}(e,y)$", False, False),
     )
-    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, mechanism=True, v3=v3)
+    return _oos_path_figure(plt, combined, span_df, metrics, min_positive, q, stem, mechanism=True, v3=v3, two_band=two_band, bend_span_df=bend_span_df)
 
 
-def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mean: List[Dict[str, Any]], *, v3: bool = False):
+def plot_cv_group(
+    plt,
+    combined,
+    span_df,
+    metrics,
+    min_positive,
+    q,
+    stem,
+    qa_mean: List[Dict[str, Any]],
+    *,
+    v3: bool = False,
+    two_band: bool = False,
+    bend_span_df: Optional[pd.DataFrame] = None,
+):
     fig, axes = plt.subplots(len(metrics), 2, figsize=(8.8, 2.15 * len(metrics)), sharex=True)
     if len(metrics) == 1:
         axes = np.asarray([axes])
@@ -318,11 +443,9 @@ def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mea
         for c, fam in enumerate(FAMILY_DISPLAY):
             ax = axes[r, c]
             low, high, ok = family_span(span_df, fam)
-            if ok:
-                if v3:
-                    shade_cv_span_with_bounds(ax, low, high)
-                else:
-                    shade_cv_span(ax, low, high)
+            shade_spans_for_path(
+                ax, low, high, ok, v3=v3, two_band=two_band, bend_df=bend_span_df, family=fam
+            )
             sub = family_frame(combined, fam).sort_values("rho")
             x = rho_plot_x(sub["rho"].to_numpy(dtype=float), min_positive=min_positive, q=q)
             folds = []
@@ -352,11 +475,33 @@ def plot_cv_group(plt, combined, span_df, metrics, min_positive, q, stem, qa_mea
                 ax.set_ylabel(ylab)
             if r == len(metrics) - 1:
                 ax.set_xlabel(r"Penalty strength $\rho$")
+            if two_band and r == 0 and c == 1:
+                from matplotlib.lines import Line2D
+                from matplotlib.patches import Patch
+
+                handles = [
+                    Line2D([0], [0], color=color, lw=2.15, label="Equal-weight CV"),
+                    Line2D([0], [0], color="#9CA3AF", lw=0.85, alpha=0.75, label="Chronological folds"),
+                    Patch(facecolor=PRED_COD_SPAN_FACE, alpha=PRED_COD_SPAN_ALPHA, edgecolor="#64748B", linestyle="--", label=PRED_COD_SPAN_LABEL),
+                    Patch(facecolor=BEND_SPAN_FACE, alpha=BEND_SPAN_ALPHA, edgecolor="#B45309", linestyle="-.", label=BEND_SPAN_LABEL),
+                ]
+                ax.legend(handles=handles, frameon=False, fontsize=5.8, loc="best")
     fig.tight_layout()
     return _save(plt, fig, stem)
 
 
-def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, empty_note: Optional[str] = None, v3: bool = False):
+def _ratio_shape_core(
+    plt,
+    result_root,
+    combined,
+    anchors_by_family,
+    stem,
+    *,
+    empty_note: Optional[str] = None,
+    v3: bool = False,
+    extra_roots: Sequence[Path] = (),
+    decade: bool = False,
+):
     fig, axes = plt.subplots(2, 2, figsize=(8.8, 6.6), sharex=True, sharey=True)
     x_all: List[float] = []
     y_all: List[float] = []
@@ -368,14 +513,18 @@ def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, em
             if not anchors:
                 ax.text(0.5, 0.5, empty_note or "No common positive CV transition span\nunder the frozen five-metric rule.", ha="center", va="center", transform=ax.transAxes, fontsize=8, color="#374151")
             for rho in anchors:
-                pred = load_oos_pred(result_root, combined, fam, float(rho), ev)
+                pred = load_oos_pred(result_root, combined, fam, float(rho), ev, extra_roots=extra_roots)
                 sale = pred["y_true"].to_numpy(dtype=float)
                 ratio = pred["y_pred"].to_numpy(dtype=float) / sale
                 prof = equal_count_bins(sale, ratio)
                 x_all.extend(prof["median_sale_price"].tolist())
                 y_all.extend(prof["median_ratio"].tolist())
-                key = anchor_key(float(rho))
+                key = anchor_key(float(rho), decade=decade)
                 ls, mk = ANCHOR_STYLE[key]
+                if decade:
+                    lab = DECADE_LEGEND_NOMINAL.get(key, rf"$\rho$={float(rho):.3g}")
+                else:
+                    lab = rf"$\rho$={0 if is_rho_zero(float(rho)) else (100 if abs(float(rho)-100)<1e-8 else f'{float(rho):.3g}')}"
                 ax.plot(
                     prof["median_sale_price"],
                     prof["median_ratio"],
@@ -385,7 +534,7 @@ def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, em
                     marker=mk,
                     ms=3.2,
                     zorder=4,
-                    label=rf"$\rho$={0 if is_rho_zero(float(rho)) else (100 if abs(float(rho)-100)<1e-8 else f'{float(rho):.3g}')}",
+                    label=lab,
                 )
             ax.axhline(1.0, color="#111827", ls="-", lw=1.15, zorder=2)
             ax.axhline(0.9, color="#9CA3AF", ls=":", lw=0.8, zorder=1)
@@ -418,16 +567,37 @@ def _ratio_shape_core(plt, result_root, combined, anchors_by_family, stem, *, em
     return _save(plt, fig, stem)
 
 
-def plot_ratio_shape(plt, result_root, combined, stem, *, v3: bool = False):
+def plot_ratio_shape(
+    plt,
+    result_root,
+    combined,
+    stem,
+    *,
+    v3: bool = False,
+    decade: bool = False,
+    extra_roots: Sequence[Path] = (),
+):
     grid = combined.loc[combined["family"] == "Direct", "rho"].to_numpy(dtype=float)
-    anchors = ratio_shape_anchors(grid)
+    anchors = decade_ratio_shape_anchors(grid) if decade else ratio_shape_anchors(grid)
     by = {fam: anchors for fam in FAMILY_DISPLAY}
-    return _ratio_shape_core(plt, result_root, combined, by, stem, v3=v3)
+    return _ratio_shape_core(
+        plt, result_root, combined, by, stem, v3=v3, extra_roots=extra_roots, decade=decade
+    )
 
 
-def plot_ratio_shape_span_only(plt, result_root, combined, span_df, stem, *, v3: bool = False):
+def plot_ratio_shape_span_only(
+    plt,
+    result_root,
+    combined,
+    span_df,
+    stem,
+    *,
+    v3: bool = False,
+    decade: bool = False,
+    extra_roots: Sequence[Path] = (),
+):
     grid = combined.loc[combined["family"] == "Direct", "rho"].to_numpy(dtype=float)
-    full = ratio_shape_anchors(grid)
+    full = decade_ratio_shape_anchors(grid) if decade else ratio_shape_anchors(grid)
     by: Dict[str, List[float]] = {}
     for fam in FAMILY_DISPLAY:
         low, high, ok = family_span(span_df, fam)
@@ -449,6 +619,8 @@ def plot_ratio_shape_span_only(plt, result_root, combined, span_df, stem, *, v3:
         stem,
         empty_note="No common positive CV transition span\nunder the frozen five-metric rule.",
         v3=v3,
+        extra_roots=extra_roots,
+        decade=decade,
     )
 
 
@@ -713,16 +885,22 @@ def plot_descriptive_event_locations(
     labels: Dict[str, str],
     metric_order: Sequence[str],
     note: str,
+    two_band: bool = False,
+    bend_span_df: Optional[pd.DataFrame] = None,
+    extra_legend: Optional[Sequence[Any]] = None,
+    span_note: Optional[str] = None,
 ):
     from matplotlib.lines import Line2D
+    from matplotlib.patches import Patch
 
     ymap = {m: i for i, m in enumerate(reversed(list(metric_order)))}
     fig, axes = plt.subplots(1, 2, figsize=(9.6, 4.8), sharey=True)
     for ax, fam in zip(axes, FAMILY_DISPLAY):
         color = DIRECT_COLOR if fam == "Direct" else SURR_COLOR
         low, high, ok = family_span(span_df, fam)
-        if ok:
-            shade_cv_span_with_bounds(ax, low, high)
+        shade_spans_for_path(
+            ax, low, high, ok, v3=True, two_band=two_band, bend_df=bend_span_df, family=fam
+        )
         part = events.loc[events["family"] == fam]
         for metric in metric_order:
             y = ymap[metric]
@@ -763,8 +941,10 @@ def plot_descriptive_event_locations(
         ax.set_yticklabels([labels[m] for m in reversed(list(metric_order))])
         ax.set_title(fam)
         ax.set_xlabel(r"Penalty strength $\rho$")
-        if ok:
-            ax.text(0.02, 0.97, "Gray: CV-derived descriptive transition span", transform=ax.transAxes, fontsize=6.2, va="top", color="#374151")
+        if two_band:
+            ax.text(0.02, 0.97, "Cool dashed: prediction/COD span; warm dash-dot: post-hoc bend span", transform=ax.transAxes, fontsize=5.8, va="top", color="#374151")
+        elif ok:
+            ax.text(0.02, 0.97, span_note or "Gray: CV-derived descriptive transition span", transform=ax.transAxes, fontsize=6.2, va="top", color="#374151")
         ax.text(0.02, 0.02, note, transform=ax.transAxes, fontsize=5.8, va="bottom", color="#374151")
     handles = [
         Line2D([0], [0], marker="o", color="w", markerfacecolor="#1D4ED8", ms=8, label="Full-CV event"),
@@ -772,8 +952,18 @@ def plot_descriptive_event_locations(
         Line2D([0], [0], marker="s", color="w", markerfacecolor="white", markeredgecolor="#111827", ms=6, label="Held-out"),
         Line2D([0], [0], marker="^", color="w", markerfacecolor="white", markeredgecolor="#111827", ms=6, label="2025"),
     ]
-    fig.legend(handles=handles, loc="upper center", ncol=4, frameon=False, bbox_to_anchor=(0.5, 1.03))
-    fig.tight_layout(rect=(0, 0, 1, 0.92))
+    if two_band:
+        handles.extend(
+            [
+                Patch(facecolor=PRED_COD_SPAN_FACE, alpha=PRED_COD_SPAN_ALPHA, edgecolor="#64748B", linestyle="--", label=PRED_COD_SPAN_LABEL),
+                Patch(facecolor=BEND_SPAN_FACE, alpha=BEND_SPAN_ALPHA, edgecolor="#B45309", linestyle="-.", label=BEND_SPAN_LABEL),
+            ]
+        )
+    if extra_legend:
+        handles.extend(list(extra_legend))
+    ncol = 4 if not two_band else 3
+    fig.legend(handles=handles, loc="upper center", ncol=ncol, frameon=False, bbox_to_anchor=(0.5, 1.03))
+    fig.tight_layout(rect=(0, 0, 1, 0.90 if two_band else 0.92))
     return _save(plt, fig, stem)
 
 

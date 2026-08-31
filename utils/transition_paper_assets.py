@@ -37,6 +37,11 @@ IAAO_MKI_RANGE = (0.95, 1.05)
 IAAO_VEI_RANGE = (-10.0, 10.0)  # percent, matching the combined table
 POSITIVE_ANCHOR_TARGETS = (0.1, 1.0, 10.0, 100.0)
 RATIO_SHAPE_ANCHOR_TARGETS = (0.0, 0.1, 1.0, 10.0, 100.0)
+# Additive decade-display convention used by v4 paper assets only.
+# Historical POSITIVE_ANCHOR_TARGETS / RATIO_SHAPE_ANCHOR_TARGETS remain
+# unchanged so v1–v3 regeneration stays byte-reproducible.
+DECADE_DISPLAY_ANCHOR_TARGETS = (0.01, 0.1, 1.0, 10.0, 100.0)
+DECADE_RATIO_SHAPE_ANCHOR_TARGETS = (0.0, 0.01, 0.1, 1.0, 10.0, 100.0)
 
 V1_REQUIRED_TABLES = (
     "transition_events_cv_mean.csv",
@@ -99,6 +104,33 @@ def positive_display_anchors(grid: Sequence[float]) -> List[float]:
 
 def ratio_shape_anchors(grid: Sequence[float]) -> List[float]:
     return [nearest_grid_rho(grid, t) for t in RATIO_SHAPE_ANCHOR_TARGETS]
+
+
+def decade_positive_display_anchors(grid: Sequence[float]) -> List[float]:
+    positives = [float(x) for x in grid if is_rho_positive(float(x))]
+    return [nearest_grid_rho(positives, t) for t in DECADE_DISPLAY_ANCHOR_TARGETS]
+
+
+def decade_ratio_shape_anchors(grid: Sequence[float]) -> List[float]:
+    return [nearest_grid_rho(grid, t) for t in DECADE_RATIO_SHAPE_ANCHOR_TARGETS]
+
+
+def decade_nominal_to_tested(grid: Sequence[float]) -> List[Dict[str, Any]]:
+    positives = sorted({float(x) for x in grid if is_rho_positive(float(x))})
+    arr = np.asarray(positives, dtype=float)
+    rows: List[Dict[str, Any]] = []
+    for nominal in DECADE_DISPLAY_ANCHOR_TARGETS:
+        tested = nearest_grid_rho(positives, float(nominal))
+        idx = int(np.argmin(np.abs(arr - float(tested))))
+        rows.append(
+            {
+                "nominal_rho": float(nominal),
+                "tested_rho": float(tested),
+                "grid_index_among_positive": idx,
+                "n_positive_grid": int(len(positives)),
+            }
+        )
+    return rows
 
 
 def endpoint_equals_first_positive(rho: Optional[float], min_positive_rho: float) -> Optional[bool]:
