@@ -1,0 +1,3 @@
+model,source,status,note
+LinearRegression,harmonized_ccao_attom_berry,NOT_RUN,No common sale years between Berry CMF (2002-2015) and CCAO/ATTOM (2016+). 10D requires a common cohort; forcing one would mix incompatible universes.
+LGBMRegressor,harmonized_ccao_attom_berry,NOT_RUN,Same blocker. Existing paper already reports CCAO and ATTOM LightGBM separately under different protocols.

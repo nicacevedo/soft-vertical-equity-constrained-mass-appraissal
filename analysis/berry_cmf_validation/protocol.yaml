@@ -1,0 +1,461 @@
+# Frozen audit protocol for Berry/CMF external-data validation.
+# Written BEFORE inspecting CMF outcomes, Direct/Surrogate path performance,
+# or any jurisdiction's method-transfer results.
+# Do not modify this file to admit/exclude a jurisdiction based on later
+# Direct/Surrogate results.
+
+schema_version: 1
+protocol_status: FROZEN
+frozen_at_utc: "2026-09-02T16:31:00Z"
+freeze_rule: >
+  Final jurisdiction eligibility must be determined BEFORE inspecting
+  Direct/Surrogate path performance. Inclusion/exclusion may not be revised
+  because the fairness correction looks promising or unfavorable.
+
+# ---------------------------------------------------------------------------
+# 0. Repository baseline at freeze
+# ---------------------------------------------------------------------------
+repository:
+  root: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal
+  workspace_alias: /home/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal
+  branch: testing
+  head_sha: a55d81e8a55b3edeb055c6e02db41ba3988587d6
+  git_status_at_freeze: |
+    M paper/paper_v12.tex
+    M scripts/analyze_rho_screening_region_v2_1.py
+    ?? paper/img/generated_v12_994/cv_level_uniformity_paths_candidate_region.pdf
+    ?? paper/img/generated_v12_994/cv_mechanism_metric_paths_candidate_region.pdf
+    ?? paper/img/generated_v12_994/cv_predictive_metric_paths_candidate_region.pdf
+    ?? paper/img/generated_v12_994/cv_vertical_equity_metric_paths_candidate_region.pdf
+    ?? paper/img/generated_v12_994/level_uniformity_paths_candidate_region.pdf
+    ?? paper/img/generated_v12_994/mechanism_vs_rho_candidate_region.pdf
+    ?? paper/img/generated_v12_994/predictive_metric_paths_candidate_region.pdf
+    ?? paper/img/generated_v12_994/vertical_equity_metric_paths_candidate_region.pdf
+  manuscript_do_not_edit: paper/paper_v12.tex
+  manuscript_title: "Fair Property Taxation: A Covariance-Guided Correction for Assessor Workflows"
+  note: >
+    paper/paper_v12.tex is dirty at freeze. This audit must not modify the
+    manuscript. Existing uncommitted paper/script edits are out of scope.
+
+working_area:
+  analysis_root: analysis/berry_cmf_validation/
+  convention_resolution: >
+    No existing top-level analysis/ directory. Repository analysis artifacts
+    currently live under output/*/analysis. User-requested path
+    analysis/berry_cmf_validation/ is used rather than duplicating output/
+    infrastructure. Small tracked protocol/audit artifacts live here.
+  external_data_root: data/
+  berry_raw_root: data/berry_cmf/raw/<jurisdiction>/
+  berry_derived_root: data/berry_cmf/derived/
+  attom_raw_root: data/dewey-downloads/
+  attom_processed_root: data/ATTOM/
+  gitignore_policy: >
+    Raw CMF/local/ATTOM files and large derived tables are not committed.
+    Tracked artifacts are YAML/Markdown plus compact CSV/parquet inventories
+    under analysis/berry_cmf_validation/.
+
+# ---------------------------------------------------------------------------
+# 1. Scientific objective
+# ---------------------------------------------------------------------------
+scientific_objective:
+  primary_application: Cook County Assessor's Office (CCAO) residential valuation workflow
+  this_audit: >
+    Strengthen the paper's external analysis using public/local-government
+    replication resources from Christopher Berry and the University of Chicago
+    Center for Municipal Finance (CMF) Property Tax Fairness project.
+  existing_attom_role: >
+    The current six-county ATTOM benchmark remains an exploratory sensitivity
+    layer for transferability, heterogeneity, and failure modes. It is not
+    confirmatory jurisdiction-specific evidence. It must not be overwritten.
+  estimand_rule: >
+    Berry assessment-to-sale ratios and our model valuation-to-sale ratios are
+    related but not identical estimands. Berry/local assessment data are used
+    to reproduce documented assessment regressivity and validate provenance.
+    The proposed method must still be evaluated using a predictive AVM trained
+    to predict sale price / market value from property information. Official
+    assessed value is not interchangeable with model prediction. The method
+    must not be trained merely to reproduce existing assessments.
+  source_hierarchy:
+    - rank: 1
+      source: Berry/CMF local-government data
+      role: independent evidence/provenance for documented assessment regressivity
+    - rank: 2
+      source: original local-government parcel/assessor data
+      role: preferred AVM predictors when sufficiently rich and temporally valid
+    - rank: 3
+      source: ATTOM
+      role: controlled enrichment for missing predictors; do not replace authoritative local sale/assessment outcomes
+    - rank: 4
+      source: Cook County CCAO
+      role: source-validation anchor comparing CCAO, Berry/local-government, and ATTOM constructions
+
+# ---------------------------------------------------------------------------
+# 2. Candidate jurisdictions
+# ---------------------------------------------------------------------------
+candidate_jurisdictions:
+  primary_first_pass:
+    - id: detroit_mi
+      geographic_unit: "Detroit, MI"
+      notes: city, not Wayne County as a whole unless CMF files are countywide
+    - id: philadelphia_pa
+      geographic_unit: "Philadelphia County / Philadelphia, PA"
+    - id: orleans_la
+      geographic_unit: "Orleans Parish / New Orleans, LA"
+    - id: franklin_oh
+      geographic_unit: "Franklin County / Columbus, OH"
+    - id: st_louis_county_mo
+      geographic_unit: "St. Louis County, MO"
+    - id: cook_il
+      geographic_unit: "Cook County, IL"
+  secondary_inventory_only:
+    - id: nyc_ny
+      geographic_unit: "New York City, NY"
+    - id: erie_ny
+      geographic_unit: "Erie County / Buffalo, NY"
+    - id: clark_nv
+      geographic_unit: "Clark County / Las Vegas, NV"
+    - id: los_angeles_ca
+      geographic_unit: "Los Angeles County, CA"
+    - id: maricopa_az
+      geographic_unit: "Maricopa County, AZ"
+  expansion_rule: >
+    Do not expand the primary set merely because another existing ATTOM folder
+    is convenient. Existing ATTOM counties (Allegheny PA, King WA, Miami-Dade FL,
+    Middlesex MA) remain in the ATTOM sensitivity layer only unless they also
+    appear above.
+  existing_attom_counties_preserve:
+    - cook_il
+    - allegheny_pa
+    - maricopa_az
+    - king_wa
+    - miami_dade_fl
+    - middlesex_ma
+
+# ---------------------------------------------------------------------------
+# 3. Source precedence
+# ---------------------------------------------------------------------------
+source_precedence:
+  official_only: true
+  allowed_origins:
+    - CMF / University of Chicago Property Tax Fairness project pages
+    - CMF replication pages and linked official downloads
+    - Original local assessor / government open-data portals documented by CMF
+  disallowed:
+    - unofficial mirrors when an official CMF/UChicago/local-government source exists
+    - CMF national CoreLogic files (explicitly non-redistributable; do not obtain indirectly)
+    - replacing Berry/local sale/assessment outcomes with ATTOM equivalents
+  cmf_corelogic_rule: >
+    CMF states that its national CoreLogic data cannot be redistributed.
+    Do not attempt to obtain those files indirectly. Do not conflate them
+    with the local replication datasets.
+
+# ---------------------------------------------------------------------------
+# 4. Eligibility gates (must pass before modeling)
+# ---------------------------------------------------------------------------
+eligibility_gates:
+  provenance:
+    - identifiable official CMF or local-government source URL
+    - hashed immutable raw artifact
+    - documented original governmental source when claimed
+  berry_reproduction:
+    - supplied CMF code located or SOURCE_INCOMPLETE recorded
+    - filters, years, sale definitions, assessment definitions, winsorization,
+      duplicate handling, grouping, and regressivity calculations not silently altered
+    - reproduction status assigned from the frozen vocabulary
+  target_quality:
+    - sale price field exists and is a transaction price, not assessed value
+    - sale date exists
+    - qualification / arms-length logic documented or reconstructed from CMF code
+  sample:
+    - usable N and year coverage recorded before any penalty-path inspection
+    - no weakening of N requirements to preserve a target county count
+  timing:
+    - AVM predictors classified SAFE_AS_OF_SALE or HISTORICAL_SNAPSHOT_REQUIRED
+    - TIMING_UNRESOLVED and POST_SALE_LEAKAGE excluded from the main model
+  features:
+    - standalone AVM requires a credible pre-sale predictor set
+    - hybrid ATTOM predictors allowed only after public-enrichment audit
+  linkage_if_hybrid:
+    - match quality plus matched-vs-unmatched balance
+    - high raw match rate is not sufficient for approval
+
+reproduction_status_vocabulary:
+  - EXACT_OR_ROUNDING_MATCH
+  - SUBSTANTIVE_MATCH
+  - PARTIAL_REPRODUCTION
+  - FAILED
+  - SOURCE_INCOMPLETE
+
+# ---------------------------------------------------------------------------
+# 5. Modeling-readiness criteria
+# ---------------------------------------------------------------------------
+modeling_readiness:
+  usability_classes:
+    A_EXTERNAL_REGRESSIVITY_ONLY: >
+      Enough to reproduce/document assessment regressivity, but not enough
+      leakage-safe predictors for an AVM.
+    B_STANDALONE_AVM_READY: >
+      Local/CMF data contain sale target, dates, valid transaction logic, and
+      sufficient pre-sale predictors for credible AVM training.
+    C_PUBLIC_ENRICHMENT_CANDIDATE: >
+      CMF data are insufficient alone, but original local-government data appear
+      capable of supplying missing historical predictors.
+    D_ATTOM_ENRICHMENT_CANDIDATE: >
+      Public enrichment is inadequate but CMF/local outcomes can plausibly be
+      joined to leakage-safe ATTOM historical predictors.
+    E_NOT_RECOMMENDED: >
+      Provenance, target, timing, sample, or linkage problems are too severe.
+  classification_timing: BEFORE running Direct or Surrogate models
+  avm_target: sale price / market value, never official assessed value as the training target
+  baseline_smoke_models:
+    - LinearRegression
+    - ordinary LightGBM (sklearn/lightgbm LGBMRegressor; no Direct/Surrogate penalty)
+  baseline_protocol:
+    target: log sale price
+    split: chronological development / validation / held-out
+    model_selection: DEVELOPMENT/VALIDATION only; never held-out
+    metrics_implementation: utils.motivation_utils (canonical; do not reimplement)
+    delta_nl_implementation: utils.delta_nl
+    hyperparameter_search: same space/budget as current paper baseline protocol where feasible
+  required_smoke_metrics:
+    - n / split dates and counts
+    - R2_price
+    - RMSE_log_price
+    - MAE
+    - MAPE
+    - median/mean/weighted-mean ratio
+    - COD
+    - PRD
+    - PRB
+    - MKI
+    - VEI
+    - beta_log
+    - Delta_NL
+    - dCor
+    - value-decile/quantile ratio profile
+
+# ---------------------------------------------------------------------------
+# 6. Hybrid-linkage requirements
+# ---------------------------------------------------------------------------
+hybrid_linkage:
+  apply_only_if: D_ATTOM_ENRICHMENT_CANDIDATE after public-enrichment audit
+  field_hierarchy:
+    sale_price: Berry/local government
+    sale_date: Berry/local government
+    official_assessment: Berry/local government (external benchmark diagnostic only)
+    qualification_arms_length: Berry/local government when available
+    missing_avm_predictors: ATTOM historical assessor data
+  match_hierarchy:
+    - normalized native parcel/APN ID
+    - formally documented parcel crosswalk
+    - standardized address
+    - coordinates + address evidence
+    - transaction date/price/property evidence only as last-resort disambiguator
+  not_sufficient_identifiers:
+    - sale price and date alone when collisions are possible
+  required_diagnostics:
+    - eligible local/Berry records
+    - matched / unmatched counts
+    - unique-match rate
+    - ambiguous-match rate
+    - conflicting-ID rate
+    - exact and near date agreement
+    - exact price agreement and relative price-discrepancy quantiles
+    - duplicate rate
+    - characteristic snapshot date relative to sale
+    - share of rows with valid pre-sale ATTOM snapshot
+    - matched vs unmatched balance on sale price, year, assessment ratio, geography, class/type
+  approval_rule: >
+    Do not approve a hybrid dataset based solely on a high raw match rate.
+    Selection that disproportionately drops low-value or high-value sales is
+    a reason to reject or bound the hybrid.
+
+# ---------------------------------------------------------------------------
+# 7. Cook validation design
+# ---------------------------------------------------------------------------
+cook_validation:
+  role: source-validation anchor
+  do_not_change_canonical_ccao_experiment: true
+  distinct_sources:
+    - id: ccao_research
+      path: data/CCAO/2025/training_data.parquet
+      role: primary CCAO research/modeling data
+    - id: berry_cmf_local
+      role: Berry/CMF local-government assessment/sale data
+    - id: attom_cook
+      role: existing ATTOM Cook construction
+      assessor_dir: data/dewey-downloads/cookcounty-2016-2025-all-features
+      recorder_dir: data/dewey-downloads/10-counties-recorder-2016-2025
+      construction_code: scripts/other_counties_benchmars.py
+  steps:
+    "10A_source_agreement":
+      overlap_by: [year, residential_scope, sale_qualification, parcel_identity]
+      transaction_comparisons_if_feasible:
+        [parcel_identity, sale_date, sale_price, property_type_class,
+         building_area, lot_area, year_built, other_genuinely_comparable_fields]
+      report: exact and tolerance-based agreement
+    "10B_cohort_agreement":
+      compare: [N, year_distribution, price_quantiles, geography, property_class]
+      rule: do not force identical cohorts if source definitions differ; document differences
+    "10C_external_regressivity_benchmark":
+      task: reproduce Berry Cook assessment-regressivity using Berry/local data
+      rule: do not claim Berry official assessment ratio equals paper model valuation ratio
+    "10D_harmonized_model_source_validation":
+      if_common_feature_set: construct harmonized predictor subset and common sale cohort
+      models: [LinearRegression, ordinary LightGBM]
+      shared: [rows where possible, target, temporal split, feature definitions,
+               preprocessing, hyperparameter search protocol, evaluation code]
+      compare:
+        [price_R2, log_RMSE, MAE, MAPE, ratio_level, COD, PRD, PRB, MKI, VEI,
+         beta_log, Delta_NL, dCor, value_group_ratio_profiles]
+      goal: qualitative source robustness, not exact metric equality
+
+# ---------------------------------------------------------------------------
+# 8. Canonical code reuse (do not duplicate)
+# ---------------------------------------------------------------------------
+canonical_code:
+  ccao_modeling_sample: data/CCAO/2025/training_data.parquet
+  ccao_predictor_list: params.yaml (model.predictor)
+  ccao_split: utils/motivation_utils.py::split_ccao_assessment_universe
+  rolling_origin: utils/motivation_utils.py::build_rolling_origin_protocol
+  cv_driver: run_temporal_cv.py
+  cv_config: cv_config.yaml
+  paper_baseline: scripts/run_paper_baseline.py
+  metrics:
+    compute_taxation_metrics: utils/motivation_utils.py::compute_taxation_metrics
+    extended: utils/motivation_utils.py::_compute_extended_metrics
+    prd: utils/motivation_utils.py::prd
+    prb: utils/motivation_utils.py::prb
+    cod: utils/motivation_utils.py::cod
+    mki: utils/motivation_utils.py::mki
+    vei: utils/motivation_utils.py::vei
+    beta_log_dcor: utils/motivation_utils.py::paper_mechanism_metrics
+    delta_nl: utils/delta_nl.py
+  direct_penalty:
+    class: soft_constrained_models.boosting_models.LGBCovPenalty
+    grad_hess: soft_constrained_models.boosting_models.canonical_direct_scaled_grad_hess
+  surrogate_penalty:
+    class: soft_constrained_models.boosting_models.LGBSmoothPenalty
+    grad_hess: soft_constrained_models.boosting_models.canonical_surrogate_scaled_grad_hess
+  attom_benchmark:
+    script: scripts/other_counties_benchmars.py
+    launcher: attom_county_benchmark.sh
+    counties: [17031, 42003, 04013, 53033, 12086, 25017]
+    floor_recommended: 50000
+  reuse_rule: >
+    Do not create duplicate implementations of PRD, PRB, VEI, beta_log,
+    Delta_NL, or dCor.
+
+# ---------------------------------------------------------------------------
+# 9. Execution gates (sequential; do not skip)
+# ---------------------------------------------------------------------------
+execution_gates:
+  - step: 0
+    name: repository_preflight
+    required_before: any download or analysis-directory write of results
+  - step: 1
+    name: freeze_protocol
+    artifact: analysis/berry_cmf_validation/protocol.yaml
+  - step: 2
+    name: cmf_source_registry
+    artifact: analysis/berry_cmf_validation/source_registry.csv
+  - step: 3
+    name: download_hash_preserve
+    artifact: analysis/berry_cmf_validation/file_manifest.csv
+    rule: primary jurisdictions before secondary; never alter downloaded raw files
+  - step: 4
+    name: schema_first_inspection
+    artifacts:
+      - analysis/berry_cmf_validation/schema_inventory.parquet
+      - analysis/berry_cmf_validation/feature_coverage_matrix.csv
+    rule: inspect metadata before loading huge files; do not infer semantics from filenames alone
+  - step: 5
+    name: reproduce_berry_cmf
+    artifacts:
+      - analysis/berry_cmf_validation/reproduction/reproduction_results.csv
+      - analysis/berry_cmf_validation/reproduction/REPRODUCTION_NOTES.md
+    rule: verify assessment-regressivity benchmark; not yet the AVM
+  - step: 6
+    name: classify_usability
+    artifact: analysis/berry_cmf_validation/modeling_readiness/jurisdiction_usability_matrix.csv
+    rule: classify before Direct/Surrogate
+  - step: 7
+    name: temporal_integrity
+    artifact: analysis/berry_cmf_validation/feature_coverage/temporal_integrity_audit.csv
+  - step: 8
+    name: public_enrichment
+    artifact: analysis/berry_cmf_validation/public_enrichment/public_enrichment_audit.csv
+    rule: only for C_PUBLIC_ENRICHMENT_CANDIDATE; reclassify after
+  - step: 9
+    name: attom_hybrid_feasibility
+    artifacts:
+      - analysis/berry_cmf_validation/linkage/attom_join_feasibility.csv
+      - analysis/berry_cmf_validation/linkage/matched_unmatched_balance.csv
+    rule: only remaining D_ATTOM_ENRICHMENT_CANDIDATE
+  - step: 10
+    name: cook_three_source_validation
+    artifacts:
+      - analysis/berry_cmf_validation/cook_validation/cook_source_agreement.csv
+      - analysis/berry_cmf_validation/cook_validation/cook_common_cohort_summary.csv
+      - analysis/berry_cmf_validation/cook_validation/cook_baseline_source_robustness.csv
+      - analysis/berry_cmf_validation/cook_validation/COOK_VALIDATION_REPORT.md
+  - step: 11
+    name: harmonized_avm_core
+    artifacts:
+      - analysis/berry_cmf_validation/modeling_readiness/harmonized_feature_schema.yaml
+      - analysis/berry_cmf_validation/modeling_readiness/harmonized_feature_coverage.csv
+  - step: 12
+    name: baseline_smoke_tests
+    artifacts:
+      - analysis/berry_cmf_validation/modeling_readiness/baseline_smoke_metrics.csv
+      - analysis/berry_cmf_validation/modeling_readiness/baseline_smoke_status.csv
+    rule: LinearRegression and ordinary LightGBM only; no Direct/Surrogate
+  - step: 13
+    name: freeze_final_panel
+    artifact: analysis/berry_cmf_validation/modeling_readiness/final_panel_freeze.yaml
+    inclusion_criteria_only:
+      - literature/external relevance
+      - source provenance
+      - Berry reproduction status
+      - sample size/time coverage
+      - target quality
+      - temporal feature validity
+      - feature sufficiency
+      - linkage quality if hybrid
+      - institutional diversity
+      - credible baseline prediction problem
+    forbidden_criterion: Direct/Surrogate path performance
+    include_states: [INCLUDE_PRIMARY, INCLUDE_BOUNDARY_CASE, RETAIN_EXISTING_ATTOM_SENSITIVITY_ONLY, EXCLUDE]
+  - step: 14
+    name: optional_full_method_run
+    rule: >
+      Execute only after final_panel_freeze.yaml is written and all previous
+      gates pass. If unresolved major methodological issues remain, STOP and
+      report them instead of forcing model runs.
+  - step: 15
+    name: preserve_attom_and_final_report
+    artifacts:
+      - analysis/berry_cmf_validation/FINAL_AUDIT_REPORT.md
+    attom_rule: >
+      Do not overwrite or discard the existing six-county ATTOM benchmark.
+      Miami-Dade remains available as a boundary case unless data-quality
+      evidence independently warrants removal.
+
+# ---------------------------------------------------------------------------
+# 10. Failure rule
+# ---------------------------------------------------------------------------
+failure_rule: >
+  A scientifically justified partial result is preferable to forcing completion.
+  If a jurisdiction cannot be reproduced, has inadequate timing information,
+  suffers severe linkage bias, or lacks a credible AVM feature set, classify it
+  accordingly and continue. Do not weaken requirements merely to preserve a
+  target number of counties.
+
+optimization_prohibition: >
+  Do not optimize the design based on favorable outcomes for the proposed method.
+  Do not choose jurisdictions, feature definitions, rho grid endpoints, or
+  baseline configurations based on held-out Direct/Surrogate results.
+  Do not select a deployment rho.
+
+manuscript_rule: Do not edit paper/paper_v12.tex or any other manuscript in this pass.
+commit_rule: Do not commit unless explicitly instructed.

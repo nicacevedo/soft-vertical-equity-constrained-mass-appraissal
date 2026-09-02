@@ -260,15 +260,10 @@ def plot_paths_v21(plt, combined, span_df, regions, metrics, min_pos, q, stem, *
                 ax.set_xlabel(r"Penalty strength $\rho$")
             if r == 0 and c == 1:
                 surr = regions["Surrogate"]
-                solid_label = "upper guardrail"
-                if surr.get("nl_caution_binds"):
-                    solid_label = "nonlinear-structure caution guardrail"
-                elif surr.get("guardrail_driver") == "predictive-harm":
-                    solid_label = "predictive-harm guardrail"
                 handles = [
                     Patch(facecolor=CAND_FACE, alpha=CAND_ALPHA, label="CV-derived candidate region"),
                     Line2D([0], [0], color="#374151", ls=(0, (4.0, 2.2)), lw=0.85, label="activity onset"),
-                    Line2D([0], [0], color="#14532D", lw=1.35, label=solid_label),
+                    Line2D([0], [0], color="#14532D", lw=1.35, label="upper guardrail"),
                     Line2D([0], [0], color="#9CA3AF", ls=(0, (2.2, 2.0)), lw=0.7, label="prediction/COD transition span"),
                 ]
                 if surr.get("rho_nl") is not None and not surr.get("nl_caution_binds"):
@@ -1142,9 +1137,93 @@ def main() -> int:
     return 0 if det_ok and scale_ok and syn["pass"] and direct_ok and safety["no_manuscript_edit"] and safety["no_v2_output_mutation"] else 1
 
 
+def frozen_plot_regions() -> Dict[str, Dict[str, Any]]:
+    """Rebuild plot overlays from frozen v2.1 summaries. Does not re-screen."""
+    surr = json.loads((OUT / "tables" / "surrogate_candidate_region_v2_1.json").read_text(encoding="utf-8"))
+    direct = json.loads((OUT / "tables" / "direct_checksum_v2_1.json").read_text(encoding="utf-8"))
+    driver = surr.get("guardrail_driver")
+    return {
+        "Direct": {
+            "rho_activity": direct["rho_activity"],
+            "rho_guardrail": direct["rho_guardrail"],
+            "guardrail_driver": direct["guardrail_driver"],
+            "rho_nl": None,
+            "nl_caution_binds": False,
+            "rho_predictive_bend": direct["rho_guardrail"],
+        },
+        "Surrogate": {
+            "rho_activity": surr["rho_activity"],
+            "rho_guardrail": surr["rho_guardrail"],
+            "guardrail_driver": driver,
+            "rho_nl": surr.get("rho_nl_caution"),
+            "nl_caution_binds": driver == "nonlinear-structure-caution",
+            "rho_predictive_bend": surr.get("rho_predictive_bend"),
+        },
+    }
+
+
+def refresh_figures_from_frozen() -> int:
+    """Plotting-only refresh from frozen v2.1 endpoints. No screening, no model fits."""
+    os.environ.setdefault("MPLBACKEND", "Agg")
+    import matplotlib
+
+    matplotlib.use("Agg", force=True)
+    import matplotlib.pyplot as plt
+
+    paths = v2s.input_paths()
+    combined = pd.read_csv(paths["combined_v4_view"])
+    span = pd.read_csv(paths["span_summary"])
+    grid_blob = json.loads(paths["grid"].read_text(encoding="utf-8"))
+    min_pos = float(grid_blob["min_positive_augmented"])
+    q = float(grid_blob["q"])
+    regions = frozen_plot_regions()
+    surr = regions["Surrogate"]
+    direct = regions["Direct"]
+    assert abs(float(direct["rho_activity"]) - 0.3556480306223128) <= 1e-12
+    assert abs(float(direct["rho_guardrail"]) - 2.559547922699536) <= 1e-12
+    assert abs(float(surr["rho_activity"]) - 0.2023589647725157) <= 1e-12
+    assert abs(float(surr["rho_guardrail"]) - 2.2229964825261943) <= 1e-12
+    assert abs(float(surr["rho_predictive_bend"]) - 0.8286427728546845) <= 1e-12
+    assert surr["nl_caution_binds"] is True
+    assert surr["guardrail_driver"] == "nonlinear-structure-caution"
+    assert abs(float(surr["rho_guardrail"]) - float(surr["rho_predictive_bend"])) > 1e-6
+
+    fig_dir = OUT / "figures"
+    fig_dir.mkdir(parents=True, exist_ok=True)
+    plot_kw = dict(combined=combined, span_df=span, regions=regions, min_pos=min_pos, q=q)
+    plot_paths_v21(plt, **plot_kw, metrics=(("R2_price", r"$R^2_P$"), ("MAE_price", r"MAE$_P$"), ("MAPE", r"MAPE$_P$ (\%)"), ("RMSE_log", r"RMSE$_{\log P}$")), stem=fig_dir / "cv_predictive_metric_paths_candidate_region", oos=False)
+    plot_paths_v21(plt, **plot_kw, metrics=(("median_ratio", "Median ratio"), ("mean_ratio", "Mean ratio"), ("weighted_mean_ratio", "Weighted mean ratio"), ("COD", "COD"), ("COV", "COV (\%)")), stem=fig_dir / "cv_level_uniformity_paths_candidate_region", oos=False)
+    plot_paths_v21(plt, **plot_kw, metrics=(("PRD", "PRD"), ("PRB", "PRB"), ("MKI", "MKI"), ("VEI", "VEI")), stem=fig_dir / "cv_vertical_equity_metric_paths_candidate_region", oos=False)
+    plot_paths_v21(plt, **plot_kw, metrics=(("Beta_log", r"$\beta_{\log}$"), ("Delta_NL", r"$\Delta_{\mathrm{NL}}$"), ("dCor_e_y", r"dCor$(e,y)$")), stem=fig_dir / "cv_mechanism_metric_paths_candidate_region", oos=False)
+    plot_paths_v21(plt, **plot_kw, metrics=(("R2_price", r"$R^2_P$"), ("MAE_price", r"MAE$_P$"), ("MAPE", r"MAPE$_P$ (\%)"), ("RMSE_log", r"RMSE$_{\log P}$")), stem=fig_dir / "predictive_metric_paths_candidate_region", oos=True)
+    plot_paths_v21(plt, **plot_kw, metrics=(("median_ratio", "Median ratio"), ("mean_ratio", "Mean ratio"), ("weighted_mean_ratio", "Weighted mean ratio"), ("COD", "COD"), ("COV", "COV (\%)")), stem=fig_dir / "level_uniformity_paths_candidate_region", oos=True)
+    plot_paths_v21(plt, **plot_kw, metrics=(("PRD", "PRD"), ("PRB", "PRB"), ("MKI", "MKI"), ("VEI", "VEI")), stem=fig_dir / "vertical_equity_metric_paths_candidate_region", oos=True)
+    plot_paths_v21(plt, **plot_kw, metrics=(("Beta_log", r"$\beta_{\log}$"), ("Delta_NL", r"$\Delta_{\mathrm{NL}}$"), ("dCor_e_y", r"dCor$(e,y)$")), stem=fig_dir / "mechanism_vs_rho_candidate_region", oos=True)
+
+    qa = {
+        "plotting_only": True,
+        "legend_solid_label": "upper guardrail",
+        "direct": {"rho_activity": direct["rho_activity"], "rho_guardrail": direct["rho_guardrail"], "driver": direct["guardrail_driver"]},
+        "surrogate": {
+            "rho_activity": surr["rho_activity"],
+            "rho_guardrail": surr["rho_guardrail"],
+            "rho_predictive_bend": surr["rho_predictive_bend"],
+            "driver": surr["guardrail_driver"],
+            "nl_caution_binds": surr["nl_caution_binds"],
+            "guardrail_is_nl_caution_not_predictive_bend": True,
+        },
+    }
+    (OUT / "qa" / "figure_legend_refresh.json").write_text(json.dumps(qa, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(json.dumps(qa, indent=2, default=str))
+    return 0
+
+
 if __name__ == "__main__":
     try:
-        code = main()
+        if "--figures-only" in sys.argv:
+            code = refresh_figures_from_frozen()
+        else:
+            code = main()
     finally:
         sys.stdout.flush()
         sys.stderr.flush()

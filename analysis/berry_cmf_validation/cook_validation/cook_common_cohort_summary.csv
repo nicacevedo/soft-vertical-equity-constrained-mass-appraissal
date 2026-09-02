@@ -1,0 +1,4 @@
+source,n,year_min,year_max,price_p10,price_p50,price_p90,geography,property_class,note
+ccao_training_data_parquet,444692,2016-01-01,2025-12-29,,,,Cook County triads/townships in CCAO extract,CCAO residential modeling group,Canonical primary application; not modified.
+berry_cmf_res_sales_2002_2015_after_class_filter,641147,2002,2015,,,,Cook townships/neighborhoods in BOR extract,"bor_class in {202-212,234,278,295,299}",IQR-filtered modeling N from reproduction; different years than CCAO.
+attom_cook_paper_benchmark,109793,(see paper tab:attom_samples),2025-12-31,,,,Cook County FIPS 17031,ATTOM property use 385 single-family,"Paper table: Cook 109,793 eligible / 87,834 train / 21,959 held-out. Not recomputed this pass."

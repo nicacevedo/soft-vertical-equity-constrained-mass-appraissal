@@ -1,0 +1,34 @@
+HTTP/2 302 
+server: openresty
+date: Wed, 02 Sep 2026 16:42:13 GMT
+content-type: application/pdf
+location: https://bpb-us-w2.wpmucdn.com/voices.uchicago.edu/dist/6/2330/files/2020/03/Prop-Tax-Detroit-Final-3220.pdf
+vary: Cookie
+cache-control: public, max-age=604800
+etag: 0ac2568113e2e8534d31bc8da9c732d0
+x-cache-bypass-reason: 0
+
+HTTP/2 200 
+date: Wed, 02 Sep 2026 16:42:13 GMT
+content-type: application/pdf
+content-length: 880370
+server: BunnyCDN-BO1-1163
+cdn-pullzone: 1058790
+cdn-requestcountrycode: US
+access-control-allow-origin: *
+access-control-allow-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+access-control-expose-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+cache-control: public, max-age=31919000
+etag: "75de658dfba1bbefb2c4deab2c539a08"
+last-modified: Mon, 02 Mar 2020 18:26:51 GMT
+cdn-proxyver: 1.62
+cdn-requestpullsuccess: True
+cdn-requestpullcode: 200
+cdn-cachedat: 09/02/2026 16:42:13
+cdn-edgestorageid: 1163
+cdn-requestid: f5def7fe3b26305324f7e77d9b7df288
+cdn-cache: MISS
+cdn-status: 200
+cdn-requesttime: 0
+accept-ranges: bytes
+

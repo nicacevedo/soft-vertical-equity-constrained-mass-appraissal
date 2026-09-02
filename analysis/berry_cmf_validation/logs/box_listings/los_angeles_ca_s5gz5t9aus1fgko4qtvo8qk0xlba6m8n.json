@@ -1,0 +1,32 @@
+[
+  {
+    "typed_id": "f_765515385784",
+    "type": "file",
+    "id": "765515385784",
+    "name": "Simplified_LA_Complete_beta2.dta",
+    "size": 184756106,
+    "relpath": "box/s5gz5t9aus1fgko4qtvo8qk0xlba6m8n/Simplified_LA_Complete_beta2.dta",
+    "shared": "s5gz5t9aus1fgko4qtvo8qk0xlba6m8n",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_765515384584",
+    "type": "file",
+    "id": "765515384584",
+    "name": "merged.csv",
+    "size": 789376637,
+    "relpath": "box/s5gz5t9aus1fgko4qtvo8qk0xlba6m8n/merged.csv",
+    "shared": "s5gz5t9aus1fgko4qtvo8qk0xlba6m8n",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_765515383384",
+    "type": "file",
+    "id": "765515383384",
+    "name": "Simplified_Assessor_Data_All_Years.dta",
+    "size": 818764691,
+    "relpath": "box/s5gz5t9aus1fgko4qtvo8qk0xlba6m8n/Simplified_Assessor_Data_All_Years.dta",
+    "shared": "s5gz5t9aus1fgko4qtvo8qk0xlba6m8n",
+    "parent_folder_id": ""
+  }
+]

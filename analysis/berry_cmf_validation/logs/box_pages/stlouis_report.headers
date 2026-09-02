@@ -1,0 +1,32 @@
+HTTP/2 301 
+date: Wed, 02 Sep 2026 16:35:48 GMT
+content-type: text/html; charset=UTF-8
+x-envoy-upstream-service-time: 27
+strict-transport-security: max-age=31536000
+location: https://uchicago.app.box.com/s/3ciiptmn8gcpe9ohwb7zj2fn46qc0qez
+box-request-id: 02b2bfd9af672f9cb9bc1c198ad6b6248
+via: 1.1 google
+content-length: 0
+alt-svc: h3=":443"; ma=2592000
+
+HTTP/2 200 
+date: Wed, 02 Sep 2026 16:35:49 GMT
+content-type: text/html; charset=utf-8
+set-cookie: z=f0qs8fiqb9ej4d97em8bl5t9ip; path=/; domain=.app.box.com; secure; HttpOnly
+set-cookie: z=f0qs8fiqb9ej4d97em8bl5t9ip; Path=/; Domain=.app.box.com; Secure; HttpOnly; SameSite=None
+set-cookie: z=f0qs8fiqb9ej4d97em8bl5t9ip; Path=/; Domain=.app.box.com; Secure; HttpOnly; SameSite=None
+set-cookie: box_ext_http_referrer=value; expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0; path=/; domain=.box.com; secure
+set-cookie: box_visitor_id=6a985064dee953.70756343; expires=Thu, 02 Sep 2027 16:35:48 GMT; Max-Age=31536000; path=/; domain=.box.com; secure; SameSite=None
+set-cookie: bv=SMART-7587; expires=Wed, 09 Sep 2026 16:35:48 GMT; Max-Age=604800; path=/; domain=.app.box.com; secure
+set-cookie: cn=20; expires=Thu, 02 Sep 2027 16:35:48 GMT; Max-Age=31536000; path=/; domain=.app.box.com; secure
+set-cookie: site_preference=desktop; path=/; domain=.box.com; secure
+expires: Thu, 19 Nov 1981 08:52:00 GMT
+x-envoy-upstream-service-time: 594
+x-robots-tag: noindex, nofollow
+box-request-id: 04937be547f2e5910e29deff3416cd8cd
+cache-control: no-store, no-cache, must-revalidate
+strict-transport-security: max-age=31536000
+pragma: no-cache
+via: 1.1 google
+alt-svc: h3=":443"; ma=2592000
+

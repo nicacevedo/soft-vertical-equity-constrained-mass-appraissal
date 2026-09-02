@@ -1,0 +1,23 @@
+jurisdiction,source_table,source_variable,semantic,temporal_class,evidence,allowed_in_main_avm
+detroit_mi,combined.csv,Adj. Sale $,sale_price,SAFE_AS_OF_SALE,transaction price on sale row,n/a_outcome
+detroit_mi,combined.csv,Sale Date,sale_date,SAFE_AS_OF_SALE,sale event date,n/a_outcome
+detroit_mi,combined.csv,Asd. when Sold,assessed_value,SAFE_AS_OF_SALE,"label claims assessment at sale; diagnostic only, not AVM target",false_diagnostic
+detroit_mi,combined.csv,Floor Area,building_area,TIMING_UNRESOLVED,no snapshot date; Appr. Date often missing,false
+detroit_mi,combined.csv,Building Style,style,TIMING_UNRESOLVED,"same workbook, no as-of date",false
+philadelphia_pa,Ratio_Analysis_*.dta,sale_price,sale_price,SAFE_AS_OF_SALE,transaction field,n/a_outcome
+philadelphia_pa,Ratio_Analysis_*.dta,assmt_at_sale,assessed_value,SAFE_AS_OF_SALE,named assessment at sale; diagnostic,false_diagnostic
+philadelphia_pa,Ratio_Analysis_*.dta,totlivarea,building_area,TIMING_UNRESOLVED,CMF code never dates characteristics relative to saledate,false
+philadelphia_pa,Ratio_Analysis_*.dta,yrbuilt,year_built,TIMING_UNRESOLVED,"stable if truly year built, but vintage of OPA extract unknown",false
+orleans_la,sales.csv,price,sale_price,SAFE_AS_OF_SALE,sale row,n/a_outcome
+orleans_la,values.csv,total_assessed_value,assessed_value,HISTORICAL_SNAPSHOT_REQUIRED,yearly values; join on sale year is as-of-year assessment,false_diagnostic
+orleans_la,properties.csv,building_area_sq_ft,building_area,POST_SALE_LEAKAGE,scrape with updated_at; not a historical roll,false
+franklin_oh,columbusonly.csv,PRICE,sale_price,SAFE_AS_OF_SALE,sale year only (no day),n/a_outcome
+franklin_oh,columbusonly.csv,ASSESSED_VALUE,assessed_value,TIMING_UNRESOLVED,no assessment stage/year distinct from SALE_YEAR,false_diagnostic
+st_louis_county_mo,2019/sales.csv,PRICE,sale_price,SAFE_AS_OF_SALE,SALEDT on sales extract,n/a_outcome
+st_louis_county_mo,"dwelling.{csv,txt}",SFLA,building_area,SAFE_AS_OF_SALE,yearly extract TAXYR; join TAXYR==sale year (or prior year) is a historical snapshot,true_if_year_matched
+st_louis_county_mo,"dwelling.{csv,txt}",YRBLT,year_built,SAFE_AS_OF_SALE,year built on that tax-year card,true_if_year_matched
+st_louis_county_mo,"dwelling.{csv,txt}",RMBED,bedrooms,SAFE_AS_OF_SALE,tax-year dwelling card,true_if_year_matched
+st_louis_county_mo,fullroll.csv APRTOT,APRTOT,appraised_value,NOT_APPLICABLE,must not be used as sale price (published snippet defect),false
+cook_il,res_salesYYYY.csv,NetConsideration,sale_price,SAFE_AS_OF_SALE,BOR sale extract,n/a_outcome
+cook_il,res_salesYYYY.csv,area,building_area,TIMING_UNRESOLVED,"single area field, no assessor-year of characteristics",false
+cook_il,CCAO training_data.parquet,char_*,ccao_characteristics,SAFE_AS_OF_SALE,canonical CCAO modeling extract; not modified this pass,true_primary_application_only

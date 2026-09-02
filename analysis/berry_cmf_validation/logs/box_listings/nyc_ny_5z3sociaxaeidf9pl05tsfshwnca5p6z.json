@@ -1,0 +1,192 @@
+[
+  {
+    "typed_id": "d_131029481279",
+    "type": "folder",
+    "id": "131029481279",
+    "name": "data",
+    "size": 3908583280,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "d_131030535916",
+    "type": "folder",
+    "id": "131030535916",
+    "name": "raw data",
+    "size": 3439595719,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/raw data",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131029481279"
+  },
+  {
+    "typed_id": "f_772452227014",
+    "type": "file",
+    "id": "772452227014",
+    "name": "Property_Valuation_and_Assessment_Data.csv",
+    "size": 2070253440,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/raw data/Property_Valuation_and_Assessment_Data.csv",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131030535916"
+  },
+  {
+    "typed_id": "f_772445067230",
+    "type": "file",
+    "id": "772445067230",
+    "name": "sales.dta",
+    "size": 276834882,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/raw data/sales.dta",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131030535916"
+  },
+  {
+    "typed_id": "f_772440333866",
+    "type": "file",
+    "id": "772440333866",
+    "name": "joined_NY_assessments.csv",
+    "size": 430450060,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/raw data/joined_NY_assessments.csv",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131030535916"
+  },
+  {
+    "typed_id": "f_772446332240",
+    "type": "file",
+    "id": "772446332240",
+    "name": "assessment.dta",
+    "size": 543794750,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/raw data/assessment.dta",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131030535916"
+  },
+  {
+    "typed_id": "f_772443477625",
+    "type": "file",
+    "id": "772443477625",
+    "name": "NYC_Citywide_Annualized_Calendar_Sales_Update.csv",
+    "size": 68884222,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/raw data/NYC_Citywide_Annualized_Calendar_Sales_Update.csv",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131030535916"
+  },
+  {
+    "typed_id": "f_772441890883",
+    "type": "file",
+    "id": "772441890883",
+    "name": "joined_NY_sales.csv",
+    "size": 49378365,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/raw data/joined_NY_sales.csv",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131030535916"
+  },
+  {
+    "typed_id": "d_131029547281",
+    "type": "folder",
+    "id": "131029547281",
+    "name": "extracts",
+    "size": 468987561,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/extracts",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131029481279"
+  },
+  {
+    "typed_id": "f_772432281057",
+    "type": "file",
+    "id": "772432281057",
+    "name": "classonefinal.csv",
+    "size": 376051316,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/extracts/classonefinal.csv",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131029547281"
+  },
+  {
+    "typed_id": "f_772445995365",
+    "type": "file",
+    "id": "772445995365",
+    "name": "classtwofinal.csv",
+    "size": 92936245,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/data/extracts/classtwofinal.csv",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131029547281"
+  },
+  {
+    "typed_id": "d_131028323020",
+    "type": "folder",
+    "id": "131028323020",
+    "name": "report",
+    "size": 2545659,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/report",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772433182427",
+    "type": "file",
+    "id": "772433182427",
+    "name": "New York City (Class 1).html",
+    "size": 2545659,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/report/New York City (Class 1).html",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": "131028323020"
+  },
+  {
+    "typed_id": "f_772441198880",
+    "type": "file",
+    "id": "772441198880",
+    "name": "nyc_construct_data.R",
+    "size": 4552,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/nyc_construct_data.R",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772441034583",
+    "type": "file",
+    "id": "772441034583",
+    "name": "README.txt",
+    "size": 240,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/README.txt",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772440940673",
+    "type": "file",
+    "id": "772440940673",
+    "name": "make_nyc_report.R",
+    "size": 2344,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/make_nyc_report.R",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772439238934",
+    "type": "file",
+    "id": "772439238934",
+    "name": "report.Rmd",
+    "size": 21090,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/report.Rmd",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772438900764",
+    "type": "file",
+    "id": "772438900764",
+    "name": "executive_summary.Rmd",
+    "size": 1330,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/executive_summary.Rmd",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772438736780",
+    "type": "file",
+    "id": "772438736780",
+    "name": "nyc.Rmd",
+    "size": 10918,
+    "relpath": "box/5z3sociaxaeidf9pl05tsfshwnca5p6z/nyc.Rmd",
+    "shared": "5z3sociaxaeidf9pl05tsfshwnca5p6z",
+    "parent_folder_id": ""
+  }
+]

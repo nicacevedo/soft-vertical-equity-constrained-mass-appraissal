@@ -1,0 +1,2 @@
+jurisdiction,hybrid_attempted,reason,eligible_local_n,matched_n,unmatched_n,unique_match_rate,ambiguous_match_rate,conflicting_id_rate,approved
+ALL_PRIMARY,false,"No jurisdiction remained D_ATTOM_ENRICHMENT_CANDIDATE after public-enrichment reclassification. Existing ATTOM six-county benchmark is preserved separately. Cook ATTOM is used only in three-source validation, not as a replacement for CCAO or Berry outcomes.",,,,,,,false

@@ -1,0 +1,158 @@
+# Frozen AFTER Steps 0-12 and BEFORE any Direct/Surrogate experiment.
+# Inclusion uses only provenance, reproduction, sample/target quality,
+# temporal validity, feature sufficiency, linkage quality, institutional
+# diversity, and baseline prediction credibility.
+# Direct/Surrogate held-out results were not inspected because they were not run.
+
+schema_version: 1
+freeze_status: FROZEN
+frozen_at_utc: "2026-09-02T18:05:00Z"
+step14_executed: false
+step14_stop_rule: >
+  Protocol requires stopping rather than forcing fairness paths when major
+  methodological issues remain. Only one new CMF source is AVM-ready; that
+  source has year-only sale dates and a missing 2012 dwelling snapshot;
+  Cook three-source model robustness is impossible due to disjoint years;
+  no jurisdiction was classified D_ATTOM_ENRICHMENT_CANDIDATE.
+  A single-county Direct/Surrogate run would not constitute a
+  multi-jurisdiction transfer experiment and is deferred.
+
+code_baseline:
+  branch: testing
+  head_sha: a55d81e8a55b3edeb055c6e02db41ba3988587d6
+  manuscript_do_not_edit: paper/paper_v12.tex
+  canonical_metrics: utils/motivation_utils.py
+  delta_nl: utils/delta_nl.py
+  python_env: /home/nacevedo/.conda/envs/fairness_env/bin/python
+
+input_artifact_sha256:
+  protocol.yaml: 5a71f358acabe1719b677d435d528f230863644e6bdbd396648531ab7a3575da
+  source_registry.csv: edff2f278e826206d2e7c4f42217b65e61660434a1c81f0277504c525e8a6da0
+  file_manifest.csv: 3a1ab0592dccc81ea4126c0bf700d38612c71a069010a2aae32752a9e345cf0d
+  schema_inventory.parquet: 73e8fff94c8a53fcad1746d253a9b15e73f804d9ad27d9711c17e7a2ed7c0ed5
+  feature_coverage_matrix.csv: 9308612438de455a7ba2fc644ead5350a630a5a994dce187caab0e16c080c594
+  reproduction_results.csv: bd2f36425a68f075f88170ad360cfd7d73421be2e14920e086909ffaf6991086
+  jurisdiction_usability_matrix.csv: c3372da762949c6af39503043de5e5f68a36950ce3685e9b67e9b1967f85f9f1
+  temporal_integrity_audit.csv: 2d3ea5f333665e9f60d3b422f4ffe844cdf99ecbabd06b3367ac2cb3e04f8781
+  public_enrichment_audit.csv: 122136478bac837558de1f02e624815c8c4d1017e0b0aea78a827d7282c5dbe2
+  attom_join_feasibility.csv: efc1700cef7ccf8966b6dc3d9d0e094a76725e190538866b094b9beefe3299aa
+  baseline_smoke_metrics.csv: 25d263cf5598d9ed5ad10abf66cf83148987fd8fdeed13726dafab955a7c692f
+  baseline_smoke_status.csv: 603eddcde6dd4c511cb74cf0bf54efb4d68b83b2d0de7995e0e9a1e7183c99f8
+  harmonized_feature_schema.yaml: cfb419a645f20acfca5836635717482048e89908f3f1c947a41bdc55eb7821eb
+  stl_smoke_modeling_table.parquet: 0fed83935e46ebd5f2d63bbb4c6641bba396867c267fd4fb110c2a1bcaf501ea
+
+existing_attom_benchmark:
+  decision: RETAIN_EXISTING_ATTOM_SENSITIVITY_ONLY
+  do_not_overwrite: true
+  counties:
+    - Cook County IL (FIPS 17031)
+    - Allegheny County PA (42003)
+    - Maricopa County AZ (04013)
+    - King County WA (53033)
+    - Miami-Dade County FL (12086)
+    - Middlesex County MA (25017)
+  miami_dade: remain_available_as_boundary_case
+  paper_n_sales: 1231194
+  paper_n_heldout: 246241
+
+jurisdictions:
+  cook_il_ccao:
+    geographic_unit: "Cook County, IL (CCAO residential workflow)"
+    decision: INCLUDE_PRIMARY
+    recommended_role: primary_application
+    reason: >
+      Canonical CCAO modeling sample remains the paper's primary AVM
+      application. This audit did not modify that experiment.
+
+  cook_il_cmf_res_sales:
+    geographic_unit: "Cook County, IL (Berry/CMF BOR res_sales 2002-2015)"
+    decision: EXCLUDE
+    recommended_role: pre2016_assessment_regressivity_provenance_only
+    reason: >
+      Disjoint years versus CCAO 2016-2025. Useful to document official
+      assessment/sale ratios before the modeling window. Not an AVM sample
+      and not interchangeable with model valuation ratios.
+
+  st_louis_county_mo:
+    geographic_unit: "St. Louis County, MO"
+    decision: INCLUDE_BOUNDARY_CASE
+    recommended_role: sole_cmf_standalone_avm_candidate_with_timing_limitations
+    reason: >
+      Only primary CMF jurisdiction classified B_STANDALONE_AVM_READY.
+      Yearly dwelling snapshots join to SALEVAL==X sales. Baseline LGBM is
+      a credible prediction problem (held-out R2_price 0.834) but sale day
+      is missing from joined.csv, the 2012 dwelling folder is TAXYR=2013,
+      and the published CMF make_report path uses APRTOT as SALE_PRICE.
+      Include as a boundary/construction case, not as confirmatory
+      multi-jurisdiction evidence.
+
+  detroit_mi:
+    geographic_unit: "Detroit, MI"
+    decision: EXCLUDE
+    recommended_role: external_assessment_regressivity_benchmark
+    reason: >
+      Best Berry reproduction (EXACT_OR_ROUNDING_MATCH) but insufficient
+      leakage-safe AVM predictors. Characteristics are TIMING_UNRESOLVED.
+
+  philadelphia_pa:
+    geographic_unit: "Philadelphia County, PA"
+    decision: EXCLUDE
+    recommended_role: public_enrichment_candidate_not_acquired
+    reason: >
+      PARTIAL_REPRODUCTION; OPA ratio-study extract has characteristics
+      with unresolved timing. OpenDataPhilly assessment history was not
+      bulk-downloaded because dated as-of-sale validity was not confirmed.
+
+  orleans_la:
+    geographic_unit: "Orleans Parish, LA"
+    decision: EXCLUDE
+    recommended_role: documented_scrape_not_avm
+    reason: >
+      Properties table is a website scrape (updated_at), not a historical
+      roll. FOIA for official history quoted at ~$75k. No ATTOM Orleans extract.
+
+  franklin_oh:
+    geographic_unit: "Columbus city extract (not full Franklin County)"
+    decision: EXCLUDE
+    recommended_role: incomplete_source
+    reason: >
+      Box contains columbusonly.csv only. No structural predictors. GDB
+      omitted. Page Report link is Columbus County NC CoreLogic HTML.
+      franklin-code pages overwrite with example_data.
+
+  nyc_ny:
+    geographic_unit: "New York City, NY"
+    decision: EXCLUDE
+    recommended_role: secondary_inventory_only
+    reason: Large data folder not downloaded this pass (protocol).
+
+  erie_ny:
+    geographic_unit: "Buffalo City, NY"
+    decision: EXCLUDE
+    recommended_role: secondary_inventory_only
+    reason: 2020 roll attached to 2018+ sales is a POST_SALE_LEAKAGE risk.
+
+  clark_nv:
+    geographic_unit: "Las Vegas / Clark County, NV"
+    decision: EXCLUDE
+    recommended_role: secondary_inventory_only
+    reason: Large yearly files skipped.
+
+  los_angeles_ca:
+    geographic_unit: "Los Angeles County, CA"
+    decision: EXCLUDE
+    recommended_role: secondary_inventory_only
+    reason: Not downloaded; page code overwrites SALE_PRICE inconsistently.
+
+  maricopa_az:
+    geographic_unit: "Maricopa County, AZ"
+    decision: EXCLUDE
+    recommended_role: existing_attom_sensitivity_already_covers
+    reason: >
+      Large PHX_* files not downloaded. CMF code uses limited property
+      value (lpv) as ASSESSED_VALUE. ATTOM Maricopa remains in the
+      existing sensitivity layer.
+
+inclusion_rule_statement: >
+  No county was included or excluded because a fairness correction looked
+  promising or unfavorable. Direct and Surrogate paths were not run.

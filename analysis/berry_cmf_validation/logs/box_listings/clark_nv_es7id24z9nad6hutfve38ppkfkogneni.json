@@ -1,0 +1,62 @@
+[
+  {
+    "typed_id": "f_762803255686",
+    "type": "file",
+    "id": "762803255686",
+    "name": "2011.csv",
+    "size": 205927262,
+    "relpath": "box/es7id24z9nad6hutfve38ppkfkogneni/2011.csv",
+    "shared": "es7id24z9nad6hutfve38ppkfkogneni",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_762801639920",
+    "type": "file",
+    "id": "762801639920",
+    "name": "2012.csv",
+    "size": 205652572,
+    "relpath": "box/es7id24z9nad6hutfve38ppkfkogneni/2012.csv",
+    "shared": "es7id24z9nad6hutfve38ppkfkogneni",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_762800018698",
+    "type": "file",
+    "id": "762800018698",
+    "name": "2013.csv",
+    "size": 208601133,
+    "relpath": "box/es7id24z9nad6hutfve38ppkfkogneni/2013.csv",
+    "shared": "es7id24z9nad6hutfve38ppkfkogneni",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_762796191978",
+    "type": "file",
+    "id": "762796191978",
+    "name": "2014.csv",
+    "size": 208224509,
+    "relpath": "box/es7id24z9nad6hutfve38ppkfkogneni/2014.csv",
+    "shared": "es7id24z9nad6hutfve38ppkfkogneni",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_762799585291",
+    "type": "file",
+    "id": "762799585291",
+    "name": "final_merged_corrected.csv",
+    "size": 31493325,
+    "relpath": "box/es7id24z9nad6hutfve38ppkfkogneni/final_merged_corrected.csv",
+    "shared": "es7id24z9nad6hutfve38ppkfkogneni",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_762793256516",
+    "type": "file",
+    "id": "762793256516",
+    "name": "Las Vegas City.html",
+    "size": 2241783,
+    "relpath": "box/es7id24z9nad6hutfve38ppkfkogneni/Las Vegas City.html",
+    "shared": "es7id24z9nad6hutfve38ppkfkogneni",
+    "parent_folder_id": ""
+  }
+]

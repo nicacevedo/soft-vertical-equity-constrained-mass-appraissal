@@ -1,0 +1,2192 @@
+[
+  {
+    "typed_id": "d_130335094109",
+    "type": "folder",
+    "id": "130335094109",
+    "name": "Original data from assessor",
+    "size": 7616864,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "d_130334661906",
+    "type": "folder",
+    "id": "130334661906",
+    "name": "District 10",
+    "size": 881328,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768182305913",
+    "type": "file",
+    "id": "768182305913",
+    "name": "0053Aclean.xlsx",
+    "size": 38156,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0053Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768180185098",
+    "type": "file",
+    "id": "768180185098",
+    "name": "District 10 Combined.xlsx",
+    "size": 338816,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/District 10 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768181025236",
+    "type": "file",
+    "id": "768181025236",
+    "name": "0051Aclean.xlsx",
+    "size": 12956,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0051Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768182401532",
+    "type": "file",
+    "id": "768182401532",
+    "name": "0050Aclean.xlsx",
+    "size": 15359,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0050Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768180491599",
+    "type": "file",
+    "id": "768180491599",
+    "name": "0049Bclean.xlsx",
+    "size": 16384,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0049Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768180426429",
+    "type": "file",
+    "id": "768180426429",
+    "name": "0049Aclean.xlsx",
+    "size": 38946,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0049Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768182522889",
+    "type": "file",
+    "id": "768182522889",
+    "name": "0046Aclean.xlsx",
+    "size": 17834,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0046Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768181797010",
+    "type": "file",
+    "id": "768181797010",
+    "name": "0045Aclean.xlsx",
+    "size": 21534,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0045Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768181043821",
+    "type": "file",
+    "id": "768181043821",
+    "name": "0044Aclean.xlsx",
+    "size": 24953,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0044Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768183034541",
+    "type": "file",
+    "id": "768183034541",
+    "name": "0043Cclean.xlsx",
+    "size": 30319,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0043Cclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768181833860",
+    "type": "file",
+    "id": "768181833860",
+    "name": "0043Aclean.xlsx",
+    "size": 45184,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0043Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768183069946",
+    "type": "file",
+    "id": "768183069946",
+    "name": "0040Dclean.xlsx",
+    "size": 16870,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0040Dclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768179776188",
+    "type": "file",
+    "id": "768179776188",
+    "name": "0040Aclean.xlsx",
+    "size": 142892,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0040Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768181164775",
+    "type": "file",
+    "id": "768181164775",
+    "name": "0039Fclean.xlsx",
+    "size": 13999,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0039Fclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768179436356",
+    "type": "file",
+    "id": "768179436356",
+    "name": "0039Cclean.xlsx",
+    "size": 18241,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0039Cclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768180889066",
+    "type": "file",
+    "id": "768180889066",
+    "name": "0039Aclean.xlsx",
+    "size": 35887,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0039Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "f_768179430356",
+    "type": "file",
+    "id": "768179430356",
+    "name": "0033Aclean.xlsx",
+    "size": 52998,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 10/0033Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334661906"
+  },
+  {
+    "typed_id": "d_130334987260",
+    "type": "folder",
+    "id": "130334987260",
+    "name": "District 9",
+    "size": 931620,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768172929482",
+    "type": "file",
+    "id": "768172929482",
+    "name": "District 9 combined-.xlsx",
+    "size": 350155,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/District 9 combined-.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768180561192",
+    "type": "file",
+    "id": "768180561192",
+    "name": "9196Aclean.xlsx",
+    "size": 20456,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9196Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768181992777",
+    "type": "file",
+    "id": "768181992777",
+    "name": "9042Dclean.xlsx",
+    "size": 24387,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9042Dclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768182038185",
+    "type": "file",
+    "id": "768182038185",
+    "name": "9042Bclean.xlsx",
+    "size": 27380,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9042Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768181351821",
+    "type": "file",
+    "id": "768181351821",
+    "name": "9042Aclean.xlsx",
+    "size": 34619,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9042Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768182879233",
+    "type": "file",
+    "id": "768182879233",
+    "name": "9035Aclean.xlsx",
+    "size": 41667,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9035Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768159171770",
+    "type": "file",
+    "id": "768159171770",
+    "name": "9034Aclean.xlsx",
+    "size": 47699,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9034Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768183040287",
+    "type": "file",
+    "id": "768183040287",
+    "name": "9032Bclean.xlsx",
+    "size": 21192,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9032Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768181726445",
+    "type": "file",
+    "id": "768181726445",
+    "name": "9031Bclean.xlsx",
+    "size": 32157,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9031Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768172700070",
+    "type": "file",
+    "id": "768172700070",
+    "name": "9032Aclean.xlsx",
+    "size": 45740,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9032Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768180983899",
+    "type": "file",
+    "id": "768180983899",
+    "name": "9030Aclean.xlsx",
+    "size": 17955,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9030Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768181546044",
+    "type": "file",
+    "id": "768181546044",
+    "name": "9028Aclean.xlsx",
+    "size": 26822,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9028Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768180239073",
+    "type": "file",
+    "id": "768180239073",
+    "name": "9029Aclean.xlsx",
+    "size": 31715,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9029Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768181937811",
+    "type": "file",
+    "id": "768181937811",
+    "name": "9023Aclean.xlsx",
+    "size": 33334,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9023Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768172128764",
+    "type": "file",
+    "id": "768172128764",
+    "name": "9022Aclean.xlsx",
+    "size": 26484,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9022Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768180597460",
+    "type": "file",
+    "id": "768180597460",
+    "name": "9021Aclean.xlsx",
+    "size": 28159,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9021Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768180250726",
+    "type": "file",
+    "id": "768180250726",
+    "name": "9020Aclean.xlsx",
+    "size": 35770,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9020Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768181155647",
+    "type": "file",
+    "id": "768181155647",
+    "name": "9019Bclean.xlsx",
+    "size": 41789,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9019Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "f_768181934998",
+    "type": "file",
+    "id": "768181934998",
+    "name": "9019Aclean.xlsx",
+    "size": 44140,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 9/9019Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334987260"
+  },
+  {
+    "typed_id": "d_130334717284",
+    "type": "folder",
+    "id": "130334717284",
+    "name": "District 8",
+    "size": 1016974,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768182006301",
+    "type": "file",
+    "id": "768182006301",
+    "name": "District 8 Combined.xlsx",
+    "size": 331460,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/District 8 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768180928699",
+    "type": "file",
+    "id": "768180928699",
+    "name": "8202Aclean.xlsx",
+    "size": 16326,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8202Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768181196468",
+    "type": "file",
+    "id": "768181196468",
+    "name": "8026Bclean.xlsx",
+    "size": 18268,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8026Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768181050544",
+    "type": "file",
+    "id": "768181050544",
+    "name": "8027Aclean.xlsx",
+    "size": 24215,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8027Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768182999487",
+    "type": "file",
+    "id": "768182999487",
+    "name": "8026Aclean.xlsx",
+    "size": 14421,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8026Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768180183055",
+    "type": "file",
+    "id": "768180183055",
+    "name": "8025Aclean.xlsx",
+    "size": 38927,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8025Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768182223996",
+    "type": "file",
+    "id": "768182223996",
+    "name": "8024Aclean.xlsx",
+    "size": 21977,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8024Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768180370605",
+    "type": "file",
+    "id": "768180370605",
+    "name": "8018Aclean.xlsx",
+    "size": 43867,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8018Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768183246375",
+    "type": "file",
+    "id": "768183246375",
+    "name": "8017Aclean.xlsx",
+    "size": 27397,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8017Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768180085109",
+    "type": "file",
+    "id": "768180085109",
+    "name": "8015Hclean.xlsx",
+    "size": 14373,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8015Hclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768179307742",
+    "type": "file",
+    "id": "768179307742",
+    "name": "8016Aclean.xlsx",
+    "size": 21397,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8016Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768181562784",
+    "type": "file",
+    "id": "768181562784",
+    "name": "8015Dclean.xlsx",
+    "size": 15342,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8015Dclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768182928138",
+    "type": "file",
+    "id": "768182928138",
+    "name": "8015Aclean.xlsx",
+    "size": 28793,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8015Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768164859507",
+    "type": "file",
+    "id": "768164859507",
+    "name": "8014Aclean.xlsx",
+    "size": 17422,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8014Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768171987761",
+    "type": "file",
+    "id": "768171987761",
+    "name": "8013Bclean.xlsx",
+    "size": 24373,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8013Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768182633747",
+    "type": "file",
+    "id": "768182633747",
+    "name": "8013Aclean.xlsx",
+    "size": 18481,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8013Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768181805465",
+    "type": "file",
+    "id": "768181805465",
+    "name": "8012Aclean.xlsx",
+    "size": 19697,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8012Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768180695355",
+    "type": "file",
+    "id": "768180695355",
+    "name": "8011Aclean.xlsx",
+    "size": 15084,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8011Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768179856338",
+    "type": "file",
+    "id": "768179856338",
+    "name": "8010Aclean.xlsx",
+    "size": 26852,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8010Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "f_768171735537",
+    "type": "file",
+    "id": "768171735537",
+    "name": "8009Aclean.xlsx",
+    "size": 55499,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 8/8009Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334717284"
+  },
+  {
+    "typed_id": "d_130334606412",
+    "type": "folder",
+    "id": "130334606412",
+    "name": "District 7",
+    "size": 976916,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768182392702",
+    "type": "file",
+    "id": "768182392702",
+    "name": "District 7 Combined.xlsx",
+    "size": 379833,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/District 7 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768182465763",
+    "type": "file",
+    "id": "768182465763",
+    "name": "7195Bclean.xlsx",
+    "size": 14088,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7195Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768182539024",
+    "type": "file",
+    "id": "768182539024",
+    "name": "7195Aclean.xlsx",
+    "size": 24339,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7195Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768171723537",
+    "type": "file",
+    "id": "768171723537",
+    "name": "7192Aclean.xlsx",
+    "size": 66614,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7192Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768180753716",
+    "type": "file",
+    "id": "768180753716",
+    "name": "7190Aclean.xlsx",
+    "size": 25020,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7190Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768180625755",
+    "type": "file",
+    "id": "768180625755",
+    "name": "7189Aclean.xlsx",
+    "size": 17161,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7189Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768181204095",
+    "type": "file",
+    "id": "768181204095",
+    "name": "7187Aclean.xlsx",
+    "size": 27971,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7187Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768181959541",
+    "type": "file",
+    "id": "768181959541",
+    "name": "7186Aclean.xlsx",
+    "size": 33526,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7186Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768179690328",
+    "type": "file",
+    "id": "768179690328",
+    "name": "7185Bclean.xlsx",
+    "size": 45269,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7185Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768180250412",
+    "type": "file",
+    "id": "768180250412",
+    "name": "7185Aclean.xlsx",
+    "size": 32025,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7185Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768172712361",
+    "type": "file",
+    "id": "768172712361",
+    "name": "7183Aclean.xlsx",
+    "size": 122612,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7183Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768182108464",
+    "type": "file",
+    "id": "768182108464",
+    "name": "7182Aclean.xlsx",
+    "size": 24995,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7182Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768182061616",
+    "type": "file",
+    "id": "768182061616",
+    "name": "7181Aclean.xlsx",
+    "size": 15592,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7181Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768181890550",
+    "type": "file",
+    "id": "768181890550",
+    "name": "7180Aclean.xlsx",
+    "size": 50367,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7180Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768180169893",
+    "type": "file",
+    "id": "768180169893",
+    "name": "7179Aclean.xlsx",
+    "size": 18982,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7179Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768183057629",
+    "type": "file",
+    "id": "768183057629",
+    "name": "7178Aclean.xlsx",
+    "size": 18646,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7178Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768181308319",
+    "type": "file",
+    "id": "768181308319",
+    "name": "7176Aclean.xlsx",
+    "size": 35447,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7176Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "f_768180999125",
+    "type": "file",
+    "id": "768180999125",
+    "name": "7175Aclean.xlsx",
+    "size": 24429,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 7/7175Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334606412"
+  },
+  {
+    "typed_id": "d_130331074413",
+    "type": "folder",
+    "id": "130331074413",
+    "name": "District 6",
+    "size": 522958,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768180958847",
+    "type": "file",
+    "id": "768180958847",
+    "name": "District 6 Combined.xlsx",
+    "size": 131754,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/District 6 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182332208",
+    "type": "file",
+    "id": "768182332208",
+    "name": "6201Aclean.xlsx",
+    "size": 18696,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6201Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182496439",
+    "type": "file",
+    "id": "768182496439",
+    "name": "6200Aclean.xlsx",
+    "size": 26013,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6200Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182770307",
+    "type": "file",
+    "id": "768182770307",
+    "name": "6199Eclean.xlsx",
+    "size": 18952,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6199Eclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182041113",
+    "type": "file",
+    "id": "768182041113",
+    "name": "6199Fclean.xlsx",
+    "size": 17920,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6199Fclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182451173",
+    "type": "file",
+    "id": "768182451173",
+    "name": "6199Aclean.xlsx",
+    "size": 27441,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6199Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182008516",
+    "type": "file",
+    "id": "768182008516",
+    "name": "6152Cclean.xlsx",
+    "size": 16846,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6152Cclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768172703091",
+    "type": "file",
+    "id": "768172703091",
+    "name": "6161Aclean.xlsx",
+    "size": 15630,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6161Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768183033975",
+    "type": "file",
+    "id": "768183033975",
+    "name": "6152Bclean.xlsx",
+    "size": 20695,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6152Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182888603",
+    "type": "file",
+    "id": "768182888603",
+    "name": "6152Aclean.xlsx",
+    "size": 18670,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6152Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768180392973",
+    "type": "file",
+    "id": "768180392973",
+    "name": "6115Aclean.xlsx",
+    "size": 16085,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6115Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768179357032",
+    "type": "file",
+    "id": "768179357032",
+    "name": "6114Aclean.xlsx",
+    "size": 14650,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6114Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182348587",
+    "type": "file",
+    "id": "768182348587",
+    "name": "6112Aclean.xlsx",
+    "size": 14869,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6112Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768181038621",
+    "type": "file",
+    "id": "768181038621",
+    "name": "6110Aclean.xlsx",
+    "size": 14140,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6110Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182632101",
+    "type": "file",
+    "id": "768182632101",
+    "name": "6106Aclean.xlsx",
+    "size": 17464,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6106Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768180512955",
+    "type": "file",
+    "id": "768180512955",
+    "name": "6106Eclean.xlsx",
+    "size": 15887,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6106Eclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768181686860",
+    "type": "file",
+    "id": "768181686860",
+    "name": "6104Aclean.xlsx",
+    "size": 29556,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6104Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768171298452",
+    "type": "file",
+    "id": "768171298452",
+    "name": "6103Bclean.xlsx",
+    "size": 14647,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6103Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182188753",
+    "type": "file",
+    "id": "768182188753",
+    "name": "6102Bclean.xlsx",
+    "size": 20128,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6102Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "f_768182513238",
+    "type": "file",
+    "id": "768182513238",
+    "name": "6102Aclean.xlsx",
+    "size": 19567,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 6/6102Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130331074413"
+  },
+  {
+    "typed_id": "d_130333861128",
+    "type": "folder",
+    "id": "130333861128",
+    "name": "District 5",
+    "size": 527777,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768159245043",
+    "type": "file",
+    "id": "768159245043",
+    "name": "District 5 Combined.xlsx",
+    "size": 174197,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/District 5 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768179359948",
+    "type": "file",
+    "id": "768179359948",
+    "name": "5174Aclean.xlsx",
+    "size": 31369,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5174Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768182407639",
+    "type": "file",
+    "id": "768182407639",
+    "name": "5173Aclean.xlsx",
+    "size": 13448,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5173Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768181767335",
+    "type": "file",
+    "id": "768181767335",
+    "name": "5171Aclean.xlsx",
+    "size": 16144,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5171Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768182157553",
+    "type": "file",
+    "id": "768182157553",
+    "name": "5169Aclean.xlsx",
+    "size": 15234,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5169Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768181317984",
+    "type": "file",
+    "id": "768181317984",
+    "name": "5168Aclean.xlsx",
+    "size": 14236,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5168Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768179048662",
+    "type": "file",
+    "id": "768179048662",
+    "name": "5166Aclean.xlsx",
+    "size": 13865,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5166Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768182848169",
+    "type": "file",
+    "id": "768182848169",
+    "name": "5158Fclean.xlsx",
+    "size": 21901,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5158Fclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768181919196",
+    "type": "file",
+    "id": "768181919196",
+    "name": "5158Aclean.xlsx",
+    "size": 37118,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5158Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768183015110",
+    "type": "file",
+    "id": "768183015110",
+    "name": "5157Aclean.xlsx",
+    "size": 52534,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5157Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768180812711",
+    "type": "file",
+    "id": "768180812711",
+    "name": "5156Aclean.xlsx",
+    "size": 18481,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5156Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768182652138",
+    "type": "file",
+    "id": "768182652138",
+    "name": "5155Aclean.xlsx",
+    "size": 18166,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5155Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768171499237",
+    "type": "file",
+    "id": "768171499237",
+    "name": "5154Aclean.xlsx",
+    "size": 24215,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5154Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768181983906",
+    "type": "file",
+    "id": "768181983906",
+    "name": "5153Bclean.xlsx",
+    "size": 44237,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5153Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "f_768181083663",
+    "type": "file",
+    "id": "768181083663",
+    "name": "5153Aclean.xlsx",
+    "size": 32632,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 5/5153Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333861128"
+  },
+  {
+    "typed_id": "d_130333423849",
+    "type": "folder",
+    "id": "130333423849",
+    "name": "District 4",
+    "size": 283138,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768179884191",
+    "type": "file",
+    "id": "768179884191",
+    "name": "District 4 Combined.xlsx",
+    "size": 46920,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/District 4 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768178906799",
+    "type": "file",
+    "id": "768178906799",
+    "name": "4164A.xlsx",
+    "size": 12940,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4164A.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768171269652",
+    "type": "file",
+    "id": "768171269652",
+    "name": "4137A.xlsx",
+    "size": 12941,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4137A.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768181754449",
+    "type": "file",
+    "id": "768181754449",
+    "name": "4136Aclean.xlsx",
+    "size": 13341,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4136Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768181310700",
+    "type": "file",
+    "id": "768181310700",
+    "name": "4130A.xlsx",
+    "size": 12856,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4130A.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768179925332",
+    "type": "file",
+    "id": "768179925332",
+    "name": "4125Aclean.xlsx",
+    "size": 16229,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4125Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768182826413",
+    "type": "file",
+    "id": "768182826413",
+    "name": "4124A.xlsx",
+    "size": 12844,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4124A.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768179887629",
+    "type": "file",
+    "id": "768179887629",
+    "name": "4120Aclean.xlsx",
+    "size": 23984,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4120Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768182230977",
+    "type": "file",
+    "id": "768182230977",
+    "name": "4119Aclean.xlsx",
+    "size": 14235,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4119Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768181594701",
+    "type": "file",
+    "id": "768181594701",
+    "name": "4118Aclean.xlsx",
+    "size": 17112,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4118Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768180629575",
+    "type": "file",
+    "id": "768180629575",
+    "name": "4113Aclean.xlsx",
+    "size": 13979,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4113Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768179054893",
+    "type": "file",
+    "id": "768179054893",
+    "name": "4111Aclean.xlsx",
+    "size": 13330,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4111Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768179902456",
+    "type": "file",
+    "id": "768179902456",
+    "name": "4107Aclean.xlsx",
+    "size": 18316,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4107Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768181628412",
+    "type": "file",
+    "id": "768181628412",
+    "name": "4101Bclean.xlsx",
+    "size": 16698,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4101Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768179982812",
+    "type": "file",
+    "id": "768179982812",
+    "name": "4101Cclean.xlsx",
+    "size": 17435,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4101Cclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "f_768181872914",
+    "type": "file",
+    "id": "768181872914",
+    "name": "4101Aclean.xlsx",
+    "size": 19978,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 4/4101Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130333423849"
+  },
+  {
+    "typed_id": "d_130334018895",
+    "type": "folder",
+    "id": "130334018895",
+    "name": "District 3",
+    "size": 688696,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768182291002",
+    "type": "file",
+    "id": "768182291002",
+    "name": "District 3 Combined.xlsx",
+    "size": 221043,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/District 3 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768179515646",
+    "type": "file",
+    "id": "768179515646",
+    "name": "3148Aclean.xlsx",
+    "size": 13885,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3148Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181929133",
+    "type": "file",
+    "id": "768181929133",
+    "name": "3143Aclean.xlsx",
+    "size": 20419,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3143Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768180133060",
+    "type": "file",
+    "id": "768180133060",
+    "name": "3147Aclean.xlsx",
+    "size": 13901,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3147Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768180843670",
+    "type": "file",
+    "id": "768180843670",
+    "name": "3142Aclean.xlsx",
+    "size": 14689,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3142Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768171808980",
+    "type": "file",
+    "id": "768171808980",
+    "name": "3141Aclean.xlsx",
+    "size": 20597,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3141Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181961284",
+    "type": "file",
+    "id": "768181961284",
+    "name": "3140Aclean.xlsx",
+    "size": 17601,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3140Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768179177388",
+    "type": "file",
+    "id": "768179177388",
+    "name": "3129Aclean.xlsx",
+    "size": 16889,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3129Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181787196",
+    "type": "file",
+    "id": "768181787196",
+    "name": "3100Aclean.xlsx",
+    "size": 14643,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3100Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181405874",
+    "type": "file",
+    "id": "768181405874",
+    "name": "3099Aclean.xlsx",
+    "size": 23348,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3099Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768182725613",
+    "type": "file",
+    "id": "768182725613",
+    "name": "3098Aclean.xlsx",
+    "size": 65541,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3098Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768180524903",
+    "type": "file",
+    "id": "768180524903",
+    "name": "3097Bclean.xlsx",
+    "size": 40525,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3097Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181656419",
+    "type": "file",
+    "id": "768181656419",
+    "name": "3097Aclean.xlsx",
+    "size": 30823,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3097Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181724579",
+    "type": "file",
+    "id": "768181724579",
+    "name": "3096Bclean.xlsx",
+    "size": 44749,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3096Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768179670108",
+    "type": "file",
+    "id": "768179670108",
+    "name": "3096Aclean.xlsx",
+    "size": 34248,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3096Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181027151",
+    "type": "file",
+    "id": "768181027151",
+    "name": "3095Bclean.xlsx",
+    "size": 18324,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3095Bclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768180044513",
+    "type": "file",
+    "id": "768180044513",
+    "name": "3093Aclean.xlsx",
+    "size": 18509,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3093Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768179888422",
+    "type": "file",
+    "id": "768179888422",
+    "name": "3095Aclean.xlsx",
+    "size": 15653,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3095Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768181354274",
+    "type": "file",
+    "id": "768181354274",
+    "name": "3092Aclean.xlsx",
+    "size": 16854,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3092Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "f_768179777732",
+    "type": "file",
+    "id": "768179777732",
+    "name": "3091Aclean.xlsx",
+    "size": 26455,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 3/3091Aclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334018895"
+  },
+  {
+    "typed_id": "d_130334292491",
+    "type": "folder",
+    "id": "130334292491",
+    "name": "District 2",
+    "size": 801125,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768181465785",
+    "type": "file",
+    "id": "768181465785",
+    "name": "District 2 Combined.xlsx",
+    "size": 283747,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/District 2 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768180649247",
+    "type": "file",
+    "id": "768180649247",
+    "name": "2088C clean.xlsx",
+    "size": 31711,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2088C clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768178939693",
+    "type": "file",
+    "id": "768178939693",
+    "name": "2088A clean.xlsx",
+    "size": 31303,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2088A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768180592746",
+    "type": "file",
+    "id": "768180592746",
+    "name": "2087B clean.xlsx",
+    "size": 19028,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2087B clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768179704191",
+    "type": "file",
+    "id": "768179704191",
+    "name": "2086A clean.xlsx",
+    "size": 39576,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2086A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768179120388",
+    "type": "file",
+    "id": "768179120388",
+    "name": "2085B clean.xlsx",
+    "size": 25862,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2085B clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768181737570",
+    "type": "file",
+    "id": "768181737570",
+    "name": "2085A clean.xlsx",
+    "size": 47185,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2085A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768180874863",
+    "type": "file",
+    "id": "768180874863",
+    "name": "2084C clean.xlsx",
+    "size": 27363,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2084C clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768180124809",
+    "type": "file",
+    "id": "768180124809",
+    "name": "2084A clean.xlsx",
+    "size": 18618,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2084A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768179875992",
+    "type": "file",
+    "id": "768179875992",
+    "name": "2083A clean.xlsx",
+    "size": 18368,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2083A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768181700592",
+    "type": "file",
+    "id": "768181700592",
+    "name": "2081A clean.xlsx",
+    "size": 28453,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2081A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768180612352",
+    "type": "file",
+    "id": "768180612352",
+    "name": "2079C clean.xlsx",
+    "size": 15379,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2079C clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768181632916",
+    "type": "file",
+    "id": "768181632916",
+    "name": "2079B clean.xlsx",
+    "size": 24872,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2079B clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768182459418",
+    "type": "file",
+    "id": "768182459418",
+    "name": "2079A clean.xlsx",
+    "size": 47842,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2079A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768182380287",
+    "type": "file",
+    "id": "768182380287",
+    "name": "2077B clean.xlsx",
+    "size": 16857,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2077B clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768181729976",
+    "type": "file",
+    "id": "768181729976",
+    "name": "2076A clean.xlsx",
+    "size": 32983,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2076A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768182398157",
+    "type": "file",
+    "id": "768182398157",
+    "name": "2075A clean.xlsx",
+    "size": 33197,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2075A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768181535638",
+    "type": "file",
+    "id": "768181535638",
+    "name": "2074A clean.xlsx",
+    "size": 43476,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2074A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "f_768171930124",
+    "type": "file",
+    "id": "768171930124",
+    "name": "2073A clean.xlsx",
+    "size": 15305,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 2/2073A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334292491"
+  },
+  {
+    "typed_id": "d_130334815620",
+    "type": "folder",
+    "id": "130334815620",
+    "name": "District 1",
+    "size": 599560,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768178999537",
+    "type": "file",
+    "id": "768178999537",
+    "name": "District 1 Combined.xlsx",
+    "size": 186318,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/District 1 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768171571137",
+    "type": "file",
+    "id": "768171571137",
+    "name": "1080C clean.xlsx",
+    "size": 14162,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1080C clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768181030644",
+    "type": "file",
+    "id": "768181030644",
+    "name": "1080A clean.xlsx",
+    "size": 18246,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1080A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768181762955",
+    "type": "file",
+    "id": "768181762955",
+    "name": "1072A clean.xlsx",
+    "size": 25968,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1072A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768182345357",
+    "type": "file",
+    "id": "768182345357",
+    "name": "1070A clean.xlsx",
+    "size": 21577,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1070A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768181556416",
+    "type": "file",
+    "id": "768181556416",
+    "name": "1071A clean.xlsx",
+    "size": 18640,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1071A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768179637332",
+    "type": "file",
+    "id": "768179637332",
+    "name": "1069A clean.xlsx",
+    "size": 40166,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1069A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768179502120",
+    "type": "file",
+    "id": "768179502120",
+    "name": "1068A clean.xlsx",
+    "size": 15162,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1068A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768182440436",
+    "type": "file",
+    "id": "768182440436",
+    "name": "1067A clean.xlsx",
+    "size": 20006,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1067A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768182362181",
+    "type": "file",
+    "id": "768182362181",
+    "name": "1065C clean.xlsx",
+    "size": 20397,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1065C clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768181461348",
+    "type": "file",
+    "id": "768181461348",
+    "name": "1065A clean.xlsx",
+    "size": 26673,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1065A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768182020818",
+    "type": "file",
+    "id": "768182020818",
+    "name": "1063A clean.xlsx",
+    "size": 45165,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1063A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768180945984",
+    "type": "file",
+    "id": "768180945984",
+    "name": "1062A clean.xlsx",
+    "size": 28793,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1062A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768181316985",
+    "type": "file",
+    "id": "768181316985",
+    "name": "1061A clean.xlsx",
+    "size": 14046,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1061A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768172504096",
+    "type": "file",
+    "id": "768172504096",
+    "name": "1060A clean.xlsx",
+    "size": 15982,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1060A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768168110800",
+    "type": "file",
+    "id": "768168110800",
+    "name": "1056B clean.xlsx",
+    "size": 38973,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1056B clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768179504673",
+    "type": "file",
+    "id": "768179504673",
+    "name": "1056A clean.xlsx",
+    "size": 15983,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1056A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768179579599",
+    "type": "file",
+    "id": "768179579599",
+    "name": "1052A clean.xlsx",
+    "size": 19542,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1052A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "f_768179446920",
+    "type": "file",
+    "id": "768179446920",
+    "name": "1048A clean.xlsx",
+    "size": 13761,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/District 1/1048A clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334815620"
+  },
+  {
+    "typed_id": "d_130334410281",
+    "type": "folder",
+    "id": "130334410281",
+    "name": "CONDOS",
+    "size": 386772,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130335094109"
+  },
+  {
+    "typed_id": "f_768172954284",
+    "type": "file",
+    "id": "768172954284",
+    "name": "CNDSHclean.xlsx",
+    "size": 14523,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDSHclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768181561532",
+    "type": "file",
+    "id": "768181561532",
+    "name": "CNDOIclean.xlsx",
+    "size": 38597,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOIclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768181550114",
+    "type": "file",
+    "id": "768181550114",
+    "name": "CNDRFclean.xlsx",
+    "size": 23334,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDRFclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768182443929",
+    "type": "file",
+    "id": "768182443929",
+    "name": "CNDOHclean.xlsx",
+    "size": 62579,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOHclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768181484579",
+    "type": "file",
+    "id": "768181484579",
+    "name": "CNDOGclean.xlsx",
+    "size": 26778,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOGclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768182492804",
+    "type": "file",
+    "id": "768182492804",
+    "name": "CNDOFclean.xlsx",
+    "size": 35569,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOFclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768181149746",
+    "type": "file",
+    "id": "768181149746",
+    "name": "CNDOEclean.xlsx",
+    "size": 46057,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOEclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768180606100",
+    "type": "file",
+    "id": "768180606100",
+    "name": "CNDODclean.xlsx",
+    "size": 55650,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDODclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768179114295",
+    "type": "file",
+    "id": "768179114295",
+    "name": "CNDOCclean.xlsx",
+    "size": 25869,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOCclean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768179312892",
+    "type": "file",
+    "id": "768179312892",
+    "name": "CNDOB clean.xlsx",
+    "size": 15534,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOB clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768182217833",
+    "type": "file",
+    "id": "768182217833",
+    "name": "CNDMO clean.xlsx",
+    "size": 14087,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDMO clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "f_768180012440",
+    "type": "file",
+    "id": "768180012440",
+    "name": "CNDOA clean.xlsx",
+    "size": 28195,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/Original data from assessor/CONDOS/CNDOA clean.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334410281"
+  },
+  {
+    "typed_id": "d_130334990755",
+    "type": "folder",
+    "id": "130334990755",
+    "name": "combined files",
+    "size": 5202754,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_768182432969",
+    "type": "file",
+    "id": "768182432969",
+    "name": "District 9 Combined.xlsx",
+    "size": 350155,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 9 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768180357009",
+    "type": "file",
+    "id": "768180357009",
+    "name": "District 7 Combined.xlsx",
+    "size": 379833,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 7 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768179448407",
+    "type": "file",
+    "id": "768179448407",
+    "name": "District 8 Combined.xlsx",
+    "size": 331460,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 8 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768182221029",
+    "type": "file",
+    "id": "768182221029",
+    "name": "District 6 Combined.xlsx",
+    "size": 131754,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 6 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768181059156",
+    "type": "file",
+    "id": "768181059156",
+    "name": "District 5 Combined.xlsx",
+    "size": 174197,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 5 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768180713072",
+    "type": "file",
+    "id": "768180713072",
+    "name": "District 4 Combined.xlsx",
+    "size": 46920,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 4 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768178311082",
+    "type": "file",
+    "id": "768178311082",
+    "name": "District 3 Combined.xlsx",
+    "size": 221043,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 3 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768181992378",
+    "type": "file",
+    "id": "768181992378",
+    "name": "District 2 Combined.xlsx",
+    "size": 283747,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 2 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768180618387",
+    "type": "file",
+    "id": "768180618387",
+    "name": "District 10 Combined.xlsx",
+    "size": 338816,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 10 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768179391808",
+    "type": "file",
+    "id": "768179391808",
+    "name": "District 1 Combined.xlsx",
+    "size": 186671,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/District 1 Combined.xlsx",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  },
+  {
+    "typed_id": "f_768180338711",
+    "type": "file",
+    "id": "768180338711",
+    "name": "combined.csv",
+    "size": 2758158,
+    "relpath": "box/qzz9nz9l81m1vku1q6luqzmxvdw9q9wb/combined files/combined.csv",
+    "shared": "qzz9nz9l81m1vku1q6luqzmxvdw9q9wb",
+    "parent_folder_id": "130334990755"
+  }
+]

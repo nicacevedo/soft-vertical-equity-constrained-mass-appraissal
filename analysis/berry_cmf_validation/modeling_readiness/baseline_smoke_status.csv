@@ -1,0 +1,7 @@
+jurisdiction,status,n_modeled,n_sold_x_price_filter,match_rate_dwelling,heldout_used_for_selection,modeling_table_sha256,year_counts,numeric_missing_share,note
+st_louis_county_mo,RAN,70864.0,78936.0,0.8977399412182021,False,0fed83935e46ebd5f2d63bbb4c6641bba396867c267fd4fb110c2a1bcaf501ea,"{""2009"": 5570, ""2010"": 4601, ""2011"": 4299, ""2013"": 6875, ""2014"": 6622, ""2015"": 7830, ""2016"": 8480, ""2017"": 9213, ""2018"": 9208, ""2019"": 8166}","{""SFLA"": 0.0, ""YRBLT"": 0.0, ""RMBED"": 0.00011289230074508918, ""FIXBATH"": 0.0, ""STORIES"": 0.0}",Year-only sale dates because joined.csv dropped SALEDT. Dwelling headers ignored; 37/39-field dictionary mapping. 2012 folder contains TAXYR=2013 rows so 2012 sales have no same-year dwelling snapshot. LR uses development-median imputation; LGBM uses native NaN handling.
+detroit_mi,NOT_RUN_FAILED_GATE,,,,,,,,A_EXTERNAL_REGRESSIVITY_ONLY; TIMING_UNRESOLVED characteristics
+philadelphia_pa,NOT_RUN_FAILED_GATE,,,,,,,,C_PUBLIC_ENRICHMENT_CANDIDATE; public history not acquired this pass
+orleans_la,NOT_RUN_FAILED_GATE,,,,,,,,A_EXTERNAL_REGRESSIVITY_ONLY; scrape leakage
+franklin_oh,NOT_RUN_FAILED_GATE,,,,,,,,A_EXTERNAL_REGRESSIVITY_ONLY; no structural predictors
+cook_il,NOT_RUN_FAILED_GATE,,,,,,,,CMF 2002-2015 is not the canonical CCAO AVM sample; do not replace CCAO experiment

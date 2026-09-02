@@ -1,0 +1,42 @@
+[
+  {
+    "typed_id": "f_767975707779",
+    "type": "file",
+    "id": "767975707779",
+    "name": "PHX_assessments.csv",
+    "size": 725793968,
+    "relpath": "box/5cg6rza2ekwo9fdy7zgxki4cku4ak21q/PHX_assessments.csv",
+    "shared": "5cg6rza2ekwo9fdy7zgxki4cku4ak21q",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_767975706579",
+    "type": "file",
+    "id": "767975706579",
+    "name": "merged_final.csv",
+    "size": 517483178,
+    "relpath": "box/5cg6rza2ekwo9fdy7zgxki4cku4ak21q/merged_final.csv",
+    "shared": "5cg6rza2ekwo9fdy7zgxki4cku4ak21q",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_767975705379",
+    "type": "file",
+    "id": "767975705379",
+    "name": "PHX_Sales.csv",
+    "size": 38691733,
+    "relpath": "box/5cg6rza2ekwo9fdy7zgxki4cku4ak21q/PHX_Sales.csv",
+    "shared": "5cg6rza2ekwo9fdy7zgxki4cku4ak21q",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_767975704179",
+    "type": "file",
+    "id": "767975704179",
+    "name": "PHX_Sales.dta",
+    "size": 3193269880,
+    "relpath": "box/5cg6rza2ekwo9fdy7zgxki4cku4ak21q/PHX_Sales.dta",
+    "shared": "5cg6rza2ekwo9fdy7zgxki4cku4ak21q",
+    "parent_folder_id": ""
+  }
+]

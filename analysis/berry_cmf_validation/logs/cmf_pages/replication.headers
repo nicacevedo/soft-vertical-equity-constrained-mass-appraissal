@@ -1,0 +1,12 @@
+HTTP/2 200 
+server: openresty
+date: Wed, 02 Sep 2026 16:32:58 GMT
+content-type: text/html; charset=UTF-8
+vary: Cookie
+strict-transport-security: max-age=31536000
+link: <https://propertytaxproject.uchicago.edu/wp-json/>; rel="https://api.w.org/"
+link: <https://propertytaxproject.uchicago.edu/wp-json/wp/v2/pages/2595>; rel="alternate"; title="JSON"; type="application/json"
+link: <https://propertytaxproject.uchicago.edu/?p=2595>; rel=shortlink
+x-cache: MISS
+x-cache-bypass-reason: 0
+

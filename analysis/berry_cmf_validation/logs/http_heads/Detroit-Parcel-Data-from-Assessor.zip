@@ -1,0 +1,34 @@
+HTTP/2 302 
+server: openresty
+date: Wed, 02 Sep 2026 16:42:14 GMT
+content-type: application/zip
+location: https://bpb-us-w2.wpmucdn.com/voices.uchicago.edu/dist/6/2330/files/2020/03/Detroit-Parcel-Data-from-Assessor.zip
+vary: Cookie
+cache-control: public, max-age=604800
+etag: b7d2bfb230112c72e23a54a031ac5388
+x-cache-bypass-reason: 0
+
+HTTP/2 200 
+date: Wed, 02 Sep 2026 16:42:15 GMT
+content-type: application/zip
+content-length: 6983332
+server: BunnyCDN-BO1-1163
+cdn-pullzone: 1058790
+cdn-requestcountrycode: US
+access-control-allow-origin: *
+access-control-allow-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+access-control-expose-headers: Server, x-goog-meta-frames, Content-Length, Content-Type, Range, X-Requested-With, If-Modified-Since, If-None-Match
+cache-control: public, max-age=31919000
+etag: "0cef8177ca410c1f7c9b1248bba4e9b7"
+last-modified: Mon, 02 Mar 2020 18:17:06 GMT
+cdn-proxyver: 1.62
+cdn-requestpullsuccess: True
+cdn-requestpullcode: 200
+cdn-cachedat: 09/02/2026 16:42:15
+cdn-edgestorageid: 1163
+cdn-requestid: acf8b43f55448795787188ca56679b64
+cdn-cache: MISS
+cdn-status: 200
+cdn-requesttime: 0
+accept-ranges: bytes
+

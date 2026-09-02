@@ -1,0 +1,58 @@
+{
+  "before": {
+    "N": 4100,
+    "COD": 46.2205,
+    "PRD": 1.3012,
+    "PRB": -0.2574
+  },
+  "after": {
+    "N": 5553,
+    "COD": 50.1694,
+    "PRD": 1.3466,
+    "PRB": -0.4458
+  },
+  "window_n": 9653,
+  "class401_arms_n": 9653,
+  "quarterly": [
+    {
+      "SALE_YEAR": 2016,
+      "Quarter": 2,
+      "n": 975
+    },
+    {
+      "SALE_YEAR": 2016,
+      "Quarter": 3,
+      "n": 829
+    },
+    {
+      "SALE_YEAR": 2016,
+      "Quarter": 4,
+      "n": 1067
+    },
+    {
+      "SALE_YEAR": 2017,
+      "Quarter": 1,
+      "n": 1229
+    },
+    {
+      "SALE_YEAR": 2017,
+      "Quarter": 2,
+      "n": 1459
+    },
+    {
+      "SALE_YEAR": 2017,
+      "Quarter": 3,
+      "n": 1346
+    },
+    {
+      "SALE_YEAR": 2017,
+      "Quarter": 4,
+      "n": 1421
+    },
+    {
+      "SALE_YEAR": 2018,
+      "Quarter": 1,
+      "n": 1327
+    }
+  ]
+}

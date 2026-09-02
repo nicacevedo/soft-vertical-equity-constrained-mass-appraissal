@@ -1,0 +1,81 @@
+box_page,shared_name,parent_folder_id,parent_folder_name,item_type,item_id,typed_id,name,extension,item_size
+buffalo_data,5n4x5sx0t36ycvsjd1rrhxd77rzokuoj,129462683805,Buffalo,file,762804699770,f_762804699770,2017-2018_Assessment_Roll.csv,csv,33118245
+buffalo_data,5n4x5sx0t36ycvsjd1rrhxd77rzokuoj,129462683805,Buffalo,file,762802568109,f_762802568109,(CLEAN) disclosure_notice_2020_extract.xlsx,xlsx,11835841
+buffalo_data,5n4x5sx0t36ycvsjd1rrhxd77rzokuoj,129462683805,Buffalo,file,762802252793,f_762802252793,2019-2020_Assessment_Roll.csv,csv,32457435
+buffalo_data,5n4x5sx0t36ycvsjd1rrhxd77rzokuoj,129462683805,Buffalo,file,762794698929,f_762794698929,Buffalo City.html,html,1753870
+buffalo_data,5n4x5sx0t36ycvsjd1rrhxd77rzokuoj,129462683805,Buffalo,file,762801837041,f_762801837041,Sales 2009-2019.xlsx,xlsx,4958278
+buffalo_data,5n4x5sx0t36ycvsjd1rrhxd77rzokuoj,129462683805,Buffalo,file,762801097022,f_762801097022,joined.csv,csv,530094
+buffalo_report,zbc3ol4mlfbcuvy7y5y18o2rr35u4yjc,,,file,760045291079,f_760045291079,Baffalo City.html,html,1763922
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499808082,f_765499808082,res_sales2005.csv,csv,11363283
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499806882,f_765499806882,res_sales2010.csv,csv,4291394
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499805682,f_765499805682,res_sales2007.csv,csv,7048566
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499804482,f_765499804482,res_sales2003.csv,csv,10256527
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499803282,f_765499803282,res_sales2004.csv,csv,10949344
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499802082,f_765499802082,CB_merged_tax_sales_census.dta,dta,419947724
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499800882,f_765499800882,res_sales2013.csv,csv,5751214
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499799682,f_765499799682,resYR - record layout.xlsx,xlsx,10282
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499798482,f_765499798482,res_sales2006.csv,csv,9142211
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499797282,f_765499797282,res_sales2002.csv,csv,10020048
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499796082,f_765499796082,res_sales2014.csv,csv,5221518
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499794882,f_765499794882,res_sales2009.csv,csv,4346781
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499793682,f_765499793682,res_sales2012.csv,csv,4365540
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499792482,f_765499792482,res_sales2008.csv,csv,4329497
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499791282,f_765499791282,res_sales2015.csv,csv,5216924
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499790082,f_765499790082,joined.csv,csv,77085360
+cook_data,5j9offt7kv763i62duvhvi6hk5rrh1ok,129903096882,Cook County,file,765499788882,f_765499788882,res_sales2011.csv,csv,3889629
+detroit_code,q3mi0r3xcm8u4wncp0e842qi9q6grgyd,,,file,767616286435,f_767616286435,detroit_replication_code.Rmd,rmd,6402
+detroit_data,qzz9nz9l81m1vku1q6luqzmxvdw9q9wb,130334784747,Replication Data,folder,130335094109,d_130335094109,Original data from assessor,,7616864
+detroit_data,qzz9nz9l81m1vku1q6luqzmxvdw9q9wb,130334784747,Replication Data,folder,130334990755,d_130334990755,combined files,,5202754
+detroit_ratio,eva6qqtubtlhhiei0old3vy2yoyy1kx5,,,file,768178254009,f_768178254009,Detroit Ratio Study 2020.pdf,pdf,828206
+franklin_columbus,2jn1707wbpxdd98m1lke6igkqmdvg5t3,,,file,760047935322,f_760047935322,columbusonly.csv,csv,10352161
+la_data,s5gz5t9aus1fgko4qtvo8qk0xlba6m8n,129903506584,Los Angeles,file,765515385784,f_765515385784,Simplified_LA_Complete_beta2.dta,dta,184756106
+la_data,s5gz5t9aus1fgko4qtvo8qk0xlba6m8n,129903506584,Los Angeles,file,765515384584,f_765515384584,merged.csv,csv,789376637
+la_data,s5gz5t9aus1fgko4qtvo8qk0xlba6m8n,129903506584,Los Angeles,file,765515383384,f_765515383384,Simplified_Assessor_Data_All_Years.dta,dta,818764691
+lasvegas_data,es7id24z9nad6hutfve38ppkfkogneni,129459476842,Las Vegas,file,762803255686,f_762803255686,2011.csv,csv,205927262
+lasvegas_data,es7id24z9nad6hutfve38ppkfkogneni,129459476842,Las Vegas,file,762801639920,f_762801639920,2012.csv,csv,205652572
+lasvegas_data,es7id24z9nad6hutfve38ppkfkogneni,129459476842,Las Vegas,file,762800018698,f_762800018698,2013.csv,csv,208601133
+lasvegas_data,es7id24z9nad6hutfve38ppkfkogneni,129459476842,Las Vegas,file,762796191978,f_762796191978,2014.csv,csv,208224509
+lasvegas_data,es7id24z9nad6hutfve38ppkfkogneni,129459476842,Las Vegas,file,762799585291,f_762799585291,final_merged_corrected.csv,csv,31493325
+lasvegas_data,es7id24z9nad6hutfve38ppkfkogneni,129459476842,Las Vegas,file,762793256516,f_762793256516,Las Vegas City.html,html,2241783
+maricopa_data,5cg6rza2ekwo9fdy7zgxki4cku4ak21q,130301693379,Maricopa County,file,767975707779,f_767975707779,PHX_assessments.csv,csv,725793968
+maricopa_data,5cg6rza2ekwo9fdy7zgxki4cku4ak21q,130301693379,Maricopa County,file,767975706579,f_767975706579,merged_final.csv,csv,517483178
+maricopa_data,5cg6rza2ekwo9fdy7zgxki4cku4ak21q,130301693379,Maricopa County,file,767975705379,f_767975705379,PHX_Sales.csv,csv,38691733
+maricopa_data,5cg6rza2ekwo9fdy7zgxki4cku4ak21q,130301693379,Maricopa County,file,767975704179,f_767975704179,PHX_Sales.dta,dta,3193269880
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,folder,131029481279,d_131029481279,data,,3908583280
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,folder,131028323020,d_131028323020,report,,2545659
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772441198880,f_772441198880,nyc_construct_data.R,r,4552
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772441034583,f_772441034583,README.txt,txt,240
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772440940673,f_772440940673,make_nyc_report.R,r,2344
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772439238934,f_772439238934,report.Rmd,rmd,21090
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772438900764,f_772438900764,executive_summary.Rmd,rmd,1330
+nyc_folder,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772438736780,f_772438736780,nyc.Rmd,rmd,10918
+nyc_rebuild,ve3x97o09r5ri7ch18rfgw9f8v6ip1bw,,,file,772441198880,f_772441198880,nyc_construct_data.R,r,4552
+nyc_reportcode,5aes0b89wj68adjluej6lywyts35shia,,,file,772440940673,f_772440940673,make_nyc_report.R,r,2344
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,folder,131026082363,d_131026082363,nola_data,,289463188
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,folder,131026234458,d_131026234458,report,,2083872
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,file,772428662896,f_772428662896,README.txt,txt,707
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,file,772430093226,f_772430093226,nola.R,r,3913
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,file,772429528227,f_772429528227,MAXWELL SCHMIDT.PUBLIC RECORD REQUEST.pdf,pdf,944735
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,file,772428293835,f_772428293835,nola.Rmd,rmd,8760
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,file,772427561567,f_772427561567,report.Rmd,rmd,21090
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,file,772431394502,f_772431394502,executive_summary.Rmd,rmd,2360
+orleans_folder,hz5rv02dpgw61e0qp3kvbyz0je1omi6v,131026285349,Orleans Parish Replication,file,772412411108,f_772412411108,make_nola_report.R,r,2122
+orleans_rebuild,k69tibdzp6u0lbbq20w6m1ugtmn6z7lr,,,file,772430093226,f_772430093226,nola.R,r,3913
+orleans_reportcode,7wg581vmzragpao2y9raemscmthbnwn5,,,file,772412411108,f_772412411108,make_nola_report.R,r,2122
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,folder,131029481279,d_131029481279,data,,3908583280
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,folder,131028323020,d_131028323020,report,,2545659
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772441198880,f_772441198880,nyc_construct_data.R,r,4552
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772441034583,f_772441034583,README.txt,txt,240
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772440940673,f_772440940673,make_nyc_report.R,r,2344
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772439238934,f_772439238934,report.Rmd,rmd,21090
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772438900764,f_772438900764,executive_summary.Rmd,rmd,1330
+orleans_wrong_nyc,5z3sociaxaeidf9pl05tsfshwnca5p6z,131029729969,New York City Replication,file,772438736780,f_772438736780,nyc.Rmd,rmd,10918
+philadelphia_clean,rom2t66ys8pxs5afqpd6xat8rayoc2sq,,,file,760049055123,f_760049055123,final-Philadelphia.csv,csv,5086616
+philadelphia_raw,320haoiyghjreigksljv1c4xw7u6lhnb,129903851189,Philadelphia,file,765513782789,f_765513782789,Ratio_Analysis_total.dta,dta,33289393
+philadelphia_raw,320haoiyghjreigksljv1c4xw7u6lhnb,129903851189,Philadelphia,file,765513780389,f_765513780389,Ratio_Analysis_total_10Kplus.dta,dta,30342608
+philadelphia_raw,320haoiyghjreigksljv1c4xw7u6lhnb,129903851189,Philadelphia,file,765513779189,f_765513779189,final.csv,csv,5086616
+philadelphia_raw,320haoiyghjreigksljv1c4xw7u6lhnb,129903851189,Philadelphia,file,765513777989,f_765513777989,Ratio_Analysis_arms_length.dta,dta,21738695
+philadelphia_raw,320haoiyghjreigksljv1c4xw7u6lhnb,129903851189,Philadelphia,file,765513776789,f_765513776789,Ratio_Analysis_arms_length_10Kplus.dta,dta,21302443
+stlouis_data,rabph6sd546szpwe6likep763hv8g3v3,129453476063,St. Louis,folder,129454245957,d_129454245957,new data,,7839006756
+stlouis_data,rabph6sd546szpwe6likep763hv8g3v3,129453476063,St. Louis,file,762756583975,f_762756583975,STL_County_Merge.dta,dta,284186465
+stlouis_report,3ciiptmn8gcpe9ohwb7zj2fn46qc0qez,,,file,754828433849,f_754828433849,St. Louis County.html,html,1983652

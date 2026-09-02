@@ -1,0 +1,17 @@
+{
+  "as_written_fullroll_APRTOT": {
+    "N": 3715468,
+    "COD": 0.0119,
+    "PRD": 1.0,
+    "PRB": -0.0
+  },
+  "intended_sold_SALEVAL_X": {
+    "N": 73743,
+    "COD": 11.8746,
+    "PRD": 1.0151,
+    "PRB": -0.0069
+  },
+  "fullroll_n": 4407923,
+  "joined_n": 171461,
+  "defect": "make_report uses APRTOT as sale price on unsold-inclusive fullroll"
+}

@@ -1,0 +1,429 @@
+inspecting 412 files
+  cook_il stata CB_merged_tax_sales_census.dta 419947724
+  cook_il csv_or_delimited joined.csv 77085360
+  cook_il excel resYR - record layout.xlsx 10282
+  cook_il csv_or_delimited res_sales2002.csv 10020048
+  cook_il csv_or_delimited res_sales2003.csv 10256527
+  cook_il csv_or_delimited res_sales2004.csv 10949344
+  cook_il csv_or_delimited res_sales2005.csv 11363283
+  cook_il csv_or_delimited res_sales2006.csv 9142211
+  cook_il csv_or_delimited res_sales2007.csv 7048566
+  cook_il csv_or_delimited res_sales2008.csv 4329497
+  cook_il csv_or_delimited res_sales2009.csv 4346781
+  cook_il csv_or_delimited res_sales2010.csv 4291394
+  cook_il csv_or_delimited res_sales2011.csv 3889629
+  cook_il csv_or_delimited res_sales2012.csv 4365540
+  cook_il csv_or_delimited res_sales2013.csv 5751214
+  cook_il csv_or_delimited res_sales2014.csv 5221518
+  cook_il csv_or_delimited res_sales2015.csv 5216924
+  detroit_mi excel CNDMO clean.xlsx 14087
+  detroit_mi excel CNDOA clean.xlsx 28195
+  detroit_mi excel CNDOB clean.xlsx 15534
+  detroit_mi excel CNDOCclean.xlsx 25869
+  detroit_mi excel CNDODclean.xlsx 55650
+  detroit_mi excel CNDOEclean.xlsx 46057
+  detroit_mi excel CNDOFclean.xlsx 35569
+  detroit_mi excel CNDOGclean.xlsx 26778
+  detroit_mi excel CNDOHclean.xlsx 62579
+  detroit_mi excel CNDOIclean.xlsx 38597
+  detroit_mi excel CNDRFclean.xlsx 23334
+  detroit_mi excel CNDSHclean.xlsx 14523
+  detroit_mi excel 1048A clean.xlsx 13761
+  detroit_mi excel 1052A clean.xlsx 19542
+  detroit_mi excel 1056A clean.xlsx 15983
+  detroit_mi excel 1056B clean.xlsx 38973
+  detroit_mi excel 1060A clean.xlsx 15982
+  detroit_mi excel 1061A clean.xlsx 14046
+  detroit_mi excel 1062A clean.xlsx 28793
+  detroit_mi excel 1063A clean.xlsx 45165
+  detroit_mi excel 1065A clean.xlsx 26673
+  detroit_mi excel 1065C clean.xlsx 20397
+  detroit_mi excel 1067A clean.xlsx 20006
+  detroit_mi excel 1068A clean.xlsx 15162
+  detroit_mi excel 1069A clean.xlsx 40166
+  detroit_mi excel 1070A clean.xlsx 21577
+  detroit_mi excel 1071A clean.xlsx 18640
+  detroit_mi excel 1072A clean.xlsx 25968
+  detroit_mi excel 1080A clean.xlsx 18246
+  detroit_mi excel 1080C clean.xlsx 14162
+  detroit_mi excel District 1 Combined.xlsx 186318
+  detroit_mi excel 0033Aclean.xlsx 52998
+  detroit_mi excel 0039Aclean.xlsx 35887
+  detroit_mi excel 0039Cclean.xlsx 18241
+  detroit_mi excel 0039Fclean.xlsx 13999
+  detroit_mi excel 0040Aclean.xlsx 142892
+  detroit_mi excel 0040Dclean.xlsx 16870
+  detroit_mi excel 0043Aclean.xlsx 45184
+  detroit_mi excel 0043Cclean.xlsx 30319
+  detroit_mi excel 0044Aclean.xlsx 24953
+  detroit_mi excel 0045Aclean.xlsx 21534
+  detroit_mi excel 0046Aclean.xlsx 17834
+  detroit_mi excel 0049Aclean.xlsx 38946
+  detroit_mi excel 0049Bclean.xlsx 16384
+  detroit_mi excel 0050Aclean.xlsx 15359
+  detroit_mi excel 0051Aclean.xlsx 12956
+  detroit_mi excel 0053Aclean.xlsx 38156
+  detroit_mi excel District 10 Combined.xlsx 338816
+  detroit_mi excel 2073A clean.xlsx 15305
+  detroit_mi excel 2074A clean.xlsx 43476
+  detroit_mi excel 2075A clean.xlsx 33197
+  detroit_mi excel 2076A clean.xlsx 32983
+  detroit_mi excel 2077B clean.xlsx 16857
+  detroit_mi excel 2079A clean.xlsx 47842
+  detroit_mi excel 2079B clean.xlsx 24872
+  detroit_mi excel 2079C clean.xlsx 15379
+  detroit_mi excel 2081A clean.xlsx 28453
+  detroit_mi excel 2083A clean.xlsx 18368
+  detroit_mi excel 2084A clean.xlsx 18618
+  detroit_mi excel 2084C clean.xlsx 27363
+  detroit_mi excel 2085A clean.xlsx 47185
+  detroit_mi excel 2085B clean.xlsx 25862
+  detroit_mi excel 2086A clean.xlsx 39576
+  detroit_mi excel 2087B clean.xlsx 19028
+  detroit_mi excel 2088A clean.xlsx 31303
+  detroit_mi excel 2088C clean.xlsx 31711
+  detroit_mi excel District 2 Combined.xlsx 283747
+  detroit_mi excel 3091Aclean.xlsx 26455
+  detroit_mi excel 3092Aclean.xlsx 16854
+  detroit_mi excel 3093Aclean.xlsx 18509
+  detroit_mi excel 3095Aclean.xlsx 15653
+  detroit_mi excel 3095Bclean.xlsx 18324
+  detroit_mi excel 3096Aclean.xlsx 34248
+  detroit_mi excel 3096Bclean.xlsx 44749
+  detroit_mi excel 3097Aclean.xlsx 30823
+  detroit_mi excel 3097Bclean.xlsx 40525
+  detroit_mi excel 3098Aclean.xlsx 65541
+  detroit_mi excel 3099Aclean.xlsx 23348
+  detroit_mi excel 3100Aclean.xlsx 14643
+  detroit_mi excel 3129Aclean.xlsx 16889
+  detroit_mi excel 3140Aclean.xlsx 17601
+  detroit_mi excel 3141Aclean.xlsx 20597
+  detroit_mi excel 3142Aclean.xlsx 14689
+  detroit_mi excel 3143Aclean.xlsx 20419
+  detroit_mi excel 3147Aclean.xlsx 13901
+  detroit_mi excel 3148Aclean.xlsx 13885
+  detroit_mi excel District 3 Combined.xlsx 221043
+  detroit_mi excel 4101Aclean.xlsx 19978
+  detroit_mi excel 4101Bclean.xlsx 16698
+  detroit_mi excel 4101Cclean.xlsx 17435
+  detroit_mi excel 4107Aclean.xlsx 18316
+  detroit_mi excel 4111Aclean.xlsx 13330
+  detroit_mi excel 4113Aclean.xlsx 13979
+  detroit_mi excel 4118Aclean.xlsx 17112
+  detroit_mi excel 4119Aclean.xlsx 14235
+  detroit_mi excel 4120Aclean.xlsx 23984
+  detroit_mi excel 4124A.xlsx 12844
+  detroit_mi excel 4125Aclean.xlsx 16229
+  detroit_mi excel 4130A.xlsx 12856
+  detroit_mi excel 4136Aclean.xlsx 13341
+  detroit_mi excel 4137A.xlsx 12941
+  detroit_mi excel 4164A.xlsx 12940
+  detroit_mi excel District 4 Combined.xlsx 46920
+  detroit_mi excel 5153Aclean.xlsx 32632
+  detroit_mi excel 5153Bclean.xlsx 44237
+  detroit_mi excel 5154Aclean.xlsx 24215
+  detroit_mi excel 5155Aclean.xlsx 18166
+  detroit_mi excel 5156Aclean.xlsx 18481
+  detroit_mi excel 5157Aclean.xlsx 52534
+  detroit_mi excel 5158Aclean.xlsx 37118
+  detroit_mi excel 5158Fclean.xlsx 21901
+  detroit_mi excel 5166Aclean.xlsx 13865
+  detroit_mi excel 5168Aclean.xlsx 14236
+  detroit_mi excel 5169Aclean.xlsx 15234
+  detroit_mi excel 5171Aclean.xlsx 16144
+  detroit_mi excel 5173Aclean.xlsx 13448
+  detroit_mi excel 5174Aclean.xlsx 31369
+  detroit_mi excel District 5 Combined.xlsx 174197
+  detroit_mi excel 6102Aclean.xlsx 19567
+  detroit_mi excel 6102Bclean.xlsx 20128
+  detroit_mi excel 6103Bclean.xlsx 14647
+  detroit_mi excel 6104Aclean.xlsx 29556
+  detroit_mi excel 6106Aclean.xlsx 17464
+  detroit_mi excel 6106Eclean.xlsx 15887
+  detroit_mi excel 6110Aclean.xlsx 14140
+  detroit_mi excel 6112Aclean.xlsx 14869
+  detroit_mi excel 6114Aclean.xlsx 14650
+  detroit_mi excel 6115Aclean.xlsx 16085
+  detroit_mi excel 6152Aclean.xlsx 18670
+  detroit_mi excel 6152Bclean.xlsx 20695
+  detroit_mi excel 6152Cclean.xlsx 16846
+  detroit_mi excel 6161Aclean.xlsx 15630
+  detroit_mi excel 6199Aclean.xlsx 27441
+  detroit_mi excel 6199Eclean.xlsx 18952
+  detroit_mi excel 6199Fclean.xlsx 17920
+  detroit_mi excel 6200Aclean.xlsx 26013
+  detroit_mi excel 6201Aclean.xlsx 18696
+  detroit_mi excel District 6 Combined.xlsx 131754
+  detroit_mi excel 7175Aclean.xlsx 24429
+  detroit_mi excel 7176Aclean.xlsx 35447
+  detroit_mi excel 7178Aclean.xlsx 18646
+  detroit_mi excel 7179Aclean.xlsx 18982
+  detroit_mi excel 7180Aclean.xlsx 50367
+  detroit_mi excel 7181Aclean.xlsx 15592
+  detroit_mi excel 7182Aclean.xlsx 24995
+  detroit_mi excel 7183Aclean.xlsx 122612
+  detroit_mi excel 7185Aclean.xlsx 32025
+  detroit_mi excel 7185Bclean.xlsx 45269
+  detroit_mi excel 7186Aclean.xlsx 33526
+  detroit_mi excel 7187Aclean.xlsx 27971
+  detroit_mi excel 7189Aclean.xlsx 17161
+  detroit_mi excel 7190Aclean.xlsx 25020
+  detroit_mi excel 7192Aclean.xlsx 66614
+  detroit_mi excel 7195Aclean.xlsx 24339
+  detroit_mi excel 7195Bclean.xlsx 14088
+  detroit_mi excel District 7 Combined.xlsx 379833
+  detroit_mi excel 8009Aclean.xlsx 55499
+  detroit_mi excel 8010Aclean.xlsx 26852
+  detroit_mi excel 8011Aclean.xlsx 15084
+  detroit_mi excel 8012Aclean.xlsx 19697
+  detroit_mi excel 8013Aclean.xlsx 18481
+  detroit_mi excel 8013Bclean.xlsx 24373
+  detroit_mi excel 8014Aclean.xlsx 17422
+  detroit_mi excel 8015Aclean.xlsx 28793
+  detroit_mi excel 8015Dclean.xlsx 15342
+  detroit_mi excel 8015Hclean.xlsx 14373
+  detroit_mi excel 8016Aclean.xlsx 21397
+  detroit_mi excel 8017Aclean.xlsx 27397
+  detroit_mi excel 8018Aclean.xlsx 43867
+  detroit_mi excel 8024Aclean.xlsx 21977
+  detroit_mi excel 8025Aclean.xlsx 38927
+  detroit_mi excel 8026Aclean.xlsx 14421
+  detroit_mi excel 8026Bclean.xlsx 18268
+  detroit_mi excel 8027Aclean.xlsx 24215
+  detroit_mi excel 8202Aclean.xlsx 16326
+  detroit_mi excel District 8 Combined.xlsx 331460
+  detroit_mi excel 9019Aclean.xlsx 44140
+  detroit_mi excel 9019Bclean.xlsx 41789
+  detroit_mi excel 9020Aclean.xlsx 35770
+  detroit_mi excel 9021Aclean.xlsx 28159
+  detroit_mi excel 9022Aclean.xlsx 26484
+  detroit_mi excel 9023Aclean.xlsx 33334
+  detroit_mi excel 9028Aclean.xlsx 26822
+  detroit_mi excel 9029Aclean.xlsx 31715
+  detroit_mi excel 9030Aclean.xlsx 17955
+  detroit_mi excel 9031Bclean.xlsx 32157
+  detroit_mi excel 9032Aclean.xlsx 45740
+  detroit_mi excel 9032Bclean.xlsx 21192
+  detroit_mi excel 9034Aclean.xlsx 47699
+  detroit_mi excel 9035Aclean.xlsx 41667
+  detroit_mi excel 9042Aclean.xlsx 34619
+  detroit_mi excel 9042Bclean.xlsx 27380
+  detroit_mi excel 9042Dclean.xlsx 24387
+  detroit_mi excel 9196Aclean.xlsx 20456
+  detroit_mi excel District 9 combined-.xlsx 350155
+  detroit_mi excel District 1 Combined.xlsx 186671
+  detroit_mi excel District 10 Combined.xlsx 338816
+  detroit_mi excel District 2 Combined.xlsx 283747
+  detroit_mi excel District 3 Combined.xlsx 221043
+  detroit_mi excel District 4 Combined.xlsx 46920
+  detroit_mi excel District 5 Combined.xlsx 174197
+  detroit_mi excel District 6 Combined.xlsx 131754
+  detroit_mi excel District 7 Combined.xlsx 379833
+  detroit_mi excel District 8 Combined.xlsx 331460
+  detroit_mi excel District 9 Combined.xlsx 350155
+  detroit_mi csv_or_delimited combined.csv 2758158
+  detroit_mi zip Detroit-Parcel-Data-from-Assessor.zip 6983332
+  erie_ny excel (CLEAN) disclosure_notice_2020_extract.xlsx 11835841
+  erie_ny excel Sales 2009-2019.xlsx 4958278
+  erie_ny csv_or_delimited joined.csv 530094
+  franklin_oh csv_or_delimited columbusonly.csv 10352161
+  orleans_la r_rds nola_joined.RDS 6299825
+  orleans_la r_rds nola_properties.RDS 10009544
+  orleans_la r_rds nola_residential_values.RDS 44259534
+  orleans_la r_rds nola_sales.RDS 3740031
+  orleans_la r_rds nola_values.RDS 7103514
+  orleans_la csv_or_delimited properties.csv 48719683
+  orleans_la csv_or_delimited sales.csv 73460534
+  orleans_la csv_or_delimited values.csv 95870433
+  philadelphia_pa stata Ratio_Analysis_arms_length.dta 21738695
+  philadelphia_pa stata Ratio_Analysis_arms_length_10Kplus.dta 21302443
+  philadelphia_pa stata Ratio_Analysis_total.dta 33289393
+  philadelphia_pa stata Ratio_Analysis_total_10Kplus.dta 30342608
+  philadelphia_pa csv_or_delimited final.csv 5086616
+  philadelphia_pa csv_or_delimited final-Philadelphia.csv 5086616
+  st_louis_county_mo stata STL_County_Merge.dta 284186465
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/scripts/inspect_schema.py:284: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  s = pd.to_datetime(df[c], errors="coerce")
+  st_louis_county_mo csv_or_delimited ADDITIONAL_ADDRESS.txt 7958618
+  st_louis_county_mo csv_or_delimited ADDN.txt 81839292
+  st_louis_county_mo csv_or_delimited APPRAISAL.txt 57158508
+  st_louis_county_mo csv_or_delimited ASSESSMENT.txt 81753218
+  st_louis_county_mo csv_or_delimited COMMERCIAL APT.txt 216320
+  st_louis_county_mo csv_or_delimited COMMERCIAL BUILDING FEATURES.txt 2211608
+  st_louis_county_mo csv_or_delimited COMMERCIAL INTERIOR EXTERIOR.txt 5734528
+  st_louis_county_mo csv_or_delimited COMMERCIAL.txt 1831943
+  st_louis_county_mo csv_or_delimited DWELLING.txt 30848221
+  st_louis_county_mo csv_or_delimited LACODES.TXT 17358
+  st_louis_county_mo csv_or_delimited MORTGAGE.txt 5660469
+  st_louis_county_mo csv_or_delimited OTHER BUILDINGS AND YARD IMPROVEMENTS.txt 12740046
+  st_louis_county_mo csv_or_delimited PRIMARY_PARCEL.txt 122924289
+  st_louis_county_mo csv_or_delimited PROPERTY VISITS.txt 48414989
+  st_louis_county_mo csv_or_delimited SALES.txt 53080972
+  st_louis_county_mo csv_or_delimited TAX PAYMENTS.txt 14238966
+  st_louis_county_mo csv_or_delimited TAXDATA.TXT 46846124
+  st_louis_county_mo csv_or_delimited TAXRATE.txt 3743684
+  st_louis_county_mo csv_or_delimited ADDITIONAL_ADDRESS.txt 7935073
+  st_louis_county_mo csv_or_delimited ADDN.txt 82106681
+  st_louis_county_mo csv_or_delimited APPRAISAL.txt 57488937
+  st_louis_county_mo csv_or_delimited ASSESSMENT.txt 81774274
+  st_louis_county_mo csv_or_delimited COMMERCIAL APT.txt 210918
+  st_louis_county_mo csv_or_delimited COMMERCIAL BUILDING FEATURES.txt 2207868
+  st_louis_county_mo csv_or_delimited COMMERCIAL INTERIOR EXTERIOR.txt 5685564
+  st_louis_county_mo csv_or_delimited COMMERCIAL.txt 1815699
+  st_louis_county_mo csv_or_delimited DWELLING.txt 30899722
+  st_louis_county_mo csv_or_delimited OTHER BUILDINGS AND YARD IMPROVEMENTS.txt 12778251
+  st_louis_county_mo csv_or_delimited PRIMARY_PARCEL.txt 123141965
+  st_louis_county_mo csv_or_delimited SALES.txt 56930085
+  st_louis_county_mo csv_or_delimited TAXDATA.TXT 46837752
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/scripts/inspect_schema.py:284: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  s = pd.to_datetime(df[c], errors="coerce")
+  st_louis_county_mo csv_or_delimited TXRATE.TXT 11012469
+  st_louis_county_mo excel dd_2010.xlsx 48712
+  st_louis_county_mo csv_or_delimited ADDITIONAL_ADDRESS.csv 7935746
+  st_louis_county_mo csv_or_delimited ADDN.csv 82248466
+  st_louis_county_mo csv_or_delimited APPRAISAL.csv 55491778
+  st_louis_county_mo csv_or_delimited ASSESSMENT.csv 81642646
+  st_louis_county_mo csv_or_delimited COMMERCIAL APT.csv 210224
+  st_louis_county_mo csv_or_delimited COMMERCIAL BUILDING FEATURES.csv 2204165
+  st_louis_county_mo csv_or_delimited COMMERCIAL INTERIOR EXTERIOR.csv 5693221
+  st_louis_county_mo csv_or_delimited COMMERCIAL.csv 1815341
+  st_louis_county_mo csv_or_delimited DWELLING.csv 30928666
+  st_louis_county_mo csv_or_delimited OTHER BUILDINGS AND YARD IMPROVEMENTS.csv 12773475
+  st_louis_county_mo csv_or_delimited PRIMARY_PARCEL.csv 124402158
+  st_louis_county_mo csv_or_delimited SALES.csv 60272337
+  st_louis_county_mo csv_or_delimited TAXDATA.csv 14096677
+  st_louis_county_mo csv_or_delimited TAXRATE.CSV 3484353
+  st_louis_county_mo csv_or_delimited ADDITIONAL_ADDRESS.csv 7912102
+  st_louis_county_mo csv_or_delimited ADDN.csv 82800380
+  st_louis_county_mo csv_or_delimited APPRAISAL.csv 56017215
+  st_louis_county_mo csv_or_delimited ASSESSMENT.csv 81660814
+  st_louis_county_mo csv_or_delimited COMMERCIAL APT.csv 211167
+  st_louis_county_mo csv_or_delimited COMMERCIAL BUILDING FEATURES.csv 4119839
+  st_louis_county_mo csv_or_delimited COMMERCIAL INTERIOR EXTERIOR.csv 5698592
+  st_louis_county_mo csv_or_delimited COMMERCIAL.csv 1814346
+  st_louis_county_mo csv_or_delimited DWELLING.csv 30995629
+  st_louis_county_mo csv_or_delimited OTHER BUILDINGS AND YARD IMPROVEMENTS.csv 12808760
+  st_louis_county_mo csv_or_delimited PRIMARY_PARCEL.csv 124745359
+  st_louis_county_mo csv_or_delimited SALES.csv 65347689
+  st_louis_county_mo csv_or_delimited TAXDATA.txt 51229583
+  st_louis_county_mo csv_or_delimited TXRATE.CSV 10696256
+  st_louis_county_mo excel dd_2013.xlsx 48712
+  st_louis_county_mo csv_or_delimited additional_address.txt 8077547
+  st_louis_county_mo csv_or_delimited addn.txt 82899961
+  st_louis_county_mo csv_or_delimited appraisal.txt 49707422
+  st_louis_county_mo csv_or_delimited assessment.txt 60186650
+  st_louis_county_mo csv_or_delimited commercial apt.txt 203599
+  st_louis_county_mo csv_or_delimited commercial bldg features.txt 2212586
+  st_louis_county_mo csv_or_delimited commercial interior exterior.txt 5423882
+  st_louis_county_mo csv_or_delimited commercial.txt 1669160
+  st_louis_county_mo csv_or_delimited dwelling.txt 30796569
+  st_louis_county_mo csv_or_delimited other bldgs and yard improvements.txt 13255284
+  st_louis_county_mo csv_or_delimited primary_parcel.txt 123631199
+  st_louis_county_mo csv_or_delimited sales.TXT 64027897
+  st_louis_county_mo csv_or_delimited taxdata.txt 20769762
+  st_louis_county_mo csv_or_delimited taxrate.txt 3118797
+  st_louis_county_mo csv_or_delimited additional_address.txt 8045400
+  st_louis_county_mo csv_or_delimited addn.txt 83176475
+  st_louis_county_mo csv_or_delimited appraisal.txt 50014220
+  st_louis_county_mo csv_or_delimited assessment.txt 60247804
+  st_louis_county_mo csv_or_delimited commercial apt.txt 203151
+  st_louis_county_mo csv_or_delimited commercial bldg features.txt 2214090
+  st_louis_county_mo csv_or_delimited commercial interior exterior.txt 5416645
+  st_louis_county_mo csv_or_delimited commercial.txt 1667969
+  st_louis_county_mo csv_or_delimited dwelling.txt 30829504
+  st_louis_county_mo csv_or_delimited other bldgs and yard improvements.txt 13269063
+  st_louis_county_mo csv_or_delimited primary_parcel.txt 123890878
+  st_louis_county_mo csv_or_delimited sales.TXT 66503246
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/scripts/inspect_schema.py:284: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  s = pd.to_datetime(df[c], errors="coerce")
+  st_louis_county_mo csv_or_delimited taxdata.txt 20028445
+  st_louis_county_mo csv_or_delimited taxrate.txt 3158436
+  st_louis_county_mo csv_or_delimited additional_address.txt 8030504
+  st_louis_county_mo csv_or_delimited addn.txt 83452155
+  st_louis_county_mo csv_or_delimited appraisal.txt 53670627
+  st_louis_county_mo csv_or_delimited assessment.txt 60322184
+  st_louis_county_mo csv_or_delimited commercial apt.txt 206551
+  st_louis_county_mo csv_or_delimited commercial bldg features.txt 2212910
+  st_louis_county_mo csv_or_delimited commercial interior exterior.txt 5408400
+  st_louis_county_mo csv_or_delimited commercial.txt 1660507
+  st_louis_county_mo csv_or_delimited dwelling.txt 30900624
+  st_louis_county_mo csv_or_delimited entrance.txt 57774199
+  st_louis_county_mo csv_or_delimited other bldgs and yard improvements.txt 13242838
+  st_louis_county_mo csv_or_delimited primary_parcel.txt 124279924
+  st_louis_county_mo csv_or_delimited sales.TXT 69520144
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/scripts/inspect_schema.py:284: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  s = pd.to_datetime(df[c], errors="coerce")
+  st_louis_county_mo csv_or_delimited taxdata.txt 19880816
+  st_louis_county_mo csv_or_delimited taxrate.txt 3176710
+  st_louis_county_mo csv_or_delimited additional_address.txt 7991369
+  st_louis_county_mo csv_or_delimited addn.txt 83941249
+  st_louis_county_mo csv_or_delimited appraisal.txt 54645132
+  st_louis_county_mo csv_or_delimited assessment.txt 60360159
+  st_louis_county_mo csv_or_delimited commercial apt.txt 208067
+  st_louis_county_mo csv_or_delimited commercial bldg features.txt 2229540
+  st_louis_county_mo csv_or_delimited commercial interior exterior.txt 5434808
+  st_louis_county_mo csv_or_delimited commercial.txt 1678276
+  st_louis_county_mo csv_or_delimited dwelling.txt 30972015
+  st_louis_county_mo csv_or_delimited entrance.txt 59747451
+  st_louis_county_mo csv_or_delimited other bldgs and yard improvements.txt 13279435
+  st_louis_county_mo csv_or_delimited primary_parcel.txt 124504567
+  st_louis_county_mo csv_or_delimited sales.TXT 73776457
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/scripts/inspect_schema.py:284: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  s = pd.to_datetime(df[c], errors="coerce")
+  st_louis_county_mo csv_or_delimited taxdata.txt 19657407
+  st_louis_county_mo csv_or_delimited taxrate.txt 3063805
+  st_louis_county_mo csv_or_delimited additional_address.txt 8017074
+  st_louis_county_mo csv_or_delimited addn.txt 84371835
+  st_louis_county_mo csv_or_delimited appraisal.txt 54220049
+  st_louis_county_mo csv_or_delimited assessment.txt 60567166
+  st_louis_county_mo csv_or_delimited commercial apt.txt 210970
+  st_louis_county_mo csv_or_delimited commercial bldg features.txt 2226596
+  st_louis_county_mo csv_or_delimited commercial interior exterior.txt 5436642
+  st_louis_county_mo csv_or_delimited commercial.txt 1688411
+  st_louis_county_mo csv_or_delimited dwelling.txt 31009666
+  st_louis_county_mo csv_or_delimited entrance.txt 62793437
+  st_louis_county_mo csv_or_delimited other bldgs and yard improvements.txt 13249493
+  st_louis_county_mo csv_or_delimited primary_parcel.txt 124825546
+  st_louis_county_mo csv_or_delimited sales.TXT 77571323
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/scripts/inspect_schema.py:284: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  s = pd.to_datetime(df[c], errors="coerce")
+  st_louis_county_mo csv_or_delimited taxdata.txt 19865525
+  st_louis_county_mo csv_or_delimited taxrate.txt 3079430
+  st_louis_county_mo csv_or_delimited additional_address.txt 7970100
+  st_louis_county_mo csv_or_delimited addn.txt 84948547
+  st_louis_county_mo csv_or_delimited appraisal.txt 55837377
+  st_louis_county_mo csv_or_delimited assessment.txt 60624139
+  st_louis_county_mo csv_or_delimited commercial apt.txt 215241
+  st_louis_county_mo csv_or_delimited commercial bldg features.txt 2240434
+  st_louis_county_mo csv_or_delimited commercial interior exterior.txt 5465346
+  st_louis_county_mo csv_or_delimited commercial.txt 1703984
+  st_louis_county_mo csv_or_delimited dwelling.txt 31096465
+  st_louis_county_mo csv_or_delimited entrance.txt 66738605
+  st_louis_county_mo csv_or_delimited other bldgs and yard improvements.txt 13305759
+  st_louis_county_mo csv_or_delimited primary_parcel.txt 125006868
+  st_louis_county_mo csv_or_delimited sales.TXT 636
+  st_louis_county_mo csv_or_delimited taxdata.txt 20146255
+  st_louis_county_mo csv_or_delimited taxrate.txt 3190069
+  st_louis_county_mo csv_or_delimited additional_address.csv 8005974
+  st_louis_county_mo csv_or_delimited addn.csv 85436102
+  st_louis_county_mo csv_or_delimited appraisal.csv 55222267
+  st_louis_county_mo csv_or_delimited assessment.csv 61181606
+  st_louis_county_mo csv_or_delimited commercial.csv 1710946
+  st_louis_county_mo csv_or_delimited commercial_apt.csv 219597
+  st_louis_county_mo csv_or_delimited commercial_bldg_features.csv 2253680
+  st_louis_county_mo csv_or_delimited commercial_interior_exterior.csv 5487892
+  st_louis_county_mo csv_or_delimited dwelling.csv 31170422
+  st_louis_county_mo csv_or_delimited entrance.csv 70854374
+  st_louis_county_mo csv_or_delimited other_bldgs_and_yard_improvements.csv 13329180
+  st_louis_county_mo csv_or_delimited primary_parcel.csv 125259919
+  st_louis_county_mo csv_or_delimited sales.csv 88365181
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/scripts/inspect_schema.py:284: UserWarning: Could not infer format, so each element will be parsed individually, falling back to `dateutil`. To ensure parsing is consistent and as-expected, please specify a format.
+  s = pd.to_datetime(df[c], errors="coerce")
+  st_louis_county_mo csv_or_delimited taxdata.csv 19416407
+  st_louis_county_mo csv_or_delimited taxrate.csv 3220153
+  st_louis_county_mo csv_or_delimited assessments.csv 1321020023
+  st_louis_county_mo csv_or_delimited fullroll.csv 238351683
+  st_louis_county_mo csv_or_delimited joined.csv 10959091
+  st_louis_county_mo csv_or_delimited taxes.csv 401121944
+wrote /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/schema_inventory.parquet rows 4973
+wrote /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/feature_coverage_matrix.csv

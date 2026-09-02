@@ -43,12 +43,24 @@ obj/
 *.json
 core.*
 
-# Large local source datasets (ATTOM, assessor, Census, and GIS extracts)
+# Large local source datasets (ATTOM, assessor, Census, GIS, Berry/CMF)
 data/ATTOM/
 data/CCAO/
 data/CensusData/
 data/dewey-downloads/
 data/geo/
+data/berry_cmf/
+
+# Track compact Berry/CMF audit artifacts despite global csv/parquet/json ignores.
+# Raw/derived data remain under data/berry_cmf/ (ignored above).
+!analysis/berry_cmf_validation/
+!analysis/berry_cmf_validation/**
+!analysis/berry_cmf_validation/**/*.csv
+!analysis/berry_cmf_validation/**/*.yaml
+!analysis/berry_cmf_validation/**/*.yml
+!analysis/berry_cmf_validation/**/*.md
+!analysis/berry_cmf_validation/**/*.parquet
+!analysis/berry_cmf_validation/**/*.json
 
 # Accidental empty files created by misparsed CLI flags
 /--data-path

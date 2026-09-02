@@ -1,0 +1,52 @@
+[
+  {
+    "typed_id": "f_765513782789",
+    "type": "file",
+    "id": "765513782789",
+    "name": "Ratio_Analysis_total.dta",
+    "size": 33289393,
+    "relpath": "box/320haoiyghjreigksljv1c4xw7u6lhnb/Ratio_Analysis_total.dta",
+    "shared": "320haoiyghjreigksljv1c4xw7u6lhnb",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_765513780389",
+    "type": "file",
+    "id": "765513780389",
+    "name": "Ratio_Analysis_total_10Kplus.dta",
+    "size": 30342608,
+    "relpath": "box/320haoiyghjreigksljv1c4xw7u6lhnb/Ratio_Analysis_total_10Kplus.dta",
+    "shared": "320haoiyghjreigksljv1c4xw7u6lhnb",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_765513779189",
+    "type": "file",
+    "id": "765513779189",
+    "name": "final.csv",
+    "size": 5086616,
+    "relpath": "box/320haoiyghjreigksljv1c4xw7u6lhnb/final.csv",
+    "shared": "320haoiyghjreigksljv1c4xw7u6lhnb",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_765513777989",
+    "type": "file",
+    "id": "765513777989",
+    "name": "Ratio_Analysis_arms_length.dta",
+    "size": 21738695,
+    "relpath": "box/320haoiyghjreigksljv1c4xw7u6lhnb/Ratio_Analysis_arms_length.dta",
+    "shared": "320haoiyghjreigksljv1c4xw7u6lhnb",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_765513776789",
+    "type": "file",
+    "id": "765513776789",
+    "name": "Ratio_Analysis_arms_length_10Kplus.dta",
+    "size": 21302443,
+    "relpath": "box/320haoiyghjreigksljv1c4xw7u6lhnb/Ratio_Analysis_arms_length_10Kplus.dta",
+    "shared": "320haoiyghjreigksljv1c4xw7u6lhnb",
+    "parent_folder_id": ""
+  }
+]

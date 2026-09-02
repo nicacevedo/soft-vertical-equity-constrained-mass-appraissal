@@ -1,0 +1,11 @@
+dwelling folder=2009 file=DWELLING.txt n_sold_match=60543 nfields=37 taxyr_mode=2009
+dwelling folder=2010 file=DWELLING.txt n_sold_match=60867 nfields=37 taxyr_mode=2010
+dwelling folder=2011 file=DWELLING.csv n_sold_match=61145 nfields=37 taxyr_mode=2011
+dwelling folder=2012 file=DWELLING.csv n_sold_match=61628 nfields=37 taxyr_mode=2013
+dwelling folder=2013 file=dwelling.txt n_sold_match=61839 nfields=39 taxyr_mode=2013
+dwelling folder=2014 file=dwelling.txt n_sold_match=62069 nfields=39 taxyr_mode=2014
+dwelling folder=2015 file=dwelling.txt n_sold_match=62588 nfields=39 taxyr_mode=2015
+dwelling folder=2016 file=dwelling.txt n_sold_match=63089 nfields=39 taxyr_mode=2016
+dwelling folder=2017 file=dwelling.txt n_sold_match=63559 nfields=39 taxyr_mode=2017
+dwelling folder=2018 file=dwelling.txt n_sold_match=64097 nfields=39 taxyr_mode=2018
+dwelling folder=2019 file=dwelling.csv n_sold_match=64256 nfields=39 taxyr_mode=2019

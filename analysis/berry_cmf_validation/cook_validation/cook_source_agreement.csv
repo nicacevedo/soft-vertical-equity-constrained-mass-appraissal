@@ -1,0 +1,5 @@
+comparison,field,n_compared,exact_agree,tolerance_agree,note
+ccao_vs_berry_cmf_res_sales,sale_year_coverage,0,,,CCAO training_data.parquet sales 2016-01-01 to 2025-12-29; CMF res_sales joinyr 2002-2015. Empty transaction overlap by year.
+ccao_vs_berry_cmf_res_sales,parcel_pin,0,,,"PIN formats are comparable (pin/pin10 vs meta_pin) but years do not overlap, so no transaction match attempted."
+ccao_vs_attom_cook,construction,,,,"ATTOM Cook uses Recorder TRANSFERAMOUNT, use code 385, $50k floor, pre-sale Assessor History (scripts/other_counties_benchmars.py). Different universe than CCAO residential workflow. Existing exploratory benchmark not overwritten."
+berry_cmf_vs_attom_cook,years,0,,,CMF BOR files end 2015; ATTOM Cook construction is 2016-2025 recorder transfers. Empty overlap.

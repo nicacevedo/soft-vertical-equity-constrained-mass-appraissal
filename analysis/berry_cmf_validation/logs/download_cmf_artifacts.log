@@ -1,0 +1,534 @@
+
+=== GIT https://github.com/cmf-uchicago/cmfproperty.git ===
+Cloning into '/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/berry_cmf/raw/_shared/cmfproperty'...
+
+=== HTTP https://propertytaxproject.uchicago.edu/files/2020/03/Prop-Tax-Detroit-Final-3220.pdf ===
+
+=== HTTP https://propertytaxproject.uchicago.edu/files/2020/03/Detroit-Parcel-Data-from-Assessor.zip ===
+
+=== BOX detroit_mi eva6qqtubtlhhiei0old3vy2yoyy1kx5 ===
+  GET  Detroit Ratio Study 2020.pdf expect=828206
+
+=== BOX detroit_mi q3mi0r3xcm8u4wncp0e842qi9q6grgyd ===
+  GET  detroit_replication_code.Rmd expect=6402
+
+=== BOX detroit_mi qzz9nz9l81m1vku1q6luqzmxvdw9q9wb ===
+  GET  0053Aclean.xlsx expect=38156
+  GET  District 10 Combined.xlsx expect=338816
+  GET  0051Aclean.xlsx expect=12956
+  GET  0050Aclean.xlsx expect=15359
+  GET  0049Bclean.xlsx expect=16384
+  GET  0049Aclean.xlsx expect=38946
+  GET  0046Aclean.xlsx expect=17834
+  GET  0045Aclean.xlsx expect=21534
+  GET  0044Aclean.xlsx expect=24953
+  GET  0043Cclean.xlsx expect=30319
+  GET  0043Aclean.xlsx expect=45184
+  GET  0040Dclean.xlsx expect=16870
+  GET  0040Aclean.xlsx expect=142892
+  GET  0039Fclean.xlsx expect=13999
+  GET  0039Cclean.xlsx expect=18241
+  GET  0039Aclean.xlsx expect=35887
+  GET  0033Aclean.xlsx expect=52998
+  GET  District 9 combined-.xlsx expect=350155
+  GET  9196Aclean.xlsx expect=20456
+  GET  9042Dclean.xlsx expect=24387
+  GET  9042Bclean.xlsx expect=27380
+  GET  9042Aclean.xlsx expect=34619
+  GET  9035Aclean.xlsx expect=41667
+  GET  9034Aclean.xlsx expect=47699
+  GET  9032Bclean.xlsx expect=21192
+  GET  9031Bclean.xlsx expect=32157
+  GET  9032Aclean.xlsx expect=45740
+  GET  9030Aclean.xlsx expect=17955
+  GET  9028Aclean.xlsx expect=26822
+  GET  9029Aclean.xlsx expect=31715
+  GET  9023Aclean.xlsx expect=33334
+  GET  9022Aclean.xlsx expect=26484
+  GET  9021Aclean.xlsx expect=28159
+  GET  9020Aclean.xlsx expect=35770
+  GET  9019Bclean.xlsx expect=41789
+  GET  9019Aclean.xlsx expect=44140
+  GET  District 8 Combined.xlsx expect=331460
+  GET  8202Aclean.xlsx expect=16326
+  GET  8026Bclean.xlsx expect=18268
+  GET  8027Aclean.xlsx expect=24215
+  GET  8026Aclean.xlsx expect=14421
+  GET  8025Aclean.xlsx expect=38927
+  GET  8024Aclean.xlsx expect=21977
+  GET  8018Aclean.xlsx expect=43867
+  GET  8017Aclean.xlsx expect=27397
+  GET  8015Hclean.xlsx expect=14373
+  GET  8016Aclean.xlsx expect=21397
+  GET  8015Dclean.xlsx expect=15342
+  GET  8015Aclean.xlsx expect=28793
+  GET  8014Aclean.xlsx expect=17422
+  GET  8013Bclean.xlsx expect=24373
+  GET  8013Aclean.xlsx expect=18481
+  GET  8012Aclean.xlsx expect=19697
+  GET  8011Aclean.xlsx expect=15084
+  GET  8010Aclean.xlsx expect=26852
+  GET  8009Aclean.xlsx expect=55499
+  GET  District 7 Combined.xlsx expect=379833
+  GET  7195Bclean.xlsx expect=14088
+  GET  7195Aclean.xlsx expect=24339
+  GET  7192Aclean.xlsx expect=66614
+  GET  7190Aclean.xlsx expect=25020
+  GET  7189Aclean.xlsx expect=17161
+  GET  7187Aclean.xlsx expect=27971
+  GET  7186Aclean.xlsx expect=33526
+  GET  7185Bclean.xlsx expect=45269
+  GET  7185Aclean.xlsx expect=32025
+  GET  7183Aclean.xlsx expect=122612
+  GET  7182Aclean.xlsx expect=24995
+  GET  7181Aclean.xlsx expect=15592
+  GET  7180Aclean.xlsx expect=50367
+  GET  7179Aclean.xlsx expect=18982
+  GET  7178Aclean.xlsx expect=18646
+  GET  7176Aclean.xlsx expect=35447
+  GET  7175Aclean.xlsx expect=24429
+  GET  District 6 Combined.xlsx expect=131754
+  GET  6201Aclean.xlsx expect=18696
+  GET  6200Aclean.xlsx expect=26013
+  GET  6199Eclean.xlsx expect=18952
+  GET  6199Fclean.xlsx expect=17920
+  GET  6199Aclean.xlsx expect=27441
+  GET  6152Cclean.xlsx expect=16846
+  GET  6161Aclean.xlsx expect=15630
+  GET  6152Bclean.xlsx expect=20695
+  GET  6152Aclean.xlsx expect=18670
+  GET  6115Aclean.xlsx expect=16085
+  GET  6114Aclean.xlsx expect=14650
+  GET  6112Aclean.xlsx expect=14869
+  GET  6110Aclean.xlsx expect=14140
+  GET  6106Aclean.xlsx expect=17464
+  GET  6106Eclean.xlsx expect=15887
+  GET  6104Aclean.xlsx expect=29556
+  GET  6103Bclean.xlsx expect=14647
+  GET  6102Bclean.xlsx expect=20128
+  GET  6102Aclean.xlsx expect=19567
+  GET  District 5 Combined.xlsx expect=174197
+  GET  5174Aclean.xlsx expect=31369
+  GET  5173Aclean.xlsx expect=13448
+  GET  5171Aclean.xlsx expect=16144
+  GET  5169Aclean.xlsx expect=15234
+  GET  5168Aclean.xlsx expect=14236
+  GET  5166Aclean.xlsx expect=13865
+  GET  5158Fclean.xlsx expect=21901
+  GET  5158Aclean.xlsx expect=37118
+  GET  5157Aclean.xlsx expect=52534
+  GET  5156Aclean.xlsx expect=18481
+  GET  5155Aclean.xlsx expect=18166
+  GET  5154Aclean.xlsx expect=24215
+  GET  5153Bclean.xlsx expect=44237
+  GET  5153Aclean.xlsx expect=32632
+  GET  District 4 Combined.xlsx expect=46920
+  GET  4164A.xlsx expect=12940
+  GET  4137A.xlsx expect=12941
+  GET  4136Aclean.xlsx expect=13341
+  GET  4130A.xlsx expect=12856
+  GET  4125Aclean.xlsx expect=16229
+  GET  4124A.xlsx expect=12844
+  GET  4120Aclean.xlsx expect=23984
+  GET  4119Aclean.xlsx expect=14235
+  GET  4118Aclean.xlsx expect=17112
+  GET  4113Aclean.xlsx expect=13979
+  GET  4111Aclean.xlsx expect=13330
+  GET  4107Aclean.xlsx expect=18316
+  GET  4101Bclean.xlsx expect=16698
+  GET  4101Cclean.xlsx expect=17435
+  GET  4101Aclean.xlsx expect=19978
+  GET  District 3 Combined.xlsx expect=221043
+  GET  3148Aclean.xlsx expect=13885
+  GET  3143Aclean.xlsx expect=20419
+  GET  3147Aclean.xlsx expect=13901
+  GET  3142Aclean.xlsx expect=14689
+  GET  3141Aclean.xlsx expect=20597
+  GET  3140Aclean.xlsx expect=17601
+  GET  3129Aclean.xlsx expect=16889
+  GET  3100Aclean.xlsx expect=14643
+  GET  3099Aclean.xlsx expect=23348
+  GET  3098Aclean.xlsx expect=65541
+  GET  3097Bclean.xlsx expect=40525
+  GET  3097Aclean.xlsx expect=30823
+  GET  3096Bclean.xlsx expect=44749
+  GET  3096Aclean.xlsx expect=34248
+  GET  3095Bclean.xlsx expect=18324
+  GET  3093Aclean.xlsx expect=18509
+  GET  3095Aclean.xlsx expect=15653
+  GET  3092Aclean.xlsx expect=16854
+  GET  3091Aclean.xlsx expect=26455
+  GET  District 2 Combined.xlsx expect=283747
+  GET  2088C clean.xlsx expect=31711
+  GET  2088A clean.xlsx expect=31303
+  GET  2087B clean.xlsx expect=19028
+  GET  2086A clean.xlsx expect=39576
+  GET  2085B clean.xlsx expect=25862
+  GET  2085A clean.xlsx expect=47185
+  GET  2084C clean.xlsx expect=27363
+  GET  2084A clean.xlsx expect=18618
+  GET  2083A clean.xlsx expect=18368
+  GET  2081A clean.xlsx expect=28453
+  GET  2079C clean.xlsx expect=15379
+  GET  2079B clean.xlsx expect=24872
+  GET  2079A clean.xlsx expect=47842
+  GET  2077B clean.xlsx expect=16857
+  GET  2076A clean.xlsx expect=32983
+  GET  2075A clean.xlsx expect=33197
+  GET  2074A clean.xlsx expect=43476
+  GET  2073A clean.xlsx expect=15305
+  GET  District 1 Combined.xlsx expect=186318
+  GET  1080C clean.xlsx expect=14162
+  GET  1080A clean.xlsx expect=18246
+  GET  1072A clean.xlsx expect=25968
+  GET  1070A clean.xlsx expect=21577
+  GET  1071A clean.xlsx expect=18640
+  GET  1069A clean.xlsx expect=40166
+  GET  1068A clean.xlsx expect=15162
+  GET  1067A clean.xlsx expect=20006
+  GET  1065C clean.xlsx expect=20397
+  GET  1065A clean.xlsx expect=26673
+  GET  1063A clean.xlsx expect=45165
+  GET  1062A clean.xlsx expect=28793
+  GET  1061A clean.xlsx expect=14046
+  GET  1060A clean.xlsx expect=15982
+  GET  1056B clean.xlsx expect=38973
+  GET  1056A clean.xlsx expect=15983
+  GET  1052A clean.xlsx expect=19542
+  GET  1048A clean.xlsx expect=13761
+  GET  CNDSHclean.xlsx expect=14523
+  GET  CNDOIclean.xlsx expect=38597
+  GET  CNDRFclean.xlsx expect=23334
+  GET  CNDOHclean.xlsx expect=62579
+  GET  CNDOGclean.xlsx expect=26778
+  GET  CNDOFclean.xlsx expect=35569
+  GET  CNDOEclean.xlsx expect=46057
+  GET  CNDODclean.xlsx expect=55650
+  GET  CNDOCclean.xlsx expect=25869
+  GET  CNDOB clean.xlsx expect=15534
+  GET  CNDMO clean.xlsx expect=14087
+  GET  CNDOA clean.xlsx expect=28195
+  GET  District 9 Combined.xlsx expect=350155
+  GET  District 7 Combined.xlsx expect=379833
+  GET  District 8 Combined.xlsx expect=331460
+  GET  District 6 Combined.xlsx expect=131754
+  GET  District 5 Combined.xlsx expect=174197
+  GET  District 4 Combined.xlsx expect=46920
+  GET  District 3 Combined.xlsx expect=221043
+  GET  District 2 Combined.xlsx expect=283747
+  GET  District 10 Combined.xlsx expect=338816
+  GET  District 1 Combined.xlsx expect=186671
+  GET  combined.csv expect=2758158
+
+=== BOX philadelphia_pa 320haoiyghjreigksljv1c4xw7u6lhnb ===
+  GET  Ratio_Analysis_total.dta expect=33289393
+  GET  Ratio_Analysis_total_10Kplus.dta expect=30342608
+  GET  final.csv expect=5086616
+  GET  Ratio_Analysis_arms_length.dta expect=21738695
+  GET  Ratio_Analysis_arms_length_10Kplus.dta expect=21302443
+
+=== BOX philadelphia_pa rom2t66ys8pxs5afqpd6xat8rayoc2sq ===
+  GET  final-Philadelphia.csv expect=5086616
+
+=== BOX orleans_la hz5rv02dpgw61e0qp3kvbyz0je1omi6v ===
+  GET  values.csv expect=95870433
+  GET  sales.csv expect=73460534
+  GET  properties.csv expect=48719683
+  GET  nola_residential_values.RDS expect=44259534
+  GET  nola_values.RDS expect=7103514
+  GET  nola_joined.RDS expect=6299825
+  GET  nola_properties.RDS expect=10009544
+  GET  nola_sales.RDS expect=3740031
+  GET  .~lock.properties.csv# expect=90
+  GET  Orleans Parish.html expect=2083872
+  GET  README.txt expect=707
+  GET  nola.R expect=3913
+  GET  MAXWELL SCHMIDT.PUBLIC RECORD REQUEST.pdf expect=944735
+  GET  nola.Rmd expect=8760
+  GET  report.Rmd expect=21090
+  GET  executive_summary.Rmd expect=2360
+  GET  make_nola_report.R expect=2122
+
+=== BOX orleans_la k69tibdzp6u0lbbq20w6m1ugtmn6z7lr ===
+  GET  nola.R expect=3913
+
+=== BOX orleans_la 7wg581vmzragpao2y9raemscmthbnwn5 ===
+  GET  make_nola_report.R expect=2122
+
+=== BOX franklin_oh 2jn1707wbpxdd98m1lke6igkqmdvg5t3 ===
+  GET  columbusonly.csv expect=10352161
+
+=== BOX st_louis_county_mo rabph6sd546szpwe6likep763hv8g3v3 ===
+  GET  sales.csv expect=88365181
+  GET  entrance.csv expect=70854374
+  GET  addn.csv expect=85436102
+  GET  primary_parcel.csv expect=125259919
+  GET  assessment.csv expect=61181606
+  GET  appraisal.csv expect=55222267
+  GET  commercial_interior_exterior.csv expect=5487892
+  GET  dwelling.csv expect=31170422
+  GET  other_bldgs_and_yard_improvements.csv expect=13329180
+  GET  taxdata.csv expect=19416407
+  GET  St. Louis County Rate Book 2019.pdf expect=4382534
+  GET  STLCO_Real_Data_Dictionary__2019.pdf expect=244974
+  GET  commercial.csv expect=1710946
+  GET  commercial_apt.csv expect=219597
+  GET  additional_address.csv expect=8005974
+  GET  commercial_bldg_features.csv expect=2253680
+  GET  taxrate.csv expect=3220153
+  GET  assessment.txt expect=60624139
+  GET  addn.txt expect=84948547
+  GET  other bldgs and yard improvements.txt expect=13305759
+  GET  St. Louis County Rate Book 2018.pdf expect=28261663
+  GET  dwelling.txt expect=31096465
+  GET  commercial interior exterior.txt expect=5465346
+  GET  commercial.txt expect=1703984
+  GET  taxdata.txt expect=20146255
+  GET  README.TXT expect=1872
+  GET  commercial bldg features.txt expect=2240434
+  GET  entrance.txt expect=66738605
+  GET  additional_address.txt expect=7970100
+  GET  taxrate.txt expect=3190069
+  GET  appraisal.txt expect=55837377
+  GET  STLCO_Real_Data_Dictionary__2019.pdf expect=244361
+  GET  sales.TXT expect=636
+  GET  primary_parcel.txt expect=125006868
+  GET  commercial apt.txt expect=215241
+  GET  ASSESSMENT.txt expect=81753218
+  GET  ADDN.txt expect=81839292
+  GET  OTHER BUILDINGS AND YARD IMPROVEMENTS.txt expect=12740046
+  GET  TAXDATA.TXT expect=46846124
+  GET  MORTGAGE.txt expect=5660469
+  GET  SALES.txt expect=53080972
+  GET  TAX PAYMENTS.txt expect=14238966
+  GET  PROPERTY VISITS.txt expect=48414989
+  GET  COMMERCIAL INTERIOR EXTERIOR.txt expect=5734528
+  GET  DWELLING.txt expect=30848221
+  GET  COMMERCIAL BUILDING FEATURES.txt expect=2211608
+  GET  COMMERCIAL.txt expect=1831943
+  GET  README.TXT expect=1880
+  GET  ADDITIONAL_ADDRESS.txt expect=7958618
+  GET  TAXRATE.txt expect=3743684
+  GET  APPRAISAL.txt expect=57158508
+  GET  PRIMARY_PARCEL.txt expect=122924289
+  GET  COMMERCIAL APT.txt expect=216320
+  GET  LACODES.TXT expect=17358
+  GET  assessment.txt expect=60567166
+  GET  addn.txt expect=84371835
+  GET  sales.TXT expect=77571323
+  GET  commercial interior exterior.txt expect=5436642
+  GET  dwelling.txt expect=31009666
+  GET  other bldgs and yard improvements.txt expect=13249493
+  GET  commercial.txt expect=1688411
+  GET  taxdata.txt expect=19865525
+  GET  README.TXT expect=1872
+  GET  commercial bldg features.txt expect=2226596
+  GET  additional_address.txt expect=8017074
+  GET  taxrate.txt expect=3079430
+  GET  entrance.txt expect=62793437
+  GET  appraisal.txt expect=54220049
+  GET  commercial apt.txt expect=210970
+  GET  primary_parcel.txt expect=124825546
+  GET  STLCO_REAL_DATA_DICTIONARY.pdf expect=165624
+  GET  sales.TXT expect=73776457
+  GET  assessment.txt expect=60360159
+  GET  addn.txt expect=83941249
+  GET  commercial interior exterior.txt expect=5434808
+  GET  other bldgs and yard improvements.txt expect=13279435
+  GET  additional_address.txt expect=7991369
+  GET  commercial.txt expect=1678276
+  GET  taxdata.txt expect=19657407
+  GET  README.TXT expect=1872
+  GET  commercial bldg features.txt expect=2229540
+  GET  dwelling.txt expect=30972015
+  GET  taxrate.txt expect=3063805
+  GET  St. Louis County Rate Book 2016.pdf expect=25054489
+  GET  entrance.txt expect=59747451
+  GET  primary_parcel.txt expect=124504567
+  GET  appraisal.txt expect=54645132
+  GET  commercial apt.txt expect=208067
+  GET  STLCO_REAL_DATA_DICTIONARY.pdf expect=165624
+  GET  assessment.txt expect=60322184
+  GET  addn.txt expect=83452155
+  GET  sales.TXT expect=69520144
+  GET  other bldgs and yard improvements.txt expect=13242838
+  GET  commercial interior exterior.txt expect=5408400
+  GET  additional_address.txt expect=8030504
+  GET  commercial.txt expect=1660507
+  GET  dwelling.txt expect=30900624
+  GET  README.TXT expect=1872
+  GET  commercial bldg features.txt expect=2212910
+  GET  taxdata.txt expect=19880816
+  GET  taxrate.txt expect=3176710
+  GET  St. Louis County Rate Book 2015.pdf expect=25177039
+  GET  entrance.txt expect=57774199
+  GET  appraisal.txt expect=53670627
+  GET  primary_parcel.txt expect=124279924
+  GET  commercial apt.txt expect=206551
+  GET  STLCO_REAL_DATA_DICTIONARY.pdf expect=165624
+  GET  SALES.csv expect=65347689
+  GET  ADDN.csv expect=82800380
+  GET  ASSESSMENT.csv expect=81660814
+  GET  TAXDATA.txt expect=51229583
+  GET  TXRATE.CSV expect=10696256
+  GET  APPRAISAL.csv expect=56017215
+  GET  README.TXT expect=1895
+  GET  PRIMARY_PARCEL.csv expect=124745359
+  GET  COMMERCIAL APT.csv expect=211167
+  GET  2012 TAX RATE BOOK.pdf expect=45681315
+  GET  OTHER BUILDINGS AND YARD IMPROVEMENTS.csv expect=12808760
+  GET  COMMERCIAL BUILDING FEATURES.csv expect=4119839
+  GET  COMMERCIAL INTERIOR EXTERIOR.csv expect=5698592
+  GET  COMMERCIAL.csv expect=1814346
+  GET  dd_2013.xlsx expect=48712
+  GET  DWELLING.csv expect=30995629
+  GET  ADDITIONAL_ADDRESS.csv expect=7912102
+  GET  assessment.txt expect=60247804
+  GET  commercial interior exterior.txt expect=5416645
+  GET  sales.TXT expect=66503246
+  GET  addn.txt expect=83176475
+  GET  other bldgs and yard improvements.txt expect=13269063
+  GET  commercial.txt expect=1667969
+  GET  additional_address.txt expect=8045400
+  GET  README.TXT expect=1862
+  GET  commercial bldg features.txt expect=2214090
+  GET  taxrate.txt expect=3158436
+  GET  taxdata.txt expect=20028445
+  GET  dwelling.txt expect=30829504
+  GET  St. Louis County Rate Book 2014.pdf expect=3826842
+  GET  primary_parcel.txt expect=123890878
+  GET  appraisal.txt expect=50014220
+  GET  commercial apt.txt expect=203151
+  GET  STLCO_REAL_DATA_DICTIONARY.pdf expect=165624
+  GET  sales.TXT expect=64027897
+  GET  assessment.txt expect=60186650
+  GET  addn.txt expect=82899961
+  GET  commercial interior exterior.txt expect=5423882
+  GET  other bldgs and yard improvements.txt expect=13255284
+  GET  commercial.txt expect=1669160
+  GET  taxdata.txt expect=20769762
+  GET  README.TXT expect=1860
+  GET  commercial bldg features.txt expect=2212586
+  GET  St. Louis County Rate Book 2013.pdf expect=3746822
+  GET  additional_address.txt expect=8077547
+  GET  taxrate.txt expect=3118797
+  GET  dwelling.txt expect=30796569
+  GET  primary_parcel.txt expect=123631199
+  GET  appraisal.txt expect=49707422
+  GET  commercial apt.txt expect=203599
+  GET  STLCO_REAL_DATA_DICTIONARY.pdf expect=165624
+  GET  ADDN.csv expect=82248466
+  GET  SALES.csv expect=60272337
+  GET  PRIMARY_PARCEL.csv expect=124402158
+  GET  ASSESSMENT.csv expect=81642646
+  GET  APPRAISAL.csv expect=55491778
+  GET  OTHER BUILDINGS AND YARD IMPROVEMENTS.csv expect=12773475
+  GET  COMMERCIAL APT.csv expect=210224
+  GET  DWELLING.csv expect=30928666
+  GET  COMMERCIAL BUILDING FEATURES.csv expect=2204165
+  GET  COMMERCIAL.csv expect=1815341
+  GET  COMMERCIAL INTERIOR EXTERIOR.csv expect=5693221
+  GET  STLCO_REAL_DATA_DICTIONARY.pdf expect=165624
+  GET  ADDITIONAL_ADDRESS.csv expect=7935746
+  GET  TAXDATA.csv expect=14096677
+  GET  TAXRATE.CSV expect=3484353
+  GET  ASSESSMENT.txt expect=81774274
+  GET  ADDITIONAL_ADDRESS.txt expect=7935073
+  GET  OTHER BUILDINGS AND YARD IMPROVEMENTS.txt expect=12778251
+  GET  COMMERCIAL INTERIOR EXTERIOR.txt expect=5685564
+  GET  dd_2010.xlsx expect=48712
+  GET  TAXDATA.TXT expect=46837752
+  GET  COMMERCIAL BUILDING FEATURES.txt expect=2207868
+  GET  COMMERCIAL.txt expect=1815699
+  GET  README.TXT expect=1895
+  GET  St. Louis County Rate Book 2010.pdf expect=3885178
+  GET  SALES.txt expect=56930085
+  GET  DWELLING.txt expect=30899722
+  GET  TXRATE.TXT expect=11012469
+  GET  ADDN.txt expect=82106681
+  GET  APPRAISAL.txt expect=57488937
+  GET  COMMERCIAL APT.txt expect=210918
+  GET  PRIMARY_PARCEL.txt expect=123141965
+  GET  .DS_Store expect=8196
+  GET  assessments.csv expect=1321020023
+  GET  taxes.csv expect=401121944
+  GET  fullroll.csv expect=238351683
+  GET  joined.csv expect=10959091
+  GET  STL_County_Merge.dta expect=284186465
+
+=== BOX st_louis_county_mo 3ciiptmn8gcpe9ohwb7zj2fn46qc0qez ===
+  GET  St. Louis County.html expect=1983652
+
+=== BOX cook_il 5j9offt7kv763i62duvhvi6hk5rrh1ok ===
+  GET  res_sales2005.csv expect=11363283
+  GET  res_sales2010.csv expect=4291394
+  GET  res_sales2007.csv expect=7048566
+  GET  res_sales2003.csv expect=10256527
+  GET  res_sales2004.csv expect=10949344
+  GET  CB_merged_tax_sales_census.dta expect=419947724
+  GET  res_sales2013.csv expect=5751214
+  GET  resYR - record layout.xlsx expect=10282
+  GET  res_sales2006.csv expect=9142211
+  GET  res_sales2002.csv expect=10020048
+  GET  res_sales2014.csv expect=5221518
+  GET  res_sales2009.csv expect=4346781
+  GET  res_sales2012.csv expect=4365540
+  GET  res_sales2008.csv expect=4329497
+  GET  res_sales2015.csv expect=5216924
+  GET  joined.csv expect=77085360
+  GET  res_sales2011.csv expect=3889629
+
+=== BOX nyc_ny 5z3sociaxaeidf9pl05tsfshwnca5p6z ===
+  SKIP Property_Valuation_and_Assessment_Data.csv (2070253440 bytes) secondary_inventory_skip_large
+  SKIP sales.dta (276834882 bytes) secondary_inventory_skip_large
+  SKIP joined_NY_assessments.csv (430450060 bytes) secondary_inventory_skip_large
+  SKIP assessment.dta (543794750 bytes) secondary_inventory_skip_large
+  SKIP NYC_Citywide_Annualized_Calendar_Sales_Update.csv (68884222 bytes) secondary_inventory_skip_large
+  SKIP joined_NY_sales.csv (49378365 bytes) secondary_inventory_skip_large
+  SKIP classonefinal.csv (376051316 bytes) secondary_inventory_skip_large
+  SKIP classtwofinal.csv (92936245 bytes) secondary_inventory_skip_large
+  GET  New York City (Class 1).html expect=2545659
+  GET  nyc_construct_data.R expect=4552
+  GET  README.txt expect=240
+  GET  make_nyc_report.R expect=2344
+  GET  report.Rmd expect=21090
+  GET  executive_summary.Rmd expect=1330
+  GET  nyc.Rmd expect=10918
+
+=== BOX nyc_ny ve3x97o09r5ri7ch18rfgw9f8v6ip1bw ===
+  GET  nyc_construct_data.R expect=4552
+
+=== BOX nyc_ny 5aes0b89wj68adjluej6lywyts35shia ===
+  GET  make_nyc_report.R expect=2344
+
+=== BOX erie_ny 5n4x5sx0t36ycvsjd1rrhxd77rzokuoj ===
+  SKIP 2017-2018_Assessment_Roll.csv (33118245 bytes) secondary_inventory_skip_large
+  GET  (CLEAN) disclosure_notice_2020_extract.xlsx expect=11835841
+  SKIP 2019-2020_Assessment_Roll.csv (32457435 bytes) secondary_inventory_skip_large
+  GET  Buffalo City.html expect=1753870
+  GET  Sales 2009-2019.xlsx expect=4958278
+  GET  joined.csv expect=530094
+
+=== BOX erie_ny zbc3ol4mlfbcuvy7y5y18o2rr35u4yjc ===
+  GET  Baffalo City.html expect=1763922
+
+=== BOX clark_nv es7id24z9nad6hutfve38ppkfkogneni ===
+  SKIP 2011.csv (205927262 bytes) secondary_inventory_skip_large
+  SKIP 2012.csv (205652572 bytes) secondary_inventory_skip_large
+  SKIP 2013.csv (208601133 bytes) secondary_inventory_skip_large
+  SKIP 2014.csv (208224509 bytes) secondary_inventory_skip_large
+  SKIP final_merged_corrected.csv (31493325 bytes) secondary_inventory_skip_large
+  GET  Las Vegas City.html expect=2241783
+
+=== BOX los_angeles_ca s5gz5t9aus1fgko4qtvo8qk0xlba6m8n ===
+  SKIP Simplified_LA_Complete_beta2.dta (184756106 bytes) secondary_inventory_skip_large
+  SKIP merged.csv (789376637 bytes) secondary_inventory_skip_large
+  SKIP Simplified_Assessor_Data_All_Years.dta (818764691 bytes) secondary_inventory_skip_large
+
+=== BOX maricopa_az 5cg6rza2ekwo9fdy7zgxki4cku4ak21q ===
+  SKIP PHX_assessments.csv (725793968 bytes) secondary_inventory_skip_large
+  SKIP merged_final.csv (517483178 bytes) secondary_inventory_skip_large
+  SKIP PHX_Sales.csv (38691733 bytes) secondary_inventory_skip_large
+  SKIP PHX_Sales.dta (3193269880 bytes) secondary_inventory_skip_large
+
+DONE manifest= /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_cmf_validation/file_manifest.csv

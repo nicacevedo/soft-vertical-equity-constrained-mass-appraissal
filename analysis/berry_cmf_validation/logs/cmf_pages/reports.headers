@@ -1,0 +1,10 @@
+HTTP/2 404 
+server: openresty
+date: Wed, 02 Sep 2026 16:33:01 GMT
+content-type: text/html; charset=UTF-8
+vary: Cookie
+expires: Wed, 11 Jan 1984 05:00:00 GMT
+cache-control: no-cache, must-revalidate, max-age=0, no-store, private
+strict-transport-security: max-age=31536000
+link: <https://propertytaxproject.uchicago.edu/wp-json/>; rel="https://api.w.org/"
+

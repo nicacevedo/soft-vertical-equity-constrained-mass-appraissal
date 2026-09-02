@@ -1,0 +1,2092 @@
+[
+  {
+    "typed_id": "d_129454245957",
+    "type": "folder",
+    "id": "129454245957",
+    "name": "new data",
+    "size": 7839006756,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "d_129453570072",
+    "type": "folder",
+    "id": "129453570072",
+    "name": "2020-stlco-assessments",
+    "size": 5867554015,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454245957"
+  },
+  {
+    "typed_id": "d_129453597480",
+    "type": "folder",
+    "id": "129453597480",
+    "name": "2019",
+    "size": 575761208,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762800738743",
+    "type": "file",
+    "id": "762800738743",
+    "name": "sales.csv",
+    "size": 88365181,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/sales.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762800511655",
+    "type": "file",
+    "id": "762800511655",
+    "name": "entrance.csv",
+    "size": 70854374,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/entrance.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762792464474",
+    "type": "file",
+    "id": "762792464474",
+    "name": "addn.csv",
+    "size": 85436102,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/addn.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762791880371",
+    "type": "file",
+    "id": "762791880371",
+    "name": "primary_parcel.csv",
+    "size": 125259919,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/primary_parcel.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762797188846",
+    "type": "file",
+    "id": "762797188846",
+    "name": "assessment.csv",
+    "size": 61181606,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/assessment.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762792260293",
+    "type": "file",
+    "id": "762792260293",
+    "name": "appraisal.csv",
+    "size": 55222267,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/appraisal.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762790066301",
+    "type": "file",
+    "id": "762790066301",
+    "name": "commercial_interior_exterior.csv",
+    "size": 5487892,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/commercial_interior_exterior.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762790867691",
+    "type": "file",
+    "id": "762790867691",
+    "name": "dwelling.csv",
+    "size": 31170422,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/dwelling.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762796073540",
+    "type": "file",
+    "id": "762796073540",
+    "name": "other_bldgs_and_yard_improvements.csv",
+    "size": 13329180,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/other_bldgs_and_yard_improvements.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762789905897",
+    "type": "file",
+    "id": "762789905897",
+    "name": "taxdata.csv",
+    "size": 19416407,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/taxdata.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762789188393",
+    "type": "file",
+    "id": "762789188393",
+    "name": "St. Louis County Rate Book 2019.pdf",
+    "size": 4382534,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/St. Louis County Rate Book 2019.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762792566416",
+    "type": "file",
+    "id": "762792566416",
+    "name": "STLCO_Real_Data_Dictionary__2019.pdf",
+    "size": 244974,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/STLCO_Real_Data_Dictionary__2019.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762791321424",
+    "type": "file",
+    "id": "762791321424",
+    "name": "commercial.csv",
+    "size": 1710946,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/commercial.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762789255403",
+    "type": "file",
+    "id": "762789255403",
+    "name": "commercial_apt.csv",
+    "size": 219597,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/commercial_apt.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762778004521",
+    "type": "file",
+    "id": "762778004521",
+    "name": "additional_address.csv",
+    "size": 8005974,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/additional_address.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762788998268",
+    "type": "file",
+    "id": "762788998268",
+    "name": "commercial_bldg_features.csv",
+    "size": 2253680,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/commercial_bldg_features.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "f_762792647966",
+    "type": "file",
+    "id": "762792647966",
+    "name": "taxrate.csv",
+    "size": 3220153,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2019/taxrate.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453597480"
+  },
+  {
+    "typed_id": "d_129453619262",
+    "type": "folder",
+    "id": "129453619262",
+    "name": "2018",
+    "size": 506997721,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762794004875",
+    "type": "file",
+    "id": "762794004875",
+    "name": "assessment.txt",
+    "size": 60624139,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/assessment.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762792606552",
+    "type": "file",
+    "id": "762792606552",
+    "name": "addn.txt",
+    "size": 84948547,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/addn.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762789943968",
+    "type": "file",
+    "id": "762789943968",
+    "name": "other bldgs and yard improvements.txt",
+    "size": 13305759,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/other bldgs and yard improvements.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762776696844",
+    "type": "file",
+    "id": "762776696844",
+    "name": "St. Louis County Rate Book 2018.pdf",
+    "size": 28261663,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/St. Louis County Rate Book 2018.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762790647868",
+    "type": "file",
+    "id": "762790647868",
+    "name": "dwelling.txt",
+    "size": 31096465,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/dwelling.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762789740767",
+    "type": "file",
+    "id": "762789740767",
+    "name": "commercial interior exterior.txt",
+    "size": 5465346,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/commercial interior exterior.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762785151398",
+    "type": "file",
+    "id": "762785151398",
+    "name": "commercial.txt",
+    "size": 1703984,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/commercial.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762790214300",
+    "type": "file",
+    "id": "762790214300",
+    "name": "taxdata.txt",
+    "size": 20146255,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/taxdata.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762792244538",
+    "type": "file",
+    "id": "762792244538",
+    "name": "README.TXT",
+    "size": 1872,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762789798519",
+    "type": "file",
+    "id": "762789798519",
+    "name": "commercial bldg features.txt",
+    "size": 2240434,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/commercial bldg features.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762794837189",
+    "type": "file",
+    "id": "762794837189",
+    "name": "entrance.txt",
+    "size": 66738605,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/entrance.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762794996182",
+    "type": "file",
+    "id": "762794996182",
+    "name": "additional_address.txt",
+    "size": 7970100,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/additional_address.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762794632910",
+    "type": "file",
+    "id": "762794632910",
+    "name": "taxrate.txt",
+    "size": 3190069,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/taxrate.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762791571009",
+    "type": "file",
+    "id": "762791571009",
+    "name": "appraisal.txt",
+    "size": 55837377,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/appraisal.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762788147155",
+    "type": "file",
+    "id": "762788147155",
+    "name": "STLCO_Real_Data_Dictionary__2019.pdf",
+    "size": 244361,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/STLCO_Real_Data_Dictionary__2019.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762789318385",
+    "type": "file",
+    "id": "762789318385",
+    "name": "sales.TXT",
+    "size": 636,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/sales.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762786001372",
+    "type": "file",
+    "id": "762786001372",
+    "name": "primary_parcel.txt",
+    "size": 125006868,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/primary_parcel.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "f_762788844759",
+    "type": "file",
+    "id": "762788844759",
+    "name": "commercial apt.txt",
+    "size": 215241,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2018/commercial apt.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453619262"
+  },
+  {
+    "typed_id": "d_129453733620",
+    "type": "folder",
+    "id": "129453733620",
+    "name": "2009",
+    "size": 577221033,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762789393762",
+    "type": "file",
+    "id": "762789393762",
+    "name": "ASSESSMENT.txt",
+    "size": 81753218,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/ASSESSMENT.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762790953480",
+    "type": "file",
+    "id": "762790953480",
+    "name": "ADDN.txt",
+    "size": 81839292,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/ADDN.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762786755112",
+    "type": "file",
+    "id": "762786755112",
+    "name": "OTHER BUILDINGS AND YARD IMPROVEMENTS.txt",
+    "size": 12740046,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/OTHER BUILDINGS AND YARD IMPROVEMENTS.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762788218006",
+    "type": "file",
+    "id": "762788218006",
+    "name": "TAXDATA.TXT",
+    "size": 46846124,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/TAXDATA.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762789630050",
+    "type": "file",
+    "id": "762789630050",
+    "name": "MORTGAGE.txt",
+    "size": 5660469,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/MORTGAGE.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762790293257",
+    "type": "file",
+    "id": "762790293257",
+    "name": "SALES.txt",
+    "size": 53080972,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/SALES.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762782493036",
+    "type": "file",
+    "id": "762782493036",
+    "name": "TAX PAYMENTS.txt",
+    "size": 14238966,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/TAX PAYMENTS.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762786231914",
+    "type": "file",
+    "id": "762786231914",
+    "name": "PROPERTY VISITS.txt",
+    "size": 48414989,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/PROPERTY VISITS.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762787296367",
+    "type": "file",
+    "id": "762787296367",
+    "name": "COMMERCIAL INTERIOR EXTERIOR.txt",
+    "size": 5734528,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/COMMERCIAL INTERIOR EXTERIOR.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762788328929",
+    "type": "file",
+    "id": "762788328929",
+    "name": "DWELLING.txt",
+    "size": 30848221,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/DWELLING.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762787632274",
+    "type": "file",
+    "id": "762787632274",
+    "name": "COMMERCIAL BUILDING FEATURES.txt",
+    "size": 2211608,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/COMMERCIAL BUILDING FEATURES.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762786993670",
+    "type": "file",
+    "id": "762786993670",
+    "name": "COMMERCIAL.txt",
+    "size": 1831943,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/COMMERCIAL.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762789183468",
+    "type": "file",
+    "id": "762789183468",
+    "name": "README.TXT",
+    "size": 1880,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762786063924",
+    "type": "file",
+    "id": "762786063924",
+    "name": "ADDITIONAL_ADDRESS.txt",
+    "size": 7958618,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/ADDITIONAL_ADDRESS.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762785458720",
+    "type": "file",
+    "id": "762785458720",
+    "name": "TAXRATE.txt",
+    "size": 3743684,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/TAXRATE.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762784417502",
+    "type": "file",
+    "id": "762784417502",
+    "name": "APPRAISAL.txt",
+    "size": 57158508,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/APPRAISAL.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762787107833",
+    "type": "file",
+    "id": "762787107833",
+    "name": "PRIMARY_PARCEL.txt",
+    "size": 122924289,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/PRIMARY_PARCEL.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762785587936",
+    "type": "file",
+    "id": "762785587936",
+    "name": "COMMERCIAL APT.txt",
+    "size": 216320,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/COMMERCIAL APT.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "f_762779835872",
+    "type": "file",
+    "id": "762779835872",
+    "name": "LACODES.TXT",
+    "size": 17358,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2009/LACODES.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453733620"
+  },
+  {
+    "typed_id": "d_129454371469",
+    "type": "folder",
+    "id": "129454371469",
+    "name": "2017",
+    "size": 549300659,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762786378074",
+    "type": "file",
+    "id": "762786378074",
+    "name": "assessment.txt",
+    "size": 60567166,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/assessment.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762788686396",
+    "type": "file",
+    "id": "762788686396",
+    "name": "addn.txt",
+    "size": 84371835,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/addn.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762784826506",
+    "type": "file",
+    "id": "762784826506",
+    "name": "sales.TXT",
+    "size": 77571323,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/sales.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762784005259",
+    "type": "file",
+    "id": "762784005259",
+    "name": "commercial interior exterior.txt",
+    "size": 5436642,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/commercial interior exterior.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762780490975",
+    "type": "file",
+    "id": "762780490975",
+    "name": "dwelling.txt",
+    "size": 31009666,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/dwelling.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762783233400",
+    "type": "file",
+    "id": "762783233400",
+    "name": "other bldgs and yard improvements.txt",
+    "size": 13249493,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/other bldgs and yard improvements.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762784750729",
+    "type": "file",
+    "id": "762784750729",
+    "name": "commercial.txt",
+    "size": 1688411,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/commercial.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762778644278",
+    "type": "file",
+    "id": "762778644278",
+    "name": "taxdata.txt",
+    "size": 19865525,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/taxdata.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762782322734",
+    "type": "file",
+    "id": "762782322734",
+    "name": "README.TXT",
+    "size": 1872,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762785457649",
+    "type": "file",
+    "id": "762785457649",
+    "name": "commercial bldg features.txt",
+    "size": 2226596,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/commercial bldg features.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762783424190",
+    "type": "file",
+    "id": "762783424190",
+    "name": "additional_address.txt",
+    "size": 8017074,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/additional_address.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762785864887",
+    "type": "file",
+    "id": "762785864887",
+    "name": "taxrate.txt",
+    "size": 3079430,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/taxrate.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762784420548",
+    "type": "file",
+    "id": "762784420548",
+    "name": "entrance.txt",
+    "size": 62793437,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/entrance.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762785196793",
+    "type": "file",
+    "id": "762785196793",
+    "name": "appraisal.txt",
+    "size": 54220049,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/appraisal.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762785147150",
+    "type": "file",
+    "id": "762785147150",
+    "name": "commercial apt.txt",
+    "size": 210970,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/commercial apt.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762782267964",
+    "type": "file",
+    "id": "762782267964",
+    "name": "primary_parcel.txt",
+    "size": 124825546,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/primary_parcel.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "f_762776206467",
+    "type": "file",
+    "id": "762776206467",
+    "name": "STLCO_REAL_DATA_DICTIONARY.pdf",
+    "size": 165624,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2017/STLCO_REAL_DATA_DICTIONARY.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454371469"
+  },
+  {
+    "typed_id": "d_129454439847",
+    "type": "folder",
+    "id": "129454439847",
+    "name": "2016",
+    "size": 566711722,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762783016691",
+    "type": "file",
+    "id": "762783016691",
+    "name": "sales.TXT",
+    "size": 73776457,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/sales.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762777047991",
+    "type": "file",
+    "id": "762777047991",
+    "name": "assessment.txt",
+    "size": 60360159,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/assessment.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762776366131",
+    "type": "file",
+    "id": "762776366131",
+    "name": "addn.txt",
+    "size": 83941249,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/addn.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762780559168",
+    "type": "file",
+    "id": "762780559168",
+    "name": "commercial interior exterior.txt",
+    "size": 5434808,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/commercial interior exterior.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762776369273",
+    "type": "file",
+    "id": "762776369273",
+    "name": "other bldgs and yard improvements.txt",
+    "size": 13279435,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/other bldgs and yard improvements.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762782085888",
+    "type": "file",
+    "id": "762782085888",
+    "name": "additional_address.txt",
+    "size": 7991369,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/additional_address.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762780449089",
+    "type": "file",
+    "id": "762780449089",
+    "name": "commercial.txt",
+    "size": 1678276,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/commercial.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762782277114",
+    "type": "file",
+    "id": "762782277114",
+    "name": "taxdata.txt",
+    "size": 19657407,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/taxdata.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762775861940",
+    "type": "file",
+    "id": "762775861940",
+    "name": "README.TXT",
+    "size": 1872,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762781529651",
+    "type": "file",
+    "id": "762781529651",
+    "name": "commercial bldg features.txt",
+    "size": 2229540,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/commercial bldg features.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762783011880",
+    "type": "file",
+    "id": "762783011880",
+    "name": "dwelling.txt",
+    "size": 30972015,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/dwelling.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762783365719",
+    "type": "file",
+    "id": "762783365719",
+    "name": "taxrate.txt",
+    "size": 3063805,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/taxrate.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762776367765",
+    "type": "file",
+    "id": "762776367765",
+    "name": "St. Louis County Rate Book 2016.pdf",
+    "size": 25054489,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/St. Louis County Rate Book 2016.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762780744590",
+    "type": "file",
+    "id": "762780744590",
+    "name": "entrance.txt",
+    "size": 59747451,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/entrance.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762780834620",
+    "type": "file",
+    "id": "762780834620",
+    "name": "primary_parcel.txt",
+    "size": 124504567,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/primary_parcel.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762773812395",
+    "type": "file",
+    "id": "762773812395",
+    "name": "appraisal.txt",
+    "size": 54645132,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/appraisal.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762779199665",
+    "type": "file",
+    "id": "762779199665",
+    "name": "commercial apt.txt",
+    "size": 208067,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/commercial apt.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "f_762780478382",
+    "type": "file",
+    "id": "762780478382",
+    "name": "STLCO_REAL_DATA_DICTIONARY.pdf",
+    "size": 165624,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2016/STLCO_REAL_DATA_DICTIONARY.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454439847"
+  },
+  {
+    "typed_id": "d_129454512790",
+    "type": "folder",
+    "id": "129454512790",
+    "name": "2015",
+    "size": 559083628,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762782204820",
+    "type": "file",
+    "id": "762782204820",
+    "name": "assessment.txt",
+    "size": 60322184,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/assessment.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762779154056",
+    "type": "file",
+    "id": "762779154056",
+    "name": "addn.txt",
+    "size": 83452155,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/addn.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762770681349",
+    "type": "file",
+    "id": "762770681349",
+    "name": "sales.TXT",
+    "size": 69520144,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/sales.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762777674922",
+    "type": "file",
+    "id": "762777674922",
+    "name": "other bldgs and yard improvements.txt",
+    "size": 13242838,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/other bldgs and yard improvements.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762778770979",
+    "type": "file",
+    "id": "762778770979",
+    "name": "commercial interior exterior.txt",
+    "size": 5408400,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/commercial interior exterior.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762773214822",
+    "type": "file",
+    "id": "762773214822",
+    "name": "additional_address.txt",
+    "size": 8030504,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/additional_address.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762777854885",
+    "type": "file",
+    "id": "762777854885",
+    "name": "commercial.txt",
+    "size": 1660507,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/commercial.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762772773863",
+    "type": "file",
+    "id": "762772773863",
+    "name": "dwelling.txt",
+    "size": 30900624,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/dwelling.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762777333564",
+    "type": "file",
+    "id": "762777333564",
+    "name": "README.TXT",
+    "size": 1872,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762778040905",
+    "type": "file",
+    "id": "762778040905",
+    "name": "commercial bldg features.txt",
+    "size": 2212910,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/commercial bldg features.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762777510881",
+    "type": "file",
+    "id": "762777510881",
+    "name": "taxdata.txt",
+    "size": 19880816,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/taxdata.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762773466760",
+    "type": "file",
+    "id": "762773466760",
+    "name": "taxrate.txt",
+    "size": 3176710,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/taxrate.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762771784166",
+    "type": "file",
+    "id": "762771784166",
+    "name": "St. Louis County Rate Book 2015.pdf",
+    "size": 25177039,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/St. Louis County Rate Book 2015.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762771500789",
+    "type": "file",
+    "id": "762771500789",
+    "name": "entrance.txt",
+    "size": 57774199,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/entrance.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762776011657",
+    "type": "file",
+    "id": "762776011657",
+    "name": "appraisal.txt",
+    "size": 53670627,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/appraisal.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762775178269",
+    "type": "file",
+    "id": "762775178269",
+    "name": "primary_parcel.txt",
+    "size": 124279924,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/primary_parcel.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762774785023",
+    "type": "file",
+    "id": "762774785023",
+    "name": "commercial apt.txt",
+    "size": 206551,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/commercial apt.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "f_762765358523",
+    "type": "file",
+    "id": "762765358523",
+    "name": "STLCO_REAL_DATA_DICTIONARY.pdf",
+    "size": 165624,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2015/STLCO_REAL_DATA_DICTIONARY.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454512790"
+  },
+  {
+    "typed_id": "d_129454088170",
+    "type": "folder",
+    "id": "129454088170",
+    "name": "2012",
+    "size": 581789653,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762773349306",
+    "type": "file",
+    "id": "762773349306",
+    "name": "SALES.csv",
+    "size": 65347689,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/SALES.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762775404591",
+    "type": "file",
+    "id": "762775404591",
+    "name": "ADDN.csv",
+    "size": 82800380,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/ADDN.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762774310704",
+    "type": "file",
+    "id": "762774310704",
+    "name": "ASSESSMENT.csv",
+    "size": 81660814,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/ASSESSMENT.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762765476450",
+    "type": "file",
+    "id": "762765476450",
+    "name": "TAXDATA.txt",
+    "size": 51229583,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/TAXDATA.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762773899444",
+    "type": "file",
+    "id": "762773899444",
+    "name": "TXRATE.CSV",
+    "size": 10696256,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/TXRATE.CSV",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762765540782",
+    "type": "file",
+    "id": "762765540782",
+    "name": "APPRAISAL.csv",
+    "size": 56017215,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/APPRAISAL.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762764489390",
+    "type": "file",
+    "id": "762764489390",
+    "name": "README.TXT",
+    "size": 1895,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762764056463",
+    "type": "file",
+    "id": "762764056463",
+    "name": "PRIMARY_PARCEL.csv",
+    "size": 124745359,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/PRIMARY_PARCEL.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762761765536",
+    "type": "file",
+    "id": "762761765536",
+    "name": "COMMERCIAL APT.csv",
+    "size": 211167,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/COMMERCIAL APT.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762763651688",
+    "type": "file",
+    "id": "762763651688",
+    "name": "2012 TAX RATE BOOK.pdf",
+    "size": 45681315,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/2012 TAX RATE BOOK.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762772182658",
+    "type": "file",
+    "id": "762772182658",
+    "name": "OTHER BUILDINGS AND YARD IMPROVEMENTS.csv",
+    "size": 12808760,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/OTHER BUILDINGS AND YARD IMPROVEMENTS.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762761550205",
+    "type": "file",
+    "id": "762761550205",
+    "name": "COMMERCIAL BUILDING FEATURES.csv",
+    "size": 4119839,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/COMMERCIAL BUILDING FEATURES.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762762389793",
+    "type": "file",
+    "id": "762762389793",
+    "name": "COMMERCIAL INTERIOR EXTERIOR.csv",
+    "size": 5698592,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/COMMERCIAL INTERIOR EXTERIOR.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762771333309",
+    "type": "file",
+    "id": "762771333309",
+    "name": "COMMERCIAL.csv",
+    "size": 1814346,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/COMMERCIAL.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762766646377",
+    "type": "file",
+    "id": "762766646377",
+    "name": "dd_2013.xlsx",
+    "size": 48712,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/dd_2013.xlsx",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762764140519",
+    "type": "file",
+    "id": "762764140519",
+    "name": "DWELLING.csv",
+    "size": 30995629,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/DWELLING.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "f_762747410106",
+    "type": "file",
+    "id": "762747410106",
+    "name": "ADDITIONAL_ADDRESS.csv",
+    "size": 7912102,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2012/ADDITIONAL_ADDRESS.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454088170"
+  },
+  {
+    "typed_id": "d_129454574060",
+    "type": "folder",
+    "id": "129454574060",
+    "name": "2014",
+    "size": 472659654,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762772242023",
+    "type": "file",
+    "id": "762772242023",
+    "name": "assessment.txt",
+    "size": 60247804,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/assessment.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762771696567",
+    "type": "file",
+    "id": "762771696567",
+    "name": "commercial interior exterior.txt",
+    "size": 5416645,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/commercial interior exterior.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762762669665",
+    "type": "file",
+    "id": "762762669665",
+    "name": "sales.TXT",
+    "size": 66503246,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/sales.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762760782055",
+    "type": "file",
+    "id": "762760782055",
+    "name": "addn.txt",
+    "size": 83176475,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/addn.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762762204675",
+    "type": "file",
+    "id": "762762204675",
+    "name": "other bldgs and yard improvements.txt",
+    "size": 13269063,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/other bldgs and yard improvements.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762762992750",
+    "type": "file",
+    "id": "762762992750",
+    "name": "commercial.txt",
+    "size": 1667969,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/commercial.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762763065196",
+    "type": "file",
+    "id": "762763065196",
+    "name": "additional_address.txt",
+    "size": 8045400,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/additional_address.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762760570294",
+    "type": "file",
+    "id": "762760570294",
+    "name": "README.TXT",
+    "size": 1862,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762761502342",
+    "type": "file",
+    "id": "762761502342",
+    "name": "commercial bldg features.txt",
+    "size": 2214090,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/commercial bldg features.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762761053427",
+    "type": "file",
+    "id": "762761053427",
+    "name": "taxrate.txt",
+    "size": 3158436,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/taxrate.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762745926373",
+    "type": "file",
+    "id": "762745926373",
+    "name": "taxdata.txt",
+    "size": 20028445,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/taxdata.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762762595649",
+    "type": "file",
+    "id": "762762595649",
+    "name": "dwelling.txt",
+    "size": 30829504,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/dwelling.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762761482119",
+    "type": "file",
+    "id": "762761482119",
+    "name": "St. Louis County Rate Book 2014.pdf",
+    "size": 3826842,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/St. Louis County Rate Book 2014.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762745014455",
+    "type": "file",
+    "id": "762745014455",
+    "name": "primary_parcel.txt",
+    "size": 123890878,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/primary_parcel.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762755800136",
+    "type": "file",
+    "id": "762755800136",
+    "name": "appraisal.txt",
+    "size": 50014220,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/appraisal.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762764124688",
+    "type": "file",
+    "id": "762764124688",
+    "name": "commercial apt.txt",
+    "size": 203151,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/commercial apt.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "f_762759635250",
+    "type": "file",
+    "id": "762759635250",
+    "name": "STLCO_REAL_DATA_DICTIONARY.pdf",
+    "size": 165624,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2014/STLCO_REAL_DATA_DICTIONARY.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454574060"
+  },
+  {
+    "typed_id": "d_129453410905",
+    "type": "folder",
+    "id": "129453410905",
+    "name": "2013",
+    "size": 469894621,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762765979834",
+    "type": "file",
+    "id": "762765979834",
+    "name": "sales.TXT",
+    "size": 64027897,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/sales.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762760475475",
+    "type": "file",
+    "id": "762760475475",
+    "name": "assessment.txt",
+    "size": 60186650,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/assessment.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762758261170",
+    "type": "file",
+    "id": "762758261170",
+    "name": "addn.txt",
+    "size": 82899961,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/addn.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762759123632",
+    "type": "file",
+    "id": "762759123632",
+    "name": "commercial interior exterior.txt",
+    "size": 5423882,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/commercial interior exterior.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762756939092",
+    "type": "file",
+    "id": "762756939092",
+    "name": "other bldgs and yard improvements.txt",
+    "size": 13255284,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/other bldgs and yard improvements.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762756153851",
+    "type": "file",
+    "id": "762756153851",
+    "name": "commercial.txt",
+    "size": 1669160,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/commercial.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762756251328",
+    "type": "file",
+    "id": "762756251328",
+    "name": "taxdata.txt",
+    "size": 20769762,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/taxdata.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762755771180",
+    "type": "file",
+    "id": "762755771180",
+    "name": "README.TXT",
+    "size": 1860,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762756777080",
+    "type": "file",
+    "id": "762756777080",
+    "name": "commercial bldg features.txt",
+    "size": 2212586,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/commercial bldg features.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762760091609",
+    "type": "file",
+    "id": "762760091609",
+    "name": "St. Louis County Rate Book 2013.pdf",
+    "size": 3746822,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/St. Louis County Rate Book 2013.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762756477726",
+    "type": "file",
+    "id": "762756477726",
+    "name": "additional_address.txt",
+    "size": 8077547,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/additional_address.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762755903042",
+    "type": "file",
+    "id": "762755903042",
+    "name": "taxrate.txt",
+    "size": 3118797,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/taxrate.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762758330293",
+    "type": "file",
+    "id": "762758330293",
+    "name": "dwelling.txt",
+    "size": 30796569,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/dwelling.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762745083958",
+    "type": "file",
+    "id": "762745083958",
+    "name": "primary_parcel.txt",
+    "size": 123631199,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/primary_parcel.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762755717643",
+    "type": "file",
+    "id": "762755717643",
+    "name": "appraisal.txt",
+    "size": 49707422,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/appraisal.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762756424675",
+    "type": "file",
+    "id": "762756424675",
+    "name": "commercial apt.txt",
+    "size": 203599,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/commercial apt.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "f_762755249568",
+    "type": "file",
+    "id": "762755249568",
+    "name": "STLCO_REAL_DATA_DICTIONARY.pdf",
+    "size": 165624,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2013/STLCO_REAL_DATA_DICTIONARY.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453410905"
+  },
+  {
+    "typed_id": "d_129454566627",
+    "type": "folder",
+    "id": "129454566627",
+    "name": "2011",
+    "size": 483364877,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762759076639",
+    "type": "file",
+    "id": "762759076639",
+    "name": "ADDN.csv",
+    "size": 82248466,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/ADDN.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762758818409",
+    "type": "file",
+    "id": "762758818409",
+    "name": "SALES.csv",
+    "size": 60272337,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/SALES.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762753085782",
+    "type": "file",
+    "id": "762753085782",
+    "name": "PRIMARY_PARCEL.csv",
+    "size": 124402158,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/PRIMARY_PARCEL.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762744041826",
+    "type": "file",
+    "id": "762744041826",
+    "name": "ASSESSMENT.csv",
+    "size": 81642646,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/ASSESSMENT.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762756373541",
+    "type": "file",
+    "id": "762756373541",
+    "name": "APPRAISAL.csv",
+    "size": 55491778,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/APPRAISAL.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762755138229",
+    "type": "file",
+    "id": "762755138229",
+    "name": "OTHER BUILDINGS AND YARD IMPROVEMENTS.csv",
+    "size": 12773475,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/OTHER BUILDINGS AND YARD IMPROVEMENTS.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762754715911",
+    "type": "file",
+    "id": "762754715911",
+    "name": "COMMERCIAL APT.csv",
+    "size": 210224,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/COMMERCIAL APT.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762751155559",
+    "type": "file",
+    "id": "762751155559",
+    "name": "DWELLING.csv",
+    "size": 30928666,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/DWELLING.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762750739580",
+    "type": "file",
+    "id": "762750739580",
+    "name": "COMMERCIAL BUILDING FEATURES.csv",
+    "size": 2204165,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/COMMERCIAL BUILDING FEATURES.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762751377036",
+    "type": "file",
+    "id": "762751377036",
+    "name": "COMMERCIAL.csv",
+    "size": 1815341,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/COMMERCIAL.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762753900742",
+    "type": "file",
+    "id": "762753900742",
+    "name": "COMMERCIAL INTERIOR EXTERIOR.csv",
+    "size": 5693221,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/COMMERCIAL INTERIOR EXTERIOR.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762751478304",
+    "type": "file",
+    "id": "762751478304",
+    "name": "STLCO_REAL_DATA_DICTIONARY.pdf",
+    "size": 165624,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/STLCO_REAL_DATA_DICTIONARY.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762750511442",
+    "type": "file",
+    "id": "762750511442",
+    "name": "ADDITIONAL_ADDRESS.csv",
+    "size": 7935746,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/ADDITIONAL_ADDRESS.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762750358759",
+    "type": "file",
+    "id": "762750358759",
+    "name": "TAXDATA.csv",
+    "size": 14096677,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/TAXDATA.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "f_762751110843",
+    "type": "file",
+    "id": "762751110843",
+    "name": "TAXRATE.CSV",
+    "size": 3484353,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2011/TAXRATE.CSV",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454566627"
+  },
+  {
+    "typed_id": "d_129453568629",
+    "type": "folder",
+    "id": "129453568629",
+    "name": "2010",
+    "size": 524761043,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762753787005",
+    "type": "file",
+    "id": "762753787005",
+    "name": "ASSESSMENT.txt",
+    "size": 81774274,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/ASSESSMENT.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762750571559",
+    "type": "file",
+    "id": "762750571559",
+    "name": "ADDITIONAL_ADDRESS.txt",
+    "size": 7935073,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/ADDITIONAL_ADDRESS.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762744405292",
+    "type": "file",
+    "id": "762744405292",
+    "name": "OTHER BUILDINGS AND YARD IMPROVEMENTS.txt",
+    "size": 12778251,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/OTHER BUILDINGS AND YARD IMPROVEMENTS.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762751818363",
+    "type": "file",
+    "id": "762751818363",
+    "name": "COMMERCIAL INTERIOR EXTERIOR.txt",
+    "size": 5685564,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/COMMERCIAL INTERIOR EXTERIOR.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762750494304",
+    "type": "file",
+    "id": "762750494304",
+    "name": "dd_2010.xlsx",
+    "size": 48712,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/dd_2010.xlsx",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762751141600",
+    "type": "file",
+    "id": "762751141600",
+    "name": "TAXDATA.TXT",
+    "size": 46837752,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/TAXDATA.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762748931273",
+    "type": "file",
+    "id": "762748931273",
+    "name": "COMMERCIAL BUILDING FEATURES.txt",
+    "size": 2207868,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/COMMERCIAL BUILDING FEATURES.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762750035044",
+    "type": "file",
+    "id": "762750035044",
+    "name": "COMMERCIAL.txt",
+    "size": 1815699,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/COMMERCIAL.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762752191295",
+    "type": "file",
+    "id": "762752191295",
+    "name": "README.TXT",
+    "size": 1895,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/README.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762749948675",
+    "type": "file",
+    "id": "762749948675",
+    "name": "St. Louis County Rate Book 2010.pdf",
+    "size": 3885178,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/St. Louis County Rate Book 2010.pdf",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762750655003",
+    "type": "file",
+    "id": "762750655003",
+    "name": "SALES.txt",
+    "size": 56930085,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/SALES.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762750637797",
+    "type": "file",
+    "id": "762750637797",
+    "name": "DWELLING.txt",
+    "size": 30899722,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/DWELLING.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762750638089",
+    "type": "file",
+    "id": "762750638089",
+    "name": "TXRATE.TXT",
+    "size": 11012469,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/TXRATE.TXT",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762747665959",
+    "type": "file",
+    "id": "762747665959",
+    "name": "ADDN.txt",
+    "size": 82106681,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/ADDN.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762751379415",
+    "type": "file",
+    "id": "762751379415",
+    "name": "APPRAISAL.txt",
+    "size": 57488937,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/APPRAISAL.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762745601393",
+    "type": "file",
+    "id": "762745601393",
+    "name": "COMMERCIAL APT.txt",
+    "size": 210918,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/COMMERCIAL APT.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762742994374",
+    "type": "file",
+    "id": "762742994374",
+    "name": "PRIMARY_PARCEL.txt",
+    "size": 123141965,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/2010/PRIMARY_PARCEL.txt",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453568629"
+  },
+  {
+    "typed_id": "f_762742299989",
+    "type": "file",
+    "id": "762742299989",
+    "name": ".DS_Store",
+    "size": 8196,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/2020-stlco-assessments/.DS_Store",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129453570072"
+  },
+  {
+    "typed_id": "f_762787173906",
+    "type": "file",
+    "id": "762787173906",
+    "name": "assessments.csv",
+    "size": 1321020023,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/assessments.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454245957"
+  },
+  {
+    "typed_id": "f_762754448300",
+    "type": "file",
+    "id": "762754448300",
+    "name": "taxes.csv",
+    "size": 401121944,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/taxes.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454245957"
+  },
+  {
+    "typed_id": "f_762753531995",
+    "type": "file",
+    "id": "762753531995",
+    "name": "fullroll.csv",
+    "size": 238351683,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/fullroll.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454245957"
+  },
+  {
+    "typed_id": "f_762744208720",
+    "type": "file",
+    "id": "762744208720",
+    "name": "joined.csv",
+    "size": 10959091,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/new data/joined.csv",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": "129454245957"
+  },
+  {
+    "typed_id": "f_762756583975",
+    "type": "file",
+    "id": "762756583975",
+    "name": "STL_County_Merge.dta",
+    "size": 284186465,
+    "relpath": "box/rabph6sd546szpwe6likep763hv8g3v3/STL_County_Merge.dta",
+    "shared": "rabph6sd546szpwe6likep763hv8g3v3",
+    "parent_folder_id": ""
+  }
+]

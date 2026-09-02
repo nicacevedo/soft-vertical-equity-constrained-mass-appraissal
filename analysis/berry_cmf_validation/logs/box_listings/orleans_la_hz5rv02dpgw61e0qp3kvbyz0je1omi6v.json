@@ -1,0 +1,202 @@
+[
+  {
+    "typed_id": "d_131026082363",
+    "type": "folder",
+    "id": "131026082363",
+    "name": "nola_data",
+    "size": 289463188,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "d_131024385080",
+    "type": "folder",
+    "id": "131024385080",
+    "name": "raw",
+    "size": 218050650,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/raw",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026082363"
+  },
+  {
+    "typed_id": "f_772428848390",
+    "type": "file",
+    "id": "772428848390",
+    "name": "values.csv",
+    "size": 95870433,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/raw/values.csv",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131024385080"
+  },
+  {
+    "typed_id": "f_772429089588",
+    "type": "file",
+    "id": "772429089588",
+    "name": "sales.csv",
+    "size": 73460534,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/raw/sales.csv",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131024385080"
+  },
+  {
+    "typed_id": "f_772428395381",
+    "type": "file",
+    "id": "772428395381",
+    "name": "properties.csv",
+    "size": 48719683,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/raw/properties.csv",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131024385080"
+  },
+  {
+    "typed_id": "f_772429675404",
+    "type": "file",
+    "id": "772429675404",
+    "name": "nola_residential_values.RDS",
+    "size": 44259534,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/nola_residential_values.RDS",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026082363"
+  },
+  {
+    "typed_id": "f_772428082501",
+    "type": "file",
+    "id": "772428082501",
+    "name": "nola_values.RDS",
+    "size": 7103514,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/nola_values.RDS",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026082363"
+  },
+  {
+    "typed_id": "f_772412368279",
+    "type": "file",
+    "id": "772412368279",
+    "name": "nola_joined.RDS",
+    "size": 6299825,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/nola_joined.RDS",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026082363"
+  },
+  {
+    "typed_id": "f_772429928967",
+    "type": "file",
+    "id": "772429928967",
+    "name": "nola_properties.RDS",
+    "size": 10009544,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/nola_properties.RDS",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026082363"
+  },
+  {
+    "typed_id": "f_772428883425",
+    "type": "file",
+    "id": "772428883425",
+    "name": "nola_sales.RDS",
+    "size": 3740031,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/nola_sales.RDS",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026082363"
+  },
+  {
+    "typed_id": "f_772431331802",
+    "type": "file",
+    "id": "772431331802",
+    "name": ".~lock.properties.csv#",
+    "size": 90,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola_data/.~lock.properties.csv#",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026082363"
+  },
+  {
+    "typed_id": "d_131026234458",
+    "type": "folder",
+    "id": "131026234458",
+    "name": "report",
+    "size": 2083872,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/report",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772428515254",
+    "type": "file",
+    "id": "772428515254",
+    "name": "Orleans Parish.html",
+    "size": 2083872,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/report/Orleans Parish.html",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": "131026234458"
+  },
+  {
+    "typed_id": "f_772428662896",
+    "type": "file",
+    "id": "772428662896",
+    "name": "README.txt",
+    "size": 707,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/README.txt",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772430093226",
+    "type": "file",
+    "id": "772430093226",
+    "name": "nola.R",
+    "size": 3913,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola.R",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772429528227",
+    "type": "file",
+    "id": "772429528227",
+    "name": "MAXWELL SCHMIDT.PUBLIC RECORD REQUEST.pdf",
+    "size": 944735,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/MAXWELL SCHMIDT.PUBLIC RECORD REQUEST.pdf",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772428293835",
+    "type": "file",
+    "id": "772428293835",
+    "name": "nola.Rmd",
+    "size": 8760,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/nola.Rmd",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772427561567",
+    "type": "file",
+    "id": "772427561567",
+    "name": "report.Rmd",
+    "size": 21090,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/report.Rmd",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772431394502",
+    "type": "file",
+    "id": "772431394502",
+    "name": "executive_summary.Rmd",
+    "size": 2360,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/executive_summary.Rmd",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  },
+  {
+    "typed_id": "f_772412411108",
+    "type": "file",
+    "id": "772412411108",
+    "name": "make_nola_report.R",
+    "size": 2122,
+    "relpath": "box/hz5rv02dpgw61e0qp3kvbyz0je1omi6v/make_nola_report.R",
+    "shared": "hz5rv02dpgw61e0qp3kvbyz0je1omi6v",
+    "parent_folder_id": ""
+  }
+]

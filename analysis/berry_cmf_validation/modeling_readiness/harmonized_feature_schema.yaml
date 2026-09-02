@@ -1,0 +1,43 @@
+schema_version: 1
+written_at_utc: '2026-09-02T17:09:06Z'
+rule: Do not force an extremely weak common schema solely for 100% coverage.
+CORE_HARMONIZED:
+  purpose: cross-jurisdiction transfer if multiple B-ready sources exist
+  fields:
+  - name: sale_price
+    role: target
+  - name: sale_date
+    role: split
+  - name: building_area
+    role: predictor
+    timing: SAFE_AS_OF_SALE or yearly snapshot
+  - name: year_built
+    role: predictor
+  - name: lot_area
+    role: predictor
+    optional_if_missing_locally: true
+  - name: bathrooms
+    role: predictor
+    optional_if_missing_locally: true
+  - name: bedrooms
+    role: predictor
+    optional_if_missing_locally: true
+  - name: residential_class_or_style
+    role: predictor
+  - name: geography_id
+    role: predictor
+  jurisdictions_with_credible_core:
+  - st_louis_county_mo
+  note: Only St. Louis County currently supplies a leakage-safe CORE set among new
+    CMF sources. CCAO primary application uses a richer local schema and is not reduced
+    to CORE.
+LOCAL_ENRICHED:
+  st_louis_county_mo:
+  - GRADE
+  - CDU
+  - STYLE
+  - STORIES
+  - SALEVAL
+  - CLASS
+  - LUC
+  ccao_primary: params.yaml model.predictor list (unchanged)

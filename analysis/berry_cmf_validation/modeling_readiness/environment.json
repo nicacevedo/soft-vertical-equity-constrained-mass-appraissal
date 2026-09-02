@@ -1,0 +1,14 @@
+{
+  "written_at_utc": "2026-09-02T18:00:29Z",
+  "python": "3.9.19 | packaged by conda-forge | (main, Mar 20 2024, 12:50:21) \n[GCC 12.3.0]",
+  "platform": "Linux-4.18.0-372.9.1.el8.x86_64-x86_64-with-glibc2.28",
+  "executable": "/home/nacevedo/.conda/envs/fairness_env/bin/python",
+  "pandas": "2.3.1",
+  "numpy": "1.26.4",
+  "sklearn": "1.6.1",
+  "lightgbm": "4.6.0",
+  "dcor": "0.6",
+  "seed": 2025,
+  "stata_available": false,
+  "r_used_for_numeric_reproduction": false
+}
