@@ -62,6 +62,23 @@ data/berry_cmf/
 !analysis/berry_cmf_validation/**/*.parquet
 !analysis/berry_cmf_validation/**/*.json
 
+# Track compact Berry/ATTOM v2 audit artifacts. Large derived parquet stays
+# under output/berry_attom_validation_v2/ (ignored via output/) or is
+# re-ignored below. Never commit cookies/credentials.
+!analysis/berry_attom_validation_v2/
+!analysis/berry_attom_validation_v2/**
+!analysis/berry_attom_validation_v2/**/*.csv
+!analysis/berry_attom_validation_v2/**/*.yaml
+!analysis/berry_attom_validation_v2/**/*.yml
+!analysis/berry_attom_validation_v2/**/*.md
+!analysis/berry_attom_validation_v2/**/*.json
+!analysis/berry_attom_validation_v2/**/*.py
+!analysis/berry_attom_validation_v2/**/*.sh
+analysis/berry_attom_validation_v2/**/*.parquet
+analysis/berry_attom_validation_v2/logs/
+analysis/berry_attom_validation_v2/**/__pycache__/
+analysis/berry_attom_validation_v2/**/*.pyc
+
 # Accidental empty files created by misparsed CLI flags
 /--data-path
 /--out-dir

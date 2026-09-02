@@ -1,0 +1,12 @@
+{
+  "written_at_utc": "2026-09-02T20:45:00Z",
+  "python": "3.9.19",
+  "executable": "/home/nacevedo/.conda/envs/fairness_env/bin/python",
+  "pandas": "2.3.1",
+  "numpy": "1.26.4",
+  "sklearn": "1.6.1",
+  "lightgbm": "4.6.0",
+  "pyarrow": "14.0.1",
+  "dcor": "0.6",
+  "seed": 2025
+}

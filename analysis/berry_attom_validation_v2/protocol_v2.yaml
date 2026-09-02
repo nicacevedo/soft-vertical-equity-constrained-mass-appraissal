@@ -1,0 +1,195 @@
+# Frozen v2 protocol. Written BEFORE positive-rho Direct/Surrogate outcomes.
+# Do not revise jurisdiction inclusion from later penalty-path results.
+schema_version: 2
+protocol_status: FROZEN
+frozen_at_utc: "2026-09-02T20:45:00Z"
+parent_audit:
+  path: analysis/berry_cmf_validation/
+  do_not_modify: true
+  step14_v1: not_run
+manuscript_do_not_edit: paper/paper_v12.tex
+
+repository:
+  root: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal
+  branch: testing
+  head_sha_at_freeze: d6b07b7cb114ca4e4b301a82e802d25b108d3328
+  git_status_at_freeze: |
+    M paper/paper_v12.tex
+  python_executable: /home/nacevedo/.conda/envs/fairness_env/bin/python
+  python_version: "3.9.19"
+  packages:
+    pandas: "2.3.1"
+    numpy: "1.26.4"
+    sklearn: "1.6.1"
+    lightgbm: "4.6.0"
+    pyarrow: "14.0.1"
+    dcor: "0.6"
+
+pinned_code:
+  attom_benchmark: scripts/other_counties_benchmars.py
+  sale_validation_dictionary: data/dewey-downloads/data_dictionaries/attom_recorder_residential_avm_sale_validation_dictionary.csv
+  metrics: utils/motivation_utils.py
+  delta_nl: utils/delta_nl.py
+  direct: soft_constrained_models.boosting_models.LGBCovPenalty
+  surrogate: soft_constrained_models.boosting_models.LGBSmoothPenalty
+  rank_one_rho: scripts/theory_informed_rho_range_v2.py
+  lgbm_configs: best_lgbm_baseline_configs.yaml
+  paper_params: params.yaml
+  model_params: model_params.yaml
+  existing_attom_slurm: attom_county_benchmark.sh
+
+scientific_objective:
+  primary_application: Cook County / CCAO (unchanged)
+  this_study:
+    - A_validate_berry_transactions_and_assessment_regressivity_against_ATTOM
+    - B_standardized_leakage_safe_ATTOM_AVM_for_new_counties
+    - C_direct_surrogate_only_after_panel_freeze
+  estimand_rule: >
+    Berry official assessment/sale ratios and model valuation/sale ratios are
+    different estimands. Official assessed value is never the AVM target and
+    never a primary predictor.
+  v1_parent_findings_not_to_overwrite:
+    detroit: strongest Berry reproduction; historical predictors previously inadequate
+    philadelphia: useful local sales/assessments; characteristic timing unresolved
+    st_louis_county: only CMF standalone AVM candidate; published APRTOT path invalid
+    attom_six: separate exploratory sensitivity; do not overwrite
+
+jurisdictions:
+  wayne_mi:
+    berry_unit: "Detroit, MI (city)"
+    attom_unit: "Wayne County, MI"
+    attom_fips: "26163"
+    berry_role: berry_local_external_validation
+    avm_role: primary_standardized_ATTOM_AVM
+    naming_rule: NEVER label a Wayne County model Detroit
+    detroit_city_sensitivity: >
+      Only if a validated historical city/jurisdiction field (e.g.
+      PROPERTYJURISDICTIONNAME / PROPERTYADDRESSCITY / MINORCIVILDIVISIONNAME)
+      supports a Detroit-city subset. Otherwise Wayne County is the AVM unit.
+  philadelphia_pa:
+    berry_unit: "Philadelphia County / Philadelphia, PA"
+    attom_unit: "Philadelphia County, PA"
+    attom_fips: "42101"
+    berry_role: berry_local_external_validation
+    avm_role: primary_standardized_ATTOM_AVM
+  st_louis_county_mo:
+    berry_unit: "St. Louis County, MO"
+    attom_unit: "St. Louis County, MO"
+    attom_fips: "29189"
+    forbidden_fips: "29510"
+    berry_role: berry_local_external_validation
+    avm_role: primary_standardized_ATTOM_AVM
+    extra: local_vs_ATTOM_provider_robustness
+    naming_rule: never conflate St. Louis County 29189 with St. Louis City 29510
+
+new_dewey_deliveries:
+  recorder: data/dewey-downloads/wayne-philadelphia-st-louis-2003-2025-recorder
+  history: data/dewey-downloads/wayne-philadelphia-st-louis-2004-2025-history
+  do_not_trust_folder_names: true
+
+standardized_attom_avm:
+  sale_window_start: "2016-01-01"
+  sale_window_end: "2025-12-31"
+  older_recorder_history_use: strictly_prior_market_history_features_only
+  older_assessor_history_use: safe_pre_sale_snapshots_for_early_modeled_sales
+  target: log_qualified_recorder_TRANSFERAMOUNT
+  target_scale: log
+  do_not_select_raw_vs_log: true
+  sale_cohort: broad
+  arms_length_only: true
+  single_parcel_only: true
+  property_use_codes: ["385"]
+  minimum_sale_price: 50000
+  minimum_sale_price_rationale: >
+    Identical to the existing six-county ATTOM recommended setting in
+    attom_county_benchmark.sh ($50k floor, PROPERTYUSESTANDARDIZED=385,
+    sale-cohort=broad). The Python argparse default of $10k is a sensitivity
+    in that script, not the recommended paper setting.
+  history_match: latest_assessor_history_STRICTLY_before_sale
+  allow_exact_matches: false
+  no_assessment_value_predictors: true
+  no_tax_assessor: true
+  no_acs: true
+  no_location_enrichment: true
+  feature_sets:
+    HISTORY_MARKET_CORE:
+      role: PRIMARY
+      contents:
+        - historical structural/categorical Assessor History characteristics
+        - sale-time variables
+        - strictly prior Recorder-sale features
+    HISTORY_STRUCTURAL_CORE:
+      role: SECONDARY
+      contents:
+        - same as PRIMARY without prior-sale market-history variables
+  split:
+    test_fraction: 0.20
+    validation_fraction_of_pretest: 0.10
+    semantics: chronological_newest_block
+  bootstrap:
+    n: 200
+    block: monthly
+  seed: 2025
+  lgbm_config_path: best_lgbm_baseline_configs.yaml
+  lgbm_config_keys: "test_best_r2,cv_top1_r2,cv_top2_r2"
+  selection: validation_only
+  refit_selected_on: full_pretest_block
+
+linkage:
+  hierarchy:
+    - exact_raw_or_formatted_parcel_id
+    - exact_controlled_normalized_parcel_id
+    - ATTOM_PARCELNUMBERPREVIOUS
+    - address_as_secondary_corroboration_only
+  forbidden: identify_parcel_from_price_and_date_alone
+  statuses:
+    - EXACT_FORMATTED_APN
+    - EXACT_PREVIOUS_APN
+    - DOCUMENTED_NORMALIZED_APN
+    - AMBIGUOUS_APN
+    - NO_APN_MATCH
+  do_not_collapse_one_to_many: true
+  transaction_tiers:
+    TIER_1_HIGH_CONFIDENCE: parcel_identity_plus_exact_or_near_date_and_price
+    TIER_2_PLAUSIBLE: parcel_identity_plus_plausible_discrepancy
+    AMBIGUOUS: multiple_plausible_recorder_transactions
+    CONFLICT: parcel_linked_but_no_plausible_transaction
+  date_tolerances_days: [0, 1, 7, 30]
+  price_tolerances: [exact, 0.01, 0.05]
+  note: descriptive_diagnostics_not_tuned_inclusion_thresholds
+
+panel_freeze_rule: >
+  Write panel_freeze/final_panel_freeze_v2.yaml before any positive-rho
+  artifacts. Classification uses only pre-penalty information. Direct/Surrogate
+  require at least TWO independent new modeling units to pass. If fewer than
+  two pass, STOP and treat audit/baselines as the final v2 scientific outcome.
+  A non-regressive baseline is a valid null/boundary case, not an exclusion.
+
+direct:
+  class: LGBCovPenalty[diff]
+  requested_covariance_reduction:
+    - 0.10
+    - 0.25
+    - 0.50
+    - 0.67
+    - 0.80
+    - 0.90
+    - 0.97
+  rho_from: rank_one_theory_on_development_or_training_only
+surrogate:
+  class: LGBSmoothPenalty
+  calibration: development_validation_only
+  portable_targets_same_as_direct: true
+  do_not_compare_raw_rho_across_counties: true
+
+existing_six_attom:
+  role: separate_exploratory_sensitivity
+  do_not_overwrite: true
+  feature_class_difference: includes_TaxAssessor_ACS_location_not_available_in_v2
+  counties: [17031, 42003, 04013, 53033, 12086, 25017]
+
+working_tree:
+  analysis: analysis/berry_attom_validation_v2/
+  output: output/berry_attom_validation_v2/
+  no_cookies_or_credentials: true
+  do_not_commit_raw_or_large_derived: true
