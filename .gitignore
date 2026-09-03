@@ -61,6 +61,11 @@ data/berry_cmf/
 !analysis/berry_cmf_validation/**/*.md
 !analysis/berry_cmf_validation/**/*.parquet
 !analysis/berry_cmf_validation/**/*.json
+# Re-ignore compiled bytecode: the blanket un-ignore above otherwise defeats the
+# global __pycache__/ and *.pyc rules for this subtree, which is how three .pyc
+# files became tracked here. Mirrors the v2 and v3 blocks below.
+analysis/berry_cmf_validation/**/__pycache__/
+analysis/berry_cmf_validation/**/*.pyc
 
 # Track compact Berry/ATTOM v2 audit artifacts. Large derived parquet stays
 # under output/berry_attom_validation_v2/ (ignored via output/) or is

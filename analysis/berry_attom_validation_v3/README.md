@@ -1,5 +1,10 @@
 # Berry/ATTOM validation v3
 
+> **Read `QUARANTINE_REVIEW.md` first.** `reports/FINAL_V3_REPORT.md` remains the
+> execution/provenance report; `QUARANTINE_REVIEW.md` governs the canonical interpretation of those
+> results — which artifacts are protocol-conforming, which are qualified, which are exploratory, and
+> which must not be used as scientific claims.
+
 Isolated follow-on to frozen `analysis/berry_cmf_validation/` (v1) and
 `analysis/berry_attom_validation_v2/` (v2). **Do not overwrite either.**
 
