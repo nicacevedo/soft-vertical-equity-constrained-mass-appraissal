@@ -1,0 +1,4 @@
+jurisdiction,berry_n_eligible,r_apn,r_transaction,r_safe_history,r_fully_validated,r_transaction_conditional_on_apn,r_safe_history_conditional_on_apn,note
+wayne,9653,0.9012742152698643,0.7077592458303118,0.8992023205221175,0.705998135294727,0.7852873563218391,0.9977011494252873,"unconditional rates use eligible Berry N as denominator, not the matched subset"
+philadelphia,41325,0.915232909860859,0.8690623109497883,0.9089171203871749,0.8650937689050212,0.9495531701126328,0.9930992544021998,"unconditional rates use eligible Berry N as denominator, not the matched subset"
+st_louis_county,175865,0.9957694822733346,0.9348932419753788,0.9537315554544679,0.9000028430898701,0.9388651275403863,0.9577834754255629,"unconditional rates use eligible Berry N as denominator, not the matched subset"

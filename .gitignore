@@ -79,6 +79,22 @@ analysis/berry_attom_validation_v2/logs/
 analysis/berry_attom_validation_v2/**/__pycache__/
 analysis/berry_attom_validation_v2/**/*.pyc
 
+# Track compact Berry/ATTOM v3 audit artifacts. Large derived parquet stays
+# under output/berry_attom_validation_v3/ (ignored via output/).
+!analysis/berry_attom_validation_v3/
+!analysis/berry_attom_validation_v3/**
+!analysis/berry_attom_validation_v3/**/*.csv
+!analysis/berry_attom_validation_v3/**/*.yaml
+!analysis/berry_attom_validation_v3/**/*.yml
+!analysis/berry_attom_validation_v3/**/*.md
+!analysis/berry_attom_validation_v3/**/*.json
+!analysis/berry_attom_validation_v3/**/*.py
+!analysis/berry_attom_validation_v3/**/*.sh
+analysis/berry_attom_validation_v3/**/*.parquet
+analysis/berry_attom_validation_v3/logs/
+analysis/berry_attom_validation_v3/**/__pycache__/
+analysis/berry_attom_validation_v3/**/*.pyc
+
 # Accidental empty files created by misparsed CLI flags
 /--data-path
 /--out-dir

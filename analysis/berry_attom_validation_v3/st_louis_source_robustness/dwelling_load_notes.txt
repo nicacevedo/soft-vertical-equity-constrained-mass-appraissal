@@ -1,0 +1,12 @@
+folder=2009 file=DWELLING.txt n=47369 nfields=37 taxyr_mode=2009
+folder=2010 file=DWELLING.txt n=47509 nfields=37 taxyr_mode=2010
+folder=2011 file=DWELLING.csv n=47608 nfields=37 taxyr_mode=2011
+folder=2012 file=DWELLING.csv n=47790 nfields=37 taxyr_mode=2013
+DEFECT: 2012 dwelling folder has TAXYR mode 2013
+folder=2013 file=dwelling.txt n=47873 nfields=39 taxyr_mode=2013
+folder=2014 file=dwelling.txt n=47973 nfields=39 taxyr_mode=2014
+folder=2015 file=dwelling.txt n=48104 nfields=39 taxyr_mode=2015
+folder=2016 file=dwelling.txt n=48591 nfields=39 taxyr_mode=2016
+folder=2017 file=dwelling.txt n=49247 nfields=39 taxyr_mode=2017
+folder=2018 file=dwelling.txt n=50033 nfields=39 taxyr_mode=2018
+folder=2019 file=dwelling.csv n=50307 nfields=39 taxyr_mode=2019

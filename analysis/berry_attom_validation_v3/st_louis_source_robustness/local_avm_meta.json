@@ -1,0 +1,9 @@
+{
+  "n_sold_2016_2019": 53538,
+  "n_matched_dwelling_strictly_before": 50859,
+  "n_affected_2012_defect": 2,
+  "did_not_use_joined_csv": true,
+  "did_not_use_aprtot_as_price": true,
+  "history_rule": "latest dwelling TAXYR year-end strictly before SALEDT",
+  "written_at_utc": "2026-09-02T22:35:03Z"
+}

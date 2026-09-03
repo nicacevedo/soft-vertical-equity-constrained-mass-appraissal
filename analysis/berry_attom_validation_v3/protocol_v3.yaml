@@ -1,0 +1,197 @@
+# Frozen v3 protocol. Written BEFORE new linkage or baseline outcomes.
+# Do not revise jurisdiction inclusion from later penalty-path or held-out test results.
+schema_version: 3
+protocol_status: FROZEN
+frozen_at_utc: "2026-09-02T22:15:00Z"
+supersedes: analysis/berry_attom_validation_v2/
+supersession_reason: >
+  v2 panel-freeze implementation could use held-out test performance when
+  deciding which jurisdictions entered Direct/Surrogate. v3 forbids reading
+  or scoring the chronological test block before panel_freeze/final_panel_freeze_v3.yaml
+  exists. Treat v1 and v2 as immutable provenance.
+parent_audit:
+  path: analysis/berry_cmf_validation/
+  do_not_modify: true
+v2_path: analysis/berry_attom_validation_v2/
+v2_do_not_modify: true
+manuscript_do_not_edit: paper/paper_v12.tex
+unrelated_copied_prompt_guard: THIS_IS_NOT_A_DATA_CENTER_TASK
+
+repository:
+  root: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal
+  branch: testing
+  head_sha_at_protocol_write: 8729a6e7452467d57e9316da8cf391e611237335
+  relation_to_7b6adf7: older_ancestor
+  relation_to_d6b07b7: immediate_parent_of_HEAD_plus_one_commit
+  note: >
+    v2 protocol recorded d6b07b7 as HEAD at freeze; current HEAD is 8729a6e
+    (Berry/ATTOM commit on testing). 7b6adf7 is an older ancestor, not current.
+  python_executable: /home/nacevedo/.conda/envs/fairness_env/bin/python
+  python_version: "3.9.19"
+
+scientific_layers:
+  A_BERRY_EXTERNAL_VALIDATION: reproduce/preserve independent local assessment-regressivity evidence
+  B_ATTOM_STANDARDIZED_AVM: leakage-safe 2016-2025 predictive benchmarks
+  C_METHOD_TRANSFER: Direct/Surrogate only AFTER pre-rho panel freeze
+estimand_rule: >
+  Berry official assessment/sale ratios and model valuation/sale ratios are
+  different estimands. Official assessed value is never the AVM target and
+  never a primary predictor.
+
+jurisdictions:
+  wayne_mi:
+    berry_unit: "Detroit, MI (city)"
+    attom_unit: "Wayne County, MI"
+    attom_fips: "26163"
+    naming_rule: NEVER label a Wayne County model Detroit
+  philadelphia_pa:
+    berry_unit: "Philadelphia County / Philadelphia, PA"
+    attom_unit: "Philadelphia County, PA"
+    attom_fips: "42101"
+  st_louis_county_mo:
+    berry_unit: "St. Louis County, MO"
+    attom_unit: "St. Louis County, MO"
+    attom_fips: "29189"
+    forbidden_fips: "29510"
+    attom_linkage_cohort_start: "2005-01-01"
+    attom_linkage_cohort_end: "2019-12-31"
+    attom_linkage_cohort_rationale: >
+      ATTOM Assessor History begins ~2003/2004; one year prior-history buffer
+      implies 2005 start. Local sales file ends 2019. Do not compute
+      ATTOM-safe-history coverage over 1975-2019.
+
+standardized_attom_avm:
+  sale_window_start: "2016-01-01"
+  sale_window_end: "2025-12-31"
+  target: log_qualified_recorder_TRANSFERAMOUNT
+  feature_sets:
+    HISTORY_MARKET_CORE: PRIMARY
+    HISTORY_STRUCTURAL_CORE: SECONDARY_SENSITIVITY
+  no_assessment_value_predictors: true
+  no_tax_assessor: true
+  no_acs: true
+  no_location_enrichment: true
+  history_match: latest_assessor_history_STRICTLY_before_sale
+  allow_exact_matches: false
+  split:
+    test_fraction: 0.20
+    validation_fraction_of_pretest: 0.10
+    semantics: chronological_newest_block
+    held_out_test_before_freeze: FORBIDDEN
+  bootstrap:
+    n: 200
+    block: monthly
+  seed: 2025
+  minimum_sale_price: 50000
+  property_use_codes: ["385"]
+  lgbm_threads: controlled_to_slurm_cpus
+
+linkage:
+  statuses:
+    - EXACT_RAW_APN
+    - EXACT_NORMALIZED_APN
+    - EXACT_PREVIOUS_APN
+    - AMBIGUOUS_APN
+    - NO_APN_MATCH
+  do_not_collapse_one_to_many: true
+  forbidden: identify_parcel_from_price_and_date_alone
+  date_tolerances_days: [0, 1, 7, 30]
+  price_tolerances: [exact, 0.01, 0.05]
+  transaction_tiers:
+    - TIER_1_HIGH_CONFIDENCE
+    - TIER_2_PLAUSIBLE
+    - AMBIGUOUS
+    - CONFLICT
+  waterfall_must_report: both_unconditional_and_conditional
+  nested_stages:
+    - 0_full_eligible_berry_cohort
+    - 1_unique_apn_attomid
+    - 2_high_confidence_recorder
+    - 3_safe_history
+    - 4_fully_validated
+
+panel_freeze:
+  file: analysis/berry_attom_validation_v3/panel_freeze/final_panel_freeze_v3.yaml
+  before_heldout_test: true
+  before_positive_rho: true
+  two_statuses:
+    MODEL_TRANSFER_STATUS: [PRIMARY, BOUNDARY, NOT_ELIGIBLE]
+    BERRY_ANCHOR_STATUS: [STRONG, MODERATE, WEAK, NOT_APPLICABLE]
+  berry_linkage_not_required_for_attom_model: true
+  attom_avm_does_not_claim_berry_replication: true
+  non_regressive_baseline_is_not_exclusion: true
+  authorize_direct_surrogate_if: at_least_two_independent_MODEL_TRANSFER_PRIMARY_or_BOUNDARY
+  if_fewer_than_two: STOP_do_not_force_penalty_results
+
+direct:
+  class: LGBCovPenalty[diff]
+  requested_covariance_reduction: [0.10, 0.25, 0.50, 0.67, 0.80, 0.90, 0.97]
+  rho_from: rank_one_on_FULL_PRETEST_block
+  never_use_test_for_rho: true
+surrogate:
+  class: LGBSmoothPenalty
+  calibration: first_contiguous_low_rho_branch
+  do_not_global_sort_and_interp: true
+  unattained_if_branch_bends_before_target: true
+  # Amendment 2026-09-03, pass 2. Calibration mechanics only; no jurisdiction
+  # status, no target anchor, and no rho was revised from any test outcome.
+  # Both defects below are visible in pretest-only artifacts.
+  calibration_amendment:
+    pass: 2
+    amended_at_utc: "2026-09-03T15:20:00Z"
+    log: analysis/berry_attom_validation_v3/panel_freeze/SURROGATE_RECALIBRATION_LOG.md
+    pass1_defects:
+      grid_ceiling: >
+        Pass 1 grid was a fixed geomspace(1e-6, 1e2, 16). The Direct 97% anchor
+        needs rho up to 255.8 (Philadelphia), so the surrogate grid stopped
+        before strong-penalty targets could be reached and reported them
+        UNATTAINED for the wrong reason.
+      degenerate_branch: >
+        Pass 1 opened a branch on any non-negative reduction and closed it on a
+        1e-8 decrease. St. Louis opened at rho=1e-6 with a noise-level 0.008
+        reduction and closed at the next point, leaving a one-point branch and
+        UNATTAINED at every target.
+    pass2_grid_rule: >
+      geomspace(surrogate_grid_min_rho, grid_max_multiple_of_direct *
+      max(direct rho for this county), surrogate_grid_points). The Direct rho
+      mapping is itself pretest-only, so the ceiling carries no test
+      information.
+    surrogate_grid_min_rho: 1.0e-3
+    surrogate_grid_points: 25
+    grid_max_multiple_of_direct: 4.0
+    noise_floor: 0.01
+    noise_floor_meaning: branch opens only once achieved first-order reduction exceeds this
+    reversal_frac: 0.05
+    reversal_meaning: >
+      branch closes only on a drop greater than max(noise_floor,
+      reversal_frac * |previous reduction|), never on float noise
+    unattained_reason_codes: [MATERIAL_REVERSAL, GRID_CEILING, FIT_FAILURE, NEVER_STARTED, BRANCH_TOO_SHORT]
+    pass1_artifacts_preserved: surrogate_pass1_*.csv
+    second_heldout_look_disclosed: true
+    second_heldout_look_note: >
+      Philadelphia's chronological test rows are scored a second time under the
+      repaired calibration. Disclosed rather than overwritten; pass-1 held-out
+      numbers remain on disk. Rho was never selected or refined from test
+      metrics in either pass.
+
+scheduler:
+  preferred_partition: sched_mit_sloan_batch_r8
+  preferred_partition_reason: >
+    sched_mit_sloan_batch compute nodes (glibc 2.17-class) cannot dlopen
+    fairness_env LightGBM (needs GLIBC_2.27). Probe job 21847377 on
+    sched_mit_sloan_batch_r8 succeeded (glibc 2.28, lightgbm 4.6.0).
+    r8 is still a Sloan batch partition. mit_normal is not used.
+  forbid_default: mit_normal
+  canceled_superseded_v2_jobs:
+    - 21842728
+    - 21842729
+    - 21842730
+    - 21842731
+    - 21842732
+    - 21842733
+    - 21842735
+
+existing_six_attom:
+  role: separate_exploratory_sensitivity
+  do_not_overwrite: true
+  feature_class_difference: includes_TaxAssessor_ACS_location_not_available_in_v3

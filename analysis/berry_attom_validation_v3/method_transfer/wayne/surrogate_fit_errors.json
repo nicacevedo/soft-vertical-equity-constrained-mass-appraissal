@@ -1,0 +1,10 @@
+{
+  "county_key": "wayne",
+  "base_cov_validation": -0.10378548739021899,
+  "grid_min": 0.001,
+  "grid_max": 803.773308,
+  "grid_points": 25,
+  "max_direct_rho": 200.943327,
+  "n_fit_errors": 0,
+  "fit_errors": []
+}

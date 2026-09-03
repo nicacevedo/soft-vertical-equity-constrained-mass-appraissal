@@ -1,0 +1,10 @@
+{
+  "county_key": "st_louis_county",
+  "base_cov_validation": -0.10846765787015167,
+  "grid_min": 0.001,
+  "grid_max": 541.655196,
+  "grid_points": 25,
+  "max_direct_rho": 135.413799,
+  "n_fit_errors": 0,
+  "fit_errors": []
+}

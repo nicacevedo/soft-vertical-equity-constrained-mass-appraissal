@@ -1,0 +1,93 @@
+schema_version: 3
+frozen_at_utc: '2026-09-03T13:40:04Z'
+direct_surrogate_authorized: true
+n_model_transfer_primary_or_boundary: 3
+passing_model_transfer_units:
+- wayne
+- philadelphia
+- st_louis_county
+if_not_authorized: STOP. Finalize v3 as source-validation + baseline/provider-robustness.
+  Do not force penalty results.
+heldout_test_not_used: true
+units:
+- key: wayne
+  attom_unit: Wayne County, MI
+  berry_unit: Detroit, MI
+  attom_fips: '26163'
+  naming_rule: NEVER label Wayne as Detroit
+  n_model: 182042
+  validation_r2: 0.8230759035571535
+  validation_prb: -0.1412120181398233
+  validation_beta_log: -0.2429926517218266
+  test_block_scored: false
+  fatal_construction: false
+  retention_decile_spread: 0.1476090015899808
+  r_apn_unconditional: 0.9012742152698643
+  r_transaction_unconditional: 0.7077592458303118
+  r_safe_history_unconditional: 0.8992023205221175
+  r_fully_validated_unconditional: 0.705998135294727
+  berry_PRB_eligible: -0.3495
+  berry_PRB_safe_history: -0.3936
+  berry_n_eligible_linkage: 9653
+  berry_has_assessed_value: true
+  berry_reproduction: PYTHON_TRANSLATION_MATCHES_V1_FILTERS
+  prb_sign_flip: false
+  MODEL_TRANSFER_STATUS: PRIMARY
+  BERRY_ANCHOR_STATUS: STRONG
+  uses_heldout_test: false
+  uses_positive_rho: false
+- key: philadelphia
+  attom_unit: Philadelphia County, PA
+  berry_unit: Philadelphia, PA
+  attom_fips: '42101'
+  naming_rule: ''
+  n_model: 38043
+  validation_r2: 0.7795238788091196
+  validation_prb: -0.24556109935812048
+  validation_beta_log: -0.3680548878026011
+  test_block_scored: false
+  fatal_construction: false
+  retention_decile_spread: 0.14737488152319062
+  r_apn_unconditional: 0.915232909860859
+  r_transaction_unconditional: 0.8690623109497883
+  r_safe_history_unconditional: 0.9089171203871749
+  r_fully_validated_unconditional: 0.8650937689050212
+  berry_PRB_eligible: -0.1198
+  berry_PRB_safe_history: -0.1245
+  berry_n_eligible_linkage: 41325
+  berry_has_assessed_value: true
+  berry_reproduction: RESOLVED_USE_ARMS_LENGTH_FILE_NOT_RBIND
+  prb_sign_flip: false
+  MODEL_TRANSFER_STATUS: PRIMARY
+  BERRY_ANCHOR_STATUS: MODERATE
+  uses_heldout_test: false
+  uses_positive_rho: false
+- key: st_louis_county
+  attom_unit: St. Louis County, MO
+  berry_unit: St. Louis County, MO
+  attom_fips: '29189'
+  naming_rule: NEVER conflate 29189 with 29510
+  n_model: 144995
+  validation_r2: 0.7854190705365556
+  validation_prb: -0.08912099872467563
+  validation_beta_log: -0.17550009334728173
+  test_block_scored: false
+  fatal_construction: false
+  retention_decile_spread: 0.16655819616136924
+  r_apn_unconditional: 0.9957694822733346
+  r_transaction_unconditional: 0.9348932419753788
+  r_safe_history_unconditional: 0.9537315554544679
+  r_fully_validated_unconditional: 0.9000028430898701
+  berry_PRB_eligible: .nan
+  berry_PRB_safe_history: .nan
+  berry_n_eligible_linkage: 175865
+  berry_has_assessed_value: false
+  berry_reproduction: SALES_EXTRACT_NOT_FULL_BERRY_RATIO_BENCHMARK
+  prb_sign_flip: false
+  MODEL_TRANSFER_STATUS: PRIMARY
+  BERRY_ANCHOR_STATUS: MODERATE
+  uses_heldout_test: false
+  uses_positive_rho: false
+existing_six_attom:
+  role: separate_exploratory_sensitivity
+  do_not_overwrite: true

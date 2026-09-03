@@ -1,0 +1,107 @@
+[
+  {
+    "key": "wayne",
+    "fips": "26163",
+    "berry_n_full_source": 9653,
+    "berry_n_eligible_linkage": 9653,
+    "stl_linkage_window": "full_berry_sample",
+    "r_apn_unconditional": 0.9012742152698643,
+    "r_transaction_unconditional": 0.7077592458303118,
+    "r_safe_history_unconditional": 0.8992023205221175,
+    "r_fully_validated_unconditional": 0.705998135294727,
+    "r_transaction_conditional_on_unique_apn": 0.7852873563218391,
+    "r_safe_history_conditional_on_unique_apn": 0.9977011494252873,
+    "status_counts": {
+      "EXACT_RAW_APN": 8687,
+      "NO_APN_MATCH": 934,
+      "AMBIGUOUS_APN": 19,
+      "EXACT_NORMALIZED_APN": 13
+    },
+    "tier_counts": {
+      "TIER_1_HIGH_CONFIDENCE": 6832,
+      "TIER_2_PLAUSIBLE": 805,
+      "AMBIGUOUS": 537,
+      "CONFLICT": 523
+    },
+    "berry_PRB_eligible": -0.3495,
+    "berry_PRB_safe_history": -0.3936,
+    "berry_COD_eligible": 49.2628,
+    "history_lag_p10": 0.11772758384668036,
+    "history_lag_p50": 0.5092402464065708,
+    "history_lag_p90": 0.917180013689254,
+    "share_lag_gt_1yr": 0.02142857142857143,
+    "share_lag_gt_2yr": 0.0,
+    "share_lag_gt_3yr": 0.0,
+    "ambiguous_apn_n": 19
+  },
+  {
+    "key": "philadelphia",
+    "fips": "42101",
+    "berry_n_full_source": 41325,
+    "berry_n_eligible_linkage": 41325,
+    "stl_linkage_window": "full_berry_sample",
+    "r_apn_unconditional": 0.915232909860859,
+    "r_transaction_unconditional": 0.8690623109497883,
+    "r_safe_history_unconditional": 0.9089171203871749,
+    "r_fully_validated_unconditional": 0.8650937689050212,
+    "r_transaction_conditional_on_unique_apn": 0.9495531701126328,
+    "r_safe_history_conditional_on_unique_apn": 0.9930992544021998,
+    "status_counts": {
+      "EXACT_RAW_APN": 37754,
+      "NO_APN_MATCH": 3495,
+      "EXACT_NORMALIZED_APN": 68,
+      "AMBIGUOUS_APN": 8
+    },
+    "tier_counts": {
+      "TIER_1_HIGH_CONFIDENCE": 35914,
+      "CONFLICT": 879,
+      "TIER_2_PLAUSIBLE": 817,
+      "AMBIGUOUS": 212
+    },
+    "berry_PRB_eligible": -0.1198,
+    "berry_PRB_safe_history": -0.1245,
+    "berry_COD_eligible": 23.0576,
+    "history_lag_p10": 0.12867898699520877,
+    "history_lag_p50": 0.5010266940451745,
+    "history_lag_p90": 0.8815879534565366,
+    "share_lag_gt_1yr": 0.005138308351747824,
+    "share_lag_gt_2yr": 0.0,
+    "share_lag_gt_3yr": 0.0,
+    "ambiguous_apn_n": 8
+  },
+  {
+    "key": "st_louis_county",
+    "fips": "29189",
+    "berry_n_full_source": 548307,
+    "berry_n_eligible_linkage": 175865,
+    "stl_linkage_window": "2005-01-01/2019-12-31",
+    "r_apn_unconditional": 0.9957694822733346,
+    "r_transaction_unconditional": 0.9348932419753788,
+    "r_safe_history_unconditional": 0.9537315554544679,
+    "r_fully_validated_unconditional": 0.9000028430898701,
+    "r_transaction_conditional_on_unique_apn": 0.9388651275403863,
+    "r_safe_history_conditional_on_unique_apn": 0.9577834754255629,
+    "status_counts": {
+      "EXACT_RAW_APN": 174982,
+      "NO_APN_MATCH": 675,
+      "EXACT_NORMALIZED_APN": 139,
+      "AMBIGUOUS_APN": 69
+    },
+    "tier_counts": {
+      "TIER_1_HIGH_CONFIDENCE": 164415,
+      "TIER_2_PLAUSIBLE": 4810,
+      "AMBIGUOUS": 3837,
+      "CONFLICT": 2059
+    },
+    "berry_PRB_eligible": NaN,
+    "berry_PRB_safe_history": NaN,
+    "berry_COD_eligible": NaN,
+    "history_lag_p10": 0.17248459958932238,
+    "history_lag_p50": 0.5557837097878165,
+    "history_lag_p90": 1.051334702258727,
+    "share_lag_gt_1yr": 0.10411499570733569,
+    "share_lag_gt_2yr": 0.0012401030239435277,
+    "share_lag_gt_3yr": 0.0,
+    "ambiguous_apn_n": 69
+  }
+]

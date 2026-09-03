@@ -1,0 +1,159 @@
+{
+  "copied_at_utc": "2026-09-02T22:33:26.870631+00:00",
+  "rows": [
+    {
+      "relative": "inventory/new_dewey_file_manifest.csv",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/inventory/new_dewey_file_manifest.csv",
+      "exists": true,
+      "v2_sha256": "adcd6b79030affa56d80d22cd1f41119971ae184bf015d16a6273d29d79dfb8d",
+      "v2_bytes": 645246,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/inventory/new_dewey_file_manifest.csv",
+      "v3_sha256": "adcd6b79030affa56d80d22cd1f41119971ae184bf015d16a6273d29d79dfb8d",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "inventory/new_dewey_schema.csv",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/inventory/new_dewey_schema.csv",
+      "exists": true,
+      "v2_sha256": "cc056a9c0d9769597693cca0a9a1c1bcf1fc9a551faebdd5517e97bd28d0568f",
+      "v2_bytes": 22768,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/inventory/new_dewey_schema.csv",
+      "v3_sha256": "cc056a9c0d9769597693cca0a9a1c1bcf1fc9a551faebdd5517e97bd28d0568f",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "inventory/fips_year_counts.csv",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/inventory/fips_year_counts.csv",
+      "exists": true,
+      "v2_sha256": "4653ba60e7086afb3c0a15214611dba800a8d63e2c8ad0b47db3b17066e6a91e",
+      "v2_bytes": 18024,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/inventory/fips_year_counts.csv",
+      "v3_sha256": "4653ba60e7086afb3c0a15214611dba800a8d63e2c8ad0b47db3b17066e6a91e",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "inventory/field_coverage.csv",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/inventory/field_coverage.csv",
+      "exists": true,
+      "v2_sha256": "dc1cdb252b94f86a543a63b1f71d43f1ad254eb210cd6b1948320a528181c9f2",
+      "v2_bytes": 1726,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/inventory/field_coverage.csv",
+      "v3_sha256": "dc1cdb252b94f86a543a63b1f71d43f1ad254eb210cd6b1948320a528181c9f2",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "inventory/INVENTORY_NOTES.md",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/inventory/INVENTORY_NOTES.md",
+      "exists": true,
+      "v2_sha256": "e703ea7983ffbf2a162f1e4bc1769df30ed10f3cff6bffd9c5568864d6188097",
+      "v2_bytes": 2263,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/inventory/INVENTORY_NOTES.md",
+      "v3_sha256": "e703ea7983ffbf2a162f1e4bc1769df30ed10f3cff6bffd9c5568864d6188097",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "inventory/environment.json",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/inventory/environment.json",
+      "exists": true,
+      "v2_sha256": "d86bb53ea905b2ae47235d0b5e181f4597cde9e13f1a39b2869a08e0a544ae74",
+      "v2_bytes": 282,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/inventory/environment.json",
+      "v3_sha256": "d86bb53ea905b2ae47235d0b5e181f4597cde9e13f1a39b2869a08e0a544ae74",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "berry_reproduction/detroit_mi_transactions.parquet",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/berry_reproduction/detroit_mi_transactions.parquet",
+      "exists": true,
+      "v2_sha256": "7f12a02cee3f2dd11a6f06093fcd2f6d004e46d79ae09a231ed71e001053f042",
+      "v2_bytes": 1213938,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/berry_reproduction/detroit_mi_transactions.parquet",
+      "v3_sha256": "7f12a02cee3f2dd11a6f06093fcd2f6d004e46d79ae09a231ed71e001053f042",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "berry_reproduction/philadelphia_pa_transactions.parquet",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/berry_reproduction/philadelphia_pa_transactions.parquet",
+      "exists": true,
+      "v2_sha256": "b21bb18ca313341e19275fcfd61bf6ead0f7d95d64a4f0c48e85b4ca0a538ca3",
+      "v2_bytes": 9283828,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/berry_reproduction/philadelphia_pa_transactions.parquet",
+      "v3_sha256": "b21bb18ca313341e19275fcfd61bf6ead0f7d95d64a4f0c48e85b4ca0a538ca3",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "berry_reproduction/st_louis_county_mo_transactions.parquet",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/berry_reproduction/st_louis_county_mo_transactions.parquet",
+      "exists": true,
+      "v2_sha256": "d28406a57ed19283ab268e803302fa0793323d32fa37e3da5a519c9b9614f178",
+      "v2_bytes": 26539577,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/berry_reproduction/st_louis_county_mo_transactions.parquet",
+      "v3_sha256": "d28406a57ed19283ab268e803302fa0793323d32fa37e3da5a519c9b9614f178",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "berry_reproduction/reproduction_summary.csv",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/berry_reproduction/reproduction_summary.csv",
+      "exists": true,
+      "v2_sha256": "7283a7f1067a9823f7c173547de59dbfd8273898fcb174087ea714c21ada6754",
+      "v2_bytes": 1773,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/berry_reproduction/reproduction_summary.csv",
+      "v3_sha256": "7283a7f1067a9823f7c173547de59dbfd8273898fcb174087ea714c21ada6754",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "berry_reproduction/REPRODUCTION_V2_NOTES.md",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/berry_reproduction/REPRODUCTION_V2_NOTES.md",
+      "exists": true,
+      "v2_sha256": "9f869500c73ca161977ef831c828c4abb4ffd90fbf7c204110a9ba48f2c7acc1",
+      "v2_bytes": 2475,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/berry_reproduction/REPRODUCTION_V2_NOTES.md",
+      "v3_sha256": "9f869500c73ca161977ef831c828c4abb4ffd90fbf7c204110a9ba48f2c7acc1",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "berry_reproduction/detroit_native_r.json",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/berry_reproduction/detroit_native_r.json",
+      "exists": true,
+      "v2_sha256": "466fbeedd5439826e3b6dfa910f76c13c2b582ce973d29da449b4e6649cd86ee",
+      "v2_bytes": 179,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/berry_reproduction/detroit_native_r.json",
+      "v3_sha256": "466fbeedd5439826e3b6dfa910f76c13c2b582ce973d29da449b4e6649cd86ee",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "source_concordance/STEP9_ASSESSMENT_CONCORDANCE.md",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/source_concordance/STEP9_ASSESSMENT_CONCORDANCE.md",
+      "exists": true,
+      "v2_sha256": "543879fd022ef9ed3bc0bc4d5aecb6c96d11f65ae68293083ccbf5593780075b",
+      "v2_bytes": 1439,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/source_concordance/STEP9_ASSESSMENT_CONCORDANCE.md",
+      "v3_sha256": "543879fd022ef9ed3bc0bc4d5aecb6c96d11f65ae68293083ccbf5593780075b",
+      "copied": true,
+      "rerun": false
+    },
+    {
+      "relative": "source_concordance/existing_six_vs_v2_metadata.csv",
+      "v2_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v2/source_concordance/existing_six_vs_v2_metadata.csv",
+      "exists": true,
+      "v2_sha256": "24f6e4f8475c44302f381f6f61b158148b08bc10cc916d9fc1344a9281b6c881",
+      "v2_bytes": 3396,
+      "v3_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/berry_attom_validation_v3/source_concordance/existing_six_vs_v2_metadata.csv",
+      "v3_sha256": "24f6e4f8475c44302f381f6f61b158148b08bc10cc916d9fc1344a9281b6c881",
+      "copied": true,
+      "rerun": false
+    }
+  ]
+}
