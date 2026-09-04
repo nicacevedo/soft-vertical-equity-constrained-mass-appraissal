@@ -1,0 +1,30 @@
+{
+  "county_key": "allegheny",
+  "family": "direct",
+  "selected_lgbm_config": "grid_07",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "Var_train_y": 0.42490112555935405,
+  "n_train": 110681,
+  "n_eval": 12113,
+  "n_forward_rho_attempts": 38,
+  "n_frozen_grid_points": 34,
+  "expected_frozen_grid_points": 34,
+  "direct_common_interval": [
+    0.3872983346207417,
+    0.5620804515923291
+  ],
+  "identity": {
+    "ok": true,
+    "county_key": "allegheny",
+    "dev_n": 110681,
+    "preforward_n": 110681,
+    "n_2025": 12113,
+    "dev_table_sha256": "61a2acc6fe6c3bd5247257a3d93b0d5a6992671f6fc07eb8c40d095c2ca7011a"
+  },
+  "no_2025_in_training": true,
+  "eval_year_min": 2025,
+  "eval_year_max": 2025,
+  "wrote_candidate_region": false,
+  "surrogate_branch_recalibrated_from_2025": false,
+  "written_at_utc": "2026-09-04T16:43:34Z"
+}

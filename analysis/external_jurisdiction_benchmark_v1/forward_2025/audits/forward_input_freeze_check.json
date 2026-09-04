@@ -1,0 +1,131 @@
+{
+  "ok": true,
+  "forward_freeze_path": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/external_jurisdiction_benchmark_v1/path_freeze/FORWARD_FREEZE.yaml",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "baseline_configs": {
+    "wayne": "grid_03",
+    "philadelphia": "grid_01",
+    "st_louis_county": "grid_08",
+    "allegheny": "grid_07",
+    "maricopa": "grid_04",
+    "king": "grid_02",
+    "miami_dade": "grid_06",
+    "middlesex": "grid_09",
+    "cook": "grid_02"
+  },
+  "jurisdiction_roles": {
+    "wayne": "PRIMARY_FULL_7_FOLD",
+    "philadelphia": "PRIMARY_FULL_7_FOLD",
+    "st_louis_county": "PRIMARY_FULL_7_FOLD",
+    "allegheny": "PRIMARY_FULL_7_FOLD",
+    "maricopa": "PRIMARY_FULL_7_FOLD",
+    "king": "PRIMARY_FULL_7_FOLD",
+    "miami_dade": "PRIMARY_FULL_7_FOLD",
+    "middlesex": "PRIMARY_FULL_7_FOLD",
+    "cook": "PRIMARY_FULL_7_FOLD"
+  },
+  "n_direct_grid_points": 34,
+  "independent_pre_2025_test_split": false,
+  "evaluation_layers": [
+    "CV_FOLD",
+    "CV_OOF",
+    "FORWARD_2025"
+  ],
+  "checked_at_utc": "2026-09-04T16:14:21Z",
+  "units": {
+    "wayne": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "93dba31d4bdbf32483aff5ab7834d58b9d9ca1ae57a12e1fcf64b68a162b56f7",
+      "selected_lgbm_config": "grid_03",
+      "cache_hashes": {
+        "recorder": "e1fc105ade0b23ce843721f7862a3c0fd81a81503edbcbc68f2538295934b105",
+        "history": "10a4ae52ebb3af762713350293778b5bb708e6be550d8400e58f7d0eb0e565f7"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "philadelphia": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "770305648deafe51beaae943ecb3f42c6b974f580b03632eb54c48d9630122b7",
+      "selected_lgbm_config": "grid_01",
+      "cache_hashes": {
+        "recorder": "0a49d97f50a00bf410b6dae05a33e173984297905c5dbff41a8d1b4e0deb6526",
+        "history": "57cfc614ee3925e16bfb2de8a4c81839d008f8b523cab45c594a0dafbb4f1a8e"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "st_louis_county": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "a70bd230114278406f39db8ea59721962ebcd74f808a033a35a78e2ca49253a3",
+      "selected_lgbm_config": "grid_08",
+      "cache_hashes": {
+        "recorder": "7cc5307cf97207eacefb87ff404a6c645a67105c4b454d929ad981a8fe8e87fe",
+        "history": "d8fbb143f77ad1013bd6114496151f24864f90e9f56b98d40503ec3cecd6be9b"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "allegheny": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "61a2acc6fe6c3bd5247257a3d93b0d5a6992671f6fc07eb8c40d095c2ca7011a",
+      "selected_lgbm_config": "grid_07",
+      "cache_hashes": {
+        "recorder": "117af95b00380d7f1961fd3b523bd762d09d15242d8516248deb106119100315",
+        "history": "dcb80730800e11155e13817530db6450a97a6b997b0c9166c345a6b1259c9ea7"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "maricopa": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "b58cd12194a5a89943dde9a272b9b1d06554cd7609142438e32202568d8ad78e",
+      "selected_lgbm_config": "grid_04",
+      "cache_hashes": {
+        "recorder": "01a155ff434afd1c51f4f8600fc5df4c88e798a5206f2b634adb10ae72649e28",
+        "history": "a19a39479803a62de41aae4f32bccacbe45f365b198941c0b31ae277481200a0"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "king": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "3475aad11596f11eaf2398c917e35f73c836b9853b09c60168703539620f1412",
+      "selected_lgbm_config": "grid_02",
+      "cache_hashes": {
+        "recorder": "cc5e1739d24860620d00851624f950ea0038e3502e2ca7ae64f2c8c1437dbd6c",
+        "history": "93f3f3f3496263a2d5df1f6f436000c27916ed100a32219224083a6f7c4ae15a"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "miami_dade": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "84b92d359d2ae00dfe0bfb2bdb768545d8ef438c8296f160fcfe67f6374de093",
+      "selected_lgbm_config": "grid_06",
+      "cache_hashes": {
+        "recorder": "a2e5c24605a3a12a0a2ca4bf27f857f4b9ae887cb93032f528e6aa4d849c742e",
+        "history": "40f2002dcb57d2ebaab5c21ead058bf9c7a9f2a8b443b0638be1b0f83c0fca0c"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "middlesex": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "8c5a9864fcaae6aa8ff20ef2bbacef1ef3d6993e668fe08381840c3f6a66f4d6",
+      "selected_lgbm_config": "grid_09",
+      "cache_hashes": {
+        "recorder": "69dec2ea8cd3d3deef6492b87ba24eb2e845984d63844b9e2e767923fd04ec0b",
+        "history": "8b93781274548dc06c46f55351e267f5f98751062ce6461edde1e9748d33effb"
+      },
+      "cache_hashes_match_freeze": true
+    },
+    "cook": {
+      "role": "PRIMARY_FULL_7_FOLD",
+      "modeling_table_hash": "3ff74ff1d37c1ab8f16655832c2807d1025305c9e934754b15d1a04a61b3cc25",
+      "selected_lgbm_config": "grid_02",
+      "cache_hashes": {
+        "recorder": "dbca4bb8934b4a8cabbfcd2a97c3b374c1bfeb70f306350e9def4af11fcb86f5",
+        "history": "d0d93d13fd6e2c9a5c235de163bc3c317dffe303f22e2f7320d3d4a4056cdaae"
+      },
+      "cache_hashes_match_freeze": true
+    }
+  },
+  "prior_2025_artifacts": [],
+  "cache_hashes_all_match": true,
+  "direct_grid_points": 34,
+  "surrogate_grid_points": 33
+}

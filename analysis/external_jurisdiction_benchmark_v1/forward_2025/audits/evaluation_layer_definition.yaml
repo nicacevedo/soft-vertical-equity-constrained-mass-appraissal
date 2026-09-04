@@ -1,0 +1,50 @@
+# Evaluation-layer definition for the frozen 2025 forward pass.
+# Written BEFORE any 2025 modeling table or 2025 prediction was built.
+schema_version: 1
+written_before_2025_access: true
+forward_freeze_sha256_required: "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18"
+
+independent_pre_2025_test_split:
+  exists: false
+  reason: >
+    temporal_design.yaml froze development/CV = calendar 2016-2024 and a single
+    untouched forward year = calendar 2025. v1_common.TEST_FRACTION / 
+    chronological_splits() is a superseded fraction-split helper and was never
+    used to hold out an independent pre-2025 test sample. No TEST split is
+    invented at forward time.
+
+layers:
+  CV_FOLD:
+    definition: >
+      Each of the seven frozen expanding calendar-year validation folds
+      (validation years 2018-2024). Train on 2016..(t-1), validate on calendar t.
+    source: analysis/external_jurisdiction_benchmark_v1/cv/*_normalized_cv_path_summary.csv
+    independent_test: false
+
+  CV_OOF:
+    alias: POOLED_OOF
+    definition: >
+      Unweighted mean (and SD/min/max) of the seven CV_FOLD metric values at
+      each rho_tilde. This is pooled/aggregate out-of-fold DEVELOPMENT evidence.
+    not_an_independent_test: true
+    observation_level_predictions_stored: false
+    consequence: >
+      Path-metric CV_OOF is the fold-mean of already-frozen fold metrics.
+      Observation-pooled OOF ratio profiles are not available from stored CV
+      artifacts; CV ratio-profile panels at frozen anchors are produced by a
+      development-only rerun of those anchors (no 2025 rows) and labeled
+      CV_FOLD_MEAN, never TEST.
+
+  FORWARD_2025:
+    definition: >
+      Single fit on the full frozen development sample (sale_date < 2025-01-01)
+      evaluated only on calendar 2025. Executed exactly once after the freeze.
+    independent_test: false
+    temporal_holdout: true
+
+plot_grammar:
+  cv_mean: primary development curve
+  cv_fold_band: fold min-max or mean +/- SD, subtle
+  cv_oof_label: "CV OOF (fold-mean), not independent test"
+  forward_2025: distinct curve/marker
+  never_label_as_test: [CV_FOLD, CV_OOF, POOLED_OOF]

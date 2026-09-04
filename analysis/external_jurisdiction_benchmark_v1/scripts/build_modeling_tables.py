@@ -78,7 +78,7 @@ def retention_table(eligible: pd.DataFrame, window: pd.DataFrame, hist: pd.DataF
 
 
 def build_county(key: str, fips: str, pol: SaleValidationPolicy, primary_codes: set[str],
-                  end_date: str) -> dict:
+                  end_date: str, mode: str = "dev") -> dict:
     j = JURISDICTION_BY_KEY[key]
     rec_path = OUTPUT / "cache" / key / "recorder.parquet"
     hist_path = OUTPUT / "cache" / key / "history.parquet"
@@ -98,9 +98,19 @@ def build_county(key: str, fips: str, pol: SaleValidationPolicy, primary_codes: 
     eligible, _audit, waterfall = apply_sale_validation(rec, pol)
     start = pd.Timestamp(SALE_WINDOW[0])
     end = pd.Timestamp(end_date)
-    assert end < pd.Timestamp("2025-01-01"), (
-        f"{key}: end_date={end_date} would include 2025 data before the Step 14 freeze -- refusing"
-    )
+    if mode not in ("dev", "forward"):
+        raise ValueError(f"mode must be 'dev' or 'forward', got {mode!r}")
+    if mode == "dev":
+        assert end < pd.Timestamp("2025-01-01"), (
+            f"{key}: end_date={end_date} would include 2025 data before the Step 14 freeze -- refusing"
+        )
+    else:
+        from analysis.external_jurisdiction_benchmark_v1.scripts.forward_common import (  # noqa: E402
+            verify_forward_freeze,
+        )
+        verify_forward_freeze()
+        if end < pd.Timestamp("2025-12-31"):
+            raise RuntimeError(f"{key}: forward mode requires end_date covering 2025, got {end_date}")
     targets = eligible.loc[eligible["sale_date"].between(start, end)].copy()
     # PROPERTYUSESTANDARDIZED/address come from History post-match, not Recorder.
     for col in ("PROPERTYUSESTANDARDIZED", "PROPERTYADDRESSFULL", "PROPERTYADDRESSCITY", "PROPERTYADDRESSZIP"):
@@ -142,18 +152,28 @@ def build_county(key: str, fips: str, pol: SaleValidationPolicy, primary_codes: 
     leak = ASSESSMENT_VALUE_COLUMNS & set(final.columns)
     if leak:
         raise RuntimeError(f"{key}: assessment-value columns present in modeling table: {sorted(leak)}")
-    if len(final) and final["sale_date"].max() >= pd.Timestamp("2025-01-01"):
+    if mode == "dev" and len(final) and final["sale_date"].max() >= pd.Timestamp("2025-01-01"):
         raise RuntimeError(f"{key}: modeling table contains sale_date >= 2025-01-01 before freeze")
+    if mode == "forward" and (final["sale_date"] >= pd.Timestamp("2025-01-01")).sum() == 0:
+        raise RuntimeError(f"{key}: forward table has no 2025 rows")
 
     out_dir = OUTPUT / "modeling_tables" / key
     out_dir.mkdir(parents=True, exist_ok=True)
     ANALYSIS.joinpath("cohort").mkdir(parents=True, exist_ok=True)
-    table_path = out_dir / "history_market_core_dev.parquet"
+    table_name = "history_market_core_dev.parquet" if mode == "dev" else "history_market_core_full.parquet"
+    table_path = out_dir / table_name
     final_sorted = final.sort_values("sale_date").reset_index(drop=True)
+    identity = None
+    if mode == "forward":
+        from analysis.external_jurisdiction_benchmark_v1.scripts.forward_common import (  # noqa: E402
+            preforward_identity,
+        )
+        identity = preforward_identity(key, final_sorted)
     final_sorted.to_parquet(table_path, index=False)
 
     ret = retention_table(eligible, targets, matched, final, key)
-    ret.to_csv(ANALYSIS / "cohort" / f"{key}_modeling_retention_by_decile.csv", index=False)
+    if mode == "dev":
+        ret.to_csv(ANALYSIS / "cohort" / f"{key}_modeling_retention_by_decile.csv", index=False)
 
     # As-of History coverage by sale year (Step 2): computed here, in the same
     # pass, rather than re-reading the caches a second time. `targets` = all
@@ -177,14 +197,19 @@ def build_county(key: str, fips: str, pol: SaleValidationPolicy, primary_codes: 
             "share_lag_gt_2yr": float((lag_y > 730).mean()) if len(lag_y) else None,
             "share_lag_gt_3yr": float((lag_y > 1095).mean()) if len(lag_y) else None,
         })
-    ANALYSIS.joinpath("audits").mkdir(parents=True, exist_ok=True)
-    pd.DataFrame(coverage_rows).to_csv(ANALYSIS / "audits" / f"{key}_history_asof_coverage_by_year.csv", index=False)
+    if mode == "dev":
+        ANALYSIS.joinpath("audits").mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(coverage_rows).to_csv(ANALYSIS / "audits" / f"{key}_history_asof_coverage_by_year.csv", index=False)
 
     lag = final["history_lag_days"] if "history_lag_days" in final else pd.Series(dtype=float)
     rec_out = {
         "county_key": key, "fips": fips, "status": "OK",
         "development_period": [str(start.date()), str(end.date())],
-        "forward_period_excluded": "2025 (not read, not written, per temporal_design.yaml)",
+        "forward_period_excluded": (
+            "2025 (not read, not written, per temporal_design.yaml)" if mode == "dev"
+            else "none — full 2016-2025 table for frozen forward evaluation"
+        ),
+        "mode": mode,
         "primary_residential_codes": sorted(primary_codes),
         "mapping_source": str(MAPPING_PATH),
         "n_recorder_raw": int(len(rec)),
@@ -206,9 +231,13 @@ def build_county(key: str, fips: str, pol: SaleValidationPolicy, primary_codes: 
         "table_sha256": sha256_file(table_path),
         "wayne_is_not_detroit": key == "wayne",
         "written_at_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "preforward_identity": identity,
     }
-    waterfall.assign(county_key=key).to_csv(out_dir / "sale_validation_waterfall.csv", index=False)
-    write_json(out_dir / "modeling_table_meta_dev.json", rec_out)
+    if mode == "dev":
+        waterfall.assign(county_key=key).to_csv(out_dir / "sale_validation_waterfall.csv", index=False)
+        write_json(out_dir / "modeling_table_meta_dev.json", rec_out)
+    else:
+        write_json(out_dir / "modeling_table_meta_full.json", rec_out)
     print(json.dumps({k: rec_out[k] for k in ["county_key", "n_final_primary_residential", "decile_p_final_spread"]}, default=str), flush=True)
     return rec_out
 
@@ -217,7 +246,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--county-key", default="pilot")
     parser.add_argument("--end-date", default=DEV_END_DATE_DEFAULT)
+    parser.add_argument("--mode", choices=("dev", "forward"), default="dev")
     args = parser.parse_args()
+    if args.mode == "forward" and args.end_date == DEV_END_DATE_DEFAULT:
+        args.end_date = "2025-12-31"
     primary_codes = load_primary_residential_codes()
     if args.county_key == "pilot":
         keys = list(PILOT_KEYS)
@@ -226,15 +258,16 @@ def main() -> int:
     else:
         keys = [args.county_key]
     pol = policy()
-    rows = [build_county(k, JURISDICTION_BY_KEY[k]["fips"], pol, primary_codes, args.end_date) for k in keys]
-    existing = []
-    for k in ALL_KEYS:
-        meta = OUTPUT / "modeling_tables" / k / "modeling_table_meta_dev.json"
-        if meta.exists():
-            existing.append(json.loads(meta.read_text()))
-    if existing:
-        ANALYSIS.joinpath("cohort").mkdir(parents=True, exist_ok=True)
-        pd.DataFrame(existing).to_csv(ANALYSIS / "cohort" / "modeling_table_summary_dev.csv", index=False)
+    rows = [build_county(k, JURISDICTION_BY_KEY[k]["fips"], pol, primary_codes, args.end_date, mode=args.mode) for k in keys]
+    if args.mode == "dev":
+        existing = []
+        for k in ALL_KEYS:
+            meta = OUTPUT / "modeling_tables" / k / "modeling_table_meta_dev.json"
+            if meta.exists():
+                existing.append(json.loads(meta.read_text()))
+        if existing:
+            ANALYSIS.joinpath("cohort").mkdir(parents=True, exist_ok=True)
+            pd.DataFrame(existing).to_csv(ANALYSIS / "cohort" / "modeling_table_summary_dev.csv", index=False)
     return 0
 
 

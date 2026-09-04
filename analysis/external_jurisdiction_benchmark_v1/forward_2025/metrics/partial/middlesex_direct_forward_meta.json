@@ -1,0 +1,30 @@
+{
+  "county_key": "middlesex",
+  "family": "direct",
+  "selected_lgbm_config": "grid_09",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "Var_train_y": 0.3293507612665395,
+  "n_train": 74121,
+  "n_eval": 9222,
+  "n_forward_rho_attempts": 38,
+  "n_frozen_grid_points": 34,
+  "expected_frozen_grid_points": 34,
+  "direct_common_interval": [
+    0.3872983346207417,
+    0.5620804515923291
+  ],
+  "identity": {
+    "ok": true,
+    "county_key": "middlesex",
+    "dev_n": 74121,
+    "preforward_n": 74121,
+    "n_2025": 9222,
+    "dev_table_sha256": "8c5a9864fcaae6aa8ff20ef2bbacef1ef3d6993e668fe08381840c3f6a66f4d6"
+  },
+  "no_2025_in_training": true,
+  "eval_year_min": 2025,
+  "eval_year_max": 2025,
+  "wrote_candidate_region": false,
+  "surrogate_branch_recalibrated_from_2025": false,
+  "written_at_utc": "2026-09-04T16:38:14Z"
+}

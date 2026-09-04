@@ -1,0 +1,30 @@
+{
+  "county_key": "cook",
+  "family": "surrogate",
+  "selected_lgbm_config": "grid_02",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "Var_train_y": 0.4592773327323234,
+  "n_train": 278479,
+  "n_eval": 24993,
+  "n_forward_rho_attempts": 40,
+  "n_frozen_grid_points": 33,
+  "expected_frozen_grid_points": 33,
+  "direct_common_interval": [
+    0.3872983346207417,
+    0.5620804515923291
+  ],
+  "identity": {
+    "ok": true,
+    "county_key": "cook",
+    "dev_n": 278479,
+    "preforward_n": 278479,
+    "n_2025": 24993,
+    "dev_table_sha256": "3ff74ff1d37c1ab8f16655832c2807d1025305c9e934754b15d1a04a61b3cc25"
+  },
+  "no_2025_in_training": true,
+  "eval_year_min": 2025,
+  "eval_year_max": 2025,
+  "wrote_candidate_region": false,
+  "surrogate_branch_recalibrated_from_2025": false,
+  "written_at_utc": "2026-09-04T16:47:10Z"
+}

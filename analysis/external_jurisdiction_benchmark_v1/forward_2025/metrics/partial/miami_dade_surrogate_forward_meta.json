@@ -1,0 +1,30 @@
+{
+  "county_key": "miami_dade",
+  "family": "surrogate",
+  "selected_lgbm_config": "grid_06",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "Var_train_y": 0.53927142777508,
+  "n_train": 140853,
+  "n_eval": 11909,
+  "n_forward_rho_attempts": 40,
+  "n_frozen_grid_points": 33,
+  "expected_frozen_grid_points": 33,
+  "direct_common_interval": [
+    0.3872983346207417,
+    0.5620804515923291
+  ],
+  "identity": {
+    "ok": true,
+    "county_key": "miami_dade",
+    "dev_n": 140853,
+    "preforward_n": 140853,
+    "n_2025": 11909,
+    "dev_table_sha256": "84b92d359d2ae00dfe0bfb2bdb768545d8ef438c8296f160fcfe67f6374de093"
+  },
+  "no_2025_in_training": true,
+  "eval_year_min": 2025,
+  "eval_year_max": 2025,
+  "wrote_candidate_region": false,
+  "surrogate_branch_recalibrated_from_2025": false,
+  "written_at_utc": "2026-09-04T16:44:54Z"
+}

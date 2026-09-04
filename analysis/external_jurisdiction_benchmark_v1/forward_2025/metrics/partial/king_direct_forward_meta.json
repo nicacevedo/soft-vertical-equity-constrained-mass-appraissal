@@ -1,0 +1,30 @@
+{
+  "county_key": "king",
+  "family": "direct",
+  "selected_lgbm_config": "grid_02",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "Var_train_y": 0.3366192517389094,
+  "n_train": 177707,
+  "n_eval": 17812,
+  "n_forward_rho_attempts": 39,
+  "n_frozen_grid_points": 34,
+  "expected_frozen_grid_points": 34,
+  "direct_common_interval": [
+    0.3872983346207417,
+    0.5620804515923291
+  ],
+  "identity": {
+    "ok": true,
+    "county_key": "king",
+    "dev_n": 177707,
+    "preforward_n": 177707,
+    "n_2025": 17812,
+    "dev_table_sha256": "3475aad11596f11eaf2398c917e35f73c836b9853b09c60168703539620f1412"
+  },
+  "no_2025_in_training": true,
+  "eval_year_min": 2025,
+  "eval_year_max": 2025,
+  "wrote_candidate_region": false,
+  "surrogate_branch_recalibrated_from_2025": false,
+  "written_at_utc": "2026-09-04T16:48:53Z"
+}

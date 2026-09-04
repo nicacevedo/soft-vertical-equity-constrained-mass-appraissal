@@ -263,11 +263,25 @@ def test_cohort_source_of_truth_is_single_file():
     )
 
 
-def test_modeling_table_builder_never_reads_or_writes_2025():
+def test_modeling_table_builder_dev_mode_still_refuses_2025():
     src = (V1 / "scripts" / "build_modeling_tables.py").read_text()
-    assert "2025-01-01" in src
     assert "DEV_END_DATE_DEFAULT" in src
     assert '"2024-12-31"' in src
+    assert 'mode == "dev"' in src
+    assert "history_market_core_dev.parquet" in src
+    assert "would include 2025 data before the Step 14 freeze" in src
+
+
+def test_forward_table_mode_is_gated_and_does_not_overwrite_dev():
+    src = (V1 / "scripts" / "build_modeling_tables.py").read_text()
+    assert 'choices=("dev", "forward")' in src
+    assert "history_market_core_full.parquet" in src
+    assert "verify_forward_freeze" in src
+    assert "preforward_identity" in src
+    assert 'table_name = "history_market_core_dev.parquet" if mode == "dev" else "history_market_core_full.parquet"' in src
+    slurm = (V1 / "slurm" / "04_build_modeling_tables.sh").read_text()
+    assert "--end-date 2024-12-31" in slurm
+    assert "--mode forward" not in slurm
 
 
 def test_baseline_cv_hard_guards_present():
@@ -565,4 +579,129 @@ def test_protocol_valid_overlap_excludes_unstable_and_inverted_regions():
     assert knife["n_with_region"] == 2
     assert knife["intersection_status"] == "NO_NONDEGENERATE_ALL_JURISDICTION_INTERSECTION"
     assert intersection_status(None, 0) == "NO_INTERSECTION"
+
+
+def test_forward_freeze_sha256_matches_canonical_object():
+    from analysis.external_jurisdiction_benchmark_v1.scripts.forward_common import (
+        EXPECTED_FORWARD_FREEZE_SHA256, freeze_sha256, verify_forward_freeze,
+    )
+    assert freeze_sha256() == EXPECTED_FORWARD_FREEZE_SHA256
+    freeze = verify_forward_freeze()
+    assert all(v == "PRIMARY_FULL_7_FOLD" for v in freeze["jurisdiction_roles"].values())
+    assert set(freeze["jurisdiction_roles"]) == set(ALL_KEYS)
+
+
+def test_no_independent_pre_2025_test_split_is_invented():
+    layers = (V1 / "forward_2025" / "audits" / "evaluation_layer_definition.yaml").read_text()
+    assert "independent_pre_2025_test_split:" in layers
+    assert "exists: false" in layers
+    assert "CV_OOF" in layers and "FORWARD_2025" in layers
+    assert "never_label_as_test" in layers
+    common = (V1 / "scripts" / "v1_common.py").read_text()
+    assert "Superseded by the frozen calendar-year rule" in common
+
+
+def test_forward_path_script_cannot_train_on_2025_or_write_candidate_region():
+    src = (V1 / "scripts" / "run_forward_path.py").read_text()
+    assert 'data["sale_date"] < FORWARD_LOCK_DATE' in src
+    assert "2025 leakage into forward training" in src
+    assert "forward eval is not calendar 2025" in src
+    assert "wrote_candidate_region" in src
+    assert "candidate_regions.csv" not in src
+    assert "run_candidate_region_screen" not in src
+    slurm = (V1 / "slurm" / "11_forward_path.sh").read_text()
+    assert "sched_mit_sloan_batch_r8" in slurm
+    assert "mit_normal" not in slurm
+    tables = (V1 / "slurm" / "10_forward_tables.sh").read_text()
+    assert "sched_mit_sloan_batch_r8" in tables
+    assert "mit_normal" not in tables
+
+
+def test_forward_rho_mapping_is_train_variance_only():
+    from analysis.external_jurisdiction_benchmark_v1.scripts.forward_common import frozen_grid_rho_tilde
+    d = frozen_grid_rho_tilde("direct")
+    s = frozen_grid_rho_tilde("surrogate")
+    assert len(d) == 34 and d[0] == 0.0
+    assert len(s) == 33 and s[0] > 0
+    src = (V1 / "scripts" / "run_forward_path.py").read_text()
+    assert "raw_rho = 0.0 if rho_tilde == 0.0 else float(rho_tilde) / vy" in src
+    assert "population_variance" in src
+    assert "Do not recalibrate" in (V1 / "scripts" / "run_forward_path.py").read_text() or "Never recalibrated" in src
+
+
+def test_forward_scripts_do_not_write_2025_candidate_region():
+    for name in ("run_forward_path.py", "verify_forward_inputs.py", "forward_common.py"):
+        src = (V1 / "scripts" / name).read_text()
+        assert "candidate_regions.csv" not in src or "read_csv" in src
+        assert "to_csv" not in src or "candidate_regions/" not in src
+
+
+def test_forward_fit_inventory_calendar_lock_and_freeze():
+    from analysis.external_jurisdiction_benchmark_v1.scripts.forward_common import (
+        EXPECTED_FORWARD_FREEZE_SHA256,
+    )
+    comp_path = V1 / "forward_2025" / "audits" / "forward_fit_completeness.csv"
+    grid_path = V1 / "forward_2025" / "metrics" / "forward_2025_path_metrics.csv"
+    if not comp_path.exists() or not grid_path.exists():
+        return
+    comp = pd.read_csv(comp_path)
+    assert set(comp.county_key) == set(ALL_KEYS)
+    assert set(comp.family) == {"direct", "surrogate"}
+    assert bool(comp.complete.all())
+    assert int(comp.loc[comp.family == "direct", "expected_grid"].iloc[0]) == 34
+    assert int(comp.loc[comp.family == "surrogate", "expected_grid"].iloc[0]) == 33
+    grid = pd.read_csv(grid_path)
+    assert len(grid) == 9 * (34 + 33)
+    for key in ALL_KEYS:
+        for family in ("direct", "surrogate"):
+            meta = json.loads(
+                (V1 / "forward_2025" / "metrics" / "partial" / f"{key}_{family}_forward_meta.json").read_text()
+            )
+            assert meta["no_2025_in_training"] is True
+            assert meta["eval_year_min"] == 2025
+            assert meta["eval_year_max"] == 2025
+            assert meta["wrote_candidate_region"] is False
+            assert meta["forward_freeze_sha256"] == EXPECTED_FORWARD_FREEZE_SHA256
+            assert meta["n_frozen_grid_points"] == meta["expected_frozen_grid_points"]
+
+
+def test_forward_does_not_emit_a_2025_candidate_region_file():
+    if not (V1 / "forward_2025").exists():
+        return
+    names = [p.name for p in (V1 / "forward_2025").rglob("*") if p.is_file()]
+    assert "candidate_regions.csv" not in names
+
+
+def test_bootstrap_is_paired_monthly_block_200_draws():
+    src = (V1 / "scripts" / "run_forward_bootstrap.py").read_text()
+    assert "N_BOOTSTRAP" in src
+    assert "same sampled months" in src or "the exact same sampled months" in src or "same month" in src
+    ci_path = V1 / "forward_2025" / "bootstrap" / "forward_anchor_bootstrap_ci.csv"
+    if not ci_path.exists():
+        return
+    ci = pd.read_csv(ci_path)
+    assert (ci.n_boot == 200).all()
+    from analysis.external_jurisdiction_benchmark_v1.scripts.v1_common import OUTPUT, N_BOOTSTRAP
+    assert N_BOOTSTRAP == 200
+    for key in ALL_KEYS:
+        months = OUTPUT / "forward_2025" / "bootstrap" / f"{key}_sampled_months.npy"
+        if months.exists():
+            arr = np.load(months)
+            assert arr.shape[0] == 200
+
+
+def test_required_forward_paper_figures_exist_when_written():
+    paper = V1 / "figures" / "paper"
+    if not paper.exists():
+        return
+    for name in (
+        "accuracy_mechanism_frontier_cv_vs_2025.pdf",
+        "forward_key_metric_paths_9jurisdictions.pdf",
+        "forward_ratio_profile_examples.pdf",
+        "berry_local_vs_avm_ratio_profiles.pdf",
+    ):
+        assert (paper / name).is_file(), name
+    pe = list((V1 / "figures" / "path_evolution").glob("*_paths.pdf"))
+    assert len(pe) == 36
+
 

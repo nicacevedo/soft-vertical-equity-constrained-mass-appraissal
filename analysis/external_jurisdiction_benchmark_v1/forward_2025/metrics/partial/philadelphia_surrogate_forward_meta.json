@@ -1,0 +1,30 @@
+{
+  "county_key": "philadelphia",
+  "family": "surrogate",
+  "selected_lgbm_config": "grid_01",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "Var_train_y": 0.3988398456357234,
+  "n_train": 63151,
+  "n_eval": 2921,
+  "n_forward_rho_attempts": 38,
+  "n_frozen_grid_points": 33,
+  "expected_frozen_grid_points": 33,
+  "direct_common_interval": [
+    0.3872983346207417,
+    0.5620804515923291
+  ],
+  "identity": {
+    "ok": true,
+    "county_key": "philadelphia",
+    "dev_n": 63151,
+    "preforward_n": 63151,
+    "n_2025": 2921,
+    "dev_table_sha256": "770305648deafe51beaae943ecb3f42c6b974f580b03632eb54c48d9630122b7"
+  },
+  "no_2025_in_training": true,
+  "eval_year_min": 2025,
+  "eval_year_max": 2025,
+  "wrote_candidate_region": false,
+  "surrogate_branch_recalibrated_from_2025": false,
+  "written_at_utc": "2026-09-04T16:39:42Z"
+}

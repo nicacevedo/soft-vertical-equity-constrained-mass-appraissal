@@ -1,0 +1,30 @@
+{
+  "county_key": "maricopa",
+  "family": "surrogate",
+  "selected_lgbm_config": "grid_04",
+  "forward_freeze_sha256": "2b4aec9f8f16baf933db84bae43a7f24975a9fc43d747d00630e86a12c2a8d18",
+  "Var_train_y": 0.31996219085062977,
+  "n_train": 553132,
+  "n_eval": 47512,
+  "n_forward_rho_attempts": 38,
+  "n_frozen_grid_points": 33,
+  "expected_frozen_grid_points": 33,
+  "direct_common_interval": [
+    0.3872983346207417,
+    0.5620804515923291
+  ],
+  "identity": {
+    "ok": true,
+    "county_key": "maricopa",
+    "dev_n": 553132,
+    "preforward_n": 553132,
+    "n_2025": 47512,
+    "dev_table_sha256": "b58cd12194a5a89943dde9a272b9b1d06554cd7609142438e32202568d8ad78e"
+  },
+  "no_2025_in_training": true,
+  "eval_year_min": 2025,
+  "eval_year_max": 2025,
+  "wrote_candidate_region": false,
+  "surrogate_branch_recalibrated_from_2025": false,
+  "written_at_utc": "2026-09-04T17:33:20Z"
+}
