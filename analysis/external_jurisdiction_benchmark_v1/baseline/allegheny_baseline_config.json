@@ -1,0 +1,22 @@
+{
+  "county_key": "allegheny",
+  "status": "OK",
+  "selected_lgbm_config": "grid_07",
+  "n_folds_used": 7,
+  "cv_mean_RMSE_log": 0.3179435720466333,
+  "cv_mean_R2_price": 0.685681540022806,
+  "cv_mean_NMSE": 0.2420262656606646,
+  "cv_mean_COD": 24.714342197668422,
+  "cv_mean_PRD": 1.1032146469833737,
+  "cv_mean_PRB": -0.11651644247791779,
+  "cv_mean_MKI": 0.8420436682383677,
+  "cv_mean_VEI": -34.92937035846553,
+  "cv_mean_Beta_log": -0.23195688092317618,
+  "cv_mean_Delta_NL": 0.13167818812250837,
+  "structural_core_cv_mean_RMSE_log": 0.35145866864849307,
+  "structural_core_cv_mean_R2_price": 0.6462567171820021,
+  "selection_rule": "lowest mean CV RMSE_log across 7 expanding calendar-year folds",
+  "written_at_utc": "2026-09-04T02:37:02Z",
+  "no_2025_data_used": true,
+  "no_penalty_path_run": true
+}

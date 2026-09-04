@@ -1,0 +1,10 @@
+{
+  "county_key": "maricopa",
+  "family": "direct",
+  "n_folds": 7,
+  "n_rho_points": 34,
+  "selected_lgbm_config": "grid_04",
+  "rho_tilde_min": 0.0,
+  "rho_tilde_max": 150.0,
+  "no_2025_data_used": true
+}

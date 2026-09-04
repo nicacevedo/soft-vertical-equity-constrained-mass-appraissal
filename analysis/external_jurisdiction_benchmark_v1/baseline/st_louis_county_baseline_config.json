@@ -1,0 +1,22 @@
+{
+  "county_key": "st_louis_county",
+  "status": "OK",
+  "selected_lgbm_config": "grid_08",
+  "n_folds_used": 7,
+  "cv_mean_RMSE_log": 0.30404406047764454,
+  "cv_mean_R2_price": 0.724605308363013,
+  "cv_mean_NMSE": 0.16364417959631217,
+  "cv_mean_COD": 21.559582482670255,
+  "cv_mean_PRD": 1.1001385167977522,
+  "cv_mean_PRB": -0.06336093933251559,
+  "cv_mean_MKI": 0.880360539209782,
+  "cv_mean_VEI": -31.212744200762508,
+  "cv_mean_Beta_log": -0.15695694830252585,
+  "cv_mean_Delta_NL": 0.08938401195337735,
+  "structural_core_cv_mean_RMSE_log": 0.3315809790656176,
+  "structural_core_cv_mean_R2_price": 0.7004240760282203,
+  "selection_rule": "lowest mean CV RMSE_log across 7 expanding calendar-year folds",
+  "written_at_utc": "2026-09-04T02:29:24Z",
+  "no_2025_data_used": true,
+  "no_penalty_path_run": true
+}

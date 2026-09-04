@@ -136,10 +136,10 @@ def run_county(key: str, threads: int) -> dict:
 
     summary = fold_df.groupby("config_name").agg(
         n_folds=("fold", "nunique"), mean_RMSE_log=("RMSE_log", "mean"), std_RMSE_log=("RMSE_log", "std"),
-        mean_R2_price=("R2_price", "mean"), mean_NMSE=("NMSE", "mean"), mean_COD=("COD", "mean"),
-        mean_PRD=("PRD", "mean"), mean_PRB=("PRB", "mean"), mean_MKI=("MKI", "mean"), mean_VEI=("VEI", "mean"),
-        mean_Beta_log=("Beta_log", "mean"), mean_Delta_NL=("Delta_NL", "mean"), mean_dCor_e_y=("dCor_e_y", "mean"),
-        mean_MAE=("MAE", "mean"), mean_MAPE=("MAPE", "mean"),
+        mean_R2_price=("R2_price", "mean"), mean_R2_log=("R2_log", "mean"), mean_NMSE=("NMSE", "mean"),
+        mean_COD=("COD", "mean"), mean_PRD=("PRD", "mean"), mean_PRB=("PRB", "mean"), mean_MKI=("MKI", "mean"),
+        mean_VEI=("VEI", "mean"), mean_Beta_log=("Beta_log", "mean"), mean_Delta_NL=("Delta_NL", "mean"),
+        mean_dCor_e_y=("dCor_e_y", "mean"), mean_MAE=("MAE", "mean"), mean_MAPE=("MAPE", "mean"),
     ).reset_index().sort_values("mean_RMSE_log")
     summary.to_csv(ANALYSIS / "baseline" / f"{key}_baseline_cv_summary.csv", index=False)
 

@@ -329,3 +329,240 @@ def test_modeling_table_writer_drops_assessment_columns_not_just_asserts():
     idx_drop = src.index("drop_cols = [")
     idx_assert = src.index("leak = ASSESSMENT_VALUE_COLUMNS")
     assert idx_drop < idx_assert, "columns must be dropped BEFORE the leak assertion runs"
+
+
+def test_normalized_cv_scripts_never_read_2025():
+    for name in ("run_normalized_direct_cv.py", "run_normalized_surrogate_cv.py"):
+        src = (V1 / "scripts" / name).read_text()
+        assert "FORWARD_LOCK_DATE" in src
+        assert 'pd.Timestamp("2025-01-01")' in src
+        assert "assert val[\"sale_date\"].max() < FORWARD_LOCK_DATE" in src
+
+
+def test_normalized_cv_scripts_use_canonical_kwargs_not_literals():
+    direct_src = (V1 / "scripts" / "run_normalized_direct_cv.py").read_text()
+    assert "**DIRECT_CANONICAL_KWARGS" in direct_src
+    # No re-typed kwarg literal at an actual call site (docstring prose mentioning
+    # match_native_init=True as documentation is fine and expected).
+    assert "match_native_init=True," not in direct_src
+    assert "match_native_init=True)" not in direct_src
+    surrogate_src = (V1 / "scripts" / "run_normalized_surrogate_cv.py").read_text()
+    assert "**SURROGATE_CANONICAL_KWARGS" in surrogate_src
+    # The only two call sites (LGBSmoothPenalty construction) must use the
+    # shared dict; a module-docstring mention of the kwargs as documentation
+    # is expected and fine, so check the actual call sites, not raw substring
+    # absence across the whole file.
+    calls = [ln for ln in surrogate_src.splitlines() if "LGBSmoothPenalty(" in ln or "**SURROGATE_CANONICAL_KWARGS" in ln]
+    assert any("**SURROGATE_CANONICAL_KWARGS" in ln for ln in calls)
+
+
+def test_surrogate_cv_reuses_v3_calibrator_read_only():
+    src = (V1 / "scripts" / "run_normalized_surrogate_cv.py").read_text()
+    assert "from analysis.berry_attom_validation_v3.scripts.v3_common import first_branch_calibrate" in src
+    # Read-only reuse: this benchmark must not carry its own redefinition.
+    assert "def first_branch_calibrate" not in src
+
+
+def test_v3_source_unmodified_by_this_pass():
+    result = subprocess.run(
+        ["git", "diff", "--stat", "HEAD", "--",
+         "analysis/berry_attom_validation_v3/scripts/v3_common.py"],
+        cwd=REPO, capture_output=True, text=True, check=False,
+    )
+    assert result.stdout.strip() == "", f"v3_common.py was modified: {result.stdout}"
+
+
+def test_normalized_grid_bounds_documented_and_stable():
+    from analysis.external_jurisdiction_benchmark_v1.scripts.v1_common import (
+        NORMALIZED_RHO_GRID_MAX, NORMALIZED_RHO_GRID_MIN, NORMALIZED_RHO_GRID_POINTS,
+        normalized_rho_tilde_grid,
+    )
+    grid = normalized_rho_tilde_grid()
+    assert grid[0] == 0.0
+    assert len(grid) == NORMALIZED_RHO_GRID_POINTS + 1
+    assert abs(grid[1] - NORMALIZED_RHO_GRID_MIN) < 1e-12
+    assert abs(grid[-1] - NORMALIZED_RHO_GRID_MAX) < 1e-9
+    # One-decade CV-only extension widens both ends without changing the count.
+    wide = normalized_rho_tilde_grid(extra_decades=1.0)
+    assert wide[1] < grid[1]
+    assert wide[-1] > grid[-1]
+    assert len(wide) == len(grid)
+
+
+def test_cook_allegheny_use_resolved_broad_source_after_resolution():
+    resolution_path = V1 / "audits" / "history_source_resolution.yaml"
+    if not resolution_path.exists():
+        return
+    import yaml
+    resolution = yaml.safe_load(resolution_path.read_text())
+    from analysis.external_jurisdiction_benchmark_v1.scripts.v1_common import JURISDICTION_BY_KEY
+    for key in ("cook", "allegheny"):
+        canonical = resolution["canonical_sources"][key]
+        assert str(JURISDICTION_BY_KEY[key]["assessor_dir"]).endswith(Path(canonical).name)
+
+
+def test_pilot_qa_gate_never_fails_on_scientific_favorability():
+    src = (V1 / "scripts" / "run_pilot_qa_gate.py").read_text()
+    for banned in ("PRB worsens", "candidate region is empty", "Surrogate bends",
+                   "mechanism target is unattained", "weakly regressive"):
+        assert banned not in src, f"QA gate must not encode a scientific-outcome stop condition: {banned}"
+    # PRB itself is a legitimate column name to check for finiteness -- that is a
+    # data-quality check, not a favorability judgment. Confirm it is used only
+    # inside the finiteness check, never compared against a magnitude/sign.
+    assert 'needed = ["R2_price", "PRD", "PRB"' in src
+
+
+def test_canonical_penalty_fit_never_passed_categorical_feature_kwarg():
+    """Regression test: LGBCovPenalty/LGBSmoothPenalty.fit(X, y) take exactly
+    two positional args and have no categorical_feature kwarg (unlike native
+    LGBMRegressor.fit). Passing it raised TypeError and failed all 3 pilot
+    Direct tasks on first submission (job 21940045). Category dtype is
+    auto-detected by the underlying native model; no kwarg is needed."""
+    import inspect
+    from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty
+    for cls in (LGBCovPenalty, LGBSmoothPenalty):
+        sig = inspect.signature(cls.fit)
+        assert "categorical_feature" not in sig.parameters
+    for name in ("run_normalized_direct_cv.py", "run_normalized_surrogate_cv.py"):
+        src = (V1 / "scripts" / name).read_text()
+        assert "model.fit(features.iloc[:len(train)], y_log_train, categorical_feature" not in src
+
+
+def test_direct_cv_flags_path_points_whose_screening_metrics_are_not_finite():
+    """Regression test for a silent-corruption bug found reviewing job 21945189_4.
+
+    At the top of the shared rho_tilde grid a Direct fit can pass both the
+    gradient guard and the prediction-finiteness guard and still produce an
+    absurd price scale, whose metrics blow up (Middlesex Direct, rho_tilde=71.22:
+    PRB~4e290, VEI~1e93, MAPE~3e290, R2_price=NaN). Such a point must be flagged
+    NUMERICALLY_UNSTABLE_RHO, not stored as fit_status=OK, because a single NaN
+    deletes that metric from the whole screen and ~1e290 values overflow inside
+    select_pwl's SSE -- turning a numerical artifact into a false
+    NO_STABLE_CANDIDATE_REGION."""
+    import numpy as np
+    sys.path.insert(0, str(V1 / "scripts"))
+    from run_normalized_direct_cv import REQUIRED_SCREENING_METRICS, screening_metrics_finite
+
+    # every metric the screen reads must be gated
+    from utils.rho_screening_v2 import BENEFIT_METRICS, PREDICTIVE_COST_METRICS
+    for m in list(BENEFIT_METRICS) + list(PREDICTIVE_COST_METRICS):
+        assert m in REQUIRED_SCREENING_METRICS, f"{m} drives a boundary but is not gated"
+
+    ok = {m: 1.0 for m in REQUIRED_SCREENING_METRICS}
+    assert screening_metrics_finite(ok) == []
+    for bad_value in (float("nan"), float("inf"), -float("inf")):
+        probe = dict(ok, R2_price=bad_value)
+        assert screening_metrics_finite(probe) == ["R2_price"]
+    missing = {k: v for k, v in ok.items() if k != "PRB"}
+    assert screening_metrics_finite(missing) == ["PRB"]
+
+    # the guard must actually be wired into the fit loop, before metrics are stored
+    src = (V1 / "scripts" / "run_normalized_direct_cv.py").read_text()
+    assert "screening_metrics_finite(metrics)" in src
+    assert "NUMERICALLY_UNSTABLE_RHO" in src
+
+
+def test_direct_cv_training_support_bound_is_outcome_independent_and_binding():
+    """The divergence rule (user-approved 2026-09-04) must be defined only from
+    the training label range, never from a performance/equity metric, and must
+    reject the real Middlesex Direct fold-5 case at rho_tilde=71.22 while
+    accepting ordinary predictions.
+
+    Why it matters: those diverged fits had FINITE metrics (R2_price ~ -1.5e12,
+    MAE_price ~ $41bn), so admitting them as a genuine deterioration signal moved
+    Middlesex's detected activity onset 0.2669 -> 2.4935 and emptied the
+    cross-jurisdiction Direct band."""
+    import numpy as np
+    sys.path.insert(0, str(V1 / "scripts"))
+    import run_normalized_direct_cv as rd
+
+    y = np.array([10.0, 12.0, 16.0])            # training log prices, range width 6
+    lo, hi = rd.training_support_window(y)
+    assert (lo, hi) == (4.0, 22.0), (lo, hi)     # one full range width of slack each way
+
+    # ordinary predictions inside the observed range are accepted
+    assert rd.diverged_outside_training_support(np.array([11.0, 15.9]), lo, hi) is None
+    # generous extrapolation short of the bound is still accepted
+    assert rd.diverged_outside_training_support(np.array([4.5, 21.5]), lo, hi) is None
+    # the real Middlesex fold-5 magnitude (pred_log ~24 vs training max ~16) is rejected
+    d = rd.diverged_outside_training_support(np.array([11.0, 24.0]), lo, hi)
+    assert d is not None and d["pred_log_max"] == 24.0
+
+    src = (V1 / "scripts" / "run_normalized_direct_cv.py").read_text()
+    # the bound must be evaluated before metrics are computed, and recorded distinctly
+    assert "DIVERGED_OUTSIDE_TRAINING_SUPPORT" in src
+    support_at = src.index("diverged_outside_training_support(pred_log")
+    enrich_at = src.index("enrich(val_price, pred_price, train_price)")
+    assert support_at < enrich_at, "support bound must be checked before metrics are computed"
+    # the criterion must not be phrased in terms of any outcome metric
+    window_src = src[src.index("def training_support_window"):src.index("def diverged_outside_training_support")]
+    for outcome in ("R2", "PRD", "PRB", "MKI", "VEI", "beta", "MAPE", "MAE"):
+        assert outcome not in window_src, f"support bound must not depend on {outcome}"
+
+
+def test_candidate_screen_drops_grid_points_with_non_finite_boundary_metrics():
+    """The screen's fold-aggregation must exclude any grid point where a
+    boundary-driving metric is non-finite -- both the all-NaN shape and the
+    partially-poisoned shape. dCor is interpretive-only per protocol and must
+    never gate which points exist."""
+    import numpy as np
+    import pandas as pd
+    sys.path.insert(0, str(V1 / "scripts"))
+    from run_candidate_region_screen import aggregate_curve
+
+    metrics = ["PRD", "R2_price", "dCor_e_y"]
+    df = pd.DataFrame({
+        "fold": [1, 1, 1, 1, 2, 2, 2, 2],
+        "rho_tilde": [0.1, 1.0, 10.0, 100.0, 0.1, 1.0, 10.0, 100.0],
+        # rho_tilde=10 is partially poisoned (R2_price NaN in every fold);
+        # rho_tilde=100 is all-NaN across both folds.
+        "PRD": [1.0, 1.1, 1.2, np.nan, 1.0, 1.1, 1.2, np.nan],
+        "R2_price": [0.9, 0.8, np.nan, np.nan, 0.9, 0.8, np.nan, np.nan],
+        "dCor_e_y": [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+    })
+    curve = aggregate_curve(df, metrics)
+    kept = sorted(curve["rho_tilde"].tolist())
+    assert kept == [0.1, 1.0], f"poisoned/all-NaN points must be dropped, kept {kept}"
+
+    # a non-finite dCor alone must NOT remove an otherwise-usable point
+    df2 = df.loc[df.rho_tilde <= 1.0].copy()
+    df2.loc[df2.rho_tilde == 1.0, "dCor_e_y"] = np.nan
+    curve2 = aggregate_curve(df2, metrics)
+    assert sorted(curve2["rho_tilde"].tolist()) == [0.1, 1.0], "dCor must not gate grid points"
+
+
+def test_candidate_status_requires_nonempty_lofo_stable_interval():
+    """A protocol-valid candidate region is activity <= guardrail AND both
+    endpoints LOFO-stable. Point estimates are preserved in every case."""
+    sys.path.insert(0, str(V1 / "scripts"))
+    from run_candidate_region_screen import classify_candidate_status
+
+    assert classify_candidate_status(0.27, 0.82, True, True) == "CANDIDATE_REGION"
+    assert classify_candidate_status(0.27, 23.3, True, False) == "NO_STABLE_CANDIDATE_REGION"
+    assert classify_candidate_status(0.267, 0.060, True, True) == "UPPER_GUARDRAIL_PRECEDES_ACTIVITY"
+    assert classify_candidate_status(None, None, False, False) == "NO_STABLE_CANDIDATE_REGION"
+    assert classify_candidate_status(0.2, None, True, False) == "PARTIAL_ENDPOINT_ONLY"
+
+
+def test_protocol_valid_overlap_excludes_unstable_and_inverted_regions():
+    sys.path.insert(0, str(V1 / "scripts"))
+    from run_portability_and_band import intersection_status, region_overlap
+
+    # Allegheny-like unstable interval must not be fed in as protocol-valid.
+    valid_direct = [(0.387, 0.816), (0.267, 0.816), (0.184, 0.562)]
+    r = region_overlap(valid_direct)
+    assert r["n_with_region"] == 3
+    assert r["intersection"][0] == 0.387
+    assert r["intersection"][1] == 0.562
+    assert r["intersection_status"] == "NONEMPTY_INTERSECTION"
+
+    inverted = [(0.267, 0.060)]
+    r2 = region_overlap(inverted)
+    assert r2["n_with_region"] == 0
+    assert r2["intersection_status"] == "NO_INTERSECTION"
+
+    knife = region_overlap([(0.1267, 0.387), (0.060, 0.1267)])
+    assert knife["n_with_region"] == 2
+    assert knife["intersection_status"] == "NO_NONDEGENERATE_ALL_JURISDICTION_INTERSECTION"
+    assert intersection_status(None, 0) == "NO_INTERSECTION"
+

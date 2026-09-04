@@ -1,0 +1,87 @@
+{
+  "county_key": "middlesex",
+  "family": "surrogate",
+  "status": "UPPER_GUARDRAIL_PRECEDES_ACTIVITY",
+  "n_folds": 7,
+  "n_grid_points": 33,
+  "activity_rho_tilde": 0.2668657121503905,
+  "guardrail_rho_tilde": 0.060156335155656,
+  "activity_log10_rho_tilde": -0.5737072223176495,
+  "guardrail_log10_rho_tilde": -1.2207186296996095,
+  "guardrail_binding_reason": "predictive-harm",
+  "activity_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 15,
+    "lofo_indices": [
+      15,
+      11,
+      15,
+      15,
+      15,
+      15,
+      15
+    ]
+  },
+  "guardrail_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 11,
+    "lofo_indices": [
+      11,
+      13,
+      10,
+      11,
+      11,
+      11,
+      11
+    ]
+  },
+  "lofo_activity_indices": [
+    15,
+    11,
+    15,
+    15,
+    15,
+    15,
+    15
+  ],
+  "lofo_guardrail_indices": [
+    11,
+    13,
+    10,
+    11,
+    11,
+    11,
+    11
+  ],
+  "grid_censored_activity": false,
+  "grid_censored_guardrail": false,
+  "dcor_interpretive_only": {
+    "status": "FLATTENING",
+    "reason": "dCor_still_improving_smaller_rate",
+    "pre_slope": -0.10576899550370063,
+    "post_slope": -0.092825023242225,
+    "qa": {
+      "raw_pre_slope": -0.10576899550370063,
+      "raw_post_slope": -0.092825023242225,
+      "n_pre": 5,
+      "n_post_window": 5,
+      "post_majority": {
+        "ok": false,
+        "n_steps": 14,
+        "n_agree": 6,
+        "majority": false,
+        "isolated": true
+      },
+      "supported": false,
+      "raw_status": "ambiguous"
+    }
+  }
+}

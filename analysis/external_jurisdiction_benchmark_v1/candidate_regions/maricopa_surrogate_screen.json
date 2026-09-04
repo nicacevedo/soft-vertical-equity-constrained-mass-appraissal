@@ -1,0 +1,87 @@
+{
+  "county_key": "maricopa",
+  "family": "surrogate",
+  "status": "CANDIDATE_REGION",
+  "n_folds": 7,
+  "n_grid_points": 33,
+  "activity_rho_tilde": 0.0873040160721099,
+  "guardrail_rho_tilde": 0.2668657121503905,
+  "activity_log10_rho_tilde": -1.0589657778541195,
+  "guardrail_log10_rho_tilde": -0.5737072223176495,
+  "guardrail_binding_reason": "predictive-harm",
+  "activity_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 12,
+    "lofo_indices": [
+      12,
+      12,
+      12,
+      12,
+      13,
+      12,
+      13
+    ]
+  },
+  "guardrail_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 15,
+    "lofo_indices": [
+      15,
+      15,
+      15,
+      15,
+      15,
+      15,
+      15
+    ]
+  },
+  "lofo_activity_indices": [
+    12,
+    12,
+    12,
+    12,
+    13,
+    12,
+    13
+  ],
+  "lofo_guardrail_indices": [
+    15,
+    15,
+    15,
+    15,
+    15,
+    15,
+    15
+  ],
+  "grid_censored_activity": false,
+  "grid_censored_guardrail": false,
+  "dcor_interpretive_only": {
+    "status": "FLATTENING",
+    "reason": "dCor_still_improving_smaller_rate",
+    "pre_slope": -0.06322981171914775,
+    "post_slope": -0.008233239147397804,
+    "qa": {
+      "raw_pre_slope": -0.06322981171914775,
+      "raw_post_slope": -0.008233239147397804,
+      "n_pre": 5,
+      "n_post_window": 5,
+      "post_majority": {
+        "ok": true,
+        "n_steps": 12,
+        "n_agree": 10,
+        "majority": true,
+        "isolated": false
+      },
+      "supported": false,
+      "raw_status": "ambiguous"
+    }
+  }
+}

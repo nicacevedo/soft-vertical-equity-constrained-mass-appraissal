@@ -1,0 +1,22 @@
+{
+  "county_key": "middlesex",
+  "status": "OK",
+  "selected_lgbm_config": "grid_09",
+  "n_folds_used": 7,
+  "cv_mean_RMSE_log": 0.2714426437235539,
+  "cv_mean_R2_price": 0.5650203262442846,
+  "cv_mean_NMSE": 0.2542010737713817,
+  "cv_mean_COD": 18.689357094926073,
+  "cv_mean_PRD": 1.1000752183541207,
+  "cv_mean_PRB": -0.13705997585099544,
+  "cv_mean_MKI": 0.7718858590031495,
+  "cv_mean_VEI": -20.6236826545292,
+  "cv_mean_Beta_log": -0.2612484033995532,
+  "cv_mean_Delta_NL": 0.13050097242973177,
+  "structural_core_cv_mean_RMSE_log": 0.2999209363610071,
+  "structural_core_cv_mean_R2_price": 0.5142234680879004,
+  "selection_rule": "lowest mean CV RMSE_log across 7 expanding calendar-year folds",
+  "written_at_utc": "2026-09-04T02:19:29Z",
+  "no_2025_data_used": true,
+  "no_penalty_path_run": true
+}

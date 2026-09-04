@@ -1,0 +1,178 @@
+{
+  "pilot_keys": [
+    "wayne",
+    "philadelphia",
+    "cook"
+  ],
+  "n_checks": 33,
+  "n_passed": 33,
+  "all_passed": true,
+  "checks": [
+    {
+      "check": "wayne/direct: all 7 folds completed",
+      "passed": true,
+      "detail": "n_folds=7"
+    },
+    {
+      "check": "wayne/direct: no 2025 data in source table",
+      "passed": true,
+      "detail": "max sale_date=2024-12-31 00:00:00"
+    },
+    {
+      "check": "wayne/direct: rho=0 metrics finite/interpretable",
+      "passed": true,
+      "detail": "R2_price range at rho=0: 0.183-0.810"
+    },
+    {
+      "check": "wayne/direct: rho_tilde = raw_rho * Var_training(y) exact",
+      "passed": true,
+      "detail": "sampled 20 rows"
+    },
+    {
+      "check": "wayne/direct: candidate-screen metrics mostly finite",
+      "passed": true,
+      "detail": "finite_share=1.000"
+    },
+    {
+      "check": "wayne/surrogate: all 7 folds completed",
+      "passed": true,
+      "detail": "n_folds=7"
+    },
+    {
+      "check": "wayne/surrogate: no 2025 data in source table",
+      "passed": true,
+      "detail": "max sale_date=2024-12-31 00:00:00"
+    },
+    {
+      "check": "wayne/surrogate: candidate-screen metrics mostly finite",
+      "passed": true,
+      "detail": "finite_share=1.000"
+    },
+    {
+      "check": "wayne/surrogate: frozen first-branch calibrator used",
+      "passed": true,
+      "detail": "branch_terminated_by column present"
+    },
+    {
+      "check": "philadelphia/direct: all 7 folds completed",
+      "passed": true,
+      "detail": "n_folds=7"
+    },
+    {
+      "check": "philadelphia/direct: no 2025 data in source table",
+      "passed": true,
+      "detail": "max sale_date=2024-12-31 00:00:00"
+    },
+    {
+      "check": "philadelphia/direct: rho=0 metrics finite/interpretable",
+      "passed": true,
+      "detail": "R2_price range at rho=0: 0.328-0.793"
+    },
+    {
+      "check": "philadelphia/direct: rho_tilde = raw_rho * Var_training(y) exact",
+      "passed": true,
+      "detail": "sampled 20 rows"
+    },
+    {
+      "check": "philadelphia/direct: candidate-screen metrics mostly finite",
+      "passed": true,
+      "detail": "finite_share=1.000"
+    },
+    {
+      "check": "philadelphia/surrogate: all 7 folds completed",
+      "passed": true,
+      "detail": "n_folds=7"
+    },
+    {
+      "check": "philadelphia/surrogate: no 2025 data in source table",
+      "passed": true,
+      "detail": "max sale_date=2024-12-31 00:00:00"
+    },
+    {
+      "check": "philadelphia/surrogate: candidate-screen metrics mostly finite",
+      "passed": true,
+      "detail": "finite_share=1.000"
+    },
+    {
+      "check": "philadelphia/surrogate: frozen first-branch calibrator used",
+      "passed": true,
+      "detail": "branch_terminated_by column present"
+    },
+    {
+      "check": "cook/direct: all 7 folds completed",
+      "passed": true,
+      "detail": "n_folds=7"
+    },
+    {
+      "check": "cook/direct: no 2025 data in source table",
+      "passed": true,
+      "detail": "max sale_date=2024-12-31 00:00:00"
+    },
+    {
+      "check": "cook/direct: rho=0 metrics finite/interpretable",
+      "passed": true,
+      "detail": "R2_price range at rho=0: 0.297-0.823"
+    },
+    {
+      "check": "cook/direct: rho_tilde = raw_rho * Var_training(y) exact",
+      "passed": true,
+      "detail": "sampled 20 rows"
+    },
+    {
+      "check": "cook/direct: candidate-screen metrics mostly finite",
+      "passed": true,
+      "detail": "finite_share=1.000"
+    },
+    {
+      "check": "cook/surrogate: all 7 folds completed",
+      "passed": true,
+      "detail": "n_folds=7"
+    },
+    {
+      "check": "cook/surrogate: no 2025 data in source table",
+      "passed": true,
+      "detail": "max sale_date=2024-12-31 00:00:00"
+    },
+    {
+      "check": "cook/surrogate: candidate-screen metrics mostly finite",
+      "passed": true,
+      "detail": "finite_share=1.000"
+    },
+    {
+      "check": "cook/surrogate: frozen first-branch calibrator used",
+      "passed": true,
+      "detail": "branch_terminated_by column present"
+    },
+    {
+      "check": "wayne/direct: candidate-region screen deterministic",
+      "passed": true,
+      "detail": "run1=0.3872983346207417,0.8157392010776716 run2=0.3872983346207417,0.8157392010776716"
+    },
+    {
+      "check": "wayne/surrogate: candidate-region screen deterministic",
+      "passed": true,
+      "detail": "run1=0.0873040160721099,0.3872983346207417 run2=0.0873040160721099,0.3872983346207417"
+    },
+    {
+      "check": "philadelphia/direct: candidate-region screen deterministic",
+      "passed": true,
+      "detail": "run1=0.2668657121503905,0.8157392010776716 run2=0.2668657121503905,0.8157392010776716"
+    },
+    {
+      "check": "philadelphia/surrogate: candidate-region screen deterministic",
+      "passed": true,
+      "detail": "run1=0.0873040160721099,0.2668657121503905 run2=0.0873040160721099,0.2668657121503905"
+    },
+    {
+      "check": "cook/direct: candidate-region screen deterministic",
+      "passed": true,
+      "detail": "run1=0.1838822993940162,0.5620804515923291 run2=0.1838822993940162,0.5620804515923291"
+    },
+    {
+      "check": "cook/surrogate: candidate-region screen deterministic",
+      "passed": true,
+      "detail": "run1=0.060156335155656,0.3872983346207417 run2=0.060156335155656,0.3872983346207417"
+    }
+  ],
+  "grid_censored_endpoints": []
+}

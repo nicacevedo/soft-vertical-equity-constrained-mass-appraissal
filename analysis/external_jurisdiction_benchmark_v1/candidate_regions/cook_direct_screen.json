@@ -1,0 +1,67 @@
+{
+  "county_key": "cook",
+  "family": "direct",
+  "status": "CANDIDATE_REGION",
+  "n_folds": 7,
+  "n_grid_points": 33,
+  "activity_rho_tilde": 0.1838822993940162,
+  "guardrail_rho_tilde": 0.5620804515923291,
+  "activity_log10_rho_tilde": -0.7354600741631395,
+  "guardrail_log10_rho_tilde": -0.2502015186266693,
+  "guardrail_binding_reason": "OK",
+  "activity_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 14,
+    "lofo_indices": [
+      15,
+      14,
+      15,
+      15,
+      14,
+      14,
+      15
+    ]
+  },
+  "guardrail_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 17,
+    "lofo_indices": [
+      17,
+      17,
+      17,
+      17,
+      17,
+      17,
+      17
+    ]
+  },
+  "lofo_activity_indices": [
+    15,
+    14,
+    15,
+    15,
+    14,
+    14,
+    15
+  ],
+  "lofo_guardrail_indices": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    17,
+    17
+  ],
+  "grid_censored_activity": false,
+  "grid_censored_guardrail": false,
+  "dcor_interpretive_only": null
+}

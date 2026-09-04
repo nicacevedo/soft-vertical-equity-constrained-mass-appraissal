@@ -15,39 +15,20 @@ results (null candidate region, failed portability test, UNATTAINED targets) are
 
 ## Status
 
-**Phase A (runs without external input): COMPLETE.**
-- Step 0 preflight: `audits/preflight.json`
-- Step 1 objective-scaling + rho=0 parity gate: **PASSED** — `audits/objective_scaling_audit.md`.
-  Real-data parity ~1.5e-08 across Wayne/Philadelphia/Cook (vs. the frozen manuscript's 3.24e-02
-  gap), because every fit here uses the already-validated `match_native_init=True` configuration.
-- County caches for all 9 jurisdictions: `output/cache/<key>/{recorder,history}.parquet`,
-  `audits/county_cache_manifest.csv`. One corrupt shard in Allegheny's Assessor History
-  (`assessor-history_1_7_0.snappy.parquet`) skipped gracefully, not fatal.
-- Step 3 temporal completeness audit: `audits/monthly_completeness.csv`,
-  `audits/temporal_completeness_decision.json` (see `temporal_design.yaml` once frozen).
-- Step 4 Berry/local external regressivity: `berry/berry_external_metrics.csv`,
-  `berry/berry_linkage_preservation.csv`, `figures/berry_ratio_profiles.pdf`. St. Louis County
-  included (corrects v3's overstated "no official assessed-value series" claim — true only of the
-  file v3 chose).
-- Test suite: `scripts/run_v1_tests.py` — 21/21 passing.
+**Residential mapping FROZEN.** `cohort/residential_code_mapping.yaml`:
+`PRIMARY_RESIDENTIAL = {363, 376, 377, 380, 382, 383, 384, 385, 386, 390}`.
 
-**Phase B: residential mapping FROZEN.** `cohort/residential_code_mapping.yaml`:
-`PRIMARY_RESIDENTIAL = {363, 376, 377, 380, 382, 383, 384, 385, 386, 390}` (Single Family
-Residence=385, Townhouse=386, Seasonal/Cabin=384, etc.), from the user-verified ATTOM PropertyType
-reference. An initial transcription (385=Seasonal/Cabin, 386=SFR) was caught by an empirical
-jurisdiction x code frequency check as inconsistent with the observed volume/geography pattern
-(385 was 54.7% of all rows, dominant in Cook/Maricopa/Miami-Dade — not plausible for a seasonal
-code) and flagged per the "stop if semantically inconsistent" rule; the user re-checked the source
-and corrected it. Full audit trail in `cohort/residential_code_mapping.yaml::correction_history` and
-`cohort/UNCLASSIFIED_CODES_REPORT.md`.
+**Development/CV complete; 2025 forward locked until `path_freeze/FORWARD_FREEZE.yaml`.**
+Canonical compact artifacts (do not look under `output/` for the paper record):
 
-Cohort retention under the frozen mapping: `cohort/cohort_retention.csv`. Primary-residential share
-ranges from 25.7% (Philadelphia) to 76.5% (Wayne) — reported as a real housing-composition
-difference (Philadelphia's excluded condo code 366 covers 41.3% there), per the frozen rule that
-membership is never adjusted for retention or model outcomes.
-
-`BROAD_RESIDENTIAL_APPENDIX` remains partially specified (only code 366=Condominium confirmed) and
-is not used for any modeling outcome until complete.
+- sources: `scripts/v1_common.py`, `audits/history_source_resolution.yaml`
+- cohort: `cohort/residential_code_mapping.yaml`, `cohort/modeling_table_summary_dev.csv`
+- temporal design: `temporal_design.yaml` (dev 2016–2024, forward 2025, folds 2018–2024)
+- baseline freeze: `baseline/BASELINE_FREEZE.yaml`, `baseline/all_jurisdiction_baseline_summary.csv`
+- normalized CV: `cv/*_normalized_cv_path_summary.csv`
+- candidate regions: `candidate_regions/candidate_regions.csv`
+- portability/overlap: `tables/normalization_portability.csv`, `candidate_regions/cross_jurisdiction_band.csv`
+- forward freeze: `path_freeze/FORWARD_FREEZE.yaml`
 
 ```
 /home/nacevedo/.conda/envs/fairness_env/bin/python analysis/external_jurisdiction_benchmark_v1/scripts/run_v1_tests.py

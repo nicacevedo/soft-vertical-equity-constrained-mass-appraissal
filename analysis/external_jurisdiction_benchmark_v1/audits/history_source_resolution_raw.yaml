@@ -1,0 +1,193 @@
+written_at_utc: '2026-09-04T01:51:52Z'
+audits:
+  cook:
+    county_key: cook
+    fips: '17031'
+    narrow_manifest:
+      folder: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/cookcounty-2016-2025-all-features
+      n_shards_total: 64
+      n_readable: 64
+      n_unreadable: 0
+      unreadable_shards: []
+    broad_manifest:
+      folder: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/cook-2006-2025-all-features
+      n_shards_total: 64
+      n_readable: 64
+      n_unreadable: 0
+      unreadable_shards: []
+    narrow_shard_sha256_sample:
+      assessor-history_0_0_0.snappy.parquet: 793f94c2a826c608c5d6a3f027b54d57841ba72c6e233115dc812135f3b8ee90
+      assessor-history_0_1_0.snappy.parquet: b22da911a7b1c989bdbcbc53a7bf8c448134847970f6b03eff6b65a4356ff875
+      assessor-history_0_2_0.snappy.parquet: a15f004f6107bd9c66838f60e32de32083c33bda1c0a30f157ff807e7d93c21c
+    broad_shard_sha256_sample:
+      assessor-history_0_0_0.snappy.parquet: 1abd4b6befb837bdc3a6f67d94abb1aedc8d78e7cfbce9ce36e2d32ce23dd623
+      assessor-history_0_1_0.snappy.parquet: 7f9c18f7f668b24dbff722b82cbee790517ea445fae24f49bb632c22b47607bd
+      assessor-history_0_2_0.snappy.parquet: f6f58a1bc42abcb67b4224be3ea397f050ba33cd743d4b75c04d8bc08790bac9
+    narrow_n_rows: 13114434
+    broad_n_rows: 32734627
+    narrow_year_min_max:
+    - 2019
+    - 2025
+    broad_year_min_max:
+    - 2006
+    - 2025
+    narrow_rows_by_year:
+      '2019': 1872875
+      '2020': 1877283
+      '2021': 1874578
+      '2022': 1875109
+      '2023': 1874877
+      '2024': 1875521
+      '2025': 1864191
+    broad_rows_by_year:
+      '2006': 1689205
+      '2008': 1732545
+      '2009': 1763717
+      '2010': 1793409
+      '2011': 1815676
+      '2012': 1832902
+      '2013': 1832319
+      '2014': 1851514
+      '2016': 1864988
+      '2017': 1568347
+      '2018': 1875571
+      '2019': 1872875
+      '2020': 1877283
+      '2021': 1874578
+      '2022': 1875109
+      '2023': 1874877
+      '2024': 1875521
+      '2025': 1864191
+    narrow_duplicate_attomid_year_pairs: 0
+    broad_duplicate_attomid_year_pairs: 0
+    overlapping_years:
+    - 2019
+    - 2020
+    - 2021
+    - 2022
+    - 2023
+    - 2024
+    - 2025
+    narrow_keys_n: 13114434
+    broad_keys_n: 32734627
+    key_overlap_n: 13114434
+    key_overlap_frac_of_narrow: 1.0
+    feature_agreement_on_overlap:
+      PROPERTYUSESTANDARDIZED: 1.0
+      AREABUILDING: 1.0
+      YEARBUILT: 1.0
+      BEDROOMSCOUNT: 1.0
+      BATHCOUNT: 1.0
+    n_common_keys_compared: 13114434
+    narrow_missingness_on_overlap:
+      SITUSSTATECOUNTYFIPS: 0.0
+      PROPERTYUSESTANDARDIZED: 0.0
+      AREABUILDING: 0.0
+      YEARBUILT: 0.0
+      BEDROOMSCOUNT: 0.0
+      BATHCOUNT: 0.0
+    broad_missingness_on_overlap:
+      SITUSSTATECOUNTYFIPS: 0.0
+      PROPERTYUSESTANDARDIZED: 0.0
+      AREABUILDING: 0.0
+      YEARBUILT: 0.0
+      BEDROOMSCOUNT: 0.0
+      BATHCOUNT: 0.0
+  allegheny:
+    county_key: allegheny
+    fips: '42003'
+    narrow_manifest:
+      folder: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/allegheny-county-2016-2025-all-features
+      n_shards_total: 64
+      n_readable: 63
+      n_unreadable: 1
+      unreadable_shards:
+      - assessor-history_1_7_0.snappy.parquet
+    broad_manifest:
+      folder: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/allegheny-county-2006-2025-all-features
+      n_shards_total: 64
+      n_readable: 64
+      n_unreadable: 0
+      unreadable_shards: []
+    narrow_shard_sha256_sample:
+      assessor-history_0_0_0.snappy.parquet: e08f9354a5f312c35be5ff35d043a1de9419ecfda1c9b0e7f752f069eb948b7c
+      assessor-history_0_1_0.snappy.parquet: 2eb89d6dfbb18a3e41455b65c2d367d0ca9ffe3420087406cef6bfe3e4df56c1
+      assessor-history_0_2_0.snappy.parquet: 5e3f90ef4935f23b06188ba29d78ffba89277f91274a3914a25abca7be96379c
+    broad_shard_sha256_sample:
+      assessor-history_0_0_0.snappy.parquet: 66f554660e5f37e0b1d3e9fc40bdc26a73e568f724921f2ea3f0c36ddd3c3d17
+      assessor-history_0_1_0.snappy.parquet: ad480f505b74f47cc8d17b659ce0b3404ecce92f0106b70db47ac20b73b1eefb
+      assessor-history_0_2_0.snappy.parquet: 841906550943343fdc43ecd60918672054a3885cbd31031348baf6ba4985eff5
+    narrow_n_rows: 4022245
+    broad_n_rows: 12447658
+    narrow_year_min_max:
+    - 2019
+    - 2025
+    broad_year_min_max:
+    - 2003
+    - 2025
+    narrow_rows_by_year:
+      '2019': 571197
+      '2020': 573792
+      '2021': 577147
+      '2022': 578027
+      '2023': 573455
+      '2024': 574136
+      '2025': 574491
+    broad_rows_by_year:
+      '2003': 546697
+      '2004': 548951
+      '2005': 539653
+      '2006': 555982
+      '2007': 556039
+      '2008': 561196
+      '2009': 564378
+      '2010': 566042
+      '2011': 567796
+      '2012': 570011
+      '2013': 570888
+      '2014': 571946
+      '2016': 576296
+      '2017': 483135
+      '2018': 579659
+      '2019': 580749
+      '2020': 583305
+      '2021': 586675
+      '2022': 587649
+      '2023': 582901
+      '2024': 583595
+      '2025': 584115
+    narrow_duplicate_attomid_year_pairs: 0
+    broad_duplicate_attomid_year_pairs: 0
+    overlapping_years:
+    - 2019
+    - 2020
+    - 2021
+    - 2022
+    - 2023
+    - 2024
+    - 2025
+    narrow_keys_n: 4022245
+    broad_keys_n: 12447658
+    key_overlap_n: 4022245
+    key_overlap_frac_of_narrow: 1.0
+    feature_agreement_on_overlap:
+      PROPERTYUSESTANDARDIZED: 1.0
+      AREABUILDING: 1.0
+      YEARBUILT: 1.0
+      BEDROOMSCOUNT: 1.0
+      BATHCOUNT: 1.0
+    n_common_keys_compared: 4022245
+    narrow_missingness_on_overlap:
+      SITUSSTATECOUNTYFIPS: 0.0
+      PROPERTYUSESTANDARDIZED: 0.0
+      AREABUILDING: 0.0
+      YEARBUILT: 0.0
+      BEDROOMSCOUNT: 0.0
+      BATHCOUNT: 0.0
+    broad_missingness_on_overlap:
+      SITUSSTATECOUNTYFIPS: 0.0
+      PROPERTYUSESTANDARDIZED: 0.0
+      AREABUILDING: 0.0
+      YEARBUILT: 0.0
+      BEDROOMSCOUNT: 0.0
+      BATHCOUNT: 0.0

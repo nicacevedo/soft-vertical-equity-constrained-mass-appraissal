@@ -1,0 +1,87 @@
+{
+  "county_key": "miami_dade",
+  "family": "surrogate",
+  "status": "CANDIDATE_REGION",
+  "n_folds": 7,
+  "n_grid_points": 33,
+  "activity_rho_tilde": 0.060156335155656,
+  "guardrail_rho_tilde": 0.1267030513510693,
+  "activity_log10_rho_tilde": -1.2207186296996095,
+  "guardrail_log10_rho_tilde": -0.8972129260086297,
+  "guardrail_binding_reason": "predictive-harm",
+  "activity_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 11,
+    "lofo_indices": [
+      10,
+      10,
+      12,
+      11,
+      10,
+      9,
+      10
+    ]
+  },
+  "guardrail_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 13,
+    "lofo_indices": [
+      13,
+      13,
+      13,
+      14,
+      13,
+      15,
+      13
+    ]
+  },
+  "lofo_activity_indices": [
+    10,
+    10,
+    12,
+    11,
+    10,
+    9,
+    10
+  ],
+  "lofo_guardrail_indices": [
+    13,
+    13,
+    13,
+    14,
+    13,
+    15,
+    13
+  ],
+  "grid_censored_activity": false,
+  "grid_censored_guardrail": false,
+  "dcor_interpretive_only": {
+    "status": "REBOUND",
+    "reason": "dCor_turns_upward",
+    "pre_slope": -0.04755848802436176,
+    "post_slope": 0.022688170628384838,
+    "qa": {
+      "raw_pre_slope": -0.04755848802436176,
+      "raw_post_slope": 0.022688170628384838,
+      "n_pre": 5,
+      "n_post_window": 5,
+      "post_majority": {
+        "ok": true,
+        "n_steps": 10,
+        "n_agree": 10,
+        "majority": true,
+        "isolated": false
+      },
+      "supported": true,
+      "raw_status": "supported"
+    }
+  }
+}

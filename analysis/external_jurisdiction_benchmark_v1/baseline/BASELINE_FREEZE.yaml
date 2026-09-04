@@ -1,0 +1,267 @@
+schema_version: 1
+status: FROZEN
+frozen_at_utc: '2026-09-04T03:09:06Z'
+rule: No penalty path (Direct/Surrogate) may begin before this file exists.
+history_source_resolution_file: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/external_jurisdiction_benchmark_v1/audits/history_source_resolution.yaml
+units:
+- county_key: wayne
+  label: Wayne County, MI
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/wayne-philadelphia-st-louis-2004-2025-history
+  cache_hashes:
+    recorder: e1fc105ade0b23ce843721f7862a3c0fd81a81503edbcbc68f2538295934b105
+    history: 10a4ae52ebb3af762713350293778b5bb708e6be550d8400e58f7d0eb0e565f7
+  modeling_table_hash: 93dba31d4bdbf32483aff5ab7834d58b9d9ca1ae57a12e1fcf64b68a162b56f7
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_03
+  cv_metrics:
+    R2_price: 0.6233589662687039
+    R2_log: 0.7750476650234983
+    NMSE: 0.2249523349765017
+    RMSE_log: 0.297533303924661
+    MAE: 39470.29251681891
+    MAPE: 0.2199115431971756
+    COD: 22.55130492382944
+    PRD: 1.0926202657507391
+    PRB: -0.1140777573389296
+    MKI: 0.83358212320588
+    VEI: -31.95025661961537
+    beta_log: -0.2269766341672223
+    Delta_NL: 0.1238478081224463
+    dCor: 0.4932036839073082
+- county_key: philadelphia
+  label: Philadelphia County, PA
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/wayne-philadelphia-st-louis-2004-2025-history
+  cache_hashes:
+    recorder: 0a49d97f50a00bf410b6dae05a33e173984297905c5dbff41a8d1b4e0deb6526
+    history: 57cfc614ee3925e16bfb2de8a4c81839d008f8b523cab45c594a0dafbb4f1a8e
+  modeling_table_hash: 770305648deafe51beaae943ecb3f42c6b974f580b03632eb54c48d9630122b7
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_01
+  cv_metrics:
+    R2_price: 0.6296910019730085
+    R2_log: 0.6647325925948294
+    NMSE: 0.3352674074051704
+    RMSE_log: 0.3324205543833571
+    MAE: 63022.07522672425
+    MAPE: 0.2513261425522303
+    COD: 25.29652688736017
+    PRD: 1.1080966076259158
+    PRB: -0.1801338231539187
+    MKI: 0.7666078199951727
+    VEI: -42.626532706089264
+    beta_log: -0.3136092232778183
+    Delta_NL: 0.0713941108413848
+    dCor: 0.5373457650928762
+- county_key: st_louis_county
+  label: St. Louis County, MO
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/wayne-philadelphia-st-louis-2004-2025-history
+  cache_hashes:
+    recorder: 7cc5307cf97207eacefb87ff404a6c645a67105c4b454d929ad981a8fe8e87fe
+    history: d8fbb143f77ad1013bd6114496151f24864f90e9f56b98d40503ec3cecd6be9b
+  modeling_table_hash: a70bd230114278406f39db8ea59721962ebcd74f808a033a35a78e2ca49253a3
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_08
+  cv_metrics:
+    R2_price: 0.724605308363013
+    R2_log: 0.8363558204036879
+    NMSE: 0.1636441795963121
+    RMSE_log: 0.3040440604776445
+    MAE: 60940.03017853572
+    MAPE: 0.2122284445471119
+    COD: 21.55958248267025
+    PRD: 1.1001385167977522
+    PRB: -0.0633609393325155
+    MKI: 0.880360539209782
+    VEI: -31.212744200762508
+    beta_log: -0.1569569483025258
+    Delta_NL: 0.0893840119533773
+    dCor: 0.3791746736927355
+- county_key: allegheny
+  label: Allegheny County, PA
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: data/dewey-downloads/allegheny-county-2006-2025-all-features
+  cache_hashes:
+    recorder: 117af95b00380d7f1961fd3b523bd762d09d15242d8516248deb106119100315
+    history: dcb80730800e11155e13817530db6450a97a6b997b0c9166c345a6b1259c9ea7
+  modeling_table_hash: 61a2acc6fe6c3bd5247257a3d93b0d5a6992671f6fc07eb8c40d095c2ca7011a
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_07
+  cv_metrics:
+    R2_price: 0.685681540022806
+    R2_log: 0.7579737343393355
+    NMSE: 0.2420262656606646
+    RMSE_log: 0.3179435720466333
+    MAE: 52441.13064538431
+    MAPE: 0.2406547245278367
+    COD: 24.714342197668422
+    PRD: 1.1032146469833737
+    PRB: -0.1165164424779177
+    MKI: 0.8420436682383677
+    VEI: -34.92937035846553
+    beta_log: -0.2319568809231761
+    Delta_NL: 0.1316781881225083
+    dCor: 0.4711515147583073
+- county_key: maricopa
+  label: Maricopa County, AZ
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/maricopa-county-2016-2025-all-features
+  cache_hashes:
+    recorder: 01a155ff434afd1c51f4f8600fc5df4c88e798a5206f2b634adb10ae72649e28
+    history: a19a39479803a62de41aae4f32bccacbe45f365b198941c0b31ae277481200a0
+  modeling_table_hash: b58cd12194a5a89943dde9a272b9b1d06554cd7609142438e32202568d8ad78e
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_04
+  cv_metrics:
+    R2_price: 0.4402273008452969
+    R2_log: 0.806332411468001
+    NMSE: 0.1936675885319989
+    RMSE_log: 0.2210644939323912
+    MAE: 87944.34156732805
+    MAPE: 0.1529501102290994
+    COD: 12.871347826141076
+    PRD: 1.0511392092556808
+    PRB: -0.0392474569624493
+    MKI: 0.8874593356628929
+    VEI: -4.757319040392358
+    beta_log: -0.1276742439506109
+    Delta_NL: 0.136214810181012
+    dCor: 0.2423740832961207
+- county_key: king
+  label: King County, WA
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/king-county-2015-2025-all-features
+  cache_hashes:
+    recorder: cc5e1739d24860620d00851624f950ea0038e3502e2ca7ae64f2c8c1437dbd6c
+    history: 93f3f3f3496263a2d5df1f6f436000c27916ed100a32219224083a6f7c4ae15a
+  modeling_table_hash: 3475aad11596f11eaf2398c917e35f73c836b9853b09c60168703539620f1412
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_02
+  cv_metrics:
+    R2_price: 0.5204379545319933
+    R2_log: 0.7640324023288789
+    NMSE: 0.235967597671121
+    RMSE_log: 0.2650962372326382
+    MAE: 206648.41895946377
+    MAPE: 0.1823101359131634
+    COD: 17.009106164974437
+    PRD: 1.081733465026118
+    PRB: -0.0701028785865473
+    MKI: 0.8254127926083669
+    VEI: -8.269400881065861
+    beta_log: -0.190337144831109
+    Delta_NL: 0.1257164819898802
+    dCor: 0.3242786433157523
+- county_key: miami_dade
+  label: Miami-Dade County, FL
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/miami-dade-county-2006-2025-all-features
+  cache_hashes:
+    recorder: a2e5c24605a3a12a0a2ca4bf27f857f4b9ae887cb93032f528e6aa4d849c742e
+    history: 40f2002dcb57d2ebaab5c21ead058bf9c7a9f2a8b443b0638be1b0f83c0fca0c
+  modeling_table_hash: 84b92d359d2ae00dfe0bfb2bdb768545d8ef438c8296f160fcfe67f6374de093
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_06
+  cv_metrics:
+    R2_price: 0.6504632937058367
+    R2_log: 0.8265819390305064
+    NMSE: 0.1734180609694936
+    RMSE_log: 0.2804139282440366
+    MAE: 176819.5238374511
+    MAPE: 0.1992293690147562
+    COD: 19.205288365923327
+    PRD: 1.1031154505660543
+    PRB: -0.0358886166867182
+    MKI: 0.8887180542131092
+    VEI: -8.156355290944651
+    beta_log: -0.1386718393334444
+    Delta_NL: 0.1475815041548882
+    dCor: 0.3278191573462918
+- county_key: middlesex
+  label: Middlesex County, MA
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/middlesex-county-2006-2025-all-features
+  cache_hashes:
+    recorder: 69dec2ea8cd3d3deef6492b87ba24eb2e845984d63844b9e2e767923fd04ec0b
+    history: 8b93781274548dc06c46f55351e267f5f98751062ce6461edde1e9748d33effb
+  modeling_table_hash: 8c5a9864fcaae6aa8ff20ef2bbacef1ef3d6993e668fe08381840c3f6a66f4d6
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_09
+  cv_metrics:
+    R2_price: 0.5650203262442846
+    R2_log: 0.7457989262286182
+    NMSE: 0.2542010737713817
+    RMSE_log: 0.2714426437235539
+    MAE: 168368.19964291932
+    MAPE: 0.1939015478934712
+    COD: 18.68935709492608
+    PRD: 1.1000752183541207
+    PRB: -0.1370599758509954
+    MKI: 0.7718858590031495
+    VEI: -20.6236826545292
+    beta_log: -0.2612484033995532
+    Delta_NL: 0.1305009724297317
+    dCor: 0.4418973027615297
+- county_key: cook
+  label: Cook County, IL
+  role: PRIMARY_FULL_7_FOLD
+  status: OK
+  canonical_history_source: data/dewey-downloads/cook-2006-2025-all-features
+  cache_hashes:
+    recorder: dbca4bb8934b4a8cabbfcd2a97c3b374c1bfeb70f306350e9def4af11fcb86f5
+    history: d0d93d13fd6e2c9a5c235de163bc3c317dffe303f22e2f7320d3d4a4056cdaae
+  modeling_table_hash: 3ff74ff1d37c1ab8f16655832c2807d1025305c9e934754b15d1a04a61b3cc25
+  development_period:
+  - '2016-01-01'
+  - '2024-12-31'
+  n_folds_completed: 7
+  selected_lgbm_config: grid_02
+  cv_metrics:
+    R2_price: 0.7059853804385054
+    R2_log: 0.8127888045836658
+    NMSE: 0.1872111954163342
+    RMSE_log: 0.285946862584176
+    MAE: 75953.17246809651
+    MAPE: 0.2075720580021463
+    COD: 20.955940868076404
+    PRD: 1.0727130693140254
+    PRB: -0.0723492023577473
+    MKI: 0.8961965703677262
+    VEI: -18.332492612245154
+    beta_log: -0.1577981293012369
+    Delta_NL: 0.1043345756365776
+    dCor: 0.3277995664355066

@@ -1,0 +1,67 @@
+{
+  "county_key": "miami_dade",
+  "family": "direct",
+  "status": "CANDIDATE_REGION",
+  "n_folds": 7,
+  "n_grid_points": 33,
+  "activity_rho_tilde": 0.3872983346207417,
+  "guardrail_rho_tilde": 23.298448422672752,
+  "activity_log10_rho_tilde": -0.4119543704721594,
+  "guardrail_log10_rho_tilde": 1.3673269998282311,
+  "guardrail_binding_reason": "OK",
+  "activity_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 16,
+    "lofo_indices": [
+      16,
+      15,
+      15,
+      15,
+      16,
+      15,
+      15
+    ]
+  },
+  "guardrail_lofo": {
+    "n_detected": 7,
+    "n_in_window": 7,
+    "n_lofo": 7,
+    "stable": true,
+    "window_h_mult": 4.0,
+    "full_index": 27,
+    "lofo_indices": [
+      27,
+      27,
+      27,
+      27,
+      27,
+      27,
+      27
+    ]
+  },
+  "lofo_activity_indices": [
+    16,
+    15,
+    15,
+    15,
+    16,
+    15,
+    15
+  ],
+  "lofo_guardrail_indices": [
+    27,
+    27,
+    27,
+    27,
+    27,
+    27,
+    27
+  ],
+  "grid_censored_activity": false,
+  "grid_censored_guardrail": false,
+  "dcor_interpretive_only": null
+}

@@ -1,0 +1,80 @@
+# History source resolution (Step 1). Decided READ-ONLY, before any temporal
+# rule was changed. Does NOT change the sale window: modeled transactions
+# remain 2016-2025. Broader Assessor History is used only as leakage-safe
+# historical support for those transactions.
+schema_version: 1
+status: RESOLVED
+resolved_at_utc: "2026-09-03T22:00:00Z"
+raw_audit_file: analysis/external_jurisdiction_benchmark_v1/audits/history_source_resolution_raw.yaml
+audit_job: 21933546 (COMPLETED, exit 0:0, sched_mit_sloan_batch_r8)
+
+decision_rule_applied: >
+  "If the broader folder is a coherent same-product historical superset, or
+  otherwise the better valid canonical source, use the broader folder alone
+  as that jurisdiction's canonical Assessor History source." Both Cook and
+  Allegheny meet this exactly: same schema (279 cols, identical dtypes),
+  same FIPS, zero (ATTOMID, ASSESSORHISTORYYEAR) duplicates in either source,
+  100% of narrow keys present in broad, 100% feature agreement on every
+  compared field (PROPERTYUSESTANDARDIZED, AREABUILDING, YEARBUILT,
+  BEDROOMSCOUNT, BATHCOUNT) across all common keys, identical zero
+  missingness on both sides. The broad folder is not a second vintage to
+  merge -- it IS the narrow folder's data plus many additional years. No
+  concatenation was needed or performed.
+
+cook:
+  fips: "17031"
+  narrow_source: data/dewey-downloads/cookcounty-2016-2025-all-features
+  narrow_year_range: [2019, 2025]
+  narrow_n_rows: 13114434
+  narrow_unreadable_shards: 0
+  broad_source: data/dewey-downloads/cook-2006-2025-all-features
+  broad_year_range: [2006, 2025]
+  broad_n_rows: 32734627
+  broad_unreadable_shards: 0
+  key_overlap_frac_of_narrow: 1.0
+  feature_agreement_on_overlap: {PROPERTYUSESTANDARDIZED: 1.0, AREABUILDING: 1.0, YEARBUILT: 1.0, BEDROOMSCOUNT: 1.0, BATHCOUNT: 1.0}
+  n_common_keys_compared: 13114434
+  decision: USE_BROAD_ALONE
+  extra_years_gained: 13
+
+allegheny:
+  fips: "42003"
+  narrow_source: data/dewey-downloads/allegheny-county-2016-2025-all-features
+  narrow_year_range: [2019, 2025]
+  narrow_n_rows: 4022245
+  narrow_unreadable_shards: 1
+  broad_source: data/dewey-downloads/allegheny-county-2006-2025-all-features
+  broad_year_range: [2003, 2025]
+  broad_n_rows: 12447658
+  broad_unreadable_shards: 0
+  key_overlap_frac_of_narrow: 1.0
+  feature_agreement_on_overlap: {PROPERTYUSESTANDARDIZED: 1.0, AREABUILDING: 1.0, YEARBUILT: 1.0, BEDROOMSCOUNT: 1.0, BATHCOUNT: 1.0}
+  n_common_keys_compared: 4022245
+  decision: USE_BROAD_ALONE
+  extra_years_gained: 16
+  note: >
+    Broad source also fixes the 1 unreadable shard present in the narrow
+    source's History folder (assessor-history_1_7_0.snappy.parquet), a
+    secondary benefit of the switch, not the reason for it.
+
+canonical_sources:
+  cook: data/dewey-downloads/cook-2006-2025-all-features
+  allegheny: data/dewey-downloads/allegheny-county-2006-2025-all-features
+
+sale_window_unchanged: "2016-01-01 to 2025-12-31 (development 2016-2024, forward 2025) -- NOT expanded"
+
+fallback_roles:
+  # Predeclared per protocol. Both Cook and Allegheny subsequently completed
+  # all 7 folds after the broad-History rebuild, so build_baseline_summary.py
+  # assigned PRIMARY_FULL_7_FOLD (see baseline/BASELINE_FREEZE.yaml). The
+  # fallback labels below were NOT used for the frozen baseline.
+  cook: SHORT_HISTORY_BRIDGE_SENSITIVITY
+  allegheny: TEMPORAL_COVERAGE_SENSITIVITY_ONLY
+fallback_roles_used: false
+
+next_steps:
+  - "Update v1_common.py JURISDICTIONS: cook/allegheny assessor_dir -> canonical_sources above."
+  - "Rebuild ONLY cook and allegheny History caches (not recorder, not Wayne/Philadelphia)."
+  - "Rebuild ONLY cook and allegheny modeling tables and cohort-retention/as-of-coverage artifacts."
+  - "Rerun cook and allegheny baseline CV (their prior results were computed on the truncated narrow source and are superseded, not reused)."
+  - "Wayne and Philadelphia are untouched; their caches, tables, and completed baseline CV stand as-is."

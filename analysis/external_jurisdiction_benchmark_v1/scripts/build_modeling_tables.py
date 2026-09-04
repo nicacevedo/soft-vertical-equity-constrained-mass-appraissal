@@ -155,6 +155,31 @@ def build_county(key: str, fips: str, pol: SaleValidationPolicy, primary_codes: 
     ret = retention_table(eligible, targets, matched, final, key)
     ret.to_csv(ANALYSIS / "cohort" / f"{key}_modeling_retention_by_decile.csv", index=False)
 
+    # As-of History coverage by sale year (Step 2): computed here, in the same
+    # pass, rather than re-reading the caches a second time. `targets` = all
+    # 2016-dev_end qualified sales; `matched` = those with a strict pre-sale
+    # History match (before the residential-code filter), so this measures raw
+    # History coverage, not conflated with cohort membership.
+    targets_by_year = targets.assign(sale_year=targets["sale_date"].dt.year)
+    matched_ids = set(matched["TRANSACTIONID"]) if "TRANSACTIONID" in matched.columns else set()
+    coverage_rows = []
+    for yr, grp in targets_by_year.groupby("sale_year"):
+        grp_matched = matched.loc[matched["sale_date"].dt.year == yr] if len(matched) else matched
+        lag_y = grp_matched["history_lag_days"] if "history_lag_days" in grp_matched else pd.Series(dtype=float)
+        n_matched = int(grp["TRANSACTIONID"].isin(matched_ids).sum()) if "TRANSACTIONID" in grp.columns else len(grp_matched)
+        coverage_rows.append({
+            "county_key": key, "sale_year": int(yr), "n_qualified_sales": int(len(grp)),
+            "n_strict_prehistory_match": n_matched,
+            "share_with_strict_prehistory_match": n_matched / len(grp) if len(grp) else float("nan"),
+            "median_history_lag_days": float(lag_y.median()) if len(lag_y) else None,
+            "p90_history_lag_days": float(lag_y.quantile(0.9)) if len(lag_y) else None,
+            "share_lag_gt_1yr": float((lag_y > 365).mean()) if len(lag_y) else None,
+            "share_lag_gt_2yr": float((lag_y > 730).mean()) if len(lag_y) else None,
+            "share_lag_gt_3yr": float((lag_y > 1095).mean()) if len(lag_y) else None,
+        })
+    ANALYSIS.joinpath("audits").mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(coverage_rows).to_csv(ANALYSIS / "audits" / f"{key}_history_asof_coverage_by_year.csv", index=False)
+
     lag = final["history_lag_days"] if "history_lag_days" in final else pd.Series(dtype=float)
     rec_out = {
         "county_key": key, "fips": fips, "status": "OK",

@@ -1,0 +1,22 @@
+{
+  "county_key": "maricopa",
+  "status": "OK",
+  "selected_lgbm_config": "grid_04",
+  "n_folds_used": 7,
+  "cv_mean_RMSE_log": 0.2210644939323912,
+  "cv_mean_R2_price": 0.44022730084529693,
+  "cv_mean_NMSE": 0.19366758853199895,
+  "cv_mean_COD": 12.871347826141077,
+  "cv_mean_PRD": 1.0511392092556808,
+  "cv_mean_PRB": -0.03924745696244935,
+  "cv_mean_MKI": 0.8874593356628929,
+  "cv_mean_VEI": -4.757319040392358,
+  "cv_mean_Beta_log": -0.12767424395061094,
+  "cv_mean_Delta_NL": 0.13621481018101209,
+  "structural_core_cv_mean_RMSE_log": 0.2427313556945999,
+  "structural_core_cv_mean_R2_price": 0.42174902976166184,
+  "selection_rule": "lowest mean CV RMSE_log across 7 expanding calendar-year folds",
+  "written_at_utc": "2026-09-04T02:42:47Z",
+  "no_2025_data_used": true,
+  "no_penalty_path_run": true
+}

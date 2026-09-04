@@ -1,0 +1,22 @@
+{
+  "county_key": "king",
+  "status": "OK",
+  "selected_lgbm_config": "grid_02",
+  "n_folds_used": 7,
+  "cv_mean_RMSE_log": 0.26509623723263825,
+  "cv_mean_R2_price": 0.5204379545319933,
+  "cv_mean_NMSE": 0.23596759767112105,
+  "cv_mean_COD": 17.009106164974437,
+  "cv_mean_PRD": 1.0817334650261181,
+  "cv_mean_PRB": -0.0701028785865473,
+  "cv_mean_MKI": 0.8254127926083669,
+  "cv_mean_VEI": -8.269400881065861,
+  "cv_mean_Beta_log": -0.19033714483110906,
+  "cv_mean_Delta_NL": 0.12571648198988025,
+  "structural_core_cv_mean_RMSE_log": 0.292381521827236,
+  "structural_core_cv_mean_R2_price": 0.47440887651824415,
+  "selection_rule": "lowest mean CV RMSE_log across 7 expanding calendar-year folds",
+  "written_at_utc": "2026-09-04T02:24:58Z",
+  "no_2025_data_used": true,
+  "no_penalty_path_run": true
+}

@@ -1,0 +1,12 @@
+{
+  "county_key": "wayne",
+  "family": "surrogate",
+  "n_folds": 7,
+  "n_rho_points": 33,
+  "selected_lgbm_config": "grid_03",
+  "rho_tilde_min": 0.001,
+  "rho_tilde_max": 150.0,
+  "calibration_method": "first_branch_calibrate (noise-floor-adaptive), reused read-only from analysis/berry_attom_validation_v3/scripts/v3_common.py",
+  "no_2025_data_used": true,
+  "never_globally_sorted_by_achieved_reduction": true
+}

@@ -1,0 +1,1419 @@
+schema_version: 1
+status: FROZEN
+frozen_at_utc: '2026-09-04T15:39:42Z'
+rule: No 2025 outcome may be used to alter this file. The 2025 forward evaluation
+  may not run until this file exists and is hashed.
+integrity_amendment:
+  name: pre_forward_integrity_amendment
+  reason: Candidate-region status now distinguishes a protocol-valid nonempty LOFO-stable
+    interval from preserved point-estimate endpoints (UPPER_GUARDRAIL_PRECEDES_ACTIVITY
+    / NO_STABLE_CANDIDATE_REGION). Cross-jurisdiction overlap is recomputed on protocol-valid
+    regions only; a knife-edge Surrogate intersection is labeled NO_NONDEGENERATE_ALL_JURISDICTION_INTERSECTION.
+    Continuous-endpoint intersection vs 200-point evaluation-grid >=75% coverage is
+    explicit. An earlier provisional freeze is archived, not concealed. 2025 remains
+    untouched.
+  supersedes_provisional_freeze: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/external_jurisdiction_benchmark_v1/path_freeze/FORWARD_FREEZE.provisional_pre_integrity_amendment.yaml
+  provisional_sha256: f4ae39d5228f29443281b11c0a13a915478e07e0e3b33421943b6be9be910266
+  2025_still_untouched: true
+baseline_freeze_file: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/analysis/external_jurisdiction_benchmark_v1/baseline/BASELINE_FREEZE.yaml
+baseline_freeze_sha256: 2f42944965d3f6894f7998308ae53bd0c6cf3484c5a56def4940077e664e259b
+jurisdiction_roles:
+  wayne: PRIMARY_FULL_7_FOLD
+  philadelphia: PRIMARY_FULL_7_FOLD
+  st_louis_county: PRIMARY_FULL_7_FOLD
+  allegheny: PRIMARY_FULL_7_FOLD
+  maricopa: PRIMARY_FULL_7_FOLD
+  king: PRIMARY_FULL_7_FOLD
+  miami_dade: PRIMARY_FULL_7_FOLD
+  middlesex: PRIMARY_FULL_7_FOLD
+  cook: PRIMARY_FULL_7_FOLD
+canonical_history_sources:
+  wayne: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/wayne-philadelphia-st-louis-2004-2025-history
+  philadelphia: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/wayne-philadelphia-st-louis-2004-2025-history
+  st_louis_county: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/wayne-philadelphia-st-louis-2004-2025-history
+  allegheny: data/dewey-downloads/allegheny-county-2006-2025-all-features
+  maricopa: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/maricopa-county-2016-2025-all-features
+  king: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/king-county-2015-2025-all-features
+  miami_dade: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/miami-dade-county-2006-2025-all-features
+  middlesex: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal/data/dewey-downloads/middlesex-county-2006-2025-all-features
+  cook: data/dewey-downloads/cook-2006-2025-all-features
+cohort_and_model_table_hashes:
+  wayne:
+    modeling_table_hash: 93dba31d4bdbf32483aff5ab7834d58b9d9ca1ae57a12e1fcf64b68a162b56f7
+    cache_hashes:
+      recorder: e1fc105ade0b23ce843721f7862a3c0fd81a81503edbcbc68f2538295934b105
+      history: 10a4ae52ebb3af762713350293778b5bb708e6be550d8400e58f7d0eb0e565f7
+  philadelphia:
+    modeling_table_hash: 770305648deafe51beaae943ecb3f42c6b974f580b03632eb54c48d9630122b7
+    cache_hashes:
+      recorder: 0a49d97f50a00bf410b6dae05a33e173984297905c5dbff41a8d1b4e0deb6526
+      history: 57cfc614ee3925e16bfb2de8a4c81839d008f8b523cab45c594a0dafbb4f1a8e
+  st_louis_county:
+    modeling_table_hash: a70bd230114278406f39db8ea59721962ebcd74f808a033a35a78e2ca49253a3
+    cache_hashes:
+      recorder: 7cc5307cf97207eacefb87ff404a6c645a67105c4b454d929ad981a8fe8e87fe
+      history: d8fbb143f77ad1013bd6114496151f24864f90e9f56b98d40503ec3cecd6be9b
+  allegheny:
+    modeling_table_hash: 61a2acc6fe6c3bd5247257a3d93b0d5a6992671f6fc07eb8c40d095c2ca7011a
+    cache_hashes:
+      recorder: 117af95b00380d7f1961fd3b523bd762d09d15242d8516248deb106119100315
+      history: dcb80730800e11155e13817530db6450a97a6b997b0c9166c345a6b1259c9ea7
+  maricopa:
+    modeling_table_hash: b58cd12194a5a89943dde9a272b9b1d06554cd7609142438e32202568d8ad78e
+    cache_hashes:
+      recorder: 01a155ff434afd1c51f4f8600fc5df4c88e798a5206f2b634adb10ae72649e28
+      history: a19a39479803a62de41aae4f32bccacbe45f365b198941c0b31ae277481200a0
+  king:
+    modeling_table_hash: 3475aad11596f11eaf2398c917e35f73c836b9853b09c60168703539620f1412
+    cache_hashes:
+      recorder: cc5e1739d24860620d00851624f950ea0038e3502e2ca7ae64f2c8c1437dbd6c
+      history: 93f3f3f3496263a2d5df1f6f436000c27916ed100a32219224083a6f7c4ae15a
+  miami_dade:
+    modeling_table_hash: 84b92d359d2ae00dfe0bfb2bdb768545d8ef438c8296f160fcfe67f6374de093
+    cache_hashes:
+      recorder: a2e5c24605a3a12a0a2ca4bf27f857f4b9ae887cb93032f528e6aa4d849c742e
+      history: 40f2002dcb57d2ebaab5c21ead058bf9c7a9f2a8b443b0638be1b0f83c0fca0c
+  middlesex:
+    modeling_table_hash: 8c5a9864fcaae6aa8ff20ef2bbacef1ef3d6993e668fe08381840c3f6a66f4d6
+    cache_hashes:
+      recorder: 69dec2ea8cd3d3deef6492b87ba24eb2e845984d63844b9e2e767923fd04ec0b
+      history: 8b93781274548dc06c46f55351e267f5f98751062ce6461edde1e9748d33effb
+  cook:
+    modeling_table_hash: 3ff74ff1d37c1ab8f16655832c2807d1025305c9e934754b15d1a04a61b3cc25
+    cache_hashes:
+      recorder: dbca4bb8934b4a8cabbfcd2a97c3b374c1bfeb70f306350e9def4af11fcb86f5
+      history: d0d93d13fd6e2c9a5c235de163bc3c317dffe303f22e2f7320d3d4a4056cdaae
+baseline_configs:
+  wayne: grid_03
+  philadelphia: grid_01
+  st_louis_county: grid_08
+  allegheny: grid_07
+  maricopa: grid_04
+  king: grid_02
+  miami_dade: grid_06
+  middlesex: grid_09
+  cook: grid_02
+fold_dates:
+  scheme: expanding_calendar_year
+  validation_years:
+  - 2018
+  - 2019
+  - 2020
+  - 2021
+  - 2022
+  - 2023
+  - 2024
+normalized_path_grid:
+  n_points: 34
+  min_rho_tilde: 0.001
+  max_rho_tilde: 150.0
+  includes_zero: true
+numerical_validity_rules:
+  training_support_bound: 'A Direct path point is invalid where predicted log price
+    leaves the training label range extended by one full range width on each side:
+    pred_log must lie in [y_min-(y_max-y_min), y_max+(y_max-y_min)]. Defined only
+    from the training support -- never from R2/PRD/PRB/MKI/VEI/beta -- so it cannot
+    select on the outcome of interest. Approved 2026-09-04; applied uniformly to all
+    jurisdictions. Recorded as fit_status=DIVERGED_OUTSIDE_TRAINING_SUPPORT.'
+  screening_metric_finiteness: A path point is invalid if any boundary-driving metric
+    (PRD, PRB, MKI, VEI, Beta_log, R2_price, MAE_price, MAPE, RMSE_log) is non-finite.
+    Recorded as fit_status=NUMERICALLY_UNSTABLE_RHO.
+  surrogate_family_exposure: 'The Surrogate family is structurally not exposed to
+    these failure modes: first_branch_calibrate terminates the branch (GRID_CEILING/MATERIAL_REVERSAL)
+    before the divergent tail. Verified: min R2_price across all 9 jurisdictions is
+    +0.02, max MAE_price 3.33e5, max MAPE 0.39 -- no divergence signature.'
+usable_grid_extent:
+  allegheny_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  allegheny_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  cook_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  cook_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  king_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  king_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  maricopa_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  maricopa_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  miami_dade_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  miami_dade_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  middlesex_direct:
+    n_rows: 238
+    n_usable_rows: 219
+    excluded_by_status:
+      NUMERICALLY_UNSTABLE_RHO: 10
+      DIVERGED_OUTSIDE_TRAINING_SUPPORT: 9
+    max_usable_rho_tilde: 71.21730832153513
+    declared_max_rho_tilde: 150.0
+  middlesex_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  philadelphia_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  philadelphia_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  st_louis_county_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  st_louis_county_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  wayne_direct:
+    n_rows: 238
+    n_usable_rows: 238
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+  wayne_surrogate:
+    n_rows: 231
+    n_usable_rows: 231
+    excluded_by_status: {}
+    max_usable_rho_tilde: 150.0
+    declared_max_rho_tilde: 150.0
+band_semantics: Intersection = continuous [max activity, min guardrail] across the
+  stated sample. >=75% coverage = continuous interval membership evaluated on a 200-point
+  geometric grid spanning [min activity, max guardrail] of that sample -- not coverage
+  counted only at the 33 tested CV rho_tilde points.
+direct_path_meta:
+  philadelphia:
+    county_key: philadelphia
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_01
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  cook:
+    county_key: cook
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_02
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  wayne:
+    county_key: wayne
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_03
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  allegheny:
+    county_key: allegheny
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_07
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  miami_dade:
+    county_key: miami_dade
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_06
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  king:
+    county_key: king
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_02
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  middlesex:
+    county_key: middlesex
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_09
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  st_louis_county:
+    county_key: st_louis_county
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_08
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+  maricopa:
+    county_key: maricopa
+    family: direct
+    n_folds: 7
+    n_rho_points: 34
+    selected_lgbm_config: grid_04
+    rho_tilde_min: 0.0
+    rho_tilde_max: 150.0
+    no_2025_data_used: true
+surrogate_first_branch_meta:
+  philadelphia:
+    county_key: philadelphia
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_01
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  cook:
+    county_key: cook
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_02
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  wayne:
+    county_key: wayne
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_03
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  middlesex:
+    county_key: middlesex
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_09
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  miami_dade:
+    county_key: miami_dade
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_06
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  allegheny:
+    county_key: allegheny
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_07
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  king:
+    county_key: king
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_02
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  st_louis_county:
+    county_key: st_louis_county
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_08
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+  maricopa:
+    county_key: maricopa
+    family: surrogate
+    n_folds: 7
+    n_rho_points: 33
+    selected_lgbm_config: grid_04
+    rho_tilde_min: 0.001
+    rho_tilde_max: 150.0
+    calibration_method: first_branch_calibrate (noise-floor-adaptive), reused read-only
+      from analysis/berry_attom_validation_v3/scripts/v3_common.py
+    no_2025_data_used: true
+    never_globally_sorted_by_achieved_reduction: true
+candidate_region_endpoints:
+- county_key: wayne
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.3872983346207417
+  guardrail_rho_tilde: 0.8157392010776716
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: wayne
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.0873040160721099
+  guardrail_rho_tilde: 0.3872983346207417
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: philadelphia
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.2668657121503905
+  guardrail_rho_tilde: 0.8157392010776716
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: philadelphia
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.0873040160721099
+  guardrail_rho_tilde: 0.2668657121503905
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: st_louis_county
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.2668657121503905
+  guardrail_rho_tilde: 23.298448422672752
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: st_louis_county
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.0873040160721099
+  guardrail_rho_tilde: 0.3872983346207417
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: allegheny
+  family: direct
+  status: NO_STABLE_CANDIDATE_REGION
+  activity_rho_tilde: 0.2668657121503905
+  guardrail_rho_tilde: 23.298448422672752
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: false
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: allegheny
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.1267030513510693
+  guardrail_rho_tilde: 0.5620804515923291
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: maricopa
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.2668657121503905
+  guardrail_rho_tilde: 0.8157392010776716
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: maricopa
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.0873040160721099
+  guardrail_rho_tilde: 0.2668657121503905
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: king
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.1838822993940162
+  guardrail_rho_tilde: 23.298448422672752
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: king
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.0873040160721099
+  guardrail_rho_tilde: 0.2668657121503905
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: miami_dade
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.3872983346207417
+  guardrail_rho_tilde: 23.298448422672752
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: miami_dade
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.060156335155656
+  guardrail_rho_tilde: 0.1267030513510693
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: middlesex
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.3872983346207417
+  guardrail_rho_tilde: 11.061685231539125
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: middlesex
+  family: surrogate
+  status: UPPER_GUARDRAIL_PRECEDES_ACTIVITY
+  activity_rho_tilde: 0.2668657121503905
+  guardrail_rho_tilde: 0.060156335155656
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: cook
+  family: direct
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.1838822993940162
+  guardrail_rho_tilde: 0.5620804515923291
+  guardrail_binding_reason: OK
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+- county_key: cook
+  family: surrogate
+  status: CANDIDATE_REGION
+  activity_rho_tilde: 0.060156335155656
+  guardrail_rho_tilde: 0.3872983346207417
+  guardrail_binding_reason: predictive-harm
+  activity_lofo_stable: true
+  guardrail_lofo_stable: true
+  grid_censored_activity: false
+  grid_censored_guardrail: false
+lofo_diagnostics:
+- county_key: wayne
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: wayne
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: philadelphia
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: philadelphia
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: st_louis_county
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 6
+  guardrail_n_lofo: 7
+- county_key: st_louis_county
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: allegheny
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 3
+  guardrail_n_lofo: 7
+- county_key: allegheny
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: maricopa
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: maricopa
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: king
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: king
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: miami_dade
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: miami_dade
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: middlesex
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: middlesex
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: cook
+  family: direct
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+- county_key: cook
+  family: surrogate
+  activity_n_in_window: 7
+  activity_n_lofo: 7
+  guardrail_n_in_window: 7
+  guardrail_n_lofo: 7
+normalization_portability:
+- family: direct
+  endpoint: activity_rho_tilde
+  sample: all_point_estimates
+  jurisdictions: wayne,philadelphia,st_louis_county,allegheny,maricopa,king,miami_dade,middlesex,cook
+  n: 9
+  sd_log10_rho_tilde: 0.1264480209154118
+  sd_log10_raw_rho: 0.1632834445467377
+  iqr_log10_rho_tilde: 0.1617528518454901
+  iqr_log10_raw_rho: 0.2284948333937186
+  range_log10_rho_tilde: 0.3235057036909801
+  range_log10_raw_rho: 0.523173306568001
+  normalization_reduces_dispersion: true
+- family: direct
+  endpoint: activity_rho_tilde
+  sample: protocol_valid_regions
+  jurisdictions: wayne,philadelphia,st_louis_county,maricopa,king,miami_dade,middlesex,cook
+  n: 8
+  sd_log10_rho_tilde: 0.1349864687746393
+  sd_log10_raw_rho: 0.1738719716231663
+  iqr_log10_rho_tilde: 0.2021910648068626
+  iqr_log10_raw_rho: 0.2478340949361912
+  range_log10_rho_tilde: 0.3235057036909801
+  range_log10_raw_rho: 0.523173306568001
+  normalization_reduces_dispersion: true
+- family: direct
+  endpoint: guardrail_rho_tilde
+  sample: all_point_estimates
+  jurisdictions: wayne,philadelphia,st_louis_county,allegheny,maricopa,king,miami_dade,middlesex,cook
+  n: 9
+  sd_log10_rho_tilde: 0.7629866761833501
+  sd_log10_raw_rho: 0.7477177643145612
+  iqr_log10_rho_tilde: 1.4557756666094104
+  iqr_log10_raw_rho: 1.3414279127747388
+  range_log10_rho_tilde: 1.6175285184549004
+  range_log10_raw_rho: 1.774555083199893
+  normalization_reduces_dispersion: false
+- family: direct
+  endpoint: guardrail_rho_tilde
+  sample: protocol_valid_regions
+  jurisdictions: wayne,philadelphia,st_louis_county,maricopa,king,miami_dade,middlesex,cook
+  n: 8
+  sd_log10_rho_tilde: 0.7657372879825768
+  sd_log10_raw_rho: 0.7513713775750204
+  iqr_log10_rho_tilde: 1.4557756666094104
+  iqr_log10_raw_rho: 1.3140679758982228
+  range_log10_rho_tilde: 1.6175285184549004
+  range_log10_raw_rho: 1.774555083199893
+  normalization_reduces_dispersion: false
+- family: surrogate
+  endpoint: activity_rho_tilde
+  sample: all_point_estimates
+  jurisdictions: wayne,philadelphia,st_louis_county,allegheny,maricopa,king,miami_dade,middlesex,cook
+  n: 9
+  sd_log10_rho_tilde: 0.1944027337604814
+  sd_log10_raw_rho: 0.2605071478009712
+  iqr_log10_rho_tilde: 0.0
+  iqr_log10_raw_rho: 0.2796766062448014
+  range_log10_rho_tilde: 0.6470114073819601
+  range_log10_raw_rho: 0.8627428333992521
+  normalization_reduces_dispersion: true
+- family: surrogate
+  endpoint: activity_rho_tilde
+  sample: protocol_valid_regions
+  jurisdictions: wayne,philadelphia,st_louis_county,allegheny,maricopa,king,miami_dade,cook
+  n: 8
+  sd_log10_rho_tilde: 0.1036625411787335
+  sd_log10_raw_rho: 0.1622113040982637
+  iqr_log10_rho_tilde: 0.0404382129613725
+  iqr_log10_raw_rho: 0.2560813180571075
+  range_log10_rho_tilde: 0.3235057036909798
+  range_log10_raw_rho: 0.4032936711896832
+  normalization_reduces_dispersion: true
+- family: surrogate
+  endpoint: guardrail_rho_tilde
+  sample: all_point_estimates
+  jurisdictions: wayne,philadelphia,st_louis_county,allegheny,maricopa,king,miami_dade,middlesex,cook
+  n: 9
+  sd_log10_rho_tilde: 0.2965468950500651
+  sd_log10_raw_rho: 0.2761355433164255
+  iqr_log10_rho_tilde: 0.1617528518454901
+  iqr_log10_raw_rho: 0.1254846155988212
+  range_log10_rho_tilde: 0.9705171110729404
+  range_log10_raw_rho: 0.8345736525543517
+  normalization_reduces_dispersion: false
+- family: surrogate
+  endpoint: guardrail_rho_tilde
+  sample: protocol_valid_regions
+  jurisdictions: wayne,philadelphia,st_louis_county,allegheny,maricopa,king,miami_dade,cook
+  n: 8
+  sd_log10_rho_tilde: 0.1921195136465365
+  sd_log10_raw_rho: 0.2115141220013353
+  iqr_log10_rho_tilde: 0.1617528518454901
+  iqr_log10_raw_rho: 0.1263577880288906
+  range_log10_rho_tilde: 0.6470114073819604
+  range_log10_raw_rho: 0.7267993748806636
+  normalization_reduces_dispersion: true
+cross_jurisdiction_band:
+- family: direct
+  subset: all_primary
+  region_rule: protocol_valid
+  n_with_region: 8
+  intersection: '[0.3872983346207417, 0.5620804515923291]'
+  intersection_status: NONEMPTY_INTERSECTION
+  majority_band_75pct: '[0.3909396965577807, 0.8111718071042558]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+- family: direct
+  subset: berry_anchored
+  region_rule: protocol_valid
+  n_with_region: 3
+  intersection: '[0.3872983346207417, 0.8157392010776716]'
+  intersection_status: NONEMPTY_INTERSECTION
+  majority_band_75pct: '[0.39093969655778077, 0.8021135956662134]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+- family: direct
+  subset: excl_miami_dade
+  region_rule: protocol_valid
+  n_with_region: 7
+  intersection: '[0.3872983346207417, 0.5620804515923291]'
+  intersection_status: NONEMPTY_INTERSECTION
+  majority_band_75pct: '[0.3909396965577807, 0.8111718071042558]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+- family: direct
+  subset: all_primary
+  region_rule: point_estimate_sensitivity
+  n_with_region: 9
+  intersection: '[0.3872983346207417, 0.5620804515923291]'
+  intersection_status: NONEMPTY_INTERSECTION
+  majority_band_75pct: '[0.3909396965577807, 0.8111718071042558]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+- family: surrogate
+  subset: all_primary
+  region_rule: protocol_valid
+  n_with_region: 8
+  intersection: '[0.1267030513510693, 0.1267030513510693]'
+  intersection_status: NO_NONDEGENERATE_ALL_JURISDICTION_INTERSECTION
+  majority_band_75pct: '[0.08812484459797208, 0.2648753015080894]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+- family: surrogate
+  subset: berry_anchored
+  region_rule: protocol_valid
+  n_with_region: 3
+  intersection: '[0.0873040160721099, 0.2668657121503905]'
+  intersection_status: NONEMPTY_INTERSECTION
+  majority_band_75pct: '[0.0873040160721099, 0.2663667116449054]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+- family: surrogate
+  subset: excl_miami_dade
+  region_rule: protocol_valid
+  n_with_region: 7
+  intersection: '[0.1267030513510693, 0.2668657121503905]'
+  intersection_status: NONEMPTY_INTERSECTION
+  majority_band_75pct: '[0.08812484459797208, 0.2648753015080894]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+- family: surrogate
+  subset: all_primary
+  region_rule: point_estimate_sensitivity
+  n_with_region: 8
+  intersection: '[0.1267030513510693, 0.1267030513510693]'
+  intersection_status: NO_NONDEGENERATE_ALL_JURISDICTION_INTERSECTION
+  majority_band_75pct: '[0.08812484459797208, 0.2648753015080894]'
+  majority_band_semantics: '>=75% coverage is continuous interval membership (activity
+    <= r <= guardrail) evaluated on a 200-point geometric grid spanning [min activity,
+    max guardrail] of the included regions. It is NOT coverage counted only at the
+    33 tested CV rho_tilde points. The intersection uses the continuous endpoints
+    (max activity, min guardrail) exactly.'
+achieved_mechanism_anchors:
+- county_key: wayne
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 2.324995953335248
+  beta0: -0.2263252899476535
+  attained: true
+- county_key: wayne
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 100.77003873690816
+  beta0: -0.2263252899476535
+  attained: true
+- county_key: wayne
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.2263252899476535
+  attained: false
+- county_key: wayne
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.2263252899476535
+  attained: false
+- county_key: wayne
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.4540962980907284
+  beta0: -0.2253685852222557
+  attained: true
+- county_key: wayne
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: null
+  beta0: -0.2253685852222557
+  attained: false
+- county_key: wayne
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.2253685852222557
+  attained: false
+- county_key: wayne
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.2253685852222557
+  attained: false
+- county_key: philadelphia
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.682223294727388
+  beta0: -0.3132396981956176
+  attained: true
+- county_key: philadelphia
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 10.943842845734338
+  beta0: -0.3132396981956176
+  attained: true
+- county_key: philadelphia
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.3132396981956176
+  attained: false
+- county_key: philadelphia
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.3132396981956176
+  attained: false
+- county_key: philadelphia
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 0.8510216356751962
+  beta0: -0.3136284514822662
+  attained: true
+- county_key: philadelphia
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 21.1737608329182
+  beta0: -0.3136284514822662
+  attained: true
+- county_key: philadelphia
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.3136284514822662
+  attained: false
+- county_key: philadelphia
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.3136284514822662
+  attained: false
+- county_key: st_louis_county
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 2.2095594288809
+  beta0: -0.1566222821398699
+  attained: true
+- county_key: st_louis_county
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 104.27982456568364
+  beta0: -0.1566222821398699
+  attained: true
+- county_key: st_louis_county
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.1566222821398699
+  attained: false
+- county_key: st_louis_county
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.1566222821398699
+  attained: false
+- county_key: st_louis_county
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 0.7806083208363971
+  beta0: -0.1565212463316447
+  attained: true
+- county_key: st_louis_county
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 9.0756482681946
+  beta0: -0.1565212463316447
+  attained: true
+- county_key: st_louis_county
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.1565212463316447
+  attained: false
+- county_key: st_louis_county
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.1565212463316447
+  attained: false
+- county_key: allegheny
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.5387929691204567
+  beta0: -0.2315755782429732
+  attained: true
+- county_key: allegheny
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 10.901527538039346
+  beta0: -0.2315755782429732
+  attained: true
+- county_key: allegheny
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.2315755782429732
+  attained: false
+- county_key: allegheny
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.2315755782429732
+  attained: false
+- county_key: allegheny
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 0.9061823581597196
+  beta0: -0.2317736732824953
+  attained: true
+- county_key: allegheny
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 7.358361605270623
+  beta0: -0.2317736732824953
+  attained: true
+- county_key: allegheny
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.2317736732824953
+  attained: false
+- county_key: allegheny
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.2317736732824953
+  attained: false
+- county_key: maricopa
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.573918650009398
+  beta0: -0.128000645384517
+  attained: true
+- county_key: maricopa
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 31.50085327472462
+  beta0: -0.128000645384517
+  attained: true
+- county_key: maricopa
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.128000645384517
+  attained: false
+- county_key: maricopa
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.128000645384517
+  attained: false
+- county_key: maricopa
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 0.7886501202074718
+  beta0: -0.1276861039333821
+  attained: true
+- county_key: maricopa
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 7.395114477709864
+  beta0: -0.1276861039333821
+  attained: true
+- county_key: maricopa
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.1276861039333821
+  attained: false
+- county_key: maricopa
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.1276861039333821
+  attained: false
+- county_key: king
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.8929929558787704
+  beta0: -0.190441939887826
+  attained: true
+- county_key: king
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 70.6301754096225
+  beta0: -0.190441939887826
+  attained: true
+- county_key: king
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: 127.79009747619683
+  beta0: -0.190441939887826
+  attained: true
+- county_key: king
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.190441939887826
+  attained: false
+- county_key: king
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.0232585578110558
+  beta0: -0.1900114982508165
+  attained: true
+- county_key: king
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 10.158165624074885
+  beta0: -0.1900114982508165
+  attained: true
+- county_key: king
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.1900114982508165
+  attained: false
+- county_key: king
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.1900114982508165
+  attained: false
+- county_key: miami_dade
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.0526886582651624
+  beta0: -0.1417051804566721
+  attained: true
+- county_key: miami_dade
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 4.645521478908063
+  beta0: -0.1417051804566721
+  attained: true
+- county_key: miami_dade
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: 108.07923814374772
+  beta0: -0.1417051804566721
+  attained: true
+- county_key: miami_dade
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.1417051804566721
+  attained: false
+- county_key: miami_dade
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 0.2026684574552762
+  beta0: -0.1379697921316659
+  attained: true
+- county_key: miami_dade
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 1.0801783822892117
+  beta0: -0.1379697921316659
+  attained: true
+- county_key: miami_dade
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: 5.006826904920522
+  beta0: -0.1379697921316659
+  attained: true
+- county_key: miami_dade
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: 14.873810602243854
+  beta0: -0.1379697921316659
+  attained: true
+- county_key: middlesex
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 3.09818764825416
+  beta0: -0.2593790772480224
+  attained: true
+- county_key: middlesex
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 56.26964535407659
+  beta0: -0.2593790772480224
+  attained: true
+- county_key: middlesex
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.2593790772480224
+  attained: false
+- county_key: middlesex
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.2593790772480224
+  attained: false
+- county_key: middlesex
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 1.040014113466548
+  beta0: -0.2628252654201209
+  attained: true
+- county_key: middlesex
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 101.0647532054863
+  beta0: -0.2628252654201209
+  attained: true
+- county_key: middlesex
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: null
+  beta0: -0.2628252654201209
+  attained: false
+- county_key: middlesex
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: null
+  beta0: -0.2628252654201209
+  attained: false
+- county_key: cook
+  family: direct
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 0.8068175897491117
+  beta0: -0.1578686881844875
+  attained: true
+- county_key: cook
+  family: direct
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 2.486762272316388
+  beta0: -0.1578686881844875
+  attained: true
+- county_key: cook
+  family: direct
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: 7.891876567728306
+  beta0: -0.1578686881844875
+  attained: true
+- county_key: cook
+  family: direct
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: 21.96737100326585
+  beta0: -0.1578686881844875
+  attained: true
+- county_key: cook
+  family: surrogate
+  status: OK
+  target_A_beta: 0.25
+  rho_tilde: 0.2151600472162764
+  beta0: -0.1575118049192048
+  attained: true
+- county_key: cook
+  family: surrogate
+  status: OK
+  target_A_beta: 0.5
+  rho_tilde: 0.7476444494104206
+  beta0: -0.1575118049192048
+  attained: true
+- county_key: cook
+  family: surrogate
+  status: OK
+  target_A_beta: 0.75
+  rho_tilde: 2.2772646870056894
+  beta0: -0.1575118049192048
+  attained: true
+- county_key: cook
+  family: surrogate
+  status: OK
+  target_A_beta: 0.9
+  rho_tilde: 5.412658827609016
+  beta0: -0.1575118049192048
+  attained: true
