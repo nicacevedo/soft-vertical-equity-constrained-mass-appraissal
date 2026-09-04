@@ -1,0 +1,147 @@
+# Frozen residential property-use mapping (Step 2). Written BEFORE any cohort,
+# baseline, or penalty-path outcome is computed. Based on documented ATTOM
+# meaning (DimPropertyType: PropertyUseStandardized = AttomCode,
+# PropertyUseGroup = MajorCategory), NOT on prediction/fairness results and
+# NOT on the v3 structural proxy (BROAD_RESIDENTIAL_RULE), which this
+# benchmark does not reuse.
+schema_version: 2
+status: FROZEN
+frozen_at_utc: "2026-09-03T21:35:00Z"
+supersedes: "schema_version 1 (2026-09-03T21:00:00Z), paused for user re-verification after an empirical anomaly was flagged"
+
+provenance:
+  source: "ATTOM DimPropertyType / PropertyType reference table (source of record for all labels below, including the 390 correction)"
+  fields: "PropertyUseStandardized = AttomCode; PropertyUseGroup = MajorCategory"
+  supplied_by: "user, in-conversation, 2026-09-03, after explicitly re-checking the published source"
+  external_dictionary_url_on_record: "https://cloud-help.attomdata.com/article/600-data-dictionary"
+  authoritative: true
+  note: >
+    This repository ships no machine-readable copy of the full DimPropertyType
+    table (verified twice independently). The mapping below is transcribed
+    from the user's re-verified reading of that authoritative external table,
+    not derived from, or adjusted for, any observed code frequency or model
+    outcome in this repository's data.
+
+# --- Correction history (kept for audit trail; do not delete) ---
+correction_history:
+  - at_utc: "2026-09-03T21:00:00Z"
+    issue: >
+      Original transcription had 385=Seasonal/Cabin Residence and
+      386=Single Family Residence. An empirical jurisdiction x code
+      frequency check (cohort/UNCLASSIFIED_CODES_REPORT.md) found this
+      inconsistent: 385 was 54.7% of all History rows and dominant even in
+      Cook/Maricopa/Miami-Dade (not a plausible seasonal/vacation pattern),
+      while 386 was 2.05% and absent in Wayne and Middlesex (not a plausible
+      pattern for the primary single-family code). Flagged and reported
+      per the "stop if semantically inconsistent" instruction; NOT resolved
+      by swapping labels based on volume -- the user re-checked the
+      published source table instead.
+  - at_utc: "2026-09-03T21:35:00Z"
+    resolution: >
+      User re-checked the published ATTOM PropertyType reference and
+      corrected the transcription: 384 = Seasonal/Cabin/Vacation Residence,
+      385 = Single Family Residence, 386 = Townhouse, 366 = Condominium.
+      This resolves the empirical anomaly exactly: 385's universal dominance
+      is now consistent with it being the general Single Family Residence
+      code, and 366's concentration in Philadelphia is now understood as a
+      genuine jurisdictional housing-composition difference (Philadelphia has
+      a large condominium share), not a mapping defect. The correction was
+      made from the source document, not from the frequency table --
+      frequencies corroborate but did not drive the correction.
+
+# Published SFR/single-family-like grouping. Frozen from the authoritative
+# source; NOT adjusted for observed code frequency or retention.
+PRIMARY_RESIDENTIAL:
+  codes: [363, 376, 377, 380, 382, 383, 384, 385, 386, 390]
+  labels:
+    "363": "Bungalow"
+    "376": "Patio Home"
+    "377": "PUD (Planned Unit Development)"
+    "380": "Residential-General"
+    "382": "Residential-Single"
+    "383": "Row House"
+    "384": "Seasonal, Cabin, Vacation Residence"
+    "385": "Single Family Residence"
+    "386": "Townhouse"
+    "390": "Zero Lot Line (Residential)"
+  label_correction_history:
+    - at_utc: "2026-09-03T21:50:00Z"
+      issue: >
+        Code 390 was originally transcribed as "Townhouse" in schema_version 1,
+        conflicting with the corrected 386=Townhouse. Left as "pending
+        confirmation" rather than guessed.
+      resolution: >
+        User confirmed 390 = Zero Lot Line (Residential) from the authoritative
+        ATTOM PropertyType documentation. Cohort membership unchanged (390 was
+        already in PRIMARY_RESIDENTIAL under both labels); this corrects
+        documentation only, per the same non-outcome-driven standard as the
+        385/386/366 correction above.
+  excluded_despite_residential_appearance:
+    "364":
+      label: "Cluster Home"
+      reason: "Published reference groups this code under CONDO, not SFR."
+    "423":
+      label: "Barndominium or Tiny House (code/label pairing uncertain in user's message; excluded either way -- NOT Zero-Lot-Line, which is confirmed as code 390 and already in PRIMARY_RESIDENTIAL)"
+      reason: "No authoritative evidence ATTOM groups this with SFR."
+    "447":
+      label: "Barndominium or Tiny House (code/label pairing uncertain in user's message; excluded either way)"
+      reason: "No authoritative evidence ATTOM groups this with SFR."
+    "452":
+      label: "Tiny House"
+      reason: "No authoritative evidence ATTOM groups this with SFR."
+
+LEGACY_385_ONLY:
+  codes: [385]
+  purpose: >
+    Backward comparability with v3 and the six-county benchmark, which both
+    used code 385 alone as their primary cohort filter. Under the CORRECTED
+    mapping, 385 = Single Family Residence, so LEGACY_385_ONLY is no longer a
+    semantically narrow subset of PRIMARY_RESIDENTIAL as it was believed to be
+    under the original (incorrect) transcription -- it is simply the single
+    largest code within PRIMARY_RESIDENTIAL. Retained as a named comparison
+    point to the prior benchmarks, not because it is semantically distinct.
+
+BROAD_RESIDENTIAL_APPENDIX:
+  status: PARTIALLY_SPECIFIED
+  confirmed_members:
+    "366":
+      label: "Condominium"
+      reason: >
+        Confirmed excluded from PRIMARY_RESIDENTIAL by the authoritative
+        source. Its high prevalence in Philadelphia (19.2% of all 9
+        jurisdictions' History rows; ~50% of Philadelphia's coded rows) is a
+        real jurisdictional housing-composition difference, not evidence of
+        a mapping error -- Philadelphia genuinely has a large condominium
+        share. Reported as a descriptive composition finding, not treated as
+        a retention defect to correct.
+  still_unspecified_by_exact_code:
+    - "2-4 unit multifamily"
+    - "manufactured/mobile homes"
+    - "residential-income codes"
+  excludes_by_name: ["5+ unit apartments"]
+  freeze_status: >
+    Membership must be semantically frozen (from the authoritative source,
+    same standard as PRIMARY_RESIDENTIAL) before this appendix is used for
+    any modeling outcome. Only code 366 is currently confirmed; the appendix
+    is not yet complete and is not used until it is.
+
+EXPLICITLY_EXCLUDED_FROM_PRIMARY:
+  confirmed:
+    "364": "Cluster Home (CONDO group)"
+    "366": "Condominium"
+  categories_by_name_not_yet_matched_to_exact_codes:
+    - "duplex/triplex/quadplex"
+    - "multifamily/apartments"
+    - "manufactured/mobile homes"
+    - "timeshares"
+    - "common-area/development records"
+    - "vacant land"
+  note: >
+    Codes 401 (3.0% of all rows), 397 (2.7%), 361 (2.1%), 294 (1.7%), 369
+    (1.4%) and others remain unclassified pending exact codes for these named
+    categories. They are excluded from PRIMARY_RESIDENTIAL by omission (not
+    listed in the frozen 10-code set) but not yet assigned to a specific
+    named excluded category. See cohort/UNCLASSIFIED_CODES_REPORT.md.
+
+no_model_outcome_influenced_this_mapping: true
+mapping_not_adjusted_for_retention_or_frequency: true

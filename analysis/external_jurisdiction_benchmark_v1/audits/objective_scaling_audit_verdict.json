@@ -1,0 +1,22 @@
+{
+  "written_at_utc": "2026-09-03T20:08:16Z",
+  "rho_tilde_equivalence_exact_everywhere": true,
+  "native_custom_parity_interpretable": true,
+  "direct_equals_surrogate_at_rho0": true,
+  "parity_mean_abs_diff_by_county": {
+    "wayne": 1.7214109184315874e-08,
+    "philadelphia": 1.312524303997975e-08,
+    "cook": 1.822828846087532e-08
+  },
+  "canonical_kwargs_direct": {
+    "ratio_mode": "diff",
+    "match_native_init": true
+  },
+  "canonical_kwargs_surrogate": {
+    "ratio_mode": "diff",
+    "weighting_proxy_mode": "identity",
+    "match_native_init": true
+  },
+  "reference_synthetic_test": "tests/test_paper_v6_guards.py::test_native_custom_rho0_parity_after_mean_init",
+  "gate_passed": true
+}

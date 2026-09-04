@@ -1,0 +1,4 @@
+jurisdiction,N_full,N_linked,linkage_rate,PRB_full,PRB_linked,PRD_full,PRD_linked,sign_flip_PRB
+detroit_mi,9653,8680,0.8992023205221175,-0.3495,-0.3936,1.3274,1.2891,False
+philadelphia_pa,40509,36865,0.9100446814288183,-0.0923,-0.0913,1.0842,1.0769,False
+st_louis_county_mo,73743,72675,0.985517269435743,-0.0069,-0.0057,1.0151,1.0138,False

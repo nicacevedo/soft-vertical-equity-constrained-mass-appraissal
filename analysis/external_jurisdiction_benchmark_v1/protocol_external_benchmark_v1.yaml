@@ -1,0 +1,296 @@
+# Frozen protocol. Written BEFORE any cohort, baseline, or penalty outcome
+# except the objective-scaling/parity audit (Step 1), which is itself a
+# pre-outcome correctness gate, not a scientific result.
+schema_version: 1
+protocol_status: FROZEN
+frozen_at_utc: "2026-09-03T20:15:00Z"
+
+repository:
+  root: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal
+  branch: testing
+  head_sha_at_protocol_write: 9e7face825006d5998a846f6fd4f5dc9c2296bfd
+  python_executable: /home/nacevedo/.conda/envs/fairness_env/bin/python
+  preflight_record: analysis/external_jurisdiction_benchmark_v1/audits/preflight.json
+
+do_not_modify:
+  - analysis/berry_cmf_validation/
+  - analysis/berry_attom_validation_v3/
+  - paper/paper_v12.tex
+  - existing CCAO output (output/robust_rolling_origin_cv*, output/paper_v12_*)
+  - existing six-county benchmark output (output/county_bench_*)
+manuscript_do_not_edit: paper/paper_v12.tex
+
+supersedes_note: >
+  This benchmark is intended to supersede both the paper's exploratory
+  six-county ATTOM benchmark (Section 5.5/6.6, paper_v12.tex) and
+  analysis/berry_attom_validation_v3/ as the paper's external-jurisdiction
+  evidence. Neither predecessor is modified; both remain read-only inputs
+  (v3's Berry/local reproduction is reused; the six-county benchmark's design
+  disclosure is reused as legacy-crosswalk context only).
+
+unattended_execution_rule: >
+  Once the 3-county pilot begins, no scientific criterion may be altered
+  automatically. On any of: a correctness assertion failing, a required input
+  absent, an unexpected schema, uninterpretable rho=0 parity, a missing
+  residential mapping, or a need to change this frozen protocol -- STOP and
+  write analysis/external_jurisdiction_benchmark_v1/BLOCKER.md naming the
+  failure and the decision required. No workaround is invented while
+  unattended. Scientifically unfavorable results (null candidate region,
+  failed portability test, UNATTAINED Surrogate target, dispersion that does
+  not fall under normalization) are NOT blockers and must be reported as-is.
+
+jurisdictions:
+  external:
+    - {key: wayne, fips: "26163", label: "Wayne County, MI", berry_unit: "Detroit, MI", naming_rule: "NEVER label Wayne as Detroit"}
+    - {key: philadelphia, fips: "42101", label: "Philadelphia County, PA", berry_unit: "Philadelphia, PA"}
+    - {key: st_louis_county, fips: "29189", label: "St. Louis County, MO", berry_unit: "St. Louis County, MO", forbidden_fips: "29510"}
+    - {key: allegheny, fips: "42003", label: "Allegheny County, PA"}
+    - {key: maricopa, fips: "04013", label: "Maricopa County, AZ"}
+    - {key: king, fips: "53033", label: "King County, WA"}
+    - {key: miami_dade, fips: "12086", label: "Miami-Dade County, FL"}
+    - {key: middlesex, fips: "25017", label: "Middlesex County, MA"}
+  bridge_reference:
+    - {key: cook, fips: "17031", label: "Cook County, IL", role: "bridge/reference, NOT counted as external"}
+  pilot_stage: [wayne, philadelphia, cook]
+  pilot_rationale: >
+    Full design runs first on Wayne, Philadelphia and Cook to validate the
+    pipeline end to end before the remaining six jurisdictions are launched.
+    Staged per explicit compute-sizing decision.
+
+data_sources:
+  county_to_assessor_dir_authority: >
+    Previously existed only as a bash `case` block at
+    attom_county_benchmark.sh:52-59. Lifted into
+    analysis/external_jurisdiction_benchmark_v1/scripts/v1_common.py::JURISDICTIONS,
+    the single source of truth for this benchmark.
+  assessor_history_schema: >
+    279 columns, byte-identical across all *-all-features folders and the
+    v3 wayne-philadelphia-st-louis-2004-2025-history folder. Assessor History
+    only in every *-all-features folder -- no Recorder table there.
+  recorder_sources:
+    - {folder: "10-counties-recorder-2016-2025", covers_fips: ["04013","12086","17031","25017","42003","53033"]}
+    - {folder: "wayne-philadelphia-st-louis-2003-2025-recorder", covers_fips: ["26163","29189","42101"]}
+  no_schema_branching_needed: true
+  exclusions:
+    tax_assessor: EXCLUDED
+    acs: EXCLUDED
+    location_enrichment: EXCLUDED
+    method: >
+      Achieved by importing individual functions from
+      scripts/other_counties_benchmars.py (SaleValidationPolicy,
+      apply_sale_validation, match_history, attach_recorder_prior_sales,
+      feature_frame, load_lgbm_configs, score_predictions, plan_rho_grid,
+      fips_scan_filter) rather than calling its main(), which hard-requires
+      Tax Assessor and ACS inputs and raises without them.
+
+target:
+  definition: log(qualified Recorder TRANSFERAMOUNT)
+  feature_sets:
+    HISTORY_MARKET_CORE: PRIMARY
+    HISTORY_STRUCTURAL_CORE: SECONDARY_SENSITIVITY
+  excluded_predictors:
+    - assessed value / market value / tax value (any ASSESSMENT_VALUE_COLUMNS)
+    - current target-sale fields
+    - future/post-sale fields
+    - Tax Assessor / ACS / location enrichment
+  sale_window: ["2016-01-01", "2025-12-31"]
+
+temporal_design:
+  status: FROZEN
+  frozen_file: analysis/external_jurisdiction_benchmark_v1/temporal_design.yaml
+  result: "all 9 jurisdictions complete in 2025; forward_year=2025; 7 expanding calendar-year CV folds (2018-2024)"
+  rule_predeclared: >
+    If 2025 is complete (12 months present, counts consistent with 2022-2024)
+    for every primary jurisdiction: development/CV = 2016-2024, forward =
+    calendar 2025, with seven expanding annual validation folds
+    (fold t trains 2016..t-1, validates on t, t in 2018..2024). Otherwise the
+    latest common complete calendar year is chosen by a rule based only on
+    month coverage and sale counts, decided before looking at any model
+    outcome. To be finalized in temporal_design.yaml (Step 3/A4).
+  difference_from_ccao_design: >
+    CCAO uses seven rolling-origin folds validating on the newest 10% of each
+    cumulative window (paper_v12.tex Table tab:fold_structure). This benchmark
+    uses calendar-year expanding folds instead, for cross-jurisdiction
+    comparability. Stated as a deliberate design difference, never described
+    as identical to the CCAO fold structure.
+
+objective_and_rho_normalization:
+  canonical_source: soft_constrained_models/boosting_models.py
+  n_over_2_scaling_confirmed: true
+  direct:
+    objective: "MSE + (rho/2) * Cov(e,y)^2"
+    gradient: "g_i = e_i + (rho/2) * z * c_i, z = mean(e*c)"
+    hessian_diag: "h_i = 1 + rho/(2n) * c_i^2"
+    canonical_kwargs: {ratio_mode: "diff", match_native_init: true}
+  surrogate:
+    objective: "MSE + rho * mean[e^2 * c^2]"
+    gradient: "g_i = e_i * (1 + rho * c_i^2)"
+    hessian_diag: "h_i = 1 + rho * c_i^2"
+    canonical_kwargs: {ratio_mode: "diff", weighting_proxy_mode: "identity", match_native_init: true}
+    warning: >
+      Any OTHER combination of ratio_mode/weighting_proxy_mode/target_value
+      falls through to the legacy exploratory objective (different gradient,
+      gradient flooring at zero_grad_tol). Every fit in this benchmark MUST
+      pass exactly these kwargs; audits/objective_scaling_audit.py enforces
+      this via the canonical function calls themselves, not by convention.
+  rho_tilde_definition: >
+    Vy_T = population variance (ddof=0) of log sale price on training block T.
+    rho_tilde = rho * Vy_T for BOTH families (same mapping, no residual
+    factor) -- derived directly from the objective algebra:
+      Direct:    L/Vy = NMSE + (rho_tilde/2) * beta_train^2,
+                 beta = Cov(e,y)/Var(y)
+      Surrogate: L/Vy = NMSE + rho_tilde * mean[(e/sigma_y)^2 * (c/sigma_y)^2]
+  explicitly_distinct_from_plan_rho_grid: >
+    scripts/other_counties_benchmars.py::plan_rho_grid normalizes by
+    A = Var(baseline predictions f0), NOT Var(y). rho_tilde in this protocol
+    is NEVER derived from that A. plan_rho_grid is used only to source the
+    two CCAO reference raw-rho endpoint pairs below, which are then converted
+    to rho_tilde via the CCAO training block's own Vy.
+  ccao_reference_raw_rho:
+    direct: {activity: 0.355648, guardrail: 2.559548}
+    surrogate: {activity: 0.202359, guardrail: 2.222996}
+    source: paper_v12.tex subsec:candidate_screen_appendix
+    usage: >
+      Used only to set the initial normalized grid span (two log-decades
+      below the normalized activity scale to two above the normalized
+      guardrail scale). Never used to select a jurisdiction or a deployment
+      rho.
+  parity_gate_result:
+    status: PASSED
+    method: >
+      Reused the already-validated canonical configuration from
+      tests/test_paper_v6_guards.py::test_native_custom_rho0_parity_after_mean_init
+      (synthetic-data test, passing) and re-ran it on REAL feature matrices
+      from all three pilot counties (Wayne, Philadelphia, Cook).
+    native_vs_direct_mean_abs_diff_log_space:
+      wayne: 1.7214109184315874e-08
+      philadelphia: 1.312524303997975e-08
+      cook: 1.822828846087532e-08
+    rho_tilde_equivalence: "exact (bit-identical predictions) at every tested point"
+    artifacts:
+      - analysis/external_jurisdiction_benchmark_v1/audits/objective_scaling_audit.md
+      - analysis/external_jurisdiction_benchmark_v1/audits/rho_normalization_equivalence.csv
+      - analysis/external_jurisdiction_benchmark_v1/audits/zero_rho_parity.csv
+      - analysis/external_jurisdiction_benchmark_v1/audits/objective_scaling_audit_verdict.json
+    interpretation: >
+      Prior frozen manuscript audit (paper_v12.tex tab:rho_zero_control) shows
+      a mean |delta y_hat| gap of 3.24e-02 because that path omitted
+      match_native_init=True. Setting it (as done here and required for every
+      fit in this benchmark) reduces the gap to ~1.5e-08 across all three
+      pilot counties -- essentially exact. Gate PASSED; no BLOCKER.md written.
+
+metrics:
+  canonical_source: utils/motivation_utils.py (compute_taxation_metrics, paper_mechanism_metrics), utils/delta_nl.py
+  existing_keys: [R2_price, R2_log, RMSE_log, MAE, MAPE, COD, PRD, PRB, MKI, VEI, Beta_log, Delta_NL, dCor_e_y]
+  new_metric_required:
+    NMSE: "MSE_log,S / Var_S(y), ddof=0, computed per evaluation sample S"
+    distinct_from: >
+      The training-block Vy_T used for rho_tilde. NMSE_S is an evaluation-time
+      normalization on sample S; Vy_T is a training-time normalization on
+      block T. Never conflated.
+    implementation_location: analysis/external_jurisdiction_benchmark_v1/scripts/ (new code; canonical metrics module not edited)
+
+candidate_region_screen:
+  canonical_source: utils/rho_screening_v2.py
+  driver_reference: scripts/analyze_rho_screening_region_v2_1.py
+  reused_unchanged: true
+  applied_to: log10(rho_tilde) instead of log10(raw rho)
+  benefit_metrics: [PRD, PRB, MKI, VEI, Beta_log]
+  predictive_cost_metrics: [R2_price, MAE_price, MAPE, RMSE_log]
+  benefit_majority: 3
+  lofo_n_folds: 7
+  note: >
+    LOFO_N_FOLDS=7 in the existing engine happens to match this protocol's
+    2018-2024 fold count (Step 3), which is convenient but coincidental --
+    not evidence the two designs are otherwise identical.
+
+berry_local_evidence:
+  detroit:
+    file: "combined.csv"
+    columns: {sale_price: "Adj. Sale $", assessed_value: "Asd. when Sold"}
+    filter: 'Property Class == 401 AND Terms of Sale == "VALID ARMS LENGTH"'
+    n: 9653
+    validated_against: "Detroit Ratio Study 2020 (published)"
+  philadelphia:
+    file: "Ratio_Analysis_arms_length.dta"
+    columns: {sale_price: "sale_price", assessed_value: "assmt_at_sale"}
+    n: 41325
+    total_file_status: "confirmed disjoint universe (0 overlap on transaction key); never stacked"
+  st_louis_county:
+    status: INCLUDED
+    correction_of_v3_wording: >
+      v3's "no official assessed-value series" claim is true only of the file
+      v3 chose (2019 cumulative sales.csv). The acquired sources DO carry
+      official values.
+    file: "joined.csv"
+    columns: {sale_price: "PRICE", assessed_value: "ASMTOT", sale_year: "TAXYR"}
+    filter: 'SALEVAL == "X"  (documented as "VALID SALE" in STLCO_REAL_DATA_DICTIONARY.txt)'
+    coverage: "2009-2019 only"
+    coverage_caveat: >
+      The ATTOM linkage cohort is predeclared 2005-2019 (v3), so 2005-2008
+      sales have no official-ratio counterpart. Stated in Table A, not hidden.
+    excluded_variant: >
+      The CMF page's own as_written construction (APRTOT as sale price on the
+      unsold-inclusive fullroll) is a documented defect and is NOT used.
+    specification_source: "analysis/berry_cmf_validation/scripts/reproduce_berry.py:267-306 (intended_sold branch), already implemented, not invented here"
+
+hyperparameters:
+  decision: shared_explicit_grid
+  n_configs: 12
+  grid_file: analysis/external_jurisdiction_benchmark_v1/baseline/shared_lgbm_grid.yaml
+  selection: rolling CV predictive performance only, per jurisdiction
+  freeze_before: penalty sweep
+
+scheduler:
+  preferred_partition: sched_mit_sloan_batch_r8
+  forbid_default: mit_normal
+  capacity_note_at_protocol_write: "28/0/0/28 -- fully allocated, zero idle. Queue delay is not a blocker."
+  pattern: v3 slurm/ scripts (set -euo pipefail, overridable REPO_ROOT/PY, --parsable + afterok/afterany, NUMBA_CACHE_DIR on node-local disk with EXIT trap)
+
+property_use_mapping:
+  status: FROZEN
+  gate: Phase B
+  frozen_at_utc: "2026-09-03T21:35:00Z"
+  history: >
+    BLOCKED_PENDING_EXTERNAL_INPUT (no dictionary in repo, verified twice) ->
+    user supplied initial ATTOM DimPropertyType transcription -> empirical
+    jurisdiction x code frequency check found 385/386 volume-and-geography
+    pattern inconsistent with the given labels (385=Seasonal/Cabin at 54.7%
+    of all rows, dominant even in Cook/Maricopa/Miami-Dade; 386=Single Family
+    Residence absent in Wayne/Middlesex) -> flagged per "stop if semantically
+    inconsistent" -> user re-checked the published source and corrected the
+    transcription (384=Seasonal/Cabin/Vacation, 385=Single Family Residence,
+    386=Townhouse, 366=Condominium) -> mapping frozen on the corrected,
+    authoritative source, NOT on the frequency table.
+  frozen_mapping_file: analysis/external_jurisdiction_benchmark_v1/cohort/residential_code_mapping.yaml
+  primary_residential_codes: [363, 376, 377, 380, 382, 383, 384, 385, 386, 390]
+  legacy_385_only_codes: [385]
+  confirmed_appendix: {"366": "Condominium"}
+  cohort_retention_result: analysis/external_jurisdiction_benchmark_v1/cohort/cohort_retention.csv
+  cohort_retention_interpretation: >
+    primary_residential_share ranges from 0.2575 (Philadelphia) to 0.7647
+    (Wayne), a 0.5072 spread. Per the frozen mapping's explicit rule, this is
+    NOT treated as an unexplained retention cliff requiring a broadened
+    cohort: Philadelphia's low primary share (25.7%) combined with its
+    confirmed condo share (41.3%, code 366) yields 66.9% combined
+    residential+condo coverage, consistent with its documented dense
+    rowhouse/condo housing stock. Membership was NOT adjusted based on this
+    result.
+  remaining_gap: >
+    EXPLICITLY_EXCLUDED_FROM_PRIMARY and BROAD_RESIDENTIAL_APPENDIX still lack
+    exact codes for "duplex/triplex/quadplex", "multifamily/apartments",
+    "manufactured/mobile homes", "timeshares", "common-area/development
+    records", "vacant land", and "residential-income codes". Codes 401 (3.0%
+    of all rows), 397 (2.7%), 361 (2.1%), 294 (1.7%), 369 (1.4%) and others
+    remain in an "unclassified_excluded" bucket -- excluded from primary by
+    omission, not yet assigned a specific named category.
+  gap_is_non_blocking_for_primary_benchmark: >
+    Explicit user instruction (2026-09-03): the primary cohort
+    (PRIMARY_RESIDENTIAL) is fully specified and baseline/CV work proceeds
+    without waiting for BROAD_RESIDENTIAL_APPENDIX. That appendix must be
+    completed ONLY from authoritative ATTOM code definitions (never guessed,
+    never derived from observed frequency) BEFORE any appendix sensitivity
+    model is run -- it remains PARTIALLY_SPECIFIED and unused until then.
+  no_fallback: >
+    The v3 structural BROAD_RESIDENTIAL_RULE proxy was never used as a
+    substitute at any point in this resolution.

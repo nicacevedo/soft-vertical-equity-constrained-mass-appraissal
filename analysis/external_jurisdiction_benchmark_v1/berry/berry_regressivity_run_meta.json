@@ -1,0 +1,9 @@
+{
+  "written_at_utc": "2026-09-03T20:16:02Z",
+  "jurisdictions": [
+    "detroit_mi",
+    "philadelphia_pa",
+    "st_louis_county_mo"
+  ],
+  "st_louis_correction": "v3's 'no official assessed-value series' claim held only for the file it chose. joined.csv (PRICE, ASMTOT, SALEVAL) supports the already-implemented intended_sold specification. Coverage 2009-2019 only."
+}

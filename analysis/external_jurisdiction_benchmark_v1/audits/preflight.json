@@ -1,0 +1,29 @@
+{
+  "written_at_utc": "2026-09-03T20:04:50Z",
+  "repo_root": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+  "branch": "testing",
+  "head_sha": "9e7face825006d5998a846f6fd4f5dc9c2296bfd",
+  "git_status_short": "M .gitignore\n?? analysis/external_jurisdiction_benchmark_v1/",
+  "python_executable": "/home/nacevedo/.conda/envs/fairness_env/bin/python",
+  "python_version": "3.9.19 | packaged by conda-forge | (main, Mar 20 2024, 12:50:21) \n[GCC 12.3.0]",
+  "package_versions": {
+    "lightgbm": "4.6.0",
+    "numpy": "1.26.4",
+    "pandas": "2.3.1",
+    "scikit_learn": "1.6.1"
+  },
+  "dependency_hashes": {
+    "soft_constrained_models/boosting_models.py": "2d3222676ababe735be4c1d7cf41794e1221d7e711fdb53b897fd5fae710516d",
+    "scripts/other_counties_benchmars.py": "781677a43a092a8b32f0f5ebc46aa4870dad658240a7798b78a0f09cabea0e2b",
+    "scripts/theory_informed_rho_range_v2.py": "c0af65c430afe78cf285bf6966db6300526b875f421b5f45e04f0a630119d676",
+    "utils/motivation_utils.py": "4219a9d68e5266e300b319660f93d37ca184189ee340edb0785f40c9f3c39beb",
+    "utils/delta_nl.py": "2520a9207d39c32bb6a186c4aaaa17a62ea62454052e4b90e2de0ba7b54816af",
+    "utils/rho_screening_v2.py": "fa4b1cf4a407079b658980750c96e8ebcaa442e37609d94c66c8f026e772989e",
+    "utils/paper_v12_lower_rho_plots.py": "12f1d242da0ab7a377f97760f06d841c6223c90376320b0c86b2428f006fbf0e",
+    "scripts/analyze_rho_screening_region_v2_1.py": "2399b1b78b3f8d4a8fac99c9e618a1a0bd9b3dc8395beef224303c9e0c77a047",
+    "analysis/berry_cmf_validation/scripts/reproduce_berry.py": "ca966dc3c3973d26d2ec699e040b0dc0366272a6f70fe4a772d5cebf32741f5e",
+    "analysis/berry_attom_validation_v3/scripts/link_berry_attom.py": "b5a0499881d981b201c98c5d1379876d6e78192dbc8cf67029ac7bde14d04cb0",
+    "tests/test_paper_v6_guards.py": "cac5b6b910ab7b3eaba71d3f810f01e11f87ffc3be2d45c729f16e2547d62880",
+    "tests/test_canonical_objectives.py": "28359d08bbe16a1505ceff560602949a442b11a8541475e9035cb0eefa5c023f"
+  }
+}

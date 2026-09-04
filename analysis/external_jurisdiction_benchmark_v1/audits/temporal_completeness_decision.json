@@ -1,0 +1,19 @@
+{
+  "written_at_utc": "2026-09-03T20:27:36Z",
+  "rule": "complete year = 12 months present AND n_sales >= 0.5 * median(preceding 2 years' n_sales)",
+  "jurisdictions_evaluated": [
+    "allegheny",
+    "cook",
+    "king",
+    "maricopa",
+    "miami_dade",
+    "middlesex",
+    "philadelphia",
+    "st_louis_county",
+    "wayne"
+  ],
+  "jurisdictions_missing_cache": [],
+  "all_jurisdictions_2025_complete": true,
+  "forward_year_decision": 2025,
+  "decided_by_month_coverage_and_counts_only": true
+}

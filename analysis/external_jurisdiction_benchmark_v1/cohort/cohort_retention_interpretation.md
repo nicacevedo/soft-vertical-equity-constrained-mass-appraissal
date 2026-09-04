@@ -1,0 +1,15 @@
+# Cohort-retention interpretation (descriptive; membership not adjusted)
+
+Spread exceeds 0.30. Per the frozen mapping, this is reported as a real housing-composition/cohort-coverage difference (e.g. condo share via excluded code 366), NOT a signal to broaden PRIMARY_RESIDENTIAL. No membership change made.
+
+| county_key      |   n_history_rows |   n_primary_residential |   primary_residential_share |   n_legacy_385 |   legacy_385_share |   n_confirmed_appendix_366_condo |   confirmed_appendix_share |   n_unclassified_excluded |   unclassified_share |
+|:----------------|-----------------:|------------------------:|----------------------------:|---------------:|-------------------:|---------------------------------:|---------------------------:|--------------------------:|---------------------:|
+| wayne           |         17338146 |                13257614 |                    0.76465  |       13257589 |           0.764649 |                           563567 |                  0.0325045 |                   3516965 |             0.202846 |
+| philadelphia    |         12982344 |                 3342412 |                    0.257458 |        2680384 |           0.206464 |                          5363167 |                  0.413112  |                   4276765 |             0.329429 |
+| st_louis_county |          8203522 |                 5600125 |                    0.682649 |        5598518 |           0.682453 |                           400088 |                  0.0487703 |                   2203309 |             0.268581 |
+| allegheny       |          4022245 |                 2696050 |                    0.670285 |        2561531 |           0.636841 |                           205723 |                  0.0511463 |                   1120472 |             0.278569 |
+| maricopa        |         16371549 |                11502595 |                    0.702597 |       11129487 |           0.679807 |                          1809521 |                  0.110528  |                   3059433 |             0.186875 |
+| king            |          7074893 |                 4919944 |                    0.695409 |        4727321 |           0.668183 |                          1088522 |                  0.153857  |                   1066427 |             0.150734 |
+| miami_dade      |         16627312 |                 6926106 |                    0.41655  |        6516012 |           0.391886 |                          6104102 |                  0.367113  |                   3597104 |             0.216337 |
+| middlesex       |          9403075 |                 5038119 |                    0.535795 |        5038119 |           0.535795 |                          1578096 |                  0.167828  |                   2786860 |             0.296378 |
+| cook            |         13114434 |                 6419175 |                    0.489474 |        5997237 |           0.4573   |                          3106428 |                  0.236871  |                   3588831 |             0.273655 |

@@ -1,0 +1,7 @@
+jurisdiction,sample,N,COD,PRD,PRB,beta_log,note
+detroit_mi,full_local_sample,9653,49.2628,1.3274,-0.3495,-0.5288613728400594,
+detroit_mi,attom_linkable_subset,8680,48.6982,1.2891,-0.3936,-0.5882225131939813,
+philadelphia_pa,full_local_sample,40509,21.2253,1.0842,-0.0923,-0.14410290154975017,"arms_length file only; total file confirmed disjoint (0 overlap), never stacked"
+philadelphia_pa,attom_linkable_subset,36865,21.0607,1.0769,-0.0913,-0.15282989382068501,
+st_louis_county_mo,full_local_sample,73743,11.8746,1.0151,-0.0069,-0.034875991396637884,"coverage 2009-2019 only (joined.csv TAXYR range); ATTOM linkage cohort is predeclared 2005-2019 in v3, so 2005-2008 sales have no official-ratio counterpart here. as_written APRTOT-as-sale-price variant is a documented defect and is NOT used."
+st_louis_county_mo,attom_linkable_subset,72675,11.6998,1.0138,-0.0057,-0.0322219963082787,"coverage 2009-2019 only (joined.csv TAXYR range); ATTOM linkage cohort is predeclared 2005-2019 in v3, so 2005-2008 sales have no official-ratio counterpart here. as_written APRTOT-as-sale-price variant is a documented defect and is NOT used."

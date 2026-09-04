@@ -1,0 +1,58 @@
+# Frozen temporal design (Step 3). Decided by month coverage and sale counts
+# ONLY, before any baseline, cohort, or penalty-path outcome was computed.
+schema_version: 1
+status: FROZEN
+frozen_at_utc: "2026-09-03T20:30:00Z"
+decision_source: analysis/external_jurisdiction_benchmark_v1/audits/temporal_completeness_decision.json
+audit_detail: analysis/external_jurisdiction_benchmark_v1/audits/monthly_completeness.csv
+
+rule_predeclared: >
+  A calendar year is "complete" for a jurisdiction iff all 12 months are
+  present in its qualified-eligible Recorder sample AND that year's sale
+  count is at least 50% of the median of the two preceding years' counts
+  (guards against a partial-year artifact where all 12 month buckets exist
+  but are nearly empty). If EVERY jurisdiction is complete in 2025: forward =
+  calendar 2025. Otherwise the latest common complete calendar year is chosen
+  by the same rule. Never decided by any model outcome.
+
+result:
+  all_jurisdictions_2025_complete: true
+  forward_year: 2025
+  n_2025_sales_by_jurisdiction:
+    wayne: 20981
+    philadelphia: 19398
+    st_louis_county: 16463
+    allegheny: 16451
+    maricopa: 76941
+    king: 26915
+    miami_dade: 30017
+    middlesex: 17204
+    cook: 47791
+
+design:
+  development_and_cv_years: [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024]
+  forward_evaluation_year: 2025
+  forward_evaluation_rule: "scored exactly once, after every freeze in Step 14"
+  cv_folds:
+    scheme: expanding_calendar_year
+    validation_years: [2018, 2019, 2020, 2021, 2022, 2023, 2024]
+    fold_rule: "fold t trains on 2016..t-1, validates on t"
+    n_folds: 7
+
+difference_from_ccao_design: >
+  CCAO uses seven rolling-origin folds where the newest 10% of each cumulative
+  window validates (paper_v12.tex Table tab:fold_structure). This benchmark
+  uses calendar-year expanding folds instead, chosen for cross-jurisdiction
+  comparability (every jurisdiction's fold t covers the identical calendar
+  window, which a CCAO-style 90/10-of-cumulative split would not guarantee
+  across counties with different sale volumes). Stated as a deliberate
+  design difference, never described as identical to the CCAO fold structure.
+  Coincidentally, utils/rho_screening_v2.py::LOFO_N_FOLDS = 7 matches this
+  fold count, which is convenient for reusing that engine unchanged but was
+  not the reason for choosing 7 folds here.
+
+no_forward_data_used_for: >
+  feature selection, hyperparameter selection, rho grids, candidate regions,
+  Surrogate branch calibration, or jurisdiction selection. All of Steps 5-13
+  (baselines through fixed mechanism anchors) operate on development/CV years
+  only; 2025 is unlocked only after the Step 14 freeze.

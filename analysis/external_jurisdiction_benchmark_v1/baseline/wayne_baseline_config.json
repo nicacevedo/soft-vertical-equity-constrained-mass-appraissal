@@ -1,0 +1,22 @@
+{
+  "county_key": "wayne",
+  "status": "OK",
+  "selected_lgbm_config": "grid_03",
+  "n_folds_used": 7,
+  "cv_mean_RMSE_log": 0.29753330392466104,
+  "cv_mean_R2_price": 0.6233589662687039,
+  "cv_mean_NMSE": 0.22495233497650174,
+  "cv_mean_COD": 22.55130492382944,
+  "cv_mean_PRD": 1.0926202657507396,
+  "cv_mean_PRB": -0.11407775733892965,
+  "cv_mean_MKI": 0.83358212320588,
+  "cv_mean_VEI": -31.95025661961537,
+  "cv_mean_Beta_log": -0.22697663416722233,
+  "cv_mean_Delta_NL": 0.12384780812244642,
+  "structural_core_cv_mean_RMSE_log": 0.3169194597921155,
+  "structural_core_cv_mean_R2_price": 0.5991257406914089,
+  "selection_rule": "lowest mean CV RMSE_log across 7 expanding calendar-year folds",
+  "written_at_utc": "2026-09-04T01:13:04Z",
+  "no_2025_data_used": true,
+  "no_penalty_path_run": true
+}

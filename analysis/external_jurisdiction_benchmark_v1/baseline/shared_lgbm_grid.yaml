@@ -1,0 +1,33 @@
+# Shared explicit LightGBM hyperparameter grid for external_jurisdiction_benchmark_v1.
+#
+# Per protocol_external_benchmark_v1.yaml::hyperparameters: the SAME 12-config
+# search space and the SAME budget are used for every jurisdiction; the
+# per-jurisdiction baseline is selected from these 12 by rolling CV predictive
+# performance only (Step 5), never by penalty-path outcomes. This grid is not
+# tuned on Cook/CCAO or on any external jurisdiction -- it is a modest,
+# declared-once space spanning shallow/regularized to deep/flexible trees at
+# scales appropriate for county-level cohorts of 4e4-6e5 rows.
+#
+# Fixed across all 12: objective=regression (L2 base; canonical objectives
+# override fobj at fit time), boosting_type=gbdt, n_jobs set at fit time from
+# --lgbm-threads, random_state=2025 for reproducibility.
+schema_version: 1
+metadata:
+  description: "Shared, non-CCAO-tuned LightGBM search space for the harmonized external benchmark."
+  n_configs: 12
+  selection_rule: "rolling CV predictive performance only (lowest mean CV RMSE_log), per jurisdiction"
+  frozen_before: "penalty sweep (Step 6-8)"
+
+lgbm_grid:
+  grid_00: {n_estimators: 300, num_leaves: 31,  max_depth: 6,  learning_rate: 0.05,  min_child_samples: 50,  colsample_bytree: 0.8, reg_alpha: 0.0,  reg_lambda: 0.0,  max_bin: 255, subsample: 0.8, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_01: {n_estimators: 500, num_leaves: 63,  max_depth: 8,  learning_rate: 0.03,  min_child_samples: 40,  colsample_bytree: 0.8, reg_alpha: 0.0,  reg_lambda: 0.0,  max_bin: 255, subsample: 0.8, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_02: {n_estimators: 500, num_leaves: 127, max_depth: 10, learning_rate: 0.03,  min_child_samples: 30,  colsample_bytree: 0.8, reg_alpha: 0.0,  reg_lambda: 0.0,  max_bin: 255, subsample: 0.8, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_03: {n_estimators: 800, num_leaves: 255, max_depth: 12, learning_rate: 0.02,  min_child_samples: 30,  colsample_bytree: 0.8, reg_alpha: 0.0,  reg_lambda: 0.0,  max_bin: 255, subsample: 0.8, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_04: {n_estimators: 800, num_leaves: 511, max_depth: 15, learning_rate: 0.015, min_child_samples: 20,  colsample_bytree: 0.8, reg_alpha: 0.0,  reg_lambda: 0.0,  max_bin: 320, subsample: 0.8, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_05: {n_estimators: 1000, num_leaves: 1024, max_depth: -1, learning_rate: 0.01, min_child_samples: 20,  colsample_bytree: 0.9, reg_alpha: 0.0,  reg_lambda: 0.0,  max_bin: 320, subsample: 0.8, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_06: {n_estimators: 500, num_leaves: 63,  max_depth: 8,  learning_rate: 0.03,  min_child_samples: 40,  colsample_bytree: 0.8, reg_alpha: 0.1,  reg_lambda: 0.1,  max_bin: 255, subsample: 0.8, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_07: {n_estimators: 500, num_leaves: 127, max_depth: 10, learning_rate: 0.03,  min_child_samples: 30,  colsample_bytree: 0.7, reg_alpha: 0.5,  reg_lambda: 0.5,  max_bin: 255, subsample: 0.7, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_08: {n_estimators: 800, num_leaves: 255, max_depth: 12, learning_rate: 0.02,  min_child_samples: 30,  colsample_bytree: 0.7, reg_alpha: 0.5,  reg_lambda: 1.0,  max_bin: 255, subsample: 0.7, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_09: {n_estimators: 300, num_leaves: 31,  max_depth: 6,  learning_rate: 0.08,  min_child_samples: 100, colsample_bytree: 0.6, reg_alpha: 1.0,  reg_lambda: 1.0,  max_bin: 255, subsample: 0.6, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_10: {n_estimators: 1200, num_leaves: 1209, max_depth: 15, learning_rate: 0.0128, min_child_samples: 30, colsample_bytree: 1.0, reg_alpha: 0.001, reg_lambda: 0.001, max_bin: 322, subsample: 1.0, subsample_freq: 0, boosting_type: gbdt, objective: regression, random_state: 2025}
+  grid_11: {n_estimators: 400, num_leaves: 15,  max_depth: 4,  learning_rate: 0.1,   min_child_samples: 200, colsample_bytree: 0.6, reg_alpha: 1.0,  reg_lambda: 2.0,  max_bin: 200, subsample: 0.6, subsample_freq: 1, boosting_type: gbdt, objective: regression, random_state: 2025}

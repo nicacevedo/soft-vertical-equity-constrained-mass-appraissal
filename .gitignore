@@ -100,6 +100,24 @@ analysis/berry_attom_validation_v3/logs/
 analysis/berry_attom_validation_v3/**/__pycache__/
 analysis/berry_attom_validation_v3/**/*.pyc
 
+# Track compact external-jurisdiction-benchmark-v1 audit artifacts. Large
+# derived parquet stays under output/external_jurisdiction_benchmark_v1/
+# (ignored via output/).
+!analysis/external_jurisdiction_benchmark_v1/
+!analysis/external_jurisdiction_benchmark_v1/**
+!analysis/external_jurisdiction_benchmark_v1/**/*.csv
+!analysis/external_jurisdiction_benchmark_v1/**/*.yaml
+!analysis/external_jurisdiction_benchmark_v1/**/*.yml
+!analysis/external_jurisdiction_benchmark_v1/**/*.md
+!analysis/external_jurisdiction_benchmark_v1/**/*.json
+!analysis/external_jurisdiction_benchmark_v1/**/*.py
+!analysis/external_jurisdiction_benchmark_v1/**/*.sh
+!analysis/external_jurisdiction_benchmark_v1/**/*.tex
+analysis/external_jurisdiction_benchmark_v1/**/*.parquet
+analysis/external_jurisdiction_benchmark_v1/logs/
+analysis/external_jurisdiction_benchmark_v1/**/__pycache__/
+analysis/external_jurisdiction_benchmark_v1/**/*.pyc
+
 # Accidental empty files created by misparsed CLI flags
 /--data-path
 /--out-dir
