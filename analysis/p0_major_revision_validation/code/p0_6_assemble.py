@@ -322,6 +322,16 @@ def mode_deltas() -> int:
 REBOUND_RETAIN = 0.25       # a rebound "survives" if >= 25% of the frozen rebound remains
 ENDPOINT_FACTOR = 2.0       # candidate-region endpoint move that counts as material
 ACTIVITY_FRAC = 0.10        # beta_log activity threshold, as a share of attained range
+# G5b materiality rule. It keys off TAU_MATCH -- the beta_log matching tolerance already
+# frozen in configs/matched_beta_frozen.json at the start of this stage -- rather than a new
+# constant chosen after the refinement was seen. Two configurations closer than TAU_MATCH in
+# beta_log were declared equivalent for matching purposes, so:
+#   * an ordering "flip" is material only if the two families are separated by at least
+#     TAU_MATCH on BOTH the frozen and the D-SNAP path (a reversal of a tie is not a
+#     path change);
+#   * a change in "all negative" status is material only if the path maximum that crosses
+#     zero exceeds TAU_MATCH in absolute value (otherwise the path merely grazes zero).
+TAU_MATCH = 0.002
 
 
 def _path(df, fam, blk):
@@ -510,10 +520,152 @@ def mode_triggers() -> int:
     print(json.dumps(g5a, indent=2))
     return 0
 
+
+
+# ============================================================== Gate G5b
+def _refined_dsnap():
+    """Screening D-SNAP path + the G5a refinement shards, deduplicated on (block, family, rho)."""
+    rb = pd.read_csv(T / "robustness_path_dsnap.csv")
+    rb["family"] = rb.family_display
+    parts = [rb]
+    for p in sorted(T.glob("dsnap_refine_shard__*.csv")):
+        d = pd.read_csv(p)
+        d["family_display"] = d.family.map(FAM_DISPLAY)
+        d["family"] = d.family_display
+        parts.append(d)
+    out = pd.concat(parts, ignore_index=True)
+    n0 = len(out)
+    out = out.drop_duplicates(["block", "family", "rho"], keep="first")
+    return out.sort_values(["family", "rho", "block"]), n0 - len(out)
+
+
+def mode_g5b() -> int:
+    g5a = json.loads((T / "gate_g5a_outcome.json").read_text())
+    if g5a["n_dsnap_triggers_fired"] == 0:
+        c.write_json(T / "gate_g5b_outcome.json", {
+            "gate": "G5b", "status": "NOT_APPLICABLE",
+            "reason": "no D-SNAP screening trigger fired at G5a",
+            "full_dsnap_regeneration_launched_in_this_run": False})
+        print("[g5b] no G5a alert; nothing to confirm")
+        return 0
+
+    tau_frozen = json.loads((c.CONFIGS / "matched_beta_frozen.json").read_text())["tau"]
+    if abs(tau_frozen - TAU_MATCH) > 0:
+        raise c.ProtocolViolation(
+            f"TAU_MATCH {TAU_MATCH} does not equal the frozen matching tolerance {tau_frozen}")
+    refined, ndup = _refined_dsnap()
+    froz = _frozen_screening()
+    # the frozen table carries all 82 points, so restrict BOTH sides to the same rho set
+    keep = sorted(set(np.round(refined[refined.family == "Direct"].rho.astype(float), 12)))
+    fullf = pd.read_csv(c.V12 / "analysis" / "data_id=d4929d43ec19badf"
+                        / "split_id=3d464d4a611b131b" / "penalty_path_analysis"
+                        / "transition_regions_paper_assets_v4_delta_nl_bends" / "tables"
+                        / "combined_path_table_v4_analysis_view.csv")
+
+    def froz_beta(fam, blk, rho):
+        s = fullf[(fullf.family == fam)
+                  & np.isclose(fullf.rho.astype(float).fillna(0.0), rho, rtol=0, atol=1e-12)]
+        if not len(s):
+            return np.nan
+        col = "Beta_log__CV_mean" if blk == "CV_mean" else f"Beta_log__{blk}"
+        v = s.iloc[0].get(col)
+        return float(v) if pd.notna(v) else np.nan
+
+    ref_cv = _cvmean(refined)
+    ref_all = pd.concat([refined, ref_cv], ignore_index=True)
+
+    rows, ev = [], []
+    for blk in ("CV_mean", "heldout", "forward_2025"):
+        flips_all, flips_material = 0, 0
+        n = 0
+        for rho in keep:
+            fd, fs = froz_beta("Direct", blk, rho), froz_beta("Surrogate", blk, rho)
+            rd = ref_all[(ref_all.family == "Direct") & (ref_all.block == blk)
+                         & np.isclose(ref_all.rho.astype(float), rho, rtol=0, atol=1e-12)]
+            rs = ref_all[(ref_all.family == "Surrogate") & (ref_all.block == blk)
+                         & np.isclose(ref_all.rho.astype(float), rho, rtol=0, atol=1e-12)]
+            if not len(rd) or not len(rs) or not np.isfinite(fd) or not np.isfinite(fs):
+                continue
+            gf = fd - fs
+            gr = float(rd.iloc[0].beta_log) - float(rs.iloc[0].beta_log)
+            n += 1
+            if np.sign(gf) != np.sign(gr) and gf != 0 and gr != 0:
+                flips_all += 1
+                # MATERIAL only if the two families are actually separated at this rho
+                if min(abs(gf), abs(gr)) >= TAU_MATCH:
+                    flips_material += 1
+                    rows.append({"evaluation": blk, "rho": rho, "gap_frozen": gf,
+                                 "gap_dsnap": gr, "material": True})
+        # sign status of each family's path
+        sf, sr = {}, {}
+        for fam in ("Direct", "Surrogate"):
+            fv = np.array([froz_beta(fam, blk, r) for r in keep], dtype=float)
+            rv = np.array([float(ref_all[(ref_all.family == fam) & (ref_all.block == blk)
+                                         & np.isclose(ref_all.rho.astype(float), r,
+                                                      rtol=0, atol=1e-12)].beta_log.iloc[0])
+                           if len(ref_all[(ref_all.family == fam) & (ref_all.block == blk)
+                                          & np.isclose(ref_all.rho.astype(float), r,
+                                                       rtol=0, atol=1e-12)]) else np.nan
+                           for r in keep], dtype=float)
+            m = np.isfinite(fv) & np.isfinite(rv)
+            sf[fam] = {"all_negative": bool(np.all(fv[m] < 0)), "max": float(np.nanmax(fv[m]))}
+            sr[fam] = {"all_negative": bool(np.all(rv[m] < 0)), "max": float(np.nanmax(rv[m]))}
+        sign_changed = any(sf[f]["all_negative"] != sr[f]["all_negative"]
+                           for f in ("Direct", "Surrogate"))
+        sign_material = any(
+            sf[f]["all_negative"] != sr[f]["all_negative"]
+            and max(abs(sf[f]["max"]), abs(sr[f]["max"])) >= TAU_MATCH
+            for f in ("Direct", "Surrogate"))
+        ev.append({"evaluation": blk, "n_rho_compared": n,
+                   "ordering_flips_any": flips_all,
+                   "ordering_flips_material": flips_material,
+                   "tau_match": TAU_MATCH,
+                   "frozen_sign": sf, "dsnap_sign": sr,
+                   "sign_status_changed": sign_changed,
+                   "sign_change_material": sign_material})
+
+    survives = any(x["ordering_flips_material"] > 0 or x["sign_change_material"] for x in ev)
+    ref_tab = pd.DataFrame(rows) if rows else pd.DataFrame(
+        [{"evaluation": None, "rho": None, "gap_frozen": None, "gap_dsnap": None,
+          "material": False}])
+    c.write_table(ref_tab, T / "dsnap_refinement.csv")
+
+    out = {
+        "gate": "G5b",
+        "trigger_re_evaluated": "T1_beta_log_sign_or_ordering",
+        "refinement_rhos_added": int(len(keep) - 28),
+        "duplicate_rows_dropped_on_merge": int(ndup),
+        "n_rho_after_refinement": int(len(keep)),
+        "materiality_rule": {
+            "TAU_MATCH": TAU_MATCH,
+            "source": ("the beta_log matching tolerance frozen in "
+                       "configs/matched_beta_frozen.json BEFORE this stage read any outcome; "
+                       "no new constant was introduced at decision time"),
+            "ordering": ("material only if min(|gap_frozen|, |gap_dsnap|) >= TAU_MATCH, i.e. "
+                         "the families are genuinely separated on BOTH paths and the ordering "
+                         "genuinely reversed"),
+            "sign": ("material only if the path maximum crossing zero exceeds TAU_MATCH in "
+                     "absolute value")},
+        "evidence": ev,
+        "status": ("CONFIRMED_MATERIAL_CHANGE" if survives else "NOT_CONFIRMED"),
+        "promotion": ("D-SNAP promoted; the temporal branch is REQUIRES_FULL_DSNAP_REGEN"
+                      if survives else
+                      "no promotion -- the screening alert was a near-tie / near-zero artifact "
+                      "that did not survive local refinement; the primary design stands"),
+        "full_dsnap_regeneration_launched_in_this_run": False,
+        "hard_stop": ("Per the stage authorization, the full 82-point D-SNAP regeneration is "
+                      "NOT launched in this run even under a confirmed promotion; it requires "
+                      "separate authorization."),
+    }
+    c.write_json(T / "gate_g5b_outcome.json", out)
+    print(json.dumps(out, indent=2, default=str))
+    return 0
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", required=True,
-                    choices=["merge", "overlap", "unseen", "deltas", "triggers", "all"])
+                    choices=["merge", "overlap", "unseen", "deltas", "triggers",
+                             "g5b", "all"])
     a = ap.parse_args()
     if a.mode == "merge":
         return mode_merge()
@@ -525,6 +677,8 @@ def main() -> int:
         return mode_deltas()
     if a.mode == "triggers":
         return mode_triggers()
+    if a.mode == "g5b":
+        return mode_g5b()
     if a.mode == "all":
         for f in (mode_merge, mode_overlap, mode_unseen, mode_deltas, mode_triggers):
             f()

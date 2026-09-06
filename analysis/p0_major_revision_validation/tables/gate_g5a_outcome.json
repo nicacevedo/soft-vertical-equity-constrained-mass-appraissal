@@ -1,0 +1,15 @@
+{
+  "dpurge_note": "D-PURGE is an ORACLE diagnostic and does NOT feed the D-SNAP promotion gate; its triggers are reported for information only",
+  "dpurge_triggers_fired": [
+    "T1_beta_log_sign_or_ordering",
+    "T2_surrogate_dcor_rebound"
+  ],
+  "dsnap_triggers_fired": [
+    "T1_beta_log_sign_or_ordering"
+  ],
+  "g5a_outcome": "ALERT -- targeted local refinement required before any promotion",
+  "gate": "G5a",
+  "hard_stop": "Full 82-point D-SNAP regeneration is NOT launched in this run under any outcome; a confirmed promotion requires separate authorization.",
+  "n_dsnap_triggers_fired": 1,
+  "screening_grid": "27 positive screening rhos + rho=0 (every 4th of the frozen 82 plus the five display anchors and four candidate endpoints)"
+}

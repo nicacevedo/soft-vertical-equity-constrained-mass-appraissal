@@ -306,16 +306,11 @@ def _shards():
     return [(d, b, f) for d in DESIGNS for b in BLOCKS for f in FAMILIES]
 
 
-def fit_shard(shard: int) -> int:
-    design, block, family = _shards()[shard]
-    print(f"[temporal] design={design} block={block} family={family}", flush=True)
-    print(f"[temporal] env={c.thread_env()}", flush=True)
-
+def _load_block(design: str, block: str):
+    """Training / evaluation frames for one (design, block), shared by fit and refine."""
     proto = json.loads((c.CONFIGS / f"split_protocol_{design}.json").read_text())
-    grid = json.loads((c.CONFIGS / "robustness_rho_grid.json").read_text())
     params = dict(c.frozen_lgbm_config()["lgbm_params"])
     cfg_hash = c.frozen_lgbm_config()["lgbm_params_sha256"]
-
     df_tv, df_test, df_assess, pred_cols, cat_cols = c.load_canonical_splits()
     production = pd.concat([df_tv, df_test], ignore_index=True)
 
@@ -345,13 +340,54 @@ def fit_shard(shard: int) -> int:
             ev_rid = np.arange(len(df_assess))
     else:
         raise c.ProtocolViolation(f"unknown block {block}")
+    return tr_df, ev_df, ev_rid, params, cfg_hash, pred_cols, cat_cols
 
+
+def fit_shard(shard: int) -> int:
+    design, block, family = _shards()[shard]
+    print(f"[temporal] design={design} block={block} family={family}", flush=True)
+    print(f"[temporal] env={c.thread_env()}", flush=True)
+    grid = json.loads((c.CONFIGS / "robustness_rho_grid.json").read_text())
+    tr_df, ev_df, ev_rid, params, cfg_hash, pred_cols, cat_cols = _load_block(design, block)
     return _run_cell(design, block, family, tr_df, ev_df, ev_rid, params, cfg_hash,
                      grid, pred_cols, cat_cols)
 
 
+# ------------------------------------------------------- Gate G5a refinement
+N_CHUNK_A = 2          # region A is split so no shard runs more than ~11 fits
+
+
+def _refine_shards():
+    g = json.loads((c.CONFIGS / "dsnap_refinement_grid.json").read_text())
+    out = []
+    for reg in g["regions"]:
+        rhos = [float(x) for x in reg["refinement_rhos"]]
+        nch = N_CHUNK_A if reg["id"] == "A" else 1
+        for fam in reg["families"]:
+            for blk in BLOCKS:
+                for ch in range(nch):
+                    sub = rhos[ch::nch]
+                    if sub:
+                        out.append((reg["id"], blk, fam, ch, nch, sub))
+    return out
+
+
+def refine_shard(shard: int) -> int:
+    reg, block, family, ch, nch, rhos = _refine_shards()[shard]
+    print(f"[refine] region={reg} block={block} family={family} chunk={ch+1}/{nch} "
+          f"n_rho={len(rhos)}", flush=True)
+    print(f"[refine] env={c.thread_env()}", flush=True)
+    tr_df, ev_df, ev_rid, params, cfg_hash, pred_cols, cat_cols = _load_block("dsnap", block)
+    # the refinement never re-runs rho=0; _run_cell prepends it, so pass the rhos directly
+    return _run_cell("dsnap", block, family, tr_df, ev_df, ev_rid, params, cfg_hash,
+                     {"positive_rhos": rhos}, pred_cols, cat_cols,
+                     grid_label="refinement", include_zero=False,
+                     out_name=f"dsnap_refine_shard__{reg}__{block}__{family}__c{ch}")
+
+
 def _run_cell(design, block, family, tr_df, ev_df, ev_rid, params, cfg_hash, grid,
-              pred_cols, cat_cols):
+              pred_cols, cat_cols, grid_label="screening", include_zero=True,
+              out_name=None):
     from soft_constrained_models.boosting_models import LGBCovPenalty, LGBSmoothPenalty
     from run_temporal_cv import _native_lgbm_estimator
     from utils.motivation_utils import _compute_extended_metrics, paper_mechanism_metrics
@@ -363,8 +399,9 @@ def _run_cell(design, block, family, tr_df, ev_df, ev_rid, params, cfg_hash, gri
     y_tr = np.log(tr_df[c.TARGET_COL].to_numpy())
     y_ev = np.log(ev_df[c.TARGET_COL].to_numpy())
 
+    zero = [0.0] if include_zero else []
     rhos = ([0.0] if family == "native" else
-            [0.0] + [float(x) for x in grid["positive_rhos"]])
+            zero + [float(x) for x in grid["positive_rhos"]])
     if family == "native":
         rhos = [None]
 
@@ -410,20 +447,22 @@ def _run_cell(design, block, family, tr_df, ev_df, ev_rid, params, cfg_hash, gri
                                                        else "strict_date_robustness"),
                      "block": block, "family": family, "rho": rho,
                      "n_train": int(len(y_tr)), "n_eval": int(len(y_ev)),
-                     "grid": "screening", "lgbm_params_sha256": cfg_hash,
+                     "grid": grid_label, "lgbm_params_sha256": cfg_hash,
                      "pred_sha256": _hash_arr(p), "fit_seconds": el,
                      "execution_settings": "HISTORICAL (no determinism pins)", **out})
         print(f"[temporal] {design}/{block}/{family} rho={rho} beta={out['beta_log']:+.5f} "
               f"R2={out['R2_price']:.5f} ({el:.0f}s)", flush=True)
     df = pd.DataFrame(rows)
-    c.write_table(df, c.TABLES / f"robustness_shard__{design}__{block}__{family}.csv")
-    print(f"[temporal] wrote shard {design}/{block}/{family} ({len(df)} rows)")
+    name = out_name or f"robustness_shard__{design}__{block}__{family}"
+    c.write_table(df, c.TABLES / f"{name}.csv")
+    print(f"[temporal] wrote shard {name} ({len(df)} rows)")
     return 0
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", required=True, choices=["protocols", "fit", "list"])
+    ap.add_argument("--mode", required=True,
+                    choices=["protocols", "fit", "list", "refine", "list-refine"])
     ap.add_argument("--shard", type=int, default=-1)
     a = ap.parse_args()
     if a.mode == "protocols":
@@ -432,6 +471,12 @@ def main() -> int:
         for i, s in enumerate(_shards()):
             print(i, s)
         return 0
+    if a.mode == "list-refine":
+        for i, sh in enumerate(_refine_shards()):
+            print(i, sh[0], sh[1], sh[2], f"chunk {sh[3]+1}/{sh[4]}", f"{len(sh[5])} rhos")
+        return 0
+    if a.mode == "refine":
+        return refine_shard(a.shard)
     return fit_shard(a.shard)
 
 

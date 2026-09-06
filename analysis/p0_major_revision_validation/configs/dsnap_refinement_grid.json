@@ -1,0 +1,106 @@
+{
+  "blocks": "all 9 (7 CV folds + heldout + forward_2025)",
+  "design": "dsnap",
+  "gate": "G5a",
+  "n_refinement_fits": 459,
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "30afdee567bcdf44bfa5bd7463b0b4f6df7ae15e",
+      "dirty": true,
+      "status_porcelain": "M analysis/p0_major_revision_validation/logs/submitted_jobs.txt\n?? analysis/p0_major_revision_validation/tables/gate_g5a_outcome.json\n?? analysis/p0_major_revision_validation/tables/robustness_path_dpurge.csv\n?? analysis/p0_major_revision_validation/tables/robustness_path_dsnap.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_1__surrogate.csv\n?? analysis/p0_major_revision_validation/tables/robustness_vs_frozen_deltas.csv\n?? analysis/p0_major_revision_validation/tables/temporal_material_change_triggers.csv\n?? analysis/p0_major_revision_validation/tables/temporal_material_change_triggers_detail.json"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "purpose": "targeted local refinement of the D-SNAP screening alert",
+  "regions": [
+    {
+      "families": [
+        "direct",
+        "surrogate"
+      ],
+      "id": "A",
+      "note": "all flips occur where |beta_Direct - beta_Surrogate| <= 0.0033 against an overall gap range up to 0.084, i.e. where the two families are near-tied",
+      "reason": "Direct/Surrogate beta_log ordering flips at 4 screening rhos",
+      "refinement_rhos": [
+        0.0012648552168553,
+        0.0014563484775012483,
+        0.0016768329368110132,
+        0.002222996482526201,
+        0.0025595479226995428,
+        0.0029470517025518184,
+        0.0039069399370546265,
+        0.004498432668969456,
+        0.005179474679231222,
+        0.006866488450043015,
+        0.007906043210907715,
+        0.009102981779915234,
+        0.012067926406393306,
+        0.013894954943731398,
+        0.015998587196060603,
+        0.021209508879201935,
+        0.02442053094548654,
+        0.028117686979742335,
+        0.03727593720314943,
+        0.04291934260128781,
+        0.04941713361323837
+      ],
+      "screening_flip_rhos": [
+        0.0010985411419875619,
+        0.0019306977288832557,
+        0.0033932217718953372,
+        0.005963623316594655,
+        0.018420699693267185,
+        0.03237457542817647
+      ],
+      "screening_span": [
+        0.0010985411419875619,
+        0.05689866029018299
+      ]
+    },
+    {
+      "families": [
+        "surrogate"
+      ],
+      "id": "B",
+      "note": "frozen Surrogate held-out beta peaks at +0.000107 (rho=86.85); under D-SNAP it peaks at -0.000154 (rho=100) -- a 2.6e-4 movement across zero",
+      "reason": "Surrogate held-out beta_log 'all negative' status changed",
+      "refinement_rhos": [
+        18.420699693267164,
+        21.209508879201906,
+        24.420530945486497,
+        32.374575428176435,
+        37.27593720314938,
+        42.91934260128778,
+        56.89866029018293,
+        65.51285568595509,
+        75.43120063354615
+      ],
+      "screening_span": [
+        15.998587196060573,
+        100.0
+      ]
+    }
+  ],
+  "rule": "skipped original-grid rho values inside each affected region, extended by one screening interval on each side; D-SNAP protocol only (D-PURGE does not feed G5a)",
+  "trigger_that_fired": "T1_beta_log_sign_or_ordering"
+}

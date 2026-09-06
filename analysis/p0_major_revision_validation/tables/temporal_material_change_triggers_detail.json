@@ -1,0 +1,625 @@
+{
+  "criteria": {
+    "ACTIVITY_FRAC": 0.1,
+    "ENDPOINT_FACTOR": 2.0,
+    "REBOUND_RETAIN": 0.25
+  },
+  "detail": {
+    "dpurge_T1": [
+      {
+        "evaluation": "CV_mean",
+        "frozen_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "frozen_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "n_common_rho": 28,
+        "ordering_flips": 4,
+        "robust_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "robust_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "sign_change": false
+      },
+      {
+        "evaluation": "heldout",
+        "frozen_all_negative": {
+          "Direct": true,
+          "Surrogate": false
+        },
+        "frozen_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "n_common_rho": 28,
+        "ordering_flips": 3,
+        "robust_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "robust_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "sign_change": true
+      },
+      {
+        "evaluation": "forward_2025",
+        "frozen_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "frozen_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "n_common_rho": 28,
+        "ordering_flips": 3,
+        "robust_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "robust_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "sign_change": false
+      }
+    ],
+    "dpurge_T2_surrogate_dcor_rebound": [
+      {
+        "evaluation": "CV_mean",
+        "frozen": {
+          "end_value": 0.2677042454233661,
+          "interior_min": true,
+          "min_rho": 15.998587196060573,
+          "min_value": 0.2604200677707397,
+          "rebound": 0.0072841776526264
+        },
+        "rebound_lost": true,
+        "retained_share": 0.24537255556222184,
+        "robust": {
+          "end_value": 0.2645129488939339,
+          "interior_min": true,
+          "min_rho": 28.11768697974231,
+          "min_value": 0.26272561160813973,
+          "rebound": 0.001787337285794166
+        }
+      },
+      {
+        "evaluation": "heldout",
+        "frozen": {
+          "end_value": 0.2673320507681667,
+          "interior_min": true,
+          "min_rho": 9.102981779915218,
+          "min_value": 0.2501095867758119,
+          "rebound": 0.017222463992354775
+        },
+        "rebound_lost": true,
+        "retained_share": 0.13461987156035113,
+        "robust": {
+          "end_value": 0.2565807305438261,
+          "interior_min": true,
+          "min_rho": 28.11768697974231,
+          "min_value": 0.2542622446532225,
+          "rebound": 0.002318485890603572
+        }
+      },
+      {
+        "evaluation": "forward_2025",
+        "frozen": {
+          "end_value": 0.2658816637505407,
+          "interior_min": true,
+          "min_rho": 15.998587196060573,
+          "min_value": 0.2573265654620977,
+          "rebound": 0.008555098288442975
+        },
+        "rebound_lost": true,
+        "retained_share": 0.13391492634234814,
+        "robust": {
+          "end_value": 0.2609177133551842,
+          "interior_min": true,
+          "min_rho": 86.85113737513521,
+          "min_value": 0.2597720579980358,
+          "rebound": 0.0011456553571483896
+        }
+      }
+    ],
+    "dpurge_T3_surrogate_delta_nl_rebound": [
+      {
+        "evaluation": "CV_mean",
+        "frozen": {
+          "end_value": 0.13225301531054717,
+          "interior_min": true,
+          "min_rho": 1.6768329368110082,
+          "min_value": 0.0867664036069765,
+          "rebound": 0.04548661170357067
+        },
+        "rebound_lost": false,
+        "retained_share": 0.9374035682424625,
+        "robust": {
+          "end_value": 0.12495438138247425,
+          "interior_min": true,
+          "min_rho": 1.6768329368110082,
+          "min_value": 0.08231506926428775,
+          "rebound": 0.0426393121181865
+        }
+      },
+      {
+        "evaluation": "heldout",
+        "frozen": {
+          "end_value": 0.1241520335253577,
+          "interior_min": true,
+          "min_rho": 2.559547922699536,
+          "min_value": 0.0913718398738612,
+          "rebound": 0.032780193651496495
+        },
+        "rebound_lost": false,
+        "retained_share": 0.8686245343926184,
+        "robust": {
+          "end_value": 0.1215601592742673,
+          "interior_min": true,
+          "min_rho": 2.2229964825261943,
+          "min_value": 0.0930864788264363,
+          "rebound": 0.02847368044783101
+        }
+      },
+      {
+        "evaluation": "forward_2025",
+        "frozen": {
+          "end_value": 0.1111033699162971,
+          "interior_min": true,
+          "min_rho": 2.559547922699536,
+          "min_value": 0.0870149491031377,
+          "rebound": 0.0240884208131594
+        },
+        "rebound_lost": false,
+        "retained_share": 0.8681751763697904,
+        "robust": {
+          "end_value": 0.1046012311086651,
+          "interior_min": true,
+          "min_rho": 5.17947467923121,
+          "min_value": 0.0836882621207307,
+          "rebound": 0.02091296898793439
+        }
+      }
+    ],
+    "dpurge_T4": [
+      {
+        "endpoints": {
+          "activity_rho": {
+            "factor": 1.5264179671752334,
+            "frozen": 0.3556480306223128,
+            "material": false,
+            "robust": 0.5428675439323859
+          },
+          "guardrail_rho": {
+            "factor": 1.5264179671752334,
+            "frozen": 0.3556480306223128,
+            "material": false,
+            "robust": 0.5428675439323859
+          }
+        },
+        "family": "Direct"
+      },
+      {
+        "endpoints": {
+          "activity_rho": {
+            "factor": 1.0,
+            "frozen": 0.1757510624854792,
+            "material": false,
+            "robust": 0.1757510624854792
+          },
+          "guardrail_rho": {
+            "factor": 1.0,
+            "frozen": 0.1757510624854792,
+            "material": false,
+            "robust": 0.1757510624854792
+          }
+        },
+        "family": "Surrogate"
+      }
+    ],
+    "dpurge_T5": [
+      {
+        "dMAE_at_rho_0.954": -131.13855107319978,
+        "dR2_at_rho_0.954": 0.0030549670532721285,
+        "evaluation": "CV_mean",
+        "family": "Direct",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -48.97520278663433,
+        "dR2_at_rho_0.954": 0.001524356382658465,
+        "evaluation": "CV_mean",
+        "family": "Direct",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -1491.102013556374,
+        "dR2_at_rho_0.954": 0.0060254507871995155,
+        "evaluation": "heldout",
+        "family": "Direct",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -1540.3014074412495,
+        "dR2_at_rho_0.954": 0.006134669891271205,
+        "evaluation": "heldout",
+        "family": "Direct",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -2000.119073328373,
+        "dR2_at_rho_0.954": 0.0060147662766057985,
+        "evaluation": "forward_2025",
+        "family": "Direct",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -1455.9918724037416,
+        "dR2_at_rho_0.954": 0.006489383786975389,
+        "evaluation": "forward_2025",
+        "family": "Direct",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": 43.7217239878737,
+        "dR2_at_rho_0.954": 0.00408880856113536,
+        "evaluation": "CV_mean",
+        "family": "Surrogate",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": 202.01910356082954,
+        "dR2_at_rho_0.954": 0.0018981762187832985,
+        "evaluation": "CV_mean",
+        "family": "Surrogate",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -507.96500669610396,
+        "dR2_at_rho_0.954": 0.003918631135946926,
+        "evaluation": "heldout",
+        "family": "Surrogate",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -765.2948837929871,
+        "dR2_at_rho_0.954": 0.0032869292826137597,
+        "evaluation": "heldout",
+        "family": "Surrogate",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -943.900011537291,
+        "dR2_at_rho_0.954": 0.004409182444374382,
+        "evaluation": "forward_2025",
+        "family": "Surrogate",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -567.5117960879579,
+        "dR2_at_rho_0.954": 0.005085350078734341,
+        "evaluation": "forward_2025",
+        "family": "Surrogate",
+        "source": "robust"
+      }
+    ],
+    "dsnap_T1": [
+      {
+        "evaluation": "CV_mean",
+        "frozen_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "frozen_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "n_common_rho": 28,
+        "ordering_flips": 4,
+        "robust_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "robust_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "sign_change": false
+      },
+      {
+        "evaluation": "heldout",
+        "frozen_all_negative": {
+          "Direct": true,
+          "Surrogate": false
+        },
+        "frozen_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "n_common_rho": 28,
+        "ordering_flips": 4,
+        "robust_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "robust_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "sign_change": true
+      },
+      {
+        "evaluation": "forward_2025",
+        "frozen_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "frozen_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "n_common_rho": 28,
+        "ordering_flips": 0,
+        "robust_all_negative": {
+          "Direct": true,
+          "Surrogate": true
+        },
+        "robust_monotone": {
+          "Direct": false,
+          "Surrogate": false
+        },
+        "sign_change": false
+      }
+    ],
+    "dsnap_T2_surrogate_dcor_rebound": [
+      {
+        "evaluation": "CV_mean",
+        "frozen": {
+          "end_value": 0.2677042454233661,
+          "interior_min": true,
+          "min_rho": 15.998587196060573,
+          "min_value": 0.2604200677707397,
+          "rebound": 0.0072841776526264
+        },
+        "rebound_lost": false,
+        "retained_share": 1.100628336574048,
+        "robust": {
+          "end_value": 0.2683337416592028,
+          "interior_min": true,
+          "min_rho": 15.998587196060573,
+          "min_value": 0.26031656932608277,
+          "rebound": 0.008017172333120048
+        }
+      },
+      {
+        "evaluation": "heldout",
+        "frozen": {
+          "end_value": 0.2673320507681667,
+          "interior_min": true,
+          "min_rho": 9.102981779915218,
+          "min_value": 0.2501095867758119,
+          "rebound": 0.017222463992354775
+        },
+        "rebound_lost": false,
+        "retained_share": 1.3020313812436086,
+        "robust": {
+          "end_value": 0.2690437787255281,
+          "interior_min": true,
+          "min_rho": 9.102981779915218,
+          "min_value": 0.2466195901451441,
+          "rebound": 0.022424188580384002
+        }
+      },
+      {
+        "evaluation": "forward_2025",
+        "frozen": {
+          "end_value": 0.2658816637505407,
+          "interior_min": true,
+          "min_rho": 15.998587196060573,
+          "min_value": 0.2573265654620977,
+          "rebound": 0.008555098288442975
+        },
+        "rebound_lost": false,
+        "retained_share": 1.0,
+        "robust": {
+          "end_value": 0.2658816637505407,
+          "interior_min": true,
+          "min_rho": 15.998587196060573,
+          "min_value": 0.2573265654620977,
+          "rebound": 0.008555098288442975
+        }
+      }
+    ],
+    "dsnap_T3_surrogate_delta_nl_rebound": [
+      {
+        "evaluation": "CV_mean",
+        "frozen": {
+          "end_value": 0.13225301531054717,
+          "interior_min": true,
+          "min_rho": 1.6768329368110082,
+          "min_value": 0.0867664036069765,
+          "rebound": 0.04548661170357067
+        },
+        "rebound_lost": false,
+        "retained_share": 1.0016419949885569,
+        "robust": {
+          "end_value": 0.13120916627439572,
+          "interior_min": true,
+          "min_rho": 0.954095476349994,
+          "min_value": 0.08564786578236135,
+          "rebound": 0.04556130049203437
+        }
+      },
+      {
+        "evaluation": "heldout",
+        "frozen": {
+          "end_value": 0.1241520335253577,
+          "interior_min": true,
+          "min_rho": 2.559547922699536,
+          "min_value": 0.0913718398738612,
+          "rebound": 0.032780193651496495
+        },
+        "rebound_lost": false,
+        "retained_share": 1.0810081107375635,
+        "robust": {
+          "end_value": 0.125248337929881,
+          "interior_min": true,
+          "min_rho": 2.559547922699536,
+          "min_value": 0.0898126827210653,
+          "rebound": 0.0354356552088157
+        }
+      },
+      {
+        "evaluation": "forward_2025",
+        "frozen": {
+          "end_value": 0.1111033699162971,
+          "interior_min": true,
+          "min_rho": 2.559547922699536,
+          "min_value": 0.0870149491031377,
+          "rebound": 0.0240884208131594
+        },
+        "rebound_lost": false,
+        "retained_share": 0.999999999999996,
+        "robust": {
+          "end_value": 0.1111033699162972,
+          "interior_min": true,
+          "min_rho": 2.559547922699536,
+          "min_value": 0.0870149491031379,
+          "rebound": 0.024088420813159303
+        }
+      }
+    ],
+    "dsnap_T4": [
+      {
+        "endpoints": {
+          "activity_rho": {
+            "factor": 1.5264179671752334,
+            "frozen": 0.3556480306223128,
+            "material": false,
+            "robust": 0.5428675439323859
+          },
+          "guardrail_rho": {
+            "factor": 1.5264179671752334,
+            "frozen": 0.3556480306223128,
+            "material": false,
+            "robust": 0.5428675439323859
+          }
+        },
+        "family": "Direct"
+      },
+      {
+        "endpoints": {
+          "activity_rho": {
+            "factor": 1.0,
+            "frozen": 0.1757510624854792,
+            "material": false,
+            "robust": 0.1757510624854792
+          },
+          "guardrail_rho": {
+            "factor": 1.0,
+            "frozen": 0.1757510624854792,
+            "material": false,
+            "robust": 0.1757510624854792
+          }
+        },
+        "family": "Surrogate"
+      }
+    ],
+    "dsnap_T5": [
+      {
+        "dMAE_at_rho_0.954": -131.13855107319978,
+        "dR2_at_rho_0.954": 0.0030549670532721285,
+        "evaluation": "CV_mean",
+        "family": "Direct",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": 64.04323389635101,
+        "dR2_at_rho_0.954": 0.00227986858972129,
+        "evaluation": "CV_mean",
+        "family": "Direct",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -1491.102013556374,
+        "dR2_at_rho_0.954": 0.0060254507871995155,
+        "evaluation": "heldout",
+        "family": "Direct",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -1771.4201761993027,
+        "dR2_at_rho_0.954": 0.0067102393371009095,
+        "evaluation": "heldout",
+        "family": "Direct",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -2000.119073328373,
+        "dR2_at_rho_0.954": 0.0060147662766057985,
+        "evaluation": "forward_2025",
+        "family": "Direct",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -2000.119073328373,
+        "dR2_at_rho_0.954": 0.0060147662766057985,
+        "evaluation": "forward_2025",
+        "family": "Direct",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": 43.7217239878737,
+        "dR2_at_rho_0.954": 0.00408880856113536,
+        "evaluation": "CV_mean",
+        "family": "Surrogate",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": 238.57899631717737,
+        "dR2_at_rho_0.954": 0.0029720311957767143,
+        "evaluation": "CV_mean",
+        "family": "Surrogate",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -507.96500669610396,
+        "dR2_at_rho_0.954": 0.003918631135946926,
+        "evaluation": "heldout",
+        "family": "Surrogate",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -648.5955601188762,
+        "dR2_at_rho_0.954": 0.00467714395426555,
+        "evaluation": "heldout",
+        "family": "Surrogate",
+        "source": "robust"
+      },
+      {
+        "dMAE_at_rho_0.954": -943.900011537291,
+        "dR2_at_rho_0.954": 0.004409182444374382,
+        "evaluation": "forward_2025",
+        "family": "Surrogate",
+        "source": "frozen"
+      },
+      {
+        "dMAE_at_rho_0.954": -943.900011537291,
+        "dR2_at_rho_0.954": 0.004409182444374382,
+        "evaluation": "forward_2025",
+        "family": "Surrogate",
+        "source": "robust"
+      }
+    ]
+  }
+}
