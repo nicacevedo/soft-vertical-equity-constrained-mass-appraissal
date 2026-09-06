@@ -3,3 +3,4 @@
 22082528	replicate_H	sched_mit_sloan_batch_r8
 22082529	ladder_P(afterok:22082526)	sched_mit_sloan_batch_r8
 22087220	replicate_H_retry	sched_mit_sloan_batch_r8
+22120027	zero_reference_fits_27 (array 0-8)	sched_mit_sloan_batch_r8

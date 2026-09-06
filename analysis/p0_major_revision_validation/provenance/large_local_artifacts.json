@@ -1,0 +1,529 @@
+{
+  "files": [
+    {
+      "bytes": 712826,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=development_pool/eval_predictions.parquet",
+      "sha256": "e5c0572d50919a6b7408fcda51d4465b8da9f09f764a5a778ec865171f9ece11",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5491979,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=development_pool/train_predictions.parquet",
+      "sha256": "6ea0938ff3b3238a250576d97874cd952ea166e6e0804eb1145b3a49bcf78eba",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 102187,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_1_train/eval_predictions.parquet",
+      "sha256": "f0c7618a0442b2a58b55ba4cf7f85b41bef942c080f64e86868e7a80176df15d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 875020,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_1_train/train_predictions.parquet",
+      "sha256": "d9e90292efaa51fb18396c40079571166b4c3218a386257b31d15e05ea1441d5",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 212272,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_2_train/eval_predictions.parquet",
+      "sha256": "0f253189f7192e1a16c296408ff003f15ec9437e320fe75410972fcf6bf1d2f1",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 1889885,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_2_train/train_predictions.parquet",
+      "sha256": "2ae73c03fa6770a288dfc53650c62f8f8f7f72b1a8b6df077a981759b8a1e87c",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 315464,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_3_train/eval_predictions.parquet",
+      "sha256": "14e09c9f4bfcb09e2c0595c355af0f132b94adf90ee8da9fc831059749bbb648",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 2734289,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_3_train/train_predictions.parquet",
+      "sha256": "605e9c88af2479efab3199fa6d628032f7a5ab64396da55cad6f2a535a4ec2dd",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 411615,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_4_train/eval_predictions.parquet",
+      "sha256": "20904bd49bcc2fd28b91ade4dc2fbbaf01a91b91522bb75e558b6b7e3bcbd141",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 3435181,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_4_train/train_predictions.parquet",
+      "sha256": "2736dac5e4921293145b8584eebd21e3b593e283d3058f28c80614348110e906",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 513179,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_5_train/eval_predictions.parquet",
+      "sha256": "2f337a06ab7d4c4b59887233e446a1c18f231143dafe38db3cbce9b9ad6b6565",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 4158801,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_5_train/train_predictions.parquet",
+      "sha256": "05699b463fa7a5773cbe01db18f331b124c6d870d7275316e9d22cb31732eed8",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 613099,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_6_train/eval_predictions.parquet",
+      "sha256": "c70642c38b7160d9eaf4da5b295244e54833ee5fa20c911a57c1f1b116de76fe",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 4834640,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_6_train/train_predictions.parquet",
+      "sha256": "1dfa5bc436b656be12d36ad36106079cfa5caf4c4190b26db3e30b141a766d75",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 637957,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_7_train/eval_predictions.parquet",
+      "sha256": "cb287fec630c32c3091303d1cd18e8bd6ba214a822a98d26789851fc36806a34",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5005994,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=fold_7_train/train_predictions.parquet",
+      "sha256": "6b972a46ffcc39dba74b89ee34c2f1ebd3d25864c9f93418a14c20c9844b37d1",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 491328,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=production_2016_2024/eval_predictions.parquet",
+      "sha256": "e037bef7d7bc2730cdfe3f4b14e066a98ea10bbb54bff218f2688efb7bfe8498",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 6034225,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=A/block=production_2016_2024/train_predictions.parquet",
+      "sha256": "6f1fe7448007215d22932c6540e0ebd31fd185a6afe08a080921f7724322411c",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 712826,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=development_pool/eval_predictions.parquet",
+      "sha256": "bb5fbc671529f3a18ae3923c8974eaf0efe240e8f2ee5016d025a33ab1ed9cc1",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5491979,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=development_pool/train_predictions.parquet",
+      "sha256": "849a2bff7ac43b8091263d8f7d81bd56959fe3cea80585a2fa7128be837a6c14",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 102187,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_1_train/eval_predictions.parquet",
+      "sha256": "b9a8643e8ac82df532eb3c46f5097928cbae712033b5cc6d284fb857166a5a3a",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 875020,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_1_train/train_predictions.parquet",
+      "sha256": "bcc4d2e7e3b34cc4c7833d37a97d0ec39ccd4f9783fd811631cef7bc277cbf2c",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 212272,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_2_train/eval_predictions.parquet",
+      "sha256": "848b23779fa6d58878ff986db5a9c5d14fef2aeacb5771c8603babf4e51f462d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 1889886,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_2_train/train_predictions.parquet",
+      "sha256": "7d22e7989085bb0f2dd7630b901c75aba005f26b2b030d67f9f226fd28c00450",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 315464,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_3_train/eval_predictions.parquet",
+      "sha256": "97c4b596bbfbc888ce6229099e709b9756eb1ff67fd904b1bf414c08a288964b",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 2734289,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_3_train/train_predictions.parquet",
+      "sha256": "ac4035cce8a2b13476019bef5b29017d06c607274972bf0a7b7c1cb6ed96edcb",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 411615,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_4_train/eval_predictions.parquet",
+      "sha256": "e4b6cb3a8c494ad259692ad8fe7da1585e58fd3bd7822367480000fb4daa731a",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 3435179,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_4_train/train_predictions.parquet",
+      "sha256": "a66651bd24b15a6b9731438fdd34b6e8ea51b08ddbbe15e113a647d968dd9bdb",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 513171,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_5_train/eval_predictions.parquet",
+      "sha256": "9d6cdebd9e3cd64a33f86e971e0f10db32ade55b570699904d418d51ab79a3fb",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 4158803,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_5_train/train_predictions.parquet",
+      "sha256": "1d8c6ada7596d4d303972cd607b762bb6f3639c9711a20b03095f6ea73556b8d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 613099,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_6_train/eval_predictions.parquet",
+      "sha256": "051d64302fd1529f925c2070ed4f94f6687e9faab6338b240620dd41d0397c02",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 4834640,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_6_train/train_predictions.parquet",
+      "sha256": "c2564f0f32c27e581a5262421201153be6dca07af2755d8f4089e30fe48d0c96",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 637956,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_7_train/eval_predictions.parquet",
+      "sha256": "c84985190dc204b20808b5e1e129c6c0a301e2c6b9a8234619c2141ccf7a3009",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5005994,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=fold_7_train/train_predictions.parquet",
+      "sha256": "dd20221fcc1b1a0f2e9c1f0fb27675d9300bf402679e19623d332e2f885106e1",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 491328,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=production_2016_2024/eval_predictions.parquet",
+      "sha256": "da9dab28224723e2b70a6c1a7d054f5843d5befc24691cc07c3cbd7d047f1716",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 6034225,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=B/block=production_2016_2024/train_predictions.parquet",
+      "sha256": "caf6133dd8989634245ead741f93d7d90209c6714df7019369f78b591e1c32e6",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 712825,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=development_pool/eval_predictions.parquet",
+      "sha256": "eeba86755026b73f241814d5aaed17d61115def291626ba461269e4b9b45a7d5",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5491981,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=development_pool/train_predictions.parquet",
+      "sha256": "5979ad5b7bf3701a59d65bfdcfe7b8027f4253726760a79a06d16f50493cfd99",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 102187,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_1_train/eval_predictions.parquet",
+      "sha256": "f93482dd349549436b731ecc652d5a98ebb89d82ceee578b008ca36e9f3313e2",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 875020,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_1_train/train_predictions.parquet",
+      "sha256": "59122eb0ee8afc57d8cd5be2b77a5636b573e2e309985585d4e50f79762bf963",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 212272,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_2_train/eval_predictions.parquet",
+      "sha256": "2a1b946739feb3bb324c201d4e0751dd34971927d42f0a9dabdc23055bac9b00",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 1889885,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_2_train/train_predictions.parquet",
+      "sha256": "9c67c0c7aafb35fca649ac678b98575584ec085904bb2d8888139cc3bfa0dd9d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 315464,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_3_train/eval_predictions.parquet",
+      "sha256": "3489d66e8abd9b282866d2bc7789b8eab70c3a86898c2b9471015ef3ced7d568",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 2734289,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_3_train/train_predictions.parquet",
+      "sha256": "aac5b92214e365d4c26019d5b468ba5cf190348cf44c35e41dc3317145589e93",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 411615,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_4_train/eval_predictions.parquet",
+      "sha256": "62a0550221ccc9b61befaac8a92b1a8a2521379f8f58aea3970737744720cf09",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 3435179,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_4_train/train_predictions.parquet",
+      "sha256": "bbe39a1fda268c120cee0dc17df4d01ce83d9c92d7a6b5aada9a3aa37c180d3d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 513179,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_5_train/eval_predictions.parquet",
+      "sha256": "95aa60694240374d429f022df43bd1180cf06effd7918545baf9ebf0b50981d6",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 4158801,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_5_train/train_predictions.parquet",
+      "sha256": "93760f0ca10c219ed09d44b2aa90251fa91cb24306faaaceabbd02e4a3c8c867",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 613099,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_6_train/eval_predictions.parquet",
+      "sha256": "f7a284214a0cf829ca396de7eec45e4eee41e423d890794aabbe0fcd0e9f4cfd",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 4834640,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_6_train/train_predictions.parquet",
+      "sha256": "e0822885efa9697b82504eef6a93e1112faf9a94a512ffccd7b6b8a4b4bf7adc",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 637956,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_7_train/eval_predictions.parquet",
+      "sha256": "39c1143f14373236d61b84b224be65c3a0edd7255670e67edac39a1298453461",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5005994,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=fold_7_train/train_predictions.parquet",
+      "sha256": "d3033f46005394c6365e08ee204991b86f1e381546aea80052809de17eb67627",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 491328,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=production_2016_2024/eval_predictions.parquet",
+      "sha256": "d435937535414e147d7640a6e3c569993ea19627ef6dce4a1e389b707fd33f55",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 6034225,
+      "path": "output/p0_major_revision_validation/zero_reference_fits/cell=C/block=production_2016_2024/train_predictions.parquet",
+      "sha256": "939d85852caf7549843b7c0c29e21353c74a1373389383594a8873b91309f76e",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 17522,
+      "path": "analysis/p0_major_revision_validation/tables/b_star_diagnostics.parquet",
+      "sha256": "c5bae44cf2699bd45f06466ba6040e6b65dc1787d23e6d6f167a40b9bdaa327d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 6727,
+      "path": "analysis/p0_major_revision_validation/tables/bc_discriminate.parquet",
+      "sha256": "f11ae3a975ce758d736681801eb2570127b9f15bd032d86978de3d0b8958aa80",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 8819,
+      "path": "analysis/p0_major_revision_validation/tables/bc_rootcause_trace.parquet",
+      "sha256": "742dd98bfdef1080c39d50344582dbbe244e2c731d1d72d7878319fedb55a76e",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 9015,
+      "path": "analysis/p0_major_revision_validation/tables/boundary_exposure_audit.parquet",
+      "sha256": "a1b7e0048d6e7c7cb51d9e8f18a2b95d4af96d13192fbe4e14d972c82fe5e7c6",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 105799,
+      "path": "analysis/p0_major_revision_validation/tables/direct_hessian_magnitudes.parquet",
+      "sha256": "6ded49614376153b8c736320698ce2ddd3150bf0979dd45156405258e224c224",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 110835,
+      "path": "analysis/p0_major_revision_validation/tables/effective_leaf_shrinkage.parquet",
+      "sha256": "a5878de6adad3698059495733b2aca9eb89ceced8775bcd127c54e61992dc532",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 11593,
+      "path": "analysis/p0_major_revision_validation/tables/fnum_same_host_replicate.parquet",
+      "sha256": "c85d7e0d45ed6623277a320e3905390139be2ce051ac0019a4ad56f4727e7298",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 40849,
+      "path": "analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.parquet",
+      "sha256": "67fa1fcce6bf405149cc2663a61c8a5530d1f75df417d0455fb442fb35828bb2",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 9056,
+      "path": "analysis/p0_major_revision_validation/tables/label_quantization.parquet",
+      "sha256": "9e1fb121e65fa099b7706b3cf91556809d027e22b46d44c3b03546457cba41ec",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 13265,
+      "path": "analysis/p0_major_revision_validation/tables/objective_scaling_audit.parquet",
+      "sha256": "abe4c4d27713779045f9624115274b4bb70f357226aaa36fa543757231691cd6",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 31253,
+      "path": "analysis/p0_major_revision_validation/tables/parity_ladder_historical.parquet",
+      "sha256": "b21af6ec998d099e9045bf8e63f2d1d3611448ebf2ed66e831edfe46d037d870",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 31365,
+      "path": "analysis/p0_major_revision_validation/tables/parity_ladder_pinned.parquet",
+      "sha256": "5e0a307fd76d6f700cf2193564d57331571bcebb1190ceafb3150eef87633c94",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 10441,
+      "path": "analysis/p0_major_revision_validation/tables/regeneration_triggers.parquet",
+      "sha256": "cf18bb9d3770604de4c0c0687f9d241574a79978fbe9d7915b50e8ecf79a024e",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 8659,
+      "path": "analysis/p0_major_revision_validation/tables/repeat_pin_exposure.parquet",
+      "sha256": "7d544f01027f56edbba76030cd874bf2ba765732fa02f67d2d1f1500d0929a29",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 12358,
+      "path": "analysis/p0_major_revision_validation/tables/source_equivalence_audit.parquet",
+      "sha256": "1288cacf4654a5bab42c3c023be04c5e03c36685f1154944402618922875abd5",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5533,
+      "path": "analysis/p0_major_revision_validation/tables/source_equivalence_behaviour_equivalence.parquet",
+      "sha256": "f37739c546e9fdd12b542555729e6e7ef26e5ddeac721edf305457b97391c41e",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 7855,
+      "path": "analysis/p0_major_revision_validation/tables/source_equivalence_grid_hashes.parquet",
+      "sha256": "acd8c18f38b9dcd39957ea2c91009b91385de71fa410aace5585aabd5431ed1b",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5407,
+      "path": "analysis/p0_major_revision_validation/tables/source_equivalence_hash_verification.parquet",
+      "sha256": "9bf2dd6c70af03bd1c79a4e97cb1d3b91e337137519c5c26a2cb91af8b2958ea",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 7980,
+      "path": "analysis/p0_major_revision_validation/tables/source_equivalence_worktree_filecmp.parquet",
+      "sha256": "9e70e26fe97c95ca2808b1e0135b6ec39fe9222ceba588762fb76642cd53b311",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 64330,
+      "path": "analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.parquet",
+      "sha256": "a56483d3f9958e7d8fcba84023c6a353a8c658632cb5187e5e383a8a89a02d4d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 8161,
+      "path": "analysis/p0_major_revision_validation/tables/zero_control_frozen_crosscheck.parquet",
+      "sha256": "84c7164febffdf61c8b798c9097f248d8b6c8ee3f45224a17b2e61f83b1e2976",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 33024,
+      "path": "analysis/p0_major_revision_validation/tables/zero_control_full.parquet",
+      "sha256": "c6c807ea243fb50f24616f140f12f8cce33d3dab2f190ef5ae565fdd25bf0b47",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 41650,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits.parquet",
+      "sha256": "085992915d0f57c39c5deb9e674103269dbc38055cacdf3b05ead7310ed7d7d0",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 32985,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block0.parquet",
+      "sha256": "1e80ae827cc2a06cdb4dd972f08410f8d0d5085b537c46a744ad1065fd2bfa52",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 32985,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block1.parquet",
+      "sha256": "f38334677dc5c90b3fa50915449fe92b7d7248603ef428c4059458399b9068e5",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 32983,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block2.parquet",
+      "sha256": "316bdcb3746afa1babf0270e1386063917dae6e9a98c87b8a716b94d0e327d52",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 32985,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block3.parquet",
+      "sha256": "1e7a2a7cc392c76dbc1895998168a19a861877af96485c6f0a33a275fca9244d",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 32980,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block4.parquet",
+      "sha256": "954d5ed889b66dd9fb5cee967016e3fe9d1a381d95ca30dd15a1f0c11ef43b83",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 32980,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block5.parquet",
+      "sha256": "92438e470e46d9430ae47eb57445b17d5a3368d30d0d1b0e724090bad4b7ba44",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 32984,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block6.parquet",
+      "sha256": "8591089c8d850304c2f7407bc8058e7b19ef6490aeecb1d42ce7239837ad1522",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 33587,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block7.parquet",
+      "sha256": "55baf4a3ac4562c6b196122ac4943ba0805483f1e56b28bfe5b7b97b3f6326a3",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 33701,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_fits_block8.parquet",
+      "sha256": "166000d94e80c463ecba3bdd5c1ed9d8bd9697451679ff15b27134d2cbc2fe75",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 14213,
+      "path": "analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.parquet",
+      "sha256": "906a196f0b69a61785fee62b52be162e393177595d40c0d0a8d327336d12add1",
+      "tracked_in_git": false
+    }
+  ],
+  "n_files": 87,
+  "note": "intentionally untracked; hashes recorded for reproducibility",
+  "total_bytes": 116323692
+}

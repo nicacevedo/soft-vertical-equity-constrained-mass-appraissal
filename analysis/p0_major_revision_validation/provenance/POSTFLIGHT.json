@@ -1,5 +1,6 @@
 {
   "branch": "p0-major-revision-validation",
+  "checkpoint_commit_evidence": "2732e653",
   "environment": {
     "dcor": "0.6",
     "lightgbm": "4.6.0",
@@ -11,84 +12,45 @@
     "scikit-learn": "1.6.1",
     "scipy": "1.13.1"
   },
-  "git_status_at_postflight": "?? analysis/p0_major_revision_validation/",
-  "head_commit_at_postflight": "271d0a0748ac6df5e4712ff2dec04db3c6a77511",
-  "local_commit_made": false,
-  "p0_baseline_commit": "271d0a0748ac6df5e4712ff2dec04db3c6a77511",
-  "provenance_worktree": {
-    "commits": [
-      "508dc1c2",
-      "2aa0346a",
-      "d3ef45f2"
-    ],
-    "created": true,
-    "removed_after_use": true
+  "gate_g2_checks": {
+    "all_27_complete": true,
+    "b_star_finite_all_A_and_C": true,
+    "b_star_finite_all_cells": true,
+    "cell_c_implementation": "LGBCovPenalty (Direct rho=0)",
+    "cov_positive_all_A_and_C": true,
+    "cov_positive_all_cells": true,
+    "identity_max_absdiff": 8.326672684688674e-16,
+    "n_fits": 27,
+    "qc_A_C_tiers": {
+      "R1": 18
+    },
+    "qc_ladder_crosschecks_all_match": true,
+    "zero_control_rows": 66
   },
+  "git_status_at_postflight": "M analysis/p0_major_revision_validation/logs/submitted_jobs.txt\n M analysis/p0_major_revision_validation/provenance/slurm_graph.json\n M analysis/p0_major_revision_validation/provenance/worktree_diff.patch\n?? analysis/p0_major_revision_validation/code/p0_merge_zref_blocks.py\n?? analysis/p0_major_revision_validation/code/p0_write_zero_control_report.py\n?? analysis/p0_major_revision_validation/code/p0_zero_control_assemble.py\n?? analysis/p0_major_revision_validation/code/p0_zero_reference_fits.py\n?? analysis/p0_major_revision_validation/configs/frozen_cv_run_map.csv\n?? analysis/p0_major_revision_validation/provenance/large_local_artifacts.json\n?? analysis/p0_major_revision_validation/provenance/stage1_frozen_hashes.json\n?? analysis/p0_major_revision_validation/reports/ZERO_CONTROL_REPORT.md\n?? analysis/p0_major_revision_validation/slurm/05_zero_reference_fits.sbatch\n?? analysis/p0_major_revision_validation/tables/b_star_diagnostics.csv\n?? analysis/p0_major_revision_validation/tables/gate_g2_checks.json\n?? analysis/p0_major_revision_validation/tables/zero_control_frozen_crosscheck.csv\n?? analysis/p0_major_revision_validation/tables/zero_control_full.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block0.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block1.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block2.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block3.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block4.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block5.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block6.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block7.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_fits_block8.csv\n?? analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv\n?? analysis/p0_major_revision_validation/tests/run_all_tests.py\n?? analysis/p0_major_revision_validation/tests/test_g2_assertions.py",
+  "head_at_postflight": "2732e653cb6545f80eb53ff33b8f6a1db1afabab",
+  "large_local_artifacts": "analysis/p0_major_revision_validation/provenance/large_local_artifacts.json",
   "pushed": false,
-  "stage": "STAGE_1_THROUGH_GATE_G1",
-  "stage1_summary": {
-    "f_num_same_host_replicate": {
-      "exact_everywhere": true,
-      "max_abs_delta_log": 0.0,
-      "splits": [
-        "heldout",
-        "forward_2025"
-      ]
-    },
-    "frozen_artifact_reproduction": {
-      "all_exact_R1": true,
-      "max_abs_delta_log_over_all": 0.0,
-      "n_configs": 14,
-      "tiers": {
-        "R1": 14
-      }
-    },
-    "regeneration": {
-      "any_trigger_fired": false,
-      "full_path_regeneration_required": false
-    },
-    "root_cause": {
-      "divergence_first_appears": "tree 0 split structure",
-      "failure_class": "F-IMP (LightGBM library behaviour, NOT a defect in the paper's objective code)",
-      "gradients_hessians_bit_identical_at_iteration_0": true,
-      "isolated_by": "colsample_bytree = 1.0 (feature subsampling removed)",
-      "named_cause": "LightGBM's per-tree feature-subsampling RNG stream differs between the built-in objective path and the custom-objective path, so the two learners see different random feature subsets from the first tree onward",
-      "objective_exact_when_feature_subsets_matched": true
-    },
-    "source_equivalence": {
-      "drift_resolution": "none",
-      "executed_path_source_drift_detected": true,
-      "files_with_drift": [
-        "run_temporal_cv.py",
-        "utils/delta_nl.py"
-      ],
-      "objective_and_split_files_byte_identical": true,
-      "worktree_created_and_removed": true
-    },
-    "stage": "STAGE_1_THROUGH_GATE_G1",
-    "track_h_vs_track_p": {
-      "implication": "determinism pinning changes nothing; F-ENV and F-NUM are excluded as causes of the native/custom gap",
-      "max_abs_delta_identical_everywhere": true,
-      "n_comparisons": 24,
-      "tiers_identical_everywhere": true
-    }
-  },
-  "stage2_not_executed": [
-    "18 native refits (Cell A + Cell B x 9 blocks)",
-    "Gate G2",
-    "centered-spread comparator",
+  "stage": "STAGE_1_5_THROUGH_GATE_G2",
+  "stage1_5_start_commit": "909d4bbeefb57b5b1c2767c4cd63c3128dff2653",
+  "stage1_baseline_commit": "271d0a0748ac6df5e4712ff2dec04db3c6a77511",
+  "stage1_review_commit": "909d4bbeefb57b5b1c2767c4cd63c3128dff2653",
+  "stage_1_5_not_executed": [
+    "centered-spread path (C or A)",
     "matched-beta",
     "D-SNAP",
     "D-PURGE",
     "D-UNSEEN",
-    "PRB/VEI inference",
+    "PRB SE/t",
+    "VEI significance",
     "smearing",
-    "any path regeneration",
+    "targeted rho fits",
+    "any full path regeneration",
     "any manuscript edit"
   ],
   "tests": {
-    "result": "28 passed, 0 failed, 0 skipped",
-    "runner": "analysis/p0_major_revision_validation/tests/run_stage1_tests.py"
+    "result": "64 passed, 0 failed, 0 skipped",
+    "runner": "analysis/p0_major_revision_validation/tests/run_all_tests.py"
   },
-  "written_at_utc": "2026-09-06T06:34:13.828903Z"
+  "written_at_utc": "2026-09-06T14:13:01.031969Z"
 }

@@ -1,0 +1,15 @@
+{
+  "all_27_complete": true,
+  "b_star_finite_all_A_and_C": true,
+  "b_star_finite_all_cells": true,
+  "cell_c_implementation": "LGBCovPenalty (Direct rho=0)",
+  "cov_positive_all_A_and_C": true,
+  "cov_positive_all_cells": true,
+  "identity_max_absdiff": 8.326672684688674e-16,
+  "n_fits": 27,
+  "qc_A_C_tiers": {
+    "R1": 18
+  },
+  "qc_ladder_crosschecks_all_match": true,
+  "zero_control_rows": 66
+}

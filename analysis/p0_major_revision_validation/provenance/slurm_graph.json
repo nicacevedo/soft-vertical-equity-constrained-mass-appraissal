@@ -44,6 +44,87 @@
       "NodeList": "node2621",
       "Partition": "sched_mit_sloan_batch_r8",
       "State": "CANCELLED by 256931"
+    },
+    {
+      "Elapsed": "00:01:50",
+      "ExitCode": "0:0",
+      "JobID": "22120027_0",
+      "JobName": "p0_zref",
+      "NodeList": "node2637",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:03:43",
+      "ExitCode": "0:0",
+      "JobID": "22120027_1",
+      "JobName": "p0_zref",
+      "NodeList": "node2624",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:05:29",
+      "ExitCode": "0:0",
+      "JobID": "22120027_2",
+      "JobName": "p0_zref",
+      "NodeList": "node2624",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:06:49",
+      "ExitCode": "0:0",
+      "JobID": "22120027_3",
+      "JobName": "p0_zref",
+      "NodeList": "node2637",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:08:25",
+      "ExitCode": "0:0",
+      "JobID": "22120027_4",
+      "JobName": "p0_zref",
+      "NodeList": "node2624",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:09:24",
+      "ExitCode": "0:0",
+      "JobID": "22120027_5",
+      "JobName": "p0_zref",
+      "NodeList": "node2637",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:10:22",
+      "ExitCode": "0:0",
+      "JobID": "22120027_6",
+      "JobName": "p0_zref",
+      "NodeList": "node2637",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:10:56",
+      "ExitCode": "0:0",
+      "JobID": "22120027_7",
+      "JobName": "p0_zref",
+      "NodeList": "node2624",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:12:37",
+      "ExitCode": "0:0",
+      "JobID": "22120027_8",
+      "JobName": "p0_zref",
+      "NodeList": "node2637",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
     }
   ]
 }
