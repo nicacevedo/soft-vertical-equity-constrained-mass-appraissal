@@ -1,0 +1,127 @@
+# P0 Major-Revision Validation -- frozen execution protocol
+# Authority: analysis/p0_major_revision_validation/APPROVED_EXECUTION_PLAN.md (rev. 3, FINAL)
+#            sha256 d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1
+schema_version: 1
+
+identity:
+  p0_baseline_commit: 271d0a0748ac6df5e4712ff2dec04db3c6a77511
+  p0_baseline_branch: p0-major-revision-validation
+  plan_baseline_commit: b878b00886584d8d81402a77fd19b93599204dd9
+  head_vs_plan_baseline: "HEAD = plan baseline + 1 commit adding the handoff doc; no executed-path file changed"
+  conda_env: /home/nacevedo/.conda/envs/fairness_env
+  python: 3.9.19
+  lightgbm: 4.6.0
+  lgbm_params_sha256: 8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b
+  lgbm_config_id: 407d47775760c14d
+
+authorized_scope:
+  this_run: STAGE_1_THROUGH_GATE_G1
+  hard_stop_after: GATE_G1
+  not_authorized_in_this_run:
+    - the 18 Cell-A / Cell-B native refits (amended Step 7 / J4)
+    - Gate G2
+    - centered-spread comparator
+    - matched-beta experiment
+    - D-SNAP / D-PURGE / D-UNSEEN model fits
+    - PRB inference, VEI inference, smearing
+    - any full positive-rho path regeneration
+    - any D-SNAP path regeneration
+    - any manuscript edit
+
+amendment_to_rev3:
+  id: AMD-1
+  affects: "Step 7 / job J4 compute count and downstream comparator inputs only"
+  text: >
+    Step 7 / J4 is amended from 9 native refits to 18 native refits: Cell A and Cell B
+    across all 9 fitting blocks (7 rolling-origin CV training blocks, the full development
+    pool, and the full 2016-2024 production block). For BOTH cells retain in-sample training
+    predictions, the corresponding validation / held-out / 2025 predictions, ybar_T, f0bar_T,
+    Var_T(y), Cov_T(f0,y) and b_star_train. Cell C predictions may never be substituted for
+    Cell B on the grounds that B/C parity is expected.
+  authorizes_execution_in_this_run: false
+  alters_scientific_interpretation: false
+
+fixed_cell_names:
+  A: "Ordinary LightGBM (standard raw-label native)"
+  B: "Parity-aligned native L2"
+  C: "Custom rho=0 origin"
+  rule: "Cell B may serve as the within-implementation causal reference if justified, but is NEVER printed as 'Ordinary LightGBM'. Cell A is never dropped from a table reporting a native baseline."
+
+canonical_counts:
+  development: 344607
+  heldout: 38290
+  forward_2025: 26641
+  production_2016_2024: 382897
+  loader_rule: "Load only via run_temporal_cv._load_and_split_data. The pyarrow row-group pushdown is part of the frozen experiment definition and must not be replaced by pandas-side filtering."
+
+track_separation:                     # plan A1 / F.0
+  track_H:
+    name: historical-setting
+    settings: "frozen hyperparameters, LightGBM 4.6.0, n_jobs=1, OMP_NUM_THREADS=1; NO deterministic, NO force_row_wise, NO force_col_wise, NO num_threads added"
+    certifies: "the frozen positive-rho path artifacts"
+  track_P:
+    name: pinned-determinism
+    settings: "adds deterministic=True, force_row_wise=True, num_threads=1 to every cell, native and custom alike"
+    certifies: "the implementation, prospectively"
+    may_not: "certify historical artifacts; replace Track H evidence; set RG-1..RG-4; justify reuse of historical artifacts by itself"
+
+parity_tiers_T:                        # A/B/C comparisons only
+  T1: "max|dyhat| == 0"
+  T2: "0 < max|dyhat| <= 1e-6 AND all reported metrics identical at displayed precision"
+  T3: "1e-6 < max|dyhat| <= 1e-3 AND all metrics agree at displayed precision AND a named scientifically innocuous cause"
+  T4: "anything larger, OR a T2/T3-sized discrepancy without an identified cause, OR any metric differing at displayed precision"
+  note: "A<->B or A<->C at T4 is NOT a regeneration trigger. B<->C is the implementation-relevant comparison."
+
+reproduction_tiers_R:                  # frozen-artifact reproduction only -- SEPARATE FIELD
+  R1: "max|dyhat| == 0"
+  R2: "max|dyhat| <= 1e-6 AND all reported metrics identical at displayed precision"
+  R3: "1e-6 < max|dyhat| <= 1e-3 AND a named benign cause AND no displayed metric changes AND no scientific conclusion changes"
+  R4: "anything larger OR any displayed metric changes OR any difference capable of altering scientific interpretation"
+  note: "Only R4 contributes to the regeneration gate. R-tiers and T-tiers must never share a column or a verdict."
+
+failure_taxonomy:                      # plan F.2b
+  F-SRC: source drift
+  F-DIRTY: unreconstructable dirty-state uncertainty
+  F-ENV: environment nondeterminism
+  F-NUM: numerical nondeterminism
+  F-IMP: genuine implementation discrepancy
+  rule: "'nondeterminism' may never be used as a catch-all. Every non-R1 reproduction result must carry a failure class before Gate G1."
+
+regeneration_triggers:                 # plan F.6 -- NONE may be fired in Stage 1
+  RG-1: "historical-setting B<->C materially non-parity without an innocuous numerical cause"
+  RG-2: "defect in the custom objective AS IT STOOD AT THE PROVENANCE COMMIT (F-IMP, not F-SRC in later code)"
+  RG-3: "frozen positive-rho artifacts fail historical reproduction at R4, after F.2b classification and (for F-SRC) provenance-worktree retest"
+  RG-4: "explicit decision to make the pinned deterministic implementation canonical"
+  explicitly_not_triggers:
+    - "A<->B or A<->C non-parity at any tier including T4"
+    - "a Track-P-only B<->C result"
+    - "an R3/F-DIRTY classification"
+  stage1_rule: "Stage 1 may initialize tables/regeneration_triggers.csv for schema/provenance only. It MUST NOT submit a regeneration job."
+
+scientific_rules_binding:
+  - "Direct is not called 'effectively gradient-only' until the real-data curvature audit supports it (E.4 verdict)."
+  - "The fixed-lambda leaf-shrinkage analysis stays a STYLIZED diagnostic (diagnostic_type=stylized_nominal_leaf) unless actual trained-leaf Hessian sums are measured."
+  - "min_sum_hessian_in_leaf is reported as checked-and-non-binding, not as a mechanism."
+  - "No manuscript claim may be changed during this run."
+
+isolation:
+  write_allowed:
+    - analysis/p0_major_revision_validation/
+    - output/p0_major_revision_validation/
+  must_not_modify:
+    - paper/*.tex
+    - paper/img/**
+    - output/paper_v6_preselection_994/**
+    - output/paper_v12_*/**
+    - utils/**
+    - soft_constrained_models/**
+    - run_temporal_cv.py
+    - scripts/**
+
+slurm:
+  partition_preferred: sched_mit_sloan_batch_r8
+  partition_overflow: "sched_mit_sloan_batch_r8,ou_sloan_batch"
+  partition_forbidden: mit_normal
+  gpu: none
+  env: {OMP_NUM_THREADS: 1, MKL_NUM_THREADS: 1, OPENBLAS_NUM_THREADS: 1}
+  python: /home/nacevedo/.conda/envs/fairness_env/bin/python
