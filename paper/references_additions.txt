@@ -1,0 +1,151 @@
+@misc{SmithHarveyBerryGoldinHo2026,
+  title        = {Tradeoffs are Domain Dependent: Improving Accuracy and Fairness in Property Tax Assessments},
+  author       = {Smith, Evelyn and Harvey, Emma and Berry, Christopher and Goldin, Jacob and Ho, Daniel E.},
+  year         = {2026},
+  eprint       = {2605.15020},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CY},
+  doi          = {10.48550/arXiv.2605.15020},
+  note         = {FAccT 2026}
+}
+
+
+@techreport{IAAO2026ExposureRatio,
+  author      = {{International Association of Assessing Officers}},
+  title       = {Standard on Ratio Studies (Exposure Draft)},
+  institution = {International Association of Assessing Officers},
+  year        = {2026},
+  month       = may,
+  note        = {Second exposure draft; the 2013 standard remains the current approved guidance},
+  url         = {https://www.iaao.org/wp-content/uploads/StandardonRatioStudies_Exposure-Mar2026.pdf}
+}
+
+@misc{CCAOAssessmentNotice2026,
+  author  = {{Cook County Assessor's Office}},
+  title   = {Your Assessment Notice and Tax Bill},
+  year    = {2026},
+  url     = {https://www.cookcountyassessor.com/your-assessment-notice-and-tax-bill},
+  urldate = {2026-08-03}
+}
+
+@misc{CCAOPropertyTaxSystem2026,
+  author  = {{Cook County Assessor's Office}},
+  title   = {The Cook County Property Tax System},
+  year    = {2026},
+  url     = {https://www.cookcountyassessor.com/cook-county-property-tax-system},
+  urldate = {2026-08-03}
+}
+
+@misc{CCAOAssessmentStages2023,
+  author  = {{Cook County Assessor's Office}},
+  title   = {How Assessments and Appeals in Your Community Affected Property Tax Bills},
+  year    = {2023},
+  month   = oct,
+  url     = {https://rpie.cookcountyassessor.com/news/how-assessments-and-appeals-your-community-affected-property-tax-bills},
+  urldate = {2026-08-03}
+}
+
+@misc{CCAOModelResAVM2026,
+  author  = {{Cook County Assessor's Office}},
+  title   = {Residential Automated Valuation Model: Model-Res-AVM},
+  year    = {2026},
+  url     = {https://github.com/ccao-data/model-res-avm},
+  urldate = {2026-08-03},
+  note    = {Public code and documentation for the residential modeling pipeline}
+}
+
+@manual{IAAO2018AVM,
+  author       = {{International Association of Assessing Officers}},
+  title        = {Standard on Automated Valuation Models},
+  year         = {2018},
+  organization = {International Association of Assessing Officers},
+  url          = {https://www.iaao.org/wp-content/uploads/Standard_on_Automated_Valuation_Models.pdf}
+}
+
+@techreport{Almy2014,
+  author      = {Almy, Richard},
+  title       = {Valuation and Assessment of Immovable Property},
+  institution = {OECD},
+  series      = {OECD Working Papers on Fiscal Federalism},
+  number      = {19},
+  year        = {2014},
+  doi         = {10.1787/5jz5pzvr28hk-en},
+  url         = {https://doi.org/10.1787/5jz5pzvr28hk-en}
+}
+
+
+@report{IAAO2020PropertyTaxPolicy,
+  author      = {{International Association of Assessing Officers}},
+  title       = {Standard on Property Tax Policy},
+  institution = {International Association of Assessing Officers},
+  location    = {Kansas City, MO},
+  year        = {2020},
+  isbn        = {978-0-88329-253-2},
+  url         = {https://www.iaao.org/wp-content/uploads/Standard_on_Property_Tax_Policy.pdf}
+}
+
+@report{IAAO2025Mass,
+  author      = {{International Association of Assessing Officers}},
+  title       = {Standard on Mass Appraisal of Real Property},
+  institution = {International Association of Assessing Officers},
+  location    = {Kansas City, MO},
+  year        = {2025},
+  note        = {Revised 2025},
+  isbn        = {978-0-88329-248-8},
+  url         = {https://www.iaao.org/wp-content/uploads/Standard_on_Mass_Appraisal.pdf}
+}
+
+@inproceedings{SmithEtAl2026,
+  author    = {Smith, Evelyn and Harvey, Emma and Berry, Christopher and
+               Goldin, Jacob and Ho, Daniel E.},
+  title     = {Tradeoffs are Domain Dependent: Improving Accuracy and
+               Fairness in Property Tax Assessments},
+  booktitle = {Proceedings of the 2026 ACM Conference on Fairness,
+               Accountability, and Transparency},
+  year      = {2026},
+  doi       = {10.1145/3805689.3812318}
+}
+
+@misc{CCAOAssessmentCalendar2026,
+  author       = {{Cook County Assessor's Office}},
+  title        = {Assessment \& Appeal Calendar},
+  year         = {2026},
+  howpublished = {\url{https://www.cookcountyassessor.com/assessment-calendar-and-deadlines}},
+  note         = {Accessed: 2026-08-11}
+}
+
+@article{SzekelyRizzoBakirov2007,
+   title={Measuring and testing dependence by correlation of distances},
+   volume={35},
+   ISSN={0090-5364},
+   url={http://dx.doi.org/10.1214/009053607000000505},
+   DOI={10.1214/009053607000000505},
+   number={6},
+   journal={The Annals of Statistics},
+   publisher={Institute of Mathematical Statistics},
+   author={Székely, Gábor J. and Rizzo, Maria L. and Bakirov, Nail K.},
+   year={2007},
+   month=Dec }
+
+@article{DoksumSamarov1995,
+  author  = {Doksum, Kjell and Samarov, Alexander},
+  title   = {Nonparametric Estimation of Global Functionals and a Measure of the Explanatory Power of Covariates in Regression},
+  journal = {The Annals of Statistics},
+  year    = {1995},
+  volume  = {23},
+  number  = {5},
+  pages   = {1443--1473},
+  doi     = {10.1214/aos/1176324307}
+}
+
+@article{HardleMammen1993,
+  author  = {H{\"a}rdle, Wolfgang and Mammen, Enno},
+  title   = {Comparing Nonparametric Versus Parametric Regression Fits},
+  journal = {The Annals of Statistics},
+  year    = {1993},
+  volume  = {21},
+  number  = {4},
+  pages   = {1926--1947},
+  doi     = {10.1214/aos/1176349403}
+}
+
