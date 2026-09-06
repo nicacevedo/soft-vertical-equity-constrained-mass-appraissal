@@ -1,0 +1,8 @@
+{
+  "assertion": "this hash was written BEFORE any held-out or 2025 comparator outcome was read; the path mode validates it before running",
+  "b_max": 1.2090820987117668,
+  "file_sha256": "0a680e7ff8182b3ec59ddd40ea2254cc926d0944918f72ad4311cbc2e037a0be",
+  "frozen_at_utc": "2026-09-06T14:34:26.405373Z",
+  "grid_sha256_of_payload_without_hash_field": "4881bd372067303a3f2e2acc8d1877dee920b82a7cadfd78c0a42a059cc6f7e8",
+  "n_grid": 124
+}

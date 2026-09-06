@@ -25,6 +25,7 @@ sys.modules["pytest"] = _PytestShim  # type: ignore
 
 import test_p0_assertions as S1          # noqa: E402
 import test_g2_assertions as G2          # noqa: E402
+import test_g3_assertions as G3          # noqa: E402
 
 def run(mod, label):
     names = sorted(n for n in dir(mod) if n.startswith("test_"))
@@ -42,7 +43,8 @@ def run(mod, label):
 
 def main() -> int:
     tot = [0, 0, 0]; allf = []
-    for mod, lbl in ((S1, "Stage-1 assertions"), (G2, "Stage-1.5 / Gate-G2 assertions")):
+    for mod, lbl in ((S1, "Stage-1 assertions"), (G2, "Stage-1.5 / Gate-G2 assertions"),
+                     (G3, "Stage-2 / Gate-G3 assertions")):
         p, f, s, fl = run(mod, lbl)
         tot[0] += p; tot[1] += f; tot[2] += s; allf += fl
     print(f"\nTOTAL: {tot[0]} passed, {tot[1]} failed, {tot[2]} skipped")

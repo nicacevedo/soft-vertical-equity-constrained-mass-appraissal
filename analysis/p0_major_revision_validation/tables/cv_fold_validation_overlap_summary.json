@@ -1,0 +1,11 @@
+{
+  "cause": "expanding-window rolling origin with a newest-10% validation rule: the fold-6 and fold-7 origins are only ~4 months apart (2023-07-01 -> 2023-11-09) while 10% of the development pool spans ~1 year, so the two validation blocks overlap",
+  "d1_cvmean_unaffected": true,
+  "delta_nl_handling": "composite deterministic identifier 'fold|row_id' supplied to the frozen Delta_NL estimator for the D2 sample only; still a function of observation identity alone and independent of predictions",
+  "effect_on_D2": "the concatenated pooled-OOF coordinate double-counts the overlapping rows; each individual prediction is still genuinely out-of-fold (no overlapping row is in the training block of the model that predicted it)",
+  "historical_note": "the historical solve_b_star_validation_neutral used the same concatenation with n_oof=151153, so the historical b*=1.1672656789694134 inherits the same double-counting; our recomputed A value matches it to 13 significant digits, confirming faithful reproduction",
+  "n_concatenated": 151153,
+  "n_duplicated_rows": 20988,
+  "n_unique": 130165,
+  "share_duplicated": 0.13885268568933465
+}

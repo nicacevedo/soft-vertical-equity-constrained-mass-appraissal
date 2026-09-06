@@ -1,0 +1,103 @@
+{
+  "b1_bitwise_all": true,
+  "b1_fast_path_shares_memory": true,
+  "b_max": 1.2090820987117668,
+  "b_max_rule": "b_max = 1 + 1.25 * (max(all four development roots) - 1)  == true 25% overshoot in the adjustment (b-1). NOT 1.25 * b_star, and NOT derived from b_star_train.",
+  "b_star_train_used_for_endpoint": false,
+  "b_zero_cvmean": {
+    "A": 1.1603673641139836,
+    "C": 1.160457945844737
+  },
+  "b_zero_pooled_oof": {
+    "A": 1.1672656789694134,
+    "C": 1.1670266398954645
+  },
+  "centering_beta_log_absdiff_max": 2.7755575615628914e-17,
+  "centering_max_analytic_shift_log": 6.266168073833368e-06,
+  "centering_max_metric_absdiff": 1.5444279903022107,
+  "coverage": {
+    "all_requirements_met": true,
+    "b_for_beta_zero": {
+      "A": 1.1603673641139836,
+      "C": 1.160457945844737
+    },
+    "b_for_direct_upper_common_support": {
+      "A": 1.0691027398736879,
+      "C": 1.0691861972161865
+    },
+    "beta_cvmean_at_b1": {
+      "A": -0.1382039594300677,
+      "C": -0.1382712285432578
+    },
+    "beta_cvmean_at_bmax": {
+      "A": 0.04198216539378463,
+      "C": 0.04190083151323032
+    },
+    "common_support_lower_endpoint_set_by": "post-hoc at b=1",
+    "direct_cvmean_range": {
+      "max": -0.0786514918143895,
+      "min": -0.1394228466600394
+    },
+    "ext_targets": {
+      "-0.03": {
+        "A": {
+          "b": 1.125556343190564,
+          "within_grid": true
+        },
+        "C": {
+          "b": 1.125644207469395,
+          "within_grid": true
+        }
+      },
+      "-0.06": {
+        "A": {
+          "b": 1.0907453222671446,
+          "within_grid": true
+        },
+        "C": {
+          "b": 1.090830469094053,
+          "within_grid": true
+        }
+      },
+      "0.0": {
+        "A": {
+          "b": 1.1603673641139836,
+          "within_grid": true
+        },
+        "C": {
+          "b": 1.160457945844737,
+          "within_grid": true
+        }
+      }
+    },
+    "reaches_beta_zero": {
+      "A": true,
+      "C": true
+    },
+    "reaches_direct_upper_common_support": {
+      "A": true,
+      "C": true
+    },
+    "surrogate_cvmean_range": {
+      "max": -0.0186094650282942,
+      "min": -0.1392982411982969
+    },
+    "three_way_common_support_cvmean": [
+      -0.1382039594300677,
+      -0.0786514918143895
+    ]
+  },
+  "cvmean_root_max_abs_beta": 1.001183263278043e-16,
+  "grid_frozen_at_utc": "2026-09-06T14:34:26.405373Z",
+  "grid_hash": "0a680e7ff8182b3ec59ddd40ea2254cc926d0944918f72ad4311cbc2e037a0be",
+  "grid_n": 124,
+  "historical_qc_worst_relative_metric_diff": 1.575150494479875e-11,
+  "input_hashes_verified": true,
+  "linearity_max_dev_from_closed_form": 4.549138843401579e-14,
+  "linearity_max_residual": 4.718447854656915e-16,
+  "n_path_rows": 2480,
+  "no_b_full_path": true,
+  "no_refit_performed": true,
+  "pooled_root_max_abs_beta": 3.625012003090994e-14,
+  "primary_map": "ybar_T-centered theorem map"
+}

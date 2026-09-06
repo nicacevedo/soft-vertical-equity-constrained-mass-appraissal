@@ -1,9 +1,77 @@
 diff --git a/analysis/p0_major_revision_validation/logs/submitted_jobs.txt b/analysis/p0_major_revision_validation/logs/submitted_jobs.txt
-index 41f20144..b7d2c6c5 100644
+index b7d2c6c5..b3035ee3 100644
 --- a/analysis/p0_major_revision_validation/logs/submitted_jobs.txt
 +++ b/analysis/p0_major_revision_validation/logs/submitted_jobs.txt
-@@ -3,3 +3,4 @@
- 22082528	replicate_H	sched_mit_sloan_batch_r8
+@@ -4,3 +4,5 @@
  22082529	ladder_P(afterok:22082526)	sched_mit_sloan_batch_r8
  22087220	replicate_H_retry	sched_mit_sloan_batch_r8
-+22120027	zero_reference_fits_27 (array 0-8)	sched_mit_sloan_batch_r8
+ 22120027	zero_reference_fits_27 (array 0-8)	sched_mit_sloan_batch_r8
++22127226	centered_spread_path (array 0-19)	sched_mit_sloan_batch_r8
++22128981	centered_spread_path rerun (shards 7,17 pooled_oof)	sched_mit_sloan_batch_r8
+diff --git a/analysis/p0_major_revision_validation/provenance/worktree_diff.patch b/analysis/p0_major_revision_validation/provenance/worktree_diff.patch
+index ec1900a0..e69de29b 100644
+--- a/analysis/p0_major_revision_validation/provenance/worktree_diff.patch
++++ b/analysis/p0_major_revision_validation/provenance/worktree_diff.patch
+@@ -1,9 +0,0 @@
+-diff --git a/analysis/p0_major_revision_validation/logs/submitted_jobs.txt b/analysis/p0_major_revision_validation/logs/submitted_jobs.txt
+-index 41f20144..b7d2c6c5 100644
+---- a/analysis/p0_major_revision_validation/logs/submitted_jobs.txt
+-+++ b/analysis/p0_major_revision_validation/logs/submitted_jobs.txt
+-@@ -3,3 +3,4 @@
+- 22082528	replicate_H	sched_mit_sloan_batch_r8
+- 22082529	ladder_P(afterok:22082526)	sched_mit_sloan_batch_r8
+- 22087220	replicate_H_retry	sched_mit_sloan_batch_r8
+-+22120027	zero_reference_fits_27 (array 0-8)	sched_mit_sloan_batch_r8
+diff --git a/analysis/p0_major_revision_validation/tests/run_all_tests.py b/analysis/p0_major_revision_validation/tests/run_all_tests.py
+index 7776251e..ee5905d5 100644
+--- a/analysis/p0_major_revision_validation/tests/run_all_tests.py
++++ b/analysis/p0_major_revision_validation/tests/run_all_tests.py
+@@ -25,6 +25,7 @@ sys.modules["pytest"] = _PytestShim  # type: ignore
+ 
+ import test_p0_assertions as S1          # noqa: E402
+ import test_g2_assertions as G2          # noqa: E402
++import test_g3_assertions as G3          # noqa: E402
+ 
+ def run(mod, label):
+     names = sorted(n for n in dir(mod) if n.startswith("test_"))
+@@ -42,7 +43,8 @@ def run(mod, label):
+ 
+ def main() -> int:
+     tot = [0, 0, 0]; allf = []
+-    for mod, lbl in ((S1, "Stage-1 assertions"), (G2, "Stage-1.5 / Gate-G2 assertions")):
++    for mod, lbl in ((S1, "Stage-1 assertions"), (G2, "Stage-1.5 / Gate-G2 assertions"),
++                     (G3, "Stage-2 / Gate-G3 assertions")):
+         p, f, s, fl = run(mod, lbl)
+         tot[0] += p; tot[1] += f; tot[2] += s; allf += fl
+     print(f"\nTOTAL: {tot[0]} passed, {tot[1]} failed, {tot[2]} skipped")
+diff --git a/analysis/p0_major_revision_validation/tests/test_g2_assertions.py b/analysis/p0_major_revision_validation/tests/test_g2_assertions.py
+index 0d34f4b3..6d972131 100644
+--- a/analysis/p0_major_revision_validation/tests/test_g2_assertions.py
++++ b/analysis/p0_major_revision_validation/tests/test_g2_assertions.py
+@@ -271,9 +271,12 @@ def test_every_rg_row_cites_evidence_artifacts():
+ 
+ 
+ # ----------------------------------------------------------------- not-yet-run
+-def test_no_centered_spread_path_executed():
+-    for bad in ("centered_spread_path.csv", "b_grid_frozen.json",
+-                "centered_spread_ratio_profiles.csv", "matched_beta_comparison.csv",
++def test_no_matched_beta_executed():
++    """Gate-G2 boundary.  The centered-spread comparator was authorized for Stage 2 and its
++    artifacts legitimately exist from that stage onward; the still-forbidden items are the
++    matched-beta outputs.  Stage 2's own suite (test_g3_assertions) carries the stricter
++    current-boundary guards."""
++    for bad in ("matched_beta_comparison.csv", "matched_beta_crossings.csv",
+                 "matched_beta_frozen.json"):
+         assert not (T / bad).exists() and not (c.CONFIGS / bad).exists(), bad
+ 
+@@ -281,7 +284,9 @@ def test_no_centered_spread_path_executed():
+ def test_no_temporal_robustness_jobs_submitted():
+     log = c.LOGS / "submitted_jobs.txt"
+     txt = log.read_text() if log.exists() else ""
+-    for bad in ("dsnap", "dpurge", "dunseen", "full_path_regen", "centered_spread",
++    # 'centered_spread' is authorized from Stage 2 onward and is therefore not listed here;
++    # Stage 2's suite asserts the current boundary.
++    for bad in ("dsnap", "dpurge", "dunseen", "full_path_regen",
+                 "matched_beta", "inferential_extras"):
+         assert bad not in txt.lower(), bad
+ 

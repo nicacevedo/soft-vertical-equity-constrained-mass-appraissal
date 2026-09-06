@@ -1,0 +1,105 @@
+# Post-hoc comparator convention -- FROZEN AT GATE G3.
+# Companion to configs/post_g1_reference_convention.yaml (Gate G2, unchanged).
+# The future matched-beta rule below is FROZEN BUT NOT EXECUTED in Stage 2.
+schema_version: 1
+frozen_at_gate: G3
+stage: STAGE_2_CENTERED_SPREAD
+
+primary_map:
+  formula: "f_b(x) = ybar_T + b * (f0(x) - ybar_T)"
+  name: theorem-matched centered-spread map
+  ybar_T_source:
+    cv_fold_k: fold-k training block mean log target
+    heldout: development-pool training mean log target
+    forward_2025: production 2016-2024 training mean log target
+  b_equals_one: "explicit fast path returning the cached prediction array unchanged (bitwise)"
+  rationale: >
+    Corollary cor:path_scaling expresses the fixed-space Direct path as
+    f_rho = ybar*1 + b_rho*(f0 - ybar*1); the ybar_T-centered map is therefore the
+    theorem-matched form and is the only map used for the full path.
+
+centering_sensitivity:
+  alternative_map: "f_b(x) = ybar_T + b * (f0(x) - f0bar_T)"
+  analytic_difference: "f_b^ybar - f_b^f0bar = b * (f0bar_T - ybar_T)  (a CONSTANT in x)"
+  consequence: >
+    Because the difference is a constant log shift and the beta_log convention centres c on
+    the evaluation sample, beta_log, Cov_log_residual_log_price, COD, COV and dCor are
+    EXACTLY unaffected; only level-sensitive metrics can move.
+  full_second_path_scheduled: false
+  reason_not_scheduled: >
+    Gate G2 established max |f0bar_T - ybar_T| <= 8.36e-06 over all 27 fits, so the maximum
+    possible shift over the whole Stage-2 grid is b_max * 8.36e-06 ~ 1.0e-05 in log space.
+    A complete duplicate 121-point path is not scientifically justified; anchor-level
+    evaluation is used instead.
+  anchors_evaluated: [b_1, b_direct_upper_common_support, b_zero_cvmean, b_max]
+  regimes_evaluated: [CV_mean, heldout, forward_2025]
+  references_evaluated: [C, A]
+
+references:
+  C:
+    display_name: Custom-objective rho=0 origin
+    posthoc_status: PRIMARY
+    question: >
+      At the same first-order correction, what does retraining buy relative to globally
+      rescaling the same unregularized custom-path predictor?
+    rationale: >
+      C is the common custom-objective rho=0 origin of the Direct and Surrogate paths, so a
+      C-based post-hoc map holds the execution path fixed and isolates retraining.
+  A:
+    display_name: Ordinary LightGBM (standard raw-label native)
+    posthoc_status: SECONDARY_PRACTICAL
+    question: >
+      Could a practitioner obtain a similar tradeoff simply by post-processing standard
+      LightGBM?
+    display_rule: "may appear in a separate panel/table; descriptive wording only"
+  B:
+    display_name: Centered-label native L2 (initialization-aligned)
+    posthoc_status: NO_FULL_PATH
+    role: implementation-decomposition control only
+
+calibration:
+  coordinate_D1_primary:
+    name: equal-weight seven-fold CV-mean beta_log
+    beta_k_of_b: "beta_k(b) = b * Cov_Vk(f0,y) / Var_Vk(y) - 1"
+    beta_cvmean_of_b: "(1/7) * sum_k beta_k(b)"
+    root: "b_zero_cvmean = 1 / mean_k[ Cov_Vk(f0,y) / Var_Vk(y) ]"
+    computed_separately_per_reference: true
+  coordinate_D2_sensitivity:
+    name: pooled development out-of-fold beta_log
+    construction: >
+      concatenate the seven validation blocks after applying fold-specific TRAINING centers;
+      root solved in closed form as b = (V - P) / (Q - P) with V = Var_pooled(y),
+      P = mean(ybar_T(k(i)) * c), Q = mean(f0 * c), then verified by evaluating beta at that b
+    computed_separately_per_reference: true
+  b_star_train:
+    formula: "Var_T(y) / Cov_T(f0,y) on the fitting block"
+    status: IN-SAMPLE THEORY DIAGNOSTIC ONLY
+    used_for_empirical_endpoint: false
+    reason: >
+      the 994-tree learner is substantially less regressive in sample
+      (beta_log_train ~ -0.06 to -0.09) than out of sample (~ -0.14 to -0.16), so the
+      in-sample root understates the empirically required rescaling
+  one_over_r2:
+    status: theoretical diagnostic only
+    used_for_endpoint: false
+  b_max_rule: "b_max = 1 + 1.25 * (max(all four development roots) - 1)   [25% overshoot in (b-1)]"
+  forbidden_b_max_rule: "b_max = 1.25 * b_star"
+  development_only: true
+  no_oos_information_used: true
+
+future_matched_beta_convention:
+  executed_in_stage_2: false
+  primary_core_comparison:
+    families: [Direct, Surrogate, C-posthoc]
+    matched_on: DEVELOPMENT achieved beta_log
+    rationale: >
+      C-posthoc is the correct post-hoc family for the mechanistic question because C is the
+      common custom-objective rho=0 origin of both penalized families.
+  secondary_practical_comparison:
+    families: [A-posthoc]
+    display: separate panel/table
+    restrictions:
+      - A-posthoc must NOT determine the three-way common support
+      - A-posthoc must NOT determine CORE target selection
+      - A-posthoc must NOT replace C-posthoc in the primary mechanistic test
+  cell_B: {full_posthoc_path: false, role: decomposition-only}

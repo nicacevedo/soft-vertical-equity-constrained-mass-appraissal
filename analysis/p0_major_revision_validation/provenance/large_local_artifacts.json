@@ -349,6 +349,186 @@
       "tracked_in_git": false
     },
     {
+      "bytes": 7366,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_b1_qc.parquet",
+      "sha256": "8a96f532250a1cc929b6e1224d9a872800b1c8b27d51c7d57063c215329d373e",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 53841,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_centering_sensitivity.parquet",
+      "sha256": "60080968d950b3ce20997eee0710a2eff720c381c7adf447c7cc93baee3d0fa6",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 109251,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_cv_summary.parquet",
+      "sha256": "72c4df3ab169017fc3ee61b8ece77a2b055775423b93911f34055e900dc98aa3",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 82513,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_existing_qc.parquet",
+      "sha256": "1397f336f4f7d92567fba99da26e6c6c88842d5cf3948254a5aa68d3f028b41f",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 8276,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_linearity.parquet",
+      "sha256": "e88955a55e1af1554f256b2ac73df10daa1dcef06690917f635c6f2605010780",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 491250,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path.parquet",
+      "sha256": "40afc25cd2a3b1e9669d66d988c193010470b16557b4a2ce4dbfcb53d2efceb7",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47380,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_1.parquet",
+      "sha256": "952f76d0b59ddacf04a3590c9dbef82068eec1a80e653143d767c7d3844e8282",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47371,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_2.parquet",
+      "sha256": "c004efa10e02b8ee1a322b78c6fe31c47b6e8638f1dc57b4f2fb8e808a24b315",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47364,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_3.parquet",
+      "sha256": "ec63cb66c5177df3e2d3216d464bd7c4343904b35b17cb58fbfba6b0123c49a7",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47353,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_4.parquet",
+      "sha256": "b9217802fee488c91488db30a91bc7591681a2058cd3d05e83bb1d1d93a217e7",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47368,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_5.parquet",
+      "sha256": "1d6db2759a125f2f219e0166c46727a1695a45bef94933d5655d1dc84b9334c3",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47382,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_6.parquet",
+      "sha256": "75f7d84dc096294d8c079e2fb1b692d2acc3c3f4a9814ecbf403baea81d0f597",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47363,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_7.parquet",
+      "sha256": "c2b2d1cb247be54d26783d7b1f986f5e4cb3b4791c8a74c6b8399212639b7f98",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47416,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__forward_2025.parquet",
+      "sha256": "dd3284d621690b509136e261f504f820b9053de3f3cb01d2ae98bc2afa89940c",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47381,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__heldout.parquet",
+      "sha256": "6c52363af5b987a07c6cc0d394314b2bad088f4495539080cd74e2b47987a636",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 46092,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__A__pooled_oof.parquet",
+      "sha256": "41612bc3f43f29d1b99f09be68e986b85f3c5ffdbda8ea4fda5cb9e6359da48a",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47313,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_1.parquet",
+      "sha256": "da288c4125a9531f65c55d35c437440546e72d6045a8648e42407347b069f0bd",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47313,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_2.parquet",
+      "sha256": "7172727fd8d35dac9051ecc1993a0b17c0480d0045a191f23a589f6ffe997cf7",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47327,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_3.parquet",
+      "sha256": "638f266451f4e8bff82ff521e2b2065e8ec5c6257b7054f50ef9036e7f3af4d7",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47315,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_4.parquet",
+      "sha256": "d7a10d42b2cb021766deecced53c1baf4f15e398eca4bf06643603d96e476649",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47300,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_5.parquet",
+      "sha256": "eaa5bd518862511a76dd4fe260cb5d030511b2127d563aad0c96339a63065c63",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47331,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_6.parquet",
+      "sha256": "1e7db5a98d54c8468d77bf670da68d48fe5ad46aa2ee5042c98395142edb21f1",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47331,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_7.parquet",
+      "sha256": "e65040c70c2fc1e60df3fdf1f15acf4e24cd5ed61405fe28eafe1bf8c5b81333",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47345,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__forward_2025.parquet",
+      "sha256": "1c883baa8f07c4ebadba6f389ab76657abba20825975e7de6d806cd5f704b9e0",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 47328,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__heldout.parquet",
+      "sha256": "a6f542be68f8b963b547f1e1895661f4aec85a957b08165e7db4ca66b3fc19d6",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 46051,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_path__C__pooled_oof.parquet",
+      "sha256": "21ce00635783c11204015b11d182b4a90364fbe46f83d9ae82b18d3ed303cf34",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 67839,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_pooled_oof.parquet",
+      "sha256": "e45cb53c4952eb96a842ed5622af397ed4ff1c9ad83b1ae4f90b4ff901ce0dc8",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 34881,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_ratio_profiles.parquet",
+      "sha256": "d5d68c1891a653052c253889691fc2f5677b3b18e793534d14cf773205fe1d77",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 4631,
+      "path": "analysis/p0_major_revision_validation/tables/centered_spread_root_verification.parquet",
+      "sha256": "f34b948be9fabfdf826295fa8863c1870d74bac854d4788d33364e2645b1f334",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 5278,
+      "path": "analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_audit.parquet",
+      "sha256": "f6af6019771fa1a377d26af7ad0e1e659f137dce1ee9aa486da4ed0f5be5b592",
+      "tracked_in_git": false
+    },
+    {
       "bytes": 105799,
       "path": "analysis/p0_major_revision_validation/tables/direct_hessian_magnitudes.parquet",
       "sha256": "6ded49614376153b8c736320698ce2ddd3150bf0979dd45156405258e224c224",
@@ -394,6 +574,12 @@
       "bytes": 31365,
       "path": "analysis/p0_major_revision_validation/tables/parity_ladder_pinned.parquet",
       "sha256": "5e0a307fd76d6f700cf2193564d57331571bcebb1190ceafb3150eef87633c94",
+      "tracked_in_git": false
+    },
+    {
+      "bytes": 11458,
+      "path": "analysis/p0_major_revision_validation/tables/posthoc_development_roots.parquet",
+      "sha256": "bf264ac7e98a34383460d827676f8290f0deeee311cafc308f8bd408f962cadb",
       "tracked_in_git": false
     },
     {
@@ -523,7 +709,7 @@
       "tracked_in_git": false
     }
   ],
-  "n_files": 87,
+  "n_files": 118,
   "note": "intentionally untracked; hashes recorded for reproducibility",
-  "total_bytes": 116323692
+  "total_bytes": 118144700
 }

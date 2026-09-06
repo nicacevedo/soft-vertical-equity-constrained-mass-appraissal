@@ -271,9 +271,12 @@ def test_every_rg_row_cites_evidence_artifacts():
 
 
 # ----------------------------------------------------------------- not-yet-run
-def test_no_centered_spread_path_executed():
-    for bad in ("centered_spread_path.csv", "b_grid_frozen.json",
-                "centered_spread_ratio_profiles.csv", "matched_beta_comparison.csv",
+def test_no_matched_beta_executed():
+    """Gate-G2 boundary.  The centered-spread comparator was authorized for Stage 2 and its
+    artifacts legitimately exist from that stage onward; the still-forbidden items are the
+    matched-beta outputs.  Stage 2's own suite (test_g3_assertions) carries the stricter
+    current-boundary guards."""
+    for bad in ("matched_beta_comparison.csv", "matched_beta_crossings.csv",
                 "matched_beta_frozen.json"):
         assert not (T / bad).exists() and not (c.CONFIGS / bad).exists(), bad
 
@@ -281,7 +284,9 @@ def test_no_centered_spread_path_executed():
 def test_no_temporal_robustness_jobs_submitted():
     log = c.LOGS / "submitted_jobs.txt"
     txt = log.read_text() if log.exists() else ""
-    for bad in ("dsnap", "dpurge", "dunseen", "full_path_regen", "centered_spread",
+    # 'centered_spread' is authorized from Stage 2 onward and is therefore not listed here;
+    # Stage 2's suite asserts the current boundary.
+    for bad in ("dsnap", "dpurge", "dunseen", "full_path_regen",
                 "matched_beta", "inferential_extras"):
         assert bad not in txt.lower(), bad
 
