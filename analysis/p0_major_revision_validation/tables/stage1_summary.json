@@ -1,0 +1,47 @@
+{
+  "f_num_same_host_replicate": {
+    "exact_everywhere": true,
+    "max_abs_delta_log": 0.0,
+    "splits": [
+      "heldout",
+      "forward_2025"
+    ]
+  },
+  "frozen_artifact_reproduction": {
+    "all_exact_R1": true,
+    "max_abs_delta_log_over_all": 0.0,
+    "n_configs": 14,
+    "tiers": {
+      "R1": 14
+    }
+  },
+  "regeneration": {
+    "any_trigger_fired": false,
+    "full_path_regeneration_required": false
+  },
+  "root_cause": {
+    "divergence_first_appears": "tree 0 split structure",
+    "failure_class": "F-IMP (LightGBM library behaviour, NOT a defect in the paper's objective code)",
+    "gradients_hessians_bit_identical_at_iteration_0": true,
+    "isolated_by": "colsample_bytree = 1.0 (feature subsampling removed)",
+    "named_cause": "LightGBM's per-tree feature-subsampling RNG stream differs between the built-in objective path and the custom-objective path, so the two learners see different random feature subsets from the first tree onward",
+    "objective_exact_when_feature_subsets_matched": true
+  },
+  "source_equivalence": {
+    "drift_resolution": "none",
+    "executed_path_source_drift_detected": true,
+    "files_with_drift": [
+      "run_temporal_cv.py",
+      "utils/delta_nl.py"
+    ],
+    "objective_and_split_files_byte_identical": true,
+    "worktree_created_and_removed": true
+  },
+  "stage": "STAGE_1_THROUGH_GATE_G1",
+  "track_h_vs_track_p": {
+    "implication": "determinism pinning changes nothing; F-ENV and F-NUM are excluded as causes of the native/custom gap",
+    "max_abs_delta_identical_everywhere": true,
+    "n_comparisons": 24,
+    "tiers_identical_everywhere": true
+  }
+}

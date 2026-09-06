@@ -1,0 +1,224 @@
+{
+  "adjudication": "POST_G1",
+  "b_star_definition": {
+    "definition": "b_star_train = Var_T(y) / Cov_T(f0, y) when Cov_T(f0,y) > 0",
+    "one_over_r2": "theoretical diagnostic only; NOT the LightGBM b-star definition"
+  },
+  "bc_discrepancy": {
+    "accepted_characterization": "A deterministic LightGBM implementation-level feature-subsampling-path difference between the built-in-objective and custom-objective execution paths under the canonical colsample_bytree < 1 setting. The supplied rho=0 gradients and Hessians are correct, and the discrepancy is not evidence of an error in the covariance objective. However, the resulting prediction difference is material enough that native-vs-custom comparisons cannot be interpreted as isolating the effect of rho.",
+    "conservative_characterization": "deterministic built-in-vs-custom feature-subsampling execution-path divergence",
+    "forbidden_wording": [
+      "innocuous numerical effect"
+    ],
+    "key_scientific_point": "A or B versus positive-rho custom models is not a pure penalty-effect contrast.",
+    "rng_mechanism_directly_identified_by_stage1_evidence": false
+  },
+  "cells": {
+    "A": {
+      "attribution_rule": "comparisons against A are descriptively valid, but changes relative to A must NOT be attributed solely to rho",
+      "forward_display_name": "Ordinary LightGBM (standard raw-label native)",
+      "id": "A",
+      "primary_penalty_reference": false,
+      "role": "assessor-facing / workflow benchmark",
+      "visible_in_headline_tables": true
+    },
+    "B": {
+      "decomposes": {
+        "A_to_B": "label / initialization representation effects within native L2",
+        "B_to_C": "built-in-objective versus custom-objective execution-path effects"
+      },
+      "forward_display_name": "Centered-label native L2 (initialization-aligned)",
+      "id": "B",
+      "legacy_stage1_label": "Parity-aligned native L2",
+      "may_be_primary_centered_spread_comparator": false,
+      "may_be_primary_paper_baseline": false,
+      "primary_penalty_reference": false,
+      "role": "implementation-decomposition control only"
+    },
+    "C": {
+      "clean_contrast": "C(rho=0) -> Direct/Surrogate(rho>0)",
+      "forward_display_name": "Custom-objective rho=0 origin",
+      "id": "C",
+      "primary_penalty_reference": true,
+      "role": "PRIMARY within-path penalty-isolating reference",
+      "terminology": {
+        "avoid": [
+          "causal"
+        ],
+        "use": [
+          "within-path penalty-isolating reference",
+          "custom-objective rho=0 origin"
+        ]
+      }
+    }
+  },
+  "comparison_kinds": {
+    "assessor_facing_benchmark": {
+      "may_attribute_to_rho": false,
+      "reference": "A",
+      "wording": "descriptive only"
+    },
+    "implementation_decomposition": {
+      "diagnostic_only": true,
+      "reference": "B"
+    },
+    "penalty_isolating": {
+      "may_attribute_to_rho": true,
+      "primary_for_rho_attribution": true,
+      "reference": "C"
+    }
+  },
+  "e4_verdict_stage1": "INDETERMINATE",
+  "frozen_plan_sha256": "d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1",
+  "future_centered_spread_convention": {
+    "cell_B_full_path": {
+      "condition_to_schedule": "only if Gate G2 identifies a concrete unresolved scientific question that A and C cannot answer",
+      "retained": "9 fits and b_star diagnostics for decomposition",
+      "scheduled_by_default": false
+    },
+    "executed_in_stage_1_5": false,
+    "primary": {
+      "cell": "C",
+      "map": "f_b(x) = ybar_T + b*(f_C(x) - ybar_T)",
+      "question": "At the same first-order correction, what does retraining buy relative to globally rescaling the same unregularized custom-path predictor?",
+      "status": "PRIMARY"
+    },
+    "secondary": {
+      "cell": "A",
+      "map": "f_b(x) = ybar_T + b*(f_A(x) - ybar_T)",
+      "question": "Could a practitioner obtain a similar tradeoff simply by post-processing standard LightGBM?",
+      "status": "SECONDARY"
+    }
+  },
+  "historical_positive_rho_path": {
+    "authorized_by_this_adjudication": false,
+    "regenerate_82_point_path": false,
+    "scientifically_usable": true
+  },
+  "magnitudes": {
+    "A_vs_B_capacityF": {
+      "forward_2025": {
+        "max": 0.0119893626377134,
+        "mean": 1.014279397414034e-05,
+        "tier": "T4"
+      },
+      "heldout": {
+        "max": 0.2985809671296149,
+        "mean": 0.0303222725778226,
+        "tier": "T4"
+      }
+    },
+    "A_vs_C_capacityF": {
+      "forward_2025": {
+        "max": 0.2825197364391023,
+        "mean": 0.0305629828537408,
+        "tier": "T4"
+      },
+      "heldout": {
+        "max": 0.3089424504824372,
+        "mean": 0.0323895239386206,
+        "tier": "T4"
+      }
+    },
+    "B_vs_C_capacityF": {
+      "forward_2025": {
+        "max": 0.2825197457521682,
+        "mean": 0.0305624039989338,
+        "tier": "T4"
+      },
+      "heldout": {
+        "max": 0.2970539581030813,
+        "mean": 0.0325943332668747,
+        "tier": "T4"
+      }
+    },
+    "B_vs_C_capacityT": {
+      "forward_2025": {
+        "max": 0.1195014243544552,
+        "mean": 0.0164467976228485,
+        "tier": "T4"
+      },
+      "heldout": {
+        "max": 0.1401437110391103,
+        "mean": 0.0176264493209834,
+        "tier": "T4"
+      }
+    }
+  },
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "909d4bbeefb57b5b1c2767c4cd63c3128dff2653",
+      "dirty": true,
+      "status_porcelain": "M .gitignore\n?? analysis/p0_major_revision_validation/code/p0_post_g1_adjudication.py\n?? analysis/p0_major_revision_validation/configs/\n?? analysis/p0_major_revision_validation/provenance/POSTFLIGHT.json\n?? analysis/p0_major_revision_validation/provenance/PREFLIGHT.json\n?? analysis/p0_major_revision_validation/provenance/output_artifact_hashes.json\n?? analysis/p0_major_revision_validation/provenance/slurm_graph.json\n?? analysis/p0_major_revision_validation/tables/"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "regeneration_triggers": {
+    "RG-1": false,
+    "RG-2": false,
+    "RG-3": false,
+    "RG-4": false
+  },
+  "schema_version": 1,
+  "supersedes_in_interpretation_only": "APPROVED_EXECUTION_PLAN.md rev.3 sections F.4/F.6 wording; the frozen plan file is NOT edited",
+  "verified_premises": {
+    "p1_all_frozen_reproduce_R1": {
+      "artifact": "tables/frozen_artifact_reproduction.csv",
+      "max_abs_delta_over_all": 0.0,
+      "n_configs": 14,
+      "value": true
+    },
+    "p2_rho0_derivatives_correct": {
+      "artifact": "tables/bc_rootcause_verdict.json + reports/P0_IMPLEMENTATION_AUDIT.md",
+      "iteration0_max_abs_grad_diff": 0.0,
+      "value": true
+    },
+    "p3_direct_equals_surrogate_at_rho0": {
+      "artifact": "tables/parity_ladder_historical.csv (C<->C_surrogate)",
+      "n_cells": 6,
+      "value": true
+    },
+    "p4_pinning_does_not_remove_BC": {
+      "artifact": "tables/parity_ladder_{historical,pinned}.csv",
+      "identical_across_tracks": true,
+      "track_h_max": 0.2970539581030813,
+      "track_p_max": 0.2970539581030813,
+      "value": true
+    },
+    "p5_colsample_change_is_a_different_specification": {
+      "BC_identical_only_when_colsample_set_to_1": true,
+      "artifact": "tables/bc_discriminate.csv",
+      "frozen_colsample_bytree": 0.5410105713520937,
+      "note": "colsample_bytree was tuned as part of the frozen 994-tree configuration; setting it to 1.0 removes feature subsampling and therefore specifies a different learner, not a reproduction of the canonical experiment",
+      "value": true
+    },
+    "p6_fnum_floor_zero": {
+      "artifact": "tables/fnum_same_host_replicate.csv",
+      "splits": [
+        "heldout",
+        "forward_2025"
+      ],
+      "value": true
+    }
+  }
+}

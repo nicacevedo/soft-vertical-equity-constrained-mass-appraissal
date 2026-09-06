@@ -1,0 +1,53 @@
+{
+  "candidate_failure_class": "F-IMP",
+  "divergence_first_appears_in": "tree 0 split structure",
+  "gradients_and_hessians_bit_identical": true,
+  "isolating_variant": "feature_subsampling_rng_stream_differs_between_builtin_and_custom_objective",
+  "note": "Classification is provisional until the Track P ladder confirms it at every capacity. A Track-P result characterises the implementation only and may never certify a historical artifact.",
+  "results": [
+    {
+      "colsample_bytree": 0.5410105713520937,
+      "deterministic": false,
+      "force_row_wise": false,
+      "frac_exact_equal": 0.0,
+      "max_abs_delta_log": 0.06694396865715291,
+      "mean_abs_delta_log": 0.010177795914245308,
+      "overrides": "{}",
+      "tree0_identical": false,
+      "variant": "V0_frozen_as_is"
+    },
+    {
+      "colsample_bytree": 0.5410105713520937,
+      "deterministic": true,
+      "force_row_wise": true,
+      "frac_exact_equal": 0.0,
+      "max_abs_delta_log": 0.06694396865715291,
+      "mean_abs_delta_log": 0.010177795914245308,
+      "overrides": "{\"deterministic\": true, \"force_row_wise\": true, \"num_threads\": 1}",
+      "tree0_identical": false,
+      "variant": "V1_pin_histogram"
+    },
+    {
+      "colsample_bytree": 1.0,
+      "deterministic": false,
+      "force_row_wise": false,
+      "frac_exact_equal": 1.0,
+      "max_abs_delta_log": 0.0,
+      "mean_abs_delta_log": 0.0,
+      "overrides": "{\"colsample_bytree\": 1.0}",
+      "tree0_identical": true,
+      "variant": "V2_no_feature_subsampling"
+    },
+    {
+      "colsample_bytree": 1.0,
+      "deterministic": true,
+      "force_row_wise": true,
+      "frac_exact_equal": 1.0,
+      "max_abs_delta_log": 0.0,
+      "mean_abs_delta_log": 0.0,
+      "overrides": "{\"deterministic\": true, \"force_row_wise\": true, \"num_threads\": 1, \"colsample_bytree\": 1.0}",
+      "tree0_identical": true,
+      "variant": "V3_pin_and_no_subsampling"
+    }
+  ]
+}

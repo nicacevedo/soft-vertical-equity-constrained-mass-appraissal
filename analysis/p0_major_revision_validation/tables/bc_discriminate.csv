@@ -1,0 +1,5 @@
+variant,overrides,tree0_identical,max_abs_delta_log,mean_abs_delta_log,frac_exact_equal,colsample_bytree,deterministic,force_row_wise
+V0_frozen_as_is,{},False,0.06694396865715291,0.010177795914245308,0.0,0.5410105713520937,False,False
+V1_pin_histogram,"{""deterministic"": true, ""force_row_wise"": true, ""num_threads"": 1}",False,0.06694396865715291,0.010177795914245308,0.0,0.5410105713520937,True,True
+V2_no_feature_subsampling,"{""colsample_bytree"": 1.0}",True,0.0,0.0,1.0,1.0,False,False
+V3_pin_and_no_subsampling,"{""deterministic"": true, ""force_row_wise"": true, ""num_threads"": 1, ""colsample_bytree"": 1.0}",True,0.0,0.0,1.0,1.0,True,True

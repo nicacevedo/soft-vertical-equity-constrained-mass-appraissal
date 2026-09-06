@@ -1,0 +1,200 @@
+schema_version: 1
+adjudication: POST_G1
+supersedes_in_interpretation_only: APPROVED_EXECUTION_PLAN.md rev.3 sections F.4/F.6 wording; the frozen
+  plan file is NOT edited
+frozen_plan_sha256: d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1
+historical_positive_rho_path:
+  scientifically_usable: true
+  regenerate_82_point_path: false
+  authorized_by_this_adjudication: false
+bc_discrepancy:
+  accepted_characterization: A deterministic LightGBM implementation-level feature-subsampling-path difference
+    between the built-in-objective and custom-objective execution paths under the canonical colsample_bytree
+    < 1 setting. The supplied rho=0 gradients and Hessians are correct, and the discrepancy is not evidence
+    of an error in the covariance objective. However, the resulting prediction difference is material
+    enough that native-vs-custom comparisons cannot be interpreted as isolating the effect of rho.
+  conservative_characterization: deterministic built-in-vs-custom feature-subsampling execution-path divergence
+  rng_mechanism_directly_identified_by_stage1_evidence: false
+  key_scientific_point: A or B versus positive-rho custom models is not a pure penalty-effect contrast.
+  forbidden_wording:
+  - innocuous numerical effect
+cells:
+  A:
+    id: A
+    forward_display_name: Ordinary LightGBM (standard raw-label native)
+    role: assessor-facing / workflow benchmark
+    primary_penalty_reference: false
+    visible_in_headline_tables: true
+    attribution_rule: comparisons against A are descriptively valid, but changes relative to A must NOT
+      be attributed solely to rho
+  B:
+    id: B
+    forward_display_name: Centered-label native L2 (initialization-aligned)
+    legacy_stage1_label: Parity-aligned native L2
+    role: implementation-decomposition control only
+    primary_penalty_reference: false
+    may_be_primary_paper_baseline: false
+    may_be_primary_centered_spread_comparator: false
+    decomposes:
+      A_to_B: label / initialization representation effects within native L2
+      B_to_C: built-in-objective versus custom-objective execution-path effects
+  C:
+    id: C
+    forward_display_name: Custom-objective rho=0 origin
+    role: PRIMARY within-path penalty-isolating reference
+    primary_penalty_reference: true
+    clean_contrast: C(rho=0) -> Direct/Surrogate(rho>0)
+    terminology:
+      use:
+      - within-path penalty-isolating reference
+      - custom-objective rho=0 origin
+      avoid:
+      - causal
+comparison_kinds:
+  penalty_isolating:
+    reference: C
+    primary_for_rho_attribution: true
+    may_attribute_to_rho: true
+  assessor_facing_benchmark:
+    reference: A
+    wording: descriptive only
+    may_attribute_to_rho: false
+  implementation_decomposition:
+    reference: B
+    diagnostic_only: true
+future_centered_spread_convention:
+  primary:
+    cell: C
+    status: PRIMARY
+    map: f_b(x) = ybar_T + b*(f_C(x) - ybar_T)
+    question: At the same first-order correction, what does retraining buy relative to globally rescaling
+      the same unregularized custom-path predictor?
+  secondary:
+    cell: A
+    status: SECONDARY
+    map: f_b(x) = ybar_T + b*(f_A(x) - ybar_T)
+    question: Could a practitioner obtain a similar tradeoff simply by post-processing standard LightGBM?
+  cell_B_full_path:
+    scheduled_by_default: false
+    condition_to_schedule: only if Gate G2 identifies a concrete unresolved scientific question that A
+      and C cannot answer
+    retained: 9 fits and b_star diagnostics for decomposition
+  executed_in_stage_1_5: false
+b_star_definition:
+  definition: b_star_train = Var_T(y) / Cov_T(f0, y) when Cov_T(f0,y) > 0
+  one_over_r2: theoretical diagnostic only; NOT the LightGBM b-star definition
+verified_premises:
+  p1_all_frozen_reproduce_R1:
+    value: true
+    n_configs: 14
+    max_abs_delta_over_all: 0.0
+    artifact: tables/frozen_artifact_reproduction.csv
+  p2_rho0_derivatives_correct:
+    value: true
+    iteration0_max_abs_grad_diff: 0.0
+    artifact: tables/bc_rootcause_verdict.json + reports/P0_IMPLEMENTATION_AUDIT.md
+  p3_direct_equals_surrogate_at_rho0:
+    value: true
+    n_cells: 6
+    artifact: tables/parity_ladder_historical.csv (C<->C_surrogate)
+  p4_pinning_does_not_remove_BC:
+    value: true
+    track_h_max: 0.2970539581030813
+    track_p_max: 0.2970539581030813
+    identical_across_tracks: true
+    artifact: tables/parity_ladder_{historical,pinned}.csv
+  p5_colsample_change_is_a_different_specification:
+    value: true
+    frozen_colsample_bytree: 0.5410105713520937
+    BC_identical_only_when_colsample_set_to_1: true
+    note: colsample_bytree was tuned as part of the frozen 994-tree configuration; setting it to 1.0 removes
+      feature subsampling and therefore specifies a different learner, not a reproduction of the canonical
+      experiment
+    artifact: tables/bc_discriminate.csv
+  p6_fnum_floor_zero:
+    value: true
+    splits:
+    - heldout
+    - forward_2025
+    artifact: tables/fnum_same_host_replicate.csv
+magnitudes:
+  A_vs_C_capacityF:
+    heldout:
+      mean: 0.0323895239386206
+      max: 0.3089424504824372
+      tier: T4
+    forward_2025:
+      mean: 0.0305629828537408
+      max: 0.2825197364391023
+      tier: T4
+  A_vs_B_capacityF:
+    heldout:
+      mean: 0.0303222725778226
+      max: 0.2985809671296149
+      tier: T4
+    forward_2025:
+      mean: 1.014279397414034e-05
+      max: 0.0119893626377134
+      tier: T4
+  B_vs_C_capacityF:
+    heldout:
+      mean: 0.0325943332668747
+      max: 0.2970539581030813
+      tier: T4
+    forward_2025:
+      mean: 0.0305624039989338
+      max: 0.2825197457521682
+      tier: T4
+  B_vs_C_capacityT:
+    heldout:
+      mean: 0.0176264493209834
+      max: 0.1401437110391103
+      tier: T4
+    forward_2025:
+      mean: 0.0164467976228485
+      max: 0.1195014243544552
+      tier: T4
+regeneration_triggers:
+  RG-1: false
+  RG-2: false
+  RG-3: false
+  RG-4: false
+e4_verdict_stage1: INDETERMINATE
+provenance:
+  git:
+    branch: p0-major-revision-validation
+    commit: 909d4bbeefb57b5b1c2767c4cd63c3128dff2653
+    dirty: true
+    status_porcelain: 'M .gitignore
+
+      ?? analysis/p0_major_revision_validation/code/p0_post_g1_adjudication.py
+
+      ?? analysis/p0_major_revision_validation/configs/
+
+      ?? analysis/p0_major_revision_validation/provenance/POSTFLIGHT.json
+
+      ?? analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+
+      ?? analysis/p0_major_revision_validation/provenance/output_artifact_hashes.json
+
+      ?? analysis/p0_major_revision_validation/provenance/slurm_graph.json
+
+      ?? analysis/p0_major_revision_validation/tables/'
+  versions:
+    python: 3.9.19
+    lightgbm: 4.6.0
+    numpy: 1.26.4
+    pandas: 2.3.1
+    scikit-learn: 1.6.1
+    scipy: 1.13.1
+    pyarrow: 14.0.1
+    node: sloan-login001.mit.edu
+    dcor: '0.6'
+  thread_env:
+    OMP_NUM_THREADS: ''
+    MKL_NUM_THREADS: ''
+    OPENBLAS_NUM_THREADS: ''
+    NUMEXPR_NUM_THREADS: ''
+    SLURM_JOB_ID: ''
+    SLURM_CPUS_PER_TASK: ''
+  cwd: /orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal

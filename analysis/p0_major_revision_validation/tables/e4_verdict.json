@@ -1,0 +1,52 @@
+{
+  "e4_verdict": "INDETERMINATE",
+  "evidence_at_display_anchors": {
+    "max_curvature_ratio": 40.04019493320774,
+    "max_penalty_contribution_M_over_all_blocks_and_anchors": 0.011803871804554139,
+    "min_curvature_ratio_at_rho_ge_1": 4.255153705496526
+  },
+  "min_sum_hessian_in_leaf": {
+    "binding_anywhere_in_stylized_leaves": false,
+    "conclusion": "checked and non-binding",
+    "set_in_frozen_config": false,
+    "value_used_by_lightgbm": 0.001
+  },
+  "min_supplied_hessian_over_everything": 1.0,
+  "n_blocks": 9,
+  "n_rho": 83,
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "271d0a0748ac6df5e4712ff2dec04db3c6a77511",
+      "dirty": true,
+      "status_porcelain": "?? analysis/p0_major_revision_validation/"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "rule": {
+    "M_accept_max": 0.01,
+    "M_reject_min": 0.05,
+    "R_accept_min_at_rho_ge_1": 1.2,
+    "R_reject_max": 1.05
+  },
+  "statement": "Direct is effectively gradient-only, retaining essentially native curvature"
+}

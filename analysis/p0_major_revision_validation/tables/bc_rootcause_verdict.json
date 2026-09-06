@@ -1,0 +1,75 @@
+{
+  "divergence_present_at_1_tree": true,
+  "iteration0_gradient_identical_to_native_l2": true,
+  "iteration0_hessian_all_ones": true,
+  "iteration0_max_abs_grad_diff": 0.0,
+  "trace": [
+    {
+      "cellB_n_leaves_tree0": 15,
+      "cellC_n_leaves_tree0": 15,
+      "frac_exact_equal": 0.0,
+      "max_abs_delta_log": 0.06694396865715291,
+      "mean_abs_delta_log": 0.010177795914245308,
+      "n_eval": 38290,
+      "n_trees": 1,
+      "n_trees_compared": 1,
+      "n_trees_with_identical_splits": 0,
+      "tree0_max_abs_leaf_value_diff": 0.012945859592852771,
+      "tree0_same_split_structure": false
+    },
+    {
+      "cellB_n_leaves_tree0": 15,
+      "cellC_n_leaves_tree0": 15,
+      "frac_exact_equal": 0.0,
+      "max_abs_delta_log": 0.09124002621841676,
+      "mean_abs_delta_log": 0.007673259851001259,
+      "n_eval": 38290,
+      "n_trees": 2,
+      "n_trees_compared": 2,
+      "n_trees_with_identical_splits": 0,
+      "tree0_max_abs_leaf_value_diff": 0.012945859592852771,
+      "tree0_same_split_structure": false
+    },
+    {
+      "cellB_n_leaves_tree0": 15,
+      "cellC_n_leaves_tree0": 15,
+      "frac_exact_equal": 0.0,
+      "max_abs_delta_log": 0.1026845964416161,
+      "mean_abs_delta_log": 0.013234816715074989,
+      "n_eval": 38290,
+      "n_trees": 5,
+      "n_trees_compared": 5,
+      "n_trees_with_identical_splits": 0,
+      "tree0_max_abs_leaf_value_diff": 0.012945859592852771,
+      "tree0_same_split_structure": false
+    },
+    {
+      "cellB_n_leaves_tree0": 15,
+      "cellC_n_leaves_tree0": 15,
+      "frac_exact_equal": 0.0,
+      "max_abs_delta_log": 0.11878322702874833,
+      "mean_abs_delta_log": 0.013841823846172538,
+      "n_eval": 38290,
+      "n_trees": 20,
+      "n_trees_compared": 20,
+      "n_trees_with_identical_splits": 0,
+      "tree0_max_abs_leaf_value_diff": 0.012945859592852771,
+      "tree0_same_split_structure": false
+    },
+    {
+      "cellB_n_leaves_tree0": 15,
+      "cellC_n_leaves_tree0": 15,
+      "frac_exact_equal": 0.0,
+      "max_abs_delta_log": 0.14014371103911039,
+      "mean_abs_delta_log": 0.017626449320983416,
+      "n_eval": 38290,
+      "n_trees": 60,
+      "n_trees_compared": 60,
+      "n_trees_with_identical_splits": 0,
+      "tree0_max_abs_leaf_value_diff": 0.012945859592852771,
+      "tree0_same_split_structure": false
+    }
+  ],
+  "tree0_max_abs_leaf_value_diff": 0.012945859592852771,
+  "tree0_split_structure_identical": false
+}

@@ -126,3 +126,28 @@ analysis/external_jurisdiction_benchmark_v1/**/*.pyc
 2025_assessment_python/outputs
 2025_assessment_python/logs
 2025_assessment_python/img
+
+# ---------------------------------------------------------------------------
+# P0 major-revision validation: narrowly scoped exception so the compact
+# machine-readable scientific evidence is reproducible from Git.
+# Applies ONLY under analysis/p0_major_revision_validation/.
+# Row-level predictions, parquet twins and Slurm streams stay ignored.
+# ---------------------------------------------------------------------------
+!analysis/p0_major_revision_validation/
+!analysis/p0_major_revision_validation/**/
+!analysis/p0_major_revision_validation/**/*.csv
+!analysis/p0_major_revision_validation/**/*.json
+!analysis/p0_major_revision_validation/**/*.yaml
+!analysis/p0_major_revision_validation/**/*.yml
+!analysis/p0_major_revision_validation/**/*.md
+!analysis/p0_major_revision_validation/**/*.py
+!analysis/p0_major_revision_validation/**/*.sh
+!analysis/p0_major_revision_validation/**/*.sbatch
+!analysis/p0_major_revision_validation/**/*.patch
+!analysis/p0_major_revision_validation/**/*.txt
+# keep ignoring bulky / stream artifacts even under the P0 subtree
+analysis/p0_major_revision_validation/**/*.parquet
+analysis/p0_major_revision_validation/**/*.out
+analysis/p0_major_revision_validation/**/*.err
+analysis/p0_major_revision_validation/**/*.log
+analysis/p0_major_revision_validation/**/__pycache__/

@@ -1,0 +1,49 @@
+{
+  "jobs": [
+    {
+      "Elapsed": "00:26:10",
+      "ExitCode": "0:0",
+      "JobID": "22082526",
+      "JobName": "p0_01_parity_track_h_ladder",
+      "NodeList": "node2610",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:35:53",
+      "ExitCode": "0:0",
+      "JobID": "22082527",
+      "JobName": "p0_02_parity_track_h_reproduce",
+      "NodeList": "node2637",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "02:46:25",
+      "ExitCode": "0:0",
+      "JobID": "22082528",
+      "JobName": "p0_03_parity_track_h_replicate",
+      "NodeList": "node2621",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "00:27:59",
+      "ExitCode": "0:0",
+      "JobID": "22082529",
+      "JobName": "p0_04_parity_track_p_ladder",
+      "NodeList": "node2604",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "COMPLETED"
+    },
+    {
+      "Elapsed": "01:33:14",
+      "ExitCode": "0:0",
+      "JobID": "22087220",
+      "JobName": "p0_03b_parity_track_h_replicate_retry",
+      "NodeList": "node2621",
+      "Partition": "sched_mit_sloan_batch_r8",
+      "State": "CANCELLED by 256931"
+    }
+  ]
+}

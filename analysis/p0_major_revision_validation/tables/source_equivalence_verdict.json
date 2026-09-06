@@ -1,0 +1,95 @@
+{
+  "addendum": {
+    "grid_code_behaviour_equivalence": {
+      "all_cases_identical_under_default_args": true,
+      "conclusion": "_finalize_rho_values(v, explicit_zero=True) is bitwise identical to _prepend_explicit_zero(v) on every tested input including the exact frozen grids. The drift in run_temporal_cv.py is additive and gated behind --no-explicit-zero, which defaults to OFF.",
+      "n_cases": 8
+    },
+    "lower_rho_grid": {
+      "augmented_equals_old_union_new": true,
+      "hash_fields_reproduced": true,
+      "matches_frozen_rho_grid_from_specs": false,
+      "n_augmented": 82,
+      "n_new": 32,
+      "n_old": 50,
+      "no_overlap_old_new": true
+    },
+    "provenance_worktree": {
+      "commits": [
+        "508dc1c2b19d64dfb330676a865d4eeb07596a0a",
+        "2aa0346aa28661a829d18cccd8dded9852fe58fd",
+        "d3ef45f22165f8a7e606c2c949a947644995335d"
+      ],
+      "created": true,
+      "files_absent_at_commit_but_present_now": [
+        "utils/delta_nl.py"
+      ],
+      "files_not_byte_identical": [
+        "run_temporal_cv.py",
+        "utils/delta_nl.py"
+      ],
+      "objective_and_split_files_byte_identical_at_every_provenance_commit": true,
+      "removed_after_use": true,
+      "tmp_parent": "/tmp/p0_provenance_wt_5ap10pu3"
+    }
+  },
+  "all_provenance_commits_are_ancestors_of_head": true,
+  "executed_path_drift_resolution": {
+    "net_effect_on_prediction_reproduction": "none",
+    "run_temporal_cv.py": "Additive --no-explicit-zero feature only. _finalize_rho_values under default args is bitwise identical to _prepend_explicit_zero on the exact frozen grids. No model factory, objective, loader, split, fit/predict or metric code changed. Behaviour-neutral for the frozen artifacts.",
+    "utils/delta_nl.py": "Recorded as UNTRACKED ('?? utils/delta_nl.py') in the d3ef45f2 artifact's own status_porcelain, so the +208 lines are untracked-then-committed-later, not a change. It consumes predictions to compute Delta_NL and takes no part in training or prediction, so it cannot affect prediction reproduction.",
+    "worktree_evidence": "boosting_models.py, motivation_utils.py, canonical_experiment.py, params.yaml, cv_config.yaml and model_params.yaml are byte-identical at every provenance commit: True"
+  },
+  "executed_path_source_drift_detected": true,
+  "files_changed_but_not_executed_path": [],
+  "files_with_executed_path_drift": [
+    "run_temporal_cv.py",
+    "utils/delta_nl.py"
+  ],
+  "hash_mismatches": [
+    {
+      "expected": "072e4ea94c35a252fbe7e433f63a9c75bc1d557c950a0a987ad44b14e73dbdbc",
+      "hash_name": "lower_rho_grid_hash",
+      "match": false,
+      "observed": null,
+      "source": "V12/protocol/lower_rho_grid_v2.json"
+    }
+  ],
+  "head_commit": "271d0a0748ac6df5e4712ff2dec04db3c6a77511",
+  "irreducible_limitation": "All three generating trees were dirty and only a diff hash (or, for d3ef45f2, not even that) survives. Exact historical source reconstruction may therefore be impossible; a provenance worktree bounds but cannot eliminate F-DIRTY uncertainty.",
+  "n_hashes_checked": 19,
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "271d0a0748ac6df5e4712ff2dec04db3c6a77511",
+      "dirty": true,
+      "status_porcelain": "?? analysis/p0_major_revision_validation/"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "provenance_commits": {
+    "2aa0346aa28661a829d18cccd8dded9852fe58fd": "lower-rho extension experiment spec",
+    "508dc1c2b19d64dfb330676a865d4eeb07596a0a": "994-tree baseline/config + v6 experiment spec",
+    "d3ef45f22165f8a7e606c2c949a947644995335d": "final_local_results: rho=0 split audit, recalibration path, Delta_NL"
+  },
+  "provenance_worktree_required": true
+}

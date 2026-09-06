@@ -1,0 +1,181 @@
+{
+  "approved_execution_plan_sha256": "d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1",
+  "artifact_generation_provenance_commits": {
+    "994_baseline_and_v6_spec": {
+      "commit": "508dc1c2b19d64dfb330676a865d4eeb07596a0a",
+      "diff_sha256": "2268bae6162a51642c37ac56ab0aca6d3410abcd353183d01979eccb9f8bd096",
+      "diff_text_archived": false,
+      "dirty": true
+    },
+    "final_local_results": {
+      "commit": "d3ef45f22165f8a7e606c2c949a947644995335d",
+      "diff_sha256": null,
+      "diff_text_archived": false,
+      "dirty": true
+    },
+    "lower_rho_extension_spec": {
+      "commit": "2aa0346aa28661a829d18cccd8dded9852fe58fd",
+      "diff_sha256": "fa45001c231a63d86b538c38a18c25a9ba330895094250312bc5f047a83f4002",
+      "diff_text_archived": false,
+      "dirty": true
+    }
+  },
+  "canonical_sample_counts_expected": {
+    "development": 344607,
+    "forward_2025": 26641,
+    "heldout": 38290,
+    "production_2016_2024": 382897
+  },
+  "environment": {
+    "conda_env": "/home/nacevedo/.conda/envs/fairness_env",
+    "dcor": "0.6",
+    "lightgbm": "4.6.0",
+    "node": "sloan-login001.mit.edu",
+    "numpy": "1.26.4",
+    "pandas": "2.3.1",
+    "pyarrow": "14.0.1",
+    "python": "3.9.19",
+    "python_executable": "/home/nacevedo/.conda/envs/fairness_env/bin/python",
+    "scikit-learn": "1.6.1",
+    "scipy": "1.13.1",
+    "thread_env": {
+      "MKL_NUM_THREADS": "",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    }
+  },
+  "fixed_cell_names": {
+    "A": "Ordinary LightGBM (standard raw-label native)",
+    "B": "Parity-aligned native L2",
+    "C": "Custom rho=0 origin"
+  },
+  "frozen_lgbm": {
+    "config_id": "407d47775760c14d",
+    "lgbm_params": {
+      "boosting_type": "gbdt",
+      "cat_l2": 0.6440381513216918,
+      "cat_smooth": 148.99648221517137,
+      "colsample_bytree": 0.5410105713520937,
+      "importance_type": "split",
+      "learning_rate": 0.04430617038989053,
+      "max_bin": 424,
+      "max_cat_threshold": 81,
+      "max_depth": 11,
+      "min_child_samples": 93,
+      "min_data_per_group": 86,
+      "min_split_gain": 0.0010638716225202418,
+      "n_estimators": 994,
+      "n_jobs": 1,
+      "num_leaves": 573,
+      "objective": "mse",
+      "random_state": 2025,
+      "reg_alpha": 0.06172892626785128,
+      "reg_lambda": 10.857207234911057,
+      "verbosity": -1
+    },
+    "lgbm_params_sha256": "8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b",
+    "lgbm_params_sha256_reverified": true,
+    "n_estimators": 994
+  },
+  "git_status_at_start": "?? analysis/p0_major_revision_validation/",
+  "head_vs_plan_baseline": {
+    "executed_path_files_changed": [],
+    "note": "The only delta is ADDITIONAL CONTEXT/CLAUDE_CODE_HANDOFF.md becoming tracked. No file capable of affecting training or prediction changed.",
+    "relationship": "HEAD = plan baseline + 1 commit (271d0a07 'Add Claude Code P0 validation handoff')"
+  },
+  "input_artifact_hashes": {
+    "approved_execution_plan_md": {
+      "bytes": 138473,
+      "exists": true,
+      "path": "analysis/p0_major_revision_validation/APPROVED_EXECUTION_PLAN.md",
+      "sha256": "d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1"
+    },
+    "archived_folds_json": {
+      "bytes": 2477,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/protocol/data_id=d4929d43ec19badf/split_id=3d464d4a611b131b/folds.json",
+      "sha256": "852bba7d520e71791871ec5f734018a7eef26b7326d958ae7e291256d914939a"
+    },
+    "canonical_data_parquet": {
+      "bytes": 215400916,
+      "exists": true,
+      "path": "data/CCAO/2025/training_data.parquet",
+      "sha256": "b1fc00b514041af5aa7135d85ed59a028afe40569bba1014c4dcf3ad2f3a7b51"
+    },
+    "delta_nl_estimator_json": {
+      "bytes": 1229,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/final_local_results/delta_nl_estimator.json",
+      "sha256": "54cbf30b6acc0b10c9442428b41fb5ba3ae4917665fca026e3a88e94664d4840"
+    },
+    "external_zero_rho_parity_csv": {
+      "bytes": 553,
+      "exists": true,
+      "path": "analysis/external_jurisdiction_benchmark_v1/audits/zero_rho_parity.csv",
+      "sha256": "c8fa273db3c40a5c88f0f78e1eb5c9831384c18296b7c8cd04f3679fa349195c"
+    },
+    "frozen_lgbm_config_json": {
+      "bytes": 1878,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/lgbm_config.json",
+      "sha256": "0bfa69fda29a715ec8142e7bfae1a947a5b36afce015ef0daf5ac1a8a3c58e22"
+    },
+    "frozen_path_table_v4_csv": {
+      "bytes": 640795,
+      "exists": true,
+      "path": "output/paper_v12_lower_rho_extension_994_v2/analysis/data_id=d4929d43ec19badf/split_id=3d464d4a611b131b/penalty_path_analysis/transition_regions_paper_assets_v4_delta_nl_bends/tables/combined_path_table_v4_analysis_view.csv",
+      "sha256": "d5b0fcfc49eb8e2a209d5f477b4b37312a1d6015f7e0ba7bd7ac54a178b60363"
+    },
+    "v12_experiment_spec_json": {
+      "bytes": 3383,
+      "exists": true,
+      "path": "output/paper_v12_lower_rho_extension_994_v2/experiment_spec.json",
+      "sha256": "be77f060744ab6961026da1867a58c60602fe100cab99b7d625a0bc43f11b06e"
+    },
+    "v6_experiment_spec_json": {
+      "bytes": 4058,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/experiment_spec.json",
+      "sha256": "30b3edca5a543350b123519e52f4fbbb77791ea3af206a4612cf566d07e1d9a4"
+    },
+    "v6_recalibration_path_csv": {
+      "bytes": 43866,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/final_local_results/recalibration_path.csv",
+      "sha256": "805e9579a054fca405044f84089aee7d5091fe90dcc0e7670cacca6af8d9f818"
+    },
+    "v6_recalibration_spec_json": {
+      "bytes": 5132,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/final_local_results/recalibration_spec.json",
+      "sha256": "f51f843b6eb23a5dac60563019c4532e96b5ede833732f2c544816ede6cfd77e"
+    },
+    "v6_rho0_split_audit_csv": {
+      "bytes": 1939,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/final_local_results/rho0_split_audit.csv",
+      "sha256": "79a6331007d3b94f9056346da77c44472a8cfab56594258866611738f1f3bcf3"
+    },
+    "v6_rho0_split_audit_json": {
+      "bytes": 8143,
+      "exists": true,
+      "path": "output/paper_v6_preselection_994/final_local_results/rho0_split_audit.json",
+      "sha256": "8d6cc17723abd58bcb5e72c8e8c96134eec4461c198dae1cdc364d6ac0b0f185"
+    }
+  },
+  "p0_baseline_branch": "p0-major-revision-validation",
+  "p0_baseline_commit": "271d0a0748ac6df5e4712ff2dec04db3c6a77511",
+  "plan_baseline_commit_in_approved_plan": "b878b00886584d8d81402a77fd19b93599204dd9",
+  "provenance_worktree": {
+    "commit": null,
+    "created": false,
+    "note": "Created only if the source-equivalence audit finds an executed-path difference.",
+    "path": null
+  },
+  "stage": "STAGE_1_THROUGH_GATE_G1",
+  "working_tree_clean_at_start": false,
+  "written_at_utc": "2026-09-06T03:05:55.405935Z"
+}

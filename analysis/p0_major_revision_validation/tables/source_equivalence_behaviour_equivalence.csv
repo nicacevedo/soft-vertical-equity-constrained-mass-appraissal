@@ -1,0 +1,9 @@
+case,n_in,prepend_explicit_zero_out,finalize_default_out,identical_under_default,bitwise_identical,no_explicit_zero_drops_zero_only
+frozen_82_positive,82,83,83,True,True,True
+frozen_50_original,50,51,51,True,True,True
+frozen_32_lower,32,33,33,True,True,True
+with_explicit_zero,51,51,51,True,True,True
+random_1,40,41,41,True,True,True
+random_2_with_zero,26,26,26,True,True,True
+singleton,1,2,2,True,True,True
+empty,0,1,1,True,True,True
