@@ -1,0 +1,2233 @@
+\documentclass[10pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm,mathtools}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{makecell}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage[style=numeric,sorting=nyt]{biblatex}
+\usepackage[disable,textsize=tiny]{todonotes}
+
+\addbibresource{references.bib}
+\addbibresource{references_additions.bib}
+\addbibresource{references_major_revision_additions.bib}
+\hypersetup{hidelinks}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+\newtheorem{remark}{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Corr}{\operatorname{Corr}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\D}{\mathcal{D}}
+\newcommand{\Hcal}{\mathcal{H}}
+\newcommand{\Vcal}{\mathcal{V}}
+\newcommand{\argminop}{\operatorname*{arg\,min}}
+\newcommand{\argmaxop}{\operatorname*{arg\,max}}
+
+% TODO notes remain in the source for unresolved empirical freezes but are hidden
+% in the reader-facing build. Remove `disable' above only for an internal audit copy.
+\newcommand{\safeincludegraphics}[2][]{%
+  \IfFileExists{#2}{\includegraphics[#1]{#2}}{%
+  \fbox{\parbox[c][0.19\textheight][c]{0.92\linewidth}{\centering
+  Figure file not found in this folder.\\[2mm]{\scriptsize\ttfamily\detokenize{#2}}}}}}
+
+\title{Covariance-Based Regularization for Regressivity in
+Machine-Learning Real Estate Valuation}
+
+\author{
+Nicol\'as Acevedo\thanks{Operations Research Center, MIT, Cambridge, MA 02139. \texttt{nacevedo@mit.edu}}
+\qquad
+Haihao Lu\thanks{Sloan School of Management, MIT, Cambridge, MA 02139. \texttt{haihao@mit.edu}}
+\\[1ex]
+Michael Wagner\thanks{Cook County Assessor's Office, Chicago, IL 60602. \texttt{Michael.Wagner2@cookcountyil.gov}}
+\qquad
+Timothy Sparer\thanks{Cook County Assessor's Office, Chicago, IL 60602. \texttt{Timothy.Sparer@cookcountyil.gov}}
+}
+\date{}
+
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+Machine-learning mass-appraisal models can improve prediction while their valuation-to-sale ratios retain systematic price-related patterns. We study a deliberately narrow training-time intervention for that problem in a research translation of the Cook County Assessor's Office (CCAO) residential LightGBM workflow. Because the log valuation ratio is exactly the log-price residual, we regularize its first-order association with log sale price using either a Direct squared-covariance penalty or an observation-additive Jensen upper bound that is exactly a log-price-distance-weighted squared-error objective. The two objectives are related but not equivalent: Direct targets one signed sample-wide covariance, whereas the Surrogate reweights individual squared errors symmetrically by distance from the training-sample log-price center. Seven rolling-origin folds, a later held-out block, and a separate 2025 forward sample trace complete fixed-base-learner paths rather than select a deployment penalty. Along the currently frozen paths, moderate regularization attenuates the targeted first-order pattern and moves several assessor-facing vertical-equity diagnostics toward neutrality before stronger regularization produces predictive and ratio-shape deterioration; the Surrogate provides a clear example in which near-neutral first-order behavior coexists with nonlinear residual structure. These results are descriptive until the final native/custom zero-penalty parity audit and matched post-hoc comparator are frozen. Because sale price is both the prediction outcome and a transaction-based value proxy, the method controls a price-related pattern among observed sales; it does not identify inequity relative to latent market value, subgroup equity, or final tax burdens. The contribution is therefore a CCAO-centered objective translation, a Direct--Surrogate mechanism distinction, and a temporal failure-mode audit---not a general fairness guarantee or a penalty-selection rule.
+\todo{P0 empirical freeze: after the initialization-aligned native/custom parity rerun and the centered-spread comparator are complete, replace the provisional qualitative sentence in this abstract with the final quantitative effect sizes and paired uncertainty from the canonical artifacts. Do not add a selected penalty or fairness claim.}
+\end{abstract}
+
+
+\section{Introduction}
+\label{sec:introduction}
+
+Property taxes finance essential local services, and mass appraisal determines the valuation base from which many property-tax liabilities are ultimately derived \cite{IAAO2020PropertyTaxPolicy,IAAO2025Mass}. Modern assessor offices increasingly use automated valuation models (AVMs), including nonlinear tree ensembles, to estimate market values across large and heterogeneous residential inventories \cite{IAAOAITaskForce2022,BidansetRakow2022,Rootetal2023,Sevgen2024100111,Zilli2024}. Predictive accuracy is necessary for this task but is not sufficient for assessment-quality evaluation: assessor practice also relies on ratio studies that compare appraised or modeled values with observed sales and examine valuation level, dispersion, and price-related vertical equity \cite{IAAO2013Ratio,IAAO2025Mass,IAAO2026ExposureRatio}.
+
+This paper focuses on one narrow ratio-study concern. Let $\widehat P$ denote a model-estimated market value and $P$ a verified sale price. We study whether the valuation-to-sale ratio $\widehat P/P$ varies systematically with the value level represented by observed sales. A regressive pattern corresponds to relatively higher ratios at lower values and lower ratios at higher values. Sale price is an imperfect proxy for latent market value and also appears in the ratio denominator, so no single sale-based statistic can be interpreted as a complete measure of fairness \cite{McMillenSingh2023,IAAO2026ExposureRatio}. Our estimand is therefore deliberately limited to price-related behavior among observed sales at the valuation stage; it is not final tax incidence, demographic fairness, or jurisdiction-wide equity over unsold properties.
+
+The empirical motivation comes from a collaboration with the Cook County Assessor's Office (CCAO). CCAO's published residential modeling workflow uses LightGBM as its current nonlinear model class and evaluates candidate valuations through predictive and assessor-facing diagnostics \cite{CCAOModelResAVM2026}. In the controlled research comparison studied here, ordinary LightGBM materially improves prediction and aggregate ratio dispersion relative to a historically motivated linear benchmark, yet its price-related vertical-equity diagnostics move in a more regressive direction. The resulting question is a model-design question rather than a return-to-linearity question: can the predictive advantages of the nonlinear model be retained while attenuating the observed-sale price-related pattern through a small, auditable change to the training objective?
+
+We study two covariance-guided objectives. Because
+\[
+\log(\widehat P/P)=\log \widehat P-\log P,
+\]
+the covariance between the log valuation ratio and log sale price is a direct first-order slope target. The \emph{Direct} objective adds the squared sample covariance to the training loss. Its exact objective has sample-coupled rank-one curvature; the LightGBM implementation used in the current empirical artifacts supplies the exact covariance gradient and a diagonal curvature approximation. The \emph{Surrogate} objective replaces the squared covariance with an observation-additive Jensen upper bound. It is exactly weighted squared error, with weights increasing in squared log-price distance from the training-sample center. This makes the Surrogate convenient for standard boosting software but also gives it a different mechanism from Direct.
+
+The empirical design is intentionally diagnostic. The primary CCAO sample uses 344,607 development sales, a later 38,290-sale held-out block, and a separate 26,641-sale 2025 forward block after refitting on all eligible 2016--2024 sales. Within development we use seven rolling-origin folds and trace the full regularization paths of both objectives with the base LightGBM configuration held fixed. We do not select a deployment penalty. We evaluate the paths using a small headline set of prediction, assessor-facing vertical-equity, first-order-mechanism, and nonlinear-shape diagnostics, while retaining the broader ratio-study suite in the appendix.
+
+The paper makes three contributions. First, it turns a classical log-log vertical-equity relationship into an explicit training-time regularization target inside a CCAO-motivated machine-learning workflow. Second, it derives and separates the mechanisms of the Direct and Surrogate objectives: Direct controls one signed aggregate covariance, whereas the Surrogate is a symmetric tail-weighted prediction loss; fixed-prediction-space results make the corresponding rank-one and weighted-projection geometries explicit. Third, it provides a temporal path and failure-mode audit rather than a selected-model exercise: it asks where first-order and assessor-facing diagnostics improve, where prediction or valuation level begins to deteriorate, and whether nonlinear residual structure remains when the targeted slope approaches neutrality.
+
+The contribution is application-driven and bounded. Covariance regularization, fairness-aware empirical-risk minimization, and post-hoc calibration are established ideas. We do not claim that training-time regularization is necessary or sufficient for vertical equity, that the method improves latent-market-value fairness, or that it should replace local ratio studies and assessor review. A matched post-hoc centered-spread comparator is required by the Direct fixed-space result before any claim that in-processing is preferable; that experiment is marked as a P0 empirical freeze item below. Likewise, the current paper is CCAO-centered: a separate multi-jurisdiction stress test is treated as supplementary future robustness evidence rather than as support for the main claim.
+
+\subsection{Related Work}
+\label{subsec:related_work}
+
+\paragraph{Machine learning in mass appraisal.}
+Mass-appraisal research increasingly compares linear models with tree ensembles and other nonlinear AVMs, often with predictive accuracy as the primary quantitative criterion \cite{WangLi2019,Rootetal2023,Sevgen2024100111,Zilli2024,purdueAssessingTechniques}. Assessor practice imposes a broader evaluation burden: sales verification, out-of-time testing, ratio studies, interpretability, administrative review, and local defensibility remain necessary even when predictive models improve \cite{IAAO2020SalesVerification,IAAOAITaskForce2022,BidansetRakow2022}. This motivates interventions that can be inserted into an existing model-development pipeline without replacing the surrounding institutional controls.
+
+\paragraph{Vertical equity: measurement and historical models.}
+Vertical inequity in property assessment predates modern machine learning by decades. Paglin and Fogarty distinguish systematic and random assessment inequity, Cheng develops a log-log assessment--sale-price specification, and later work compares alternative functional forms and documents that conclusions can depend materially on the chosen diagnostic \cite{PaglinFogarty1972,Cheng1974,Edelstein1979,SundermanEtAl1990}. The Cheng specification is especially close to the mechanism studied here: if
+\[
+\log \widehat P = a+b\log P+u,
+\]
+then
+\[
+\log(\widehat P/P)=a+(b-1)\log P+u.
+\]
+Thus the slope of the log valuation ratio on log sale price is exactly $b-1$. Our first-order covariance target is therefore not a new definition of vertical equity; it is a training-time translation of a classical log-log vertical-equity relationship. Recent work further shows that common regression diagnostics can be mechanically biased when modeled values and evaluation sales share statistical structure, reinforcing the need to interpret multiple diagnostics jointly \cite{McMillenSingh2023,IAAO2023VerticalReview}.
+
+\paragraph{Model-based remedies and local alternatives.}
+A smaller literature moves from diagnosis to model specification or correction. Approaches include quantile and spatial models, localized validation, stratification, and segmented valuation architectures \cite{Quintos2014,BidansetEtAl2019,BidansetEtAl2025,HermansEtAl2022,HermansEtAl2025,CandoganHanLu2023}. Most closely related in objective, \textcite{CandoganHanLu2023} construct a $K$-segment valuation model that explicitly studies regressivity and the accuracy--equity relationship. Our intervention is deliberately narrower: it changes the training objective of an existing learner while leaving its predictor information and base architecture fixed. Richer information, segmentation, and local calibration remain complementary alternatives rather than competitors that the present design can rule out. Recent large-scale evidence that accuracy and equity can sometimes improve together likewise argues against treating an accuracy--equity tradeoff as inevitable \cite{SmithEtAl2026}.
+
+\paragraph{Fair regression, dependence control, and post-processing.}
+Fair-regression methods incorporate application-specific criteria into continuous-outcome prediction through constrained or regularized empirical-risk minimization, dependence penalties, or post-processing \cite{AgarwalDudikWu2019,FitzsimonsEtAl2019,ChzhenEtAl2020Wasserstein,ChzhenEtAl2020Recalibration,WeiEtAl2023}. Prior work controls correlation, kernel dependence, or maximal-correlation criteria \cite{KomiyamaEtAl2018,PerezSuayEtAl2017,LiEtAl2022Fairness,MaryEtAl2019,lee2022maximal,ScutariPaneroProissl2022}. We do not treat sale price as a protected attribute and do not pursue demographic parity. We borrow the general dependence-control mechanism for a domain-specific first-order ratio-study target.
+
+\paragraph{Positioning of this paper.}
+Accordingly, the novelty claim is narrow. We do not claim novelty for covariance penalties, fairness-aware empirical-risk minimization, or the general idea of trading predictive loss against another criterion. The contribution is the exact mass-appraisal translation, the Direct--Surrogate distinction, and the CCAO-centered temporal path audit. The Direct fixed-space result also makes a post-hoc centered-spread transformation an unusually close comparator. That comparison is required before any empirical claim that retraining offers value beyond calibration; until it is populated, we make no claim that in-processing is preferable to post-processing.
+
+\section{Preliminaries: The CCAO Baseline and Empirical Motivation}
+\label{sec:setting}
+
+
+This section fixes the CCAO application setting, prediction notation, and evaluation framework used throughout the paper. We first describe the residential valuation workflow and baseline model classes. We then distinguish predictive performance, assessor-facing measures of valuation level and ratio dispersion, complementary vertical-equity diagnostics, and mechanism and residual-structure diagnostics for first-order, nonlinear conditional-mean, and broader dependence patterns. Finally, we present the controlled baseline comparison that motivates the proposed regularization.
+
+
+\subsection{The CCAO Residential Valuation Workflow}
+\label{subsec:ccao_workflow}
+
+The CCAO values a large and heterogeneous residential inventory on a triennial reassessment cycle \cite{CCAOAssessmentCalendar2026}. Its residential modeling evolved from township-level linear-regression models, with linear-regression and gradient-boosting alternatives used in 2019--2020, to a county-wide LightGBM model beginning in 2021 \cite{CCAOModelResAVM2026}. LightGBM is an implementation of gradient-boosted decision trees \cite{lightgbm}.
+
+The CCAO's current published residential automated valuation model (AVM) uses verified sales and a broad set of property, spatial, neighborhood, market, and contextual predictors to estimate residential market values \cite{CCAOModelResAVM2026}. The prediction model is embedded in a broader operational workflow comprising data preparation, model training, valuation, evaluation, interpretation, and final review. Candidate valuations are evaluated using both predictive-performance measures and assessor-specific ratio-study statistics across multiple geographic areas and property classes.
+
+
+{For the empirical analysis, we compare a linear-regression benchmark motivated by CCAO's earlier models with unpenalized LightGBM, representing its current model class, while holding fixed the prediction target, underlying feature information, development sample, temporal design, and evaluation procedures.}
+The comparison is therefore a controlled comparison of model classes rather than a reconstruction of official historical assessments. The exact sample construction, transaction filters, and temporal validation procedures are described in Section~\ref{subsec:ccao_design}.
+
+
+\subsection{Prediction Setting and Baseline Models}
+\label{subsec:baseline_models}
+
+Let $\mathcal{I}$ denote the set of residential sales retained after the CCAO sales-validation and transaction-eligibility procedures described in Section~\ref{subsec:ccao_design}. For each $i\in\mathcal{I}$, we observe
+\[
+(x_i,P_i,t_i),
+\]
+where $x_i$ contains property and parcel characteristics; tract-level socioeconomic and demographic variables from the U.S. Census Bureau's American Community Survey (ACS); and geographic, neighborhood, environmental, accessibility, market, and temporal features.
+
+
+{The variable $P_i>0$ is the verified sale price and is treated as the observed transaction-based proxy for the property's market value, while $t_i$ denotes the sale date used to construct the chronological samples \cite{CCAOModelResAVM2026,IAAO2026ExposureRatio}. Any time-derived predictors used by the models are included in $x_i$. Market value itself is latent: a verified sale provides an observed market-value indicator rather than a directly observed market value. The prediction problem is to estimate market value from the information available in $x_i$.}
+
+Since residential sale prices are positive and highly right-skewed, the baseline models are trained on the log-price scale. Define
+\begin{equation}
+\label{eq:prediction_scale}
+y_i=\log P_i,
+\qquad
+\widehat{y}_i=f(x_i),
+\qquad
+e_i(f)=\widehat{y}_i-y_i,
+\end{equation}
+
+{where $f\in\mathcal{H}$ is a candidate prediction function and $e_i(f)$ is the \emph{log valuation error}, defined with prediction minus observed log price so that it coincides with the log valuation ratio below.}
+The corresponding prediction on the original price scale is
+\begin{equation}
+\label{eq:price_prediction}
+\widehat{P}_i=\exp\bigl(f(x_i)\bigr).
+\end{equation}
+
+
+{The log-price scale is the estimation scale, whereas $\widehat{P}_i$ is the directly retransformed valuation used for price-scale predictive evaluation and ratio-study diagnostics. Throughout the analysis, $\widehat{P}_i$ is defined operationally by~\eqref{eq:price_prediction}; direct exponentiation is not presented as a bias correction for the conditional mean on the original price scale. We define the corresponding \emph{valuation-to-sale ratio} as}
+\begin{equation}
+\label{eq:valuation_ratio}
+r_i(f)
+=
+\frac{\widehat{P}_i}{P_i}
+=
+\exp\bigl(e_i(f)\bigr).
+\end{equation}
+
+
+{For brevity, we subsequently refer to $r_i(f)$ as the \emph{valuation ratio}. Its numerator is the model-estimated market value, not Cook County's statutory assessed value after downstream adjustments. When a fitted model is fixed, we suppress the dependence on $f$ and write simply $r_i$ and $e_i$. The log valuation error and valuation ratio are linked exactly by}
+\begin{equation}
+\label{eq:log_ratio}
+e_i(f)
+=
+\log \widehat{P}_i-\log P_i
+=
+\log r_i(f).
+\end{equation}
+Thus, $e_i(f)>0$ (equivalently, $r_i(f)>1$) corresponds to a prediction above the observed sale price, whereas $e_i(f)<0$ (equivalently, $r_i(f)<1$) corresponds to a prediction below it.
+
+{Estimation on the log-price scale therefore converts multiplicative price errors into additive log valuation errors, and $e_i(f)$ is exactly the log valuation ratio.}
+
+For the predictive models, we consider two baseline model classes: linear regression and gradient-boosted decision trees. As described above, these choices provide a historically motivated linear benchmark and a representation of CCAO's current model class. Between models, we hold fixed the prediction target, development observations, underlying feature information, temporal design, and evaluation protocol; the models differ in functional form and model-specific estimation procedure.
+
+For a training sample of size $n$, both baselines are fitted to reduce mean squared log-price error, i.e.,
+\begin{equation}
+\label{eq:baseline_learning}
+L(f)
+=
+\frac{1}{n}\sum_{i=1}^n e_i(f)^2,
+\end{equation}
+while differing in functional form, estimation procedure, and model-specific complexity control. This loss is the predictive component of the training objective modified in Section~\ref{sec:method}.
+
+For linear regression,
+\begin{equation}
+\label{eq:linear_model}
+f_{\mathrm{lin}}(x)
+=
+\beta_0+x^\top\beta.
+\end{equation}
+The hypothesis class is therefore restricted to functions that are linear in the supplied predictors. In the ordinary linear-regression baseline, no additional regressivity term is included in the training objective. This specification provides the controlled linear benchmark motivated by CCAO's earlier linear-regression models. Its linear structure imposes a comparatively rigid relationship between the predictors and log sale price.
+
+
+{On the other hand, LightGBM, the modeling foundation of CCAO's current published residential AVM, constructs an additive ensemble of regression trees \cite{CCAOModelResAVM2026,lightgbm}. A gradient-boosted tree predictor can be written as}
+\begin{equation}
+\label{eq:boosted_tree_model}
+f_{\mathrm{gbm}}^{(M)}(x)
+=
+f^{(0)}(x)
++
+\sum_{m=1}^{M}\nu b_m(x),
+\end{equation}
+where $f^{(0)}$ is an initial prediction, $b_m$ is the regression tree added at boosting iteration $m$, $M$ is the number of boosting iterations, and $\nu>0$ is the learning rate. Unlike the linear model, the tree ensemble can represent nonlinearities, threshold effects, and interactions without requiring them to be specified in advance.
+
+LightGBM fits the ensemble in~\eqref{eq:boosted_tree_model} sequentially. The gradient and Hessian calculations required for the proposed custom objectives are introduced with the penalties in Section~\ref{sec:method}.
+
+The two baselines therefore solve the same prediction problem under a common empirical design but use substantially different model classes.
+
+{Both baseline objectives minimize squared log-price error and contain no term that directly controls systematic value-related patterns in log valuation errors or valuation ratios. We next distinguish predictive performance from the assessor-facing criteria used to evaluate valuation level, ratio dispersion, and regressivity.}
+
+
+\subsection{Evaluation Hierarchy: Prediction, Assessor Diagnostics, and Mechanism Checks}
+\label{subsec:metrics}
+
+The empirical evaluation is intentionally hierarchical. The main text emphasizes two predictive measures, two assessor-facing vertical-equity measures, and two mechanism/shape diagnostics. We report price-scale $R^2_P$ and mean absolute error (MAE) to summarize predictive performance; PRB and VEI to summarize two complementary assessor-facing views of price-related vertical equity; and $\beta_{\log}$ and $\Delta_{\mathrm{NL}}$ to distinguish the first-order pattern targeted by the training objective from non-affine conditional-mean structure that can remain after that pattern is attenuated. The appendix reports the full complementary suite---MAPE, log-scale RMSE, median/mean/weighted-mean ratios, COD, COV, PRD, MKI, and distance correlation---so that no conclusion depends on one statistic alone.
+
+\paragraph{Headline predictive measures.}
+For an evaluation sample $S$, price-scale goodness of fit is
+\[
+R^2_P(S)=1-\frac{\sum_{i\in S}(\widehat P_i-P_i)^2}{\sum_{i\in S}(P_i-\bar P_S)^2},
+\]
+and
+\[
+\operatorname{MAE}_P(S)=\frac{1}{|S|}\sum_{i\in S}|\widehat P_i-P_i|.
+\]
+These two measures are deliberately retained in the main tables because they are easy to interpret on the valuation scale. MAPE and $\operatorname{RMSE}_{\log P}$ provide complementary scale-normalized and estimation-scale views and are reported with the complete paths in Appendix~\ref{app:ccao_path_details}.
+
+\paragraph{Headline assessor-facing vertical-equity measures.}
+Because true market value is latent and sale price also appears in the denominator of the valuation ratio, no sale-based diagnostic is treated as definitive \cite{IAAO2013Ratio,IAAO2023VerticalReview,McMillenSingh2023,IAAO2026ExposureRatio}. For PRB and VEI we use the equal-weight market-value proxy
+\begin{equation}
+\label{eq:market_value_proxy}
+V_i^{\mathrm{proxy}}
+=
+\frac{1}{2}\left(P_i+\frac{\widehat P_i}{m_S}\right),
+\qquad
+m_S=\operatorname{median}_{i\in S} r_i,
+\end{equation}
+consistent with the 2013 IAAO equal-weight construction. PRB is the slope in
+\begin{equation}
+\label{eq:prb}
+\frac{r_i-m_S}{m_S}
+=
+a_S+\operatorname{PRB}(S)\,
+\log_2\!\left(\frac{V_i^{\mathrm{proxy}}}{\widetilde V_S^{\mathrm{proxy}}}\right)+\varepsilon_i,
+\end{equation}
+where $\widetilde V_S^{\mathrm{proxy}}$ is the sample median proxy. Negative PRB is the regressive direction; the 2013 IAAO guidance conventionally prefers values between $-0.05$ and $0.05$ \cite{IAAO2013Ratio}.
+
+For the large countywide samples used here, VEI divides observations into deciles by $V_i^{\mathrm{proxy}}$ and compares the median ratios of the highest and lowest groups:
+\begin{equation}
+\label{eq:vei}
+\operatorname{VEI}(S)=100\times\frac{m_{S_{q_{10}}}-m_{S_{q_1}}}{m_S}.
+\end{equation}
+Negative values are the regressive direction. The May 2026 IAAO exposure draft proposes a descriptive $[-10\%,10\%]$ band and confidence-interval-based evaluation; because that document remains an exposure draft as of September 2026, we do not present the band as adopted compliance guidance \cite{IAAO2026ExposureRatio}. Complete group profiles are reported because an endpoint contrast can miss non-monotone behavior between the tails.
+
+\paragraph{Mechanism and nonlinear-shape diagnostics.}
+The first-order mechanism statistic is the slope of the log valuation ratio on log sale price,
+\begin{equation}
+\label{eq:log_ratio_slope}
+\beta_{\log}(S)
+=
+\frac{\widehat{\operatorname{Cov}}_S(e,y)}{\widehat{\operatorname{Var}}_S(y)}
+=
+\frac{\widehat{\operatorname{Cov}}_S(\log r,\log P)}{\widehat{\operatorname{Var}}_S(\log P)}.
+\end{equation}
+For a fixed evaluation sample, the denominator is common across models, so $\beta_{\log}$ is the signed slope analogue of the covariance targeted during training. It is a mechanism diagnostic rather than a standalone definition of vertical equity.
+
+To detect conditional-mean structure beyond the best affine trend, standardize $Z=(y-\E[y])/\sqrt{\Var(y)}$ and define
+\begin{equation}
+\label{eq:nonlinearity_gap}
+\Delta_{\mathrm{NL}}
+:=
+\eta^2(e\mid Z)-\operatorname{Corr}(e,Z)^2,
+\end{equation}
+where $\eta^2(e\mid Z)=\Var(\E[e\mid Z])/\Var(e)$ is Pearson's correlation ratio \cite{DoksumSamarov1995}. At the population level $\Delta_{\mathrm{NL}}\ge0$ and equals zero when the conditional mean of $e$ is affine in log sale price. The fixed cross-fitted estimator used in the application is specified in Appendix~\ref{app:metrics}. We additionally report distance correlation in the appendix as a broader unsigned dependence diagnostic \cite{SzekelyRizzoBakirov2007}; independence is stronger than the vertical-equity concept studied here, so dCor is not a target or compliance statistic.
+
+\begin{table}[!htbp]
+\centering
+\small
+\caption{Main empirical evaluation hierarchy. Complementary predictive, level, dispersion, vertical-equity, and residual-dependence measures are reported in the appendix.}
+\label{tab:assessment_metrics_summary}
+\begin{tabularx}{\textwidth}{@{}lccX@{}}
+\toprule
+Measure & Preferred direction & Guidance/reference & Role in this paper \\
+\midrule
+$R^2_P$ & higher & -- & Headline price-scale prediction \\
+MAE & lower & -- & Headline dollar prediction error \\
+PRB & toward $0$ & $[-0.05,0.05]$ & Headline regression-based vertical equity \\
+VEI & toward $0$ & exposure-draft $[-10\%,10\%]$ & Headline grouped vertical equity \\
+$\beta_{\log}$ & toward $0$ & -- & Targeted first-order mechanism \\
+$\Delta_{\mathrm{NL}}$ & lower & -- & Non-affine conditional-mean structure \\
+\bottomrule
+\end{tabularx}
+\vspace{1mm}
+\begin{minipage}{0.96\textwidth}
+\scriptsize
+\emph{Notes.} PRB guidance follows the 2013 IAAO ratio-study standard. VEI and its proposed band are drawn from the May 2026 exposure draft and are used descriptively rather than as final adopted compliance guidance. $\beta_{\log}$ and $\Delta_{\mathrm{NL}}$ are research diagnostics, not assessor-standard compliance measures. COD expectations are property-class and market-specific; COV has no universal compliance range in this paper. Full definitions and guidance status for the complementary suite appear in Appendix~\ref{app:metrics}.
+\end{minipage}
+\end{table}
+
+\todo{P1 VEI uncertainty: in every bootstrap replicate, resample the evaluation rows and recompute the market-value proxy, median normalization, percentile-group boundaries, and group medians rather than conditioning on fixed groups. Report simultaneous or familywise-aware uncertainty for the full percentile profile when used to support a shape claim.}
+\todo{P1 MKI reproducibility: state and archive the exact deterministic tie-breaking convention for equal/rounded sale prices and test whether reasonable alternative tie handling changes conclusions.}
+\todo{P1 Delta_NL robustness: repeat the fixed cross-fitted estimator with a small prespecified sensitivity set for spline basis/knots and fold count, report untruncated estimates where relevant, and bootstrap the headline differences. Treat Delta_NL as a diagnostic rather than a selection threshold.}
+\todo{P0/P1 uncertainty: add paired uncertainty for all headline native-versus-penalized and post-hoc contrasts. Prefer a prespecified date- or market-block bootstrap that preserves temporal clustering, with a transaction-level paired bootstrap as sensitivity. Remove any significance-like table formatting until these intervals are populated.}
+
+Three principles govern interpretation. First, all ratio-study point estimates are descriptive diagnostics rather than legal or professional determinations of compliance. Second, countywide statistics can conceal geographic and property-stratum heterogeneity, so subgroup analysis is a required operational complement. Third, metrics are computed out of sample on chronological validation or evaluation blocks; they are not imposed jointly as training constraints.
+
+\subsection{Baseline Comparison and Empirical Motivation}
+\label{subsec:baseline_tension}
+
+
+{We compare the historically motivated linear-regression benchmark with unpenalized LightGBM, representing CCAO's current model class.} Both models are estimated and evaluated under the same prediction target,
+underlying feature information, sample-construction rules, temporal-validation
+framework, and evaluation procedure. The comparison is therefore a controlled
+comparison of model classes rather than a reconstruction of official
+assessments produced under different historical workflows.
+Section~\ref{subsec:ccao_design} provides the complete empirical design.
+
+{The primary comparison below uses the held-out evaluation sample defined in Section~\ref{subsec:ccao_design}. We also report a separate 2025 forward evaluation after each baseline specification is refit using all eligible 2016--2024 sales; the 2025 sample is not used for model selection.}
+
+
+For readability and to keep the empirical hierarchy explicit, the main text retains the primary baseline table for prediction and assessor-facing vertical equity, while the complementary valuation-level, horizontal-uniformity, and mechanism/residual-structure baseline diagnostics are reported in Appendix~\ref{app:ccao_path_details}.
+
+{
+\begin{table}[!htbp]
+\centering
+\small
+\caption{CCAO baseline motivation on the held-out and 2025 forward evaluations. The main table shows the headline prediction and vertical-equity diagnostics; the complete valuation-level, uniformity, and mechanism diagnostics are reported in Appendix~\ref{app:ccao_path_details}. Values are descriptive point estimates.}
+\label{tab:ccao_baseline_results}
+\begin{tabular}{lrrrr}
+\toprule
+& \multicolumn{2}{c}{Held-out} & \multicolumn{2}{c}{2025 forward} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Measure & Linear & LightGBM & Linear & LightGBM \\
+\midrule
+$R^2_P$ & 0.799 & 0.894 & 0.799 & 0.904 \\
+MAE & \$90,092 & \$75,655 & \$99,371 & \$78,484 \\
+PRB & -0.016 & -0.091 & -0.029 & -0.106 \\
+VEI & -11.6\% & -26.5\% & -17.3\% & -28.6\% \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\begin{minipage}{0.94\textwidth}
+\scriptsize
+\emph{Notes.} $R^2_P$ and MAE summarize prediction. PRB and VEI are the two headline assessor-facing vertical-equity diagnostics in the main text; PRD, MKI, valuation-level ratios, COD/COV, $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and distance correlation are reported in the appendix. The table motivates the model-design question; it is not evidence that machine learning is intrinsically more regressive than linear regression.
+\end{minipage}
+\end{table}
+
+}
+
+
+The corresponding complementary baseline diagnostics are retained in Appendix Table~\ref{tab:ccao_baseline_complementary}.
+
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/baseline_models_motivation_2024_2025.pdf}
+\caption{Descriptive valuation-ratio patterns against sale price for the two baseline models in the primary held-out evaluation and the 2025 forward evaluation. Curves show median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding interquartile ranges.}
+\label{fig:baseline_motivation}
+\end{figure}
+
+
+The corresponding VEI percentile-group profile, with deterministic 90\% bootstrap intervals, is reported in Appendix~\ref{app:ccao_path_details} (Figure~\ref{fig:vei_group_profile_placeholder}).
+
+
+Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} present the primary baseline comparison in the main text. Appendix Table~\ref{tab:ccao_baseline_complementary} reports the complementary valuation-level, horizontal-uniformity, and mechanism/residual-structure diagnostics.
+
+{On the primary held-out evaluation, LightGBM improves all four predictive measures relative to linear regression: $R^2_P$ rises from $0.799$ to $0.894$, while MAE, MAPE, and log-scale RMSE decrease. PRD moves from $1.042$ to $1.069$, and VEI from $-11.6\%$ to $-26.5\%$. The 2025 forward evaluation shows the same qualitative ordering.}
+
+
+{The comparison is application-specific and should not be interpreted as evidence that machine-learning or nonlinear valuation models are intrinsically more regressive than linear models. In this controlled comparison, however, the more flexible baseline provides substantial predictive gains and lower aggregate ratio dispersion while exhibiting a stronger regressive vertical-equity pattern. The model-design question is therefore not simply whether to return to the linear benchmark, but whether the predictive advantages of LightGBM can be retained while reducing that pattern through the training objective.}
+
+
+{The assessor-facing diagnostics above determine how the resulting valuations are evaluated; they need not be optimized directly during training. The first-order mechanism slope in Eq.~\eqref{eq:log_ratio_slope} isolates the signed log-ratio--log-sale-price trend:
+\[
+\beta_{\log}(S)
+=
+\frac{\widehat{\operatorname{Cov}}_S(e,y)}
+{\widehat{\operatorname{Var}}_S(y)}.
+\]
+Within a fixed training sample, $\widehat{\operatorname{Var}}(y)$ does not depend on the fitted model. Penalizing squared covariance therefore controls the same first-order slope up to a fixed scaling. Using $e_i(f)=\log r_i(f)$ and $y_i=\log P_i$,
+\begin{equation}
+\label{eq:training_covariance_bridge}
+\widehat{\operatorname{Cov}}\bigl(e(f),y\bigr)
+=
+\widehat{\operatorname{Cov}}\bigl(\log r(f),\log P\bigr).
+\end{equation}
+We use covariance as the trainable mechanism, while the assessor-facing measures and the residual-structure diagnostics remain separate out-of-sample checks on what the regularization does and does not remove. Section~\ref{sec:method} develops the regularization.}
+
+
+\section{Covariance-Guided Regularization of a Price-Related First-Order Pattern}
+\label{sec:method}
+
+
+{This section translates the price-related pattern identified in Section~\ref{sec:setting} into a trainable regularization objective. We first define the global first-order log-ratio--log-price target, then introduce a Direct squared-covariance penalty and an observation-additive Jensen upper-bound Surrogate. The intervention leaves the prediction target, predictor information, and base model class unchanged; for each family, the only path coordinate varied below is the penalty strength $\rho$.}
+
+{Let $J_0(f)$ denote the baseline training objective, whose data-fit component is the squared log-price loss $L(f)$ defined in Section~\ref{subsec:baseline_models}. All quantities below are computed from the ``current'' training sample. In temporal validation, the centering quantities and penalties are recomputed using the training block of each fold only.}
+
+
+\subsection{Log-Scale Regressivity Target}
+\label{subsec:training_regressivity}
+
+Let
+\begin{equation}
+\label{eq:centered_log_price}
+\bar y=\frac{1}{n}\sum_{i=1}^n y_i,
+\qquad
+c_i=y_i-\bar y,
+\qquad
+\bar e(f)=\frac{1}{n}\sum_{i=1}^n e_i(f).
+\end{equation}
+The empirical covariance between log-residuals and log-prices is
+\begin{equation}
+\label{eq:training_covariance}
+C(f)
+=
+\widehat{\operatorname{Cov}}\bigl(e(f),y\bigr)
+=
+\frac{1}{n}\sum_{i=1}^n
+\bigl(e_i(f)-\bar e(f)\bigr)(y_i-\bar y)
+=
+\frac{1}{n}\sum_{i=1}^n e_i(f)c_i.
+\end{equation}
+The last equality follows from $\sum_{i=1}^n c_i=0$, so centering the residuals does not change the covariance.
+
+This covariance has a direct slope interpretation. Let
+\[
+V_y=\frac{1}{n}\sum_{i=1}^n c_i^2.
+\]
+Provided $V_y>0$, the least-squares slope from regressing log valuation ratios on log prices is
+\begin{equation}
+\label{eq:covariance_slope}
+\operatorname{slope}\bigl(e(f)\sim y\bigr)
+=
+\frac{C(f)}{V_y}.
+\end{equation}
+Because $V_y$ is fixed by the training sample, reducing $|C(f)|$ is equivalent to reducing the magnitude of this global linear trend. In particular, $C(f)<0$ indicates that log valuation ratios tend to decline with log sale price, which is the first-order pattern associated with regressivity.
+
+This slope is also the training-time analogue of the classical Cheng log-log vertical-equity specification. Writing $\log \widehat P=a+b\log P+u$ implies $\log(\widehat P/P)=a+(b-1)\log P+u$; hence the neutrality condition $b=1$ is equivalent to a zero log-ratio slope. The contribution here is therefore not a new diagnostic definition, but the use of its sample covariance representation as a regularization mechanism inside a modern AVM learner \cite{Cheng1974,SundermanEtAl1990,McMillenSingh2023}.
+
+
+A qualification is essential because sale price is both the prediction target and the observed value benchmark. Let $m(X)=\E[Y\mid X]$ be the population squared-error predictor and let $e^\star=m(X)-Y$. Then $\E[e^\star]=0$ and
+\begin{equation}
+\label{eq:bayes_residual_covariance}
+\Cov(e^\star,Y)=-\E\!\left[\Var(Y\mid X)\right]\leq0.
+\end{equation}
+Thus, even the Bayes predictor has negative residual--outcome covariance whenever sale prices contain conditionally unpredictable variation. Appendix~\ref{app:theory} gives the finite-sample analogue: in a fixed linear prediction space containing an intercept, ordinary least squares satisfies $C_0=-\lVert f_0-y\rVert_n^2\leq0$. Driving training covariance toward zero can therefore spread predictions toward realized transaction prices rather than recover latent market values. Negative covariance is not, by itself, evidence of latent vertical inequity, and zero covariance is not a fairness condition. We use $C(f)$ only as a controllable first-order mechanism and judge the resulting valuations with chronological out-of-sample, proxy-aware ratio and residual-structure diagnostics.
+
+{This slope is a training-scale mechanism measure, not the assessor-facing PRB statistic defined in Section~\ref{subsec:metrics}. We use covariance rather than correlation because $V_y$ is fixed within the training sample, whereas correlation additionally normalizes by the model-dependent residual variance. Covariance therefore provides a direct training target for the global value-related slope.}
+
+{Sale price enters this construction as the observed market-value benchmark for verified training sales; it is not introduced as a protected attribute. The broader connection to dependence-based fair regression is discussed in Section~\ref{subsec:related_work}.}
+
+
+\subsection{Direct Squared-Covariance Penalty}
+\label{subsec:direct_penalty}
+
+
+{We first penalize the chosen first-order target directly. The \emph{covariance-penalized learner} is}
+
+
+{
+\begin{equation}
+\label{eq:direct_penalty}
+f_\rho^{\mathrm{cov}}
+\in
+\argminop_{f\in\Hcal}
+\left\{
+J_0(f)+\frac{\rho}{2}C(f)^2
+\right\},
+\qquad
+\rho\geq 0.
+\end{equation}
+}
+
+When $\rho=0$, formulation~\eqref{eq:direct_penalty} reduces to the baseline learner. As $\rho$ increases, the optimization places greater weight on reducing the global residual--price trend. Squaring the covariance treats negative and positive trends symmetrically. This is important because the objective is not to replace regressivity with progressivity, but to move the first-order relationship toward zero.
+
+
+{For interpretation, it is enough to consider the contribution of the covariance penalty to the gradient of observation $i$:}
+{
+\begin{equation}
+\label{eq:direct_penalty_gradient}
+\frac{\partial}{\partial \widehat y_i}
+\left[
+\frac{\rho}{2}C(f)^2
+\right]
+=
+\frac{\rho}{n}C(f)c_i.
+\end{equation}
+}
+
+
+{Suppose, for example, that the fitted model is regressive due to $C(f)<0$. For a sale below the geometric-mean price, $c_i<0$, and thus the covariance component of the gradient is positive, i.e., a descent step lowers its predicted value. For a sale above the geometric-mean price, $c_i>0$, and thus the covariance component is negative, i.e., a descent step raises its predicted value. The penalty therefore acts in the direction required to flatten the global log-ratio--log-price trend. Note that the direction and interpretation reverse automatically when the fitted trend is progressive.}
+
+
+Note that the direct penalty targets how valuation ratios vary with sale price, but not their
+
+overall valuation level. Multiplying every predicted value by the same positive constant shifts all log valuation ratios by the same amount but leaves the covariance $C(f)$ unchanged. Thus, even a model with $C(f)=0$ can have a median or mean valuation ratio different from one. Hence, valuation level must be evaluated separately.
+
+
+{For second-order models (e.g., LightGBM), the corresponding Hessian of the squared log-price loss plus direct penalty is}
+{
+\begin{equation}
+\label{eq:direct_gradient_hessian}
+\nabla_{\widehat y}^2
+\left(
+L(f)+\frac{\rho}{2}C(f)^2
+\right)
+=
+\frac{2}{n}I+\frac{\rho}{n^2}cc^\top.
+\end{equation}
+}
+The rank-one Hessian term $\frac{\rho}{n^{2}}cc^\top$ introduces cross-observation curvature. Standard LightGBM custom objectives provide one gradient and one Hessian value per observation, so this dense term cannot be represented exactly through the usual interface. An exact second-order implementation therefore requires additional machinery: using only the diagonal is possible, but discards the cross-observation curvature. The next subsection proposes an alternative penalty term to handle this caveat. Further, the model-specific derivations are given in Appendix~\ref{app:implementation}.
+
+
+\subsection{Sample-Additive Covariance Upper-Bound Surrogate}
+\label{subsec:surrogate}
+
+
+{For standard second-order boosting software, we seek a penalty that decomposes exactly across observations. Given that~\eqref{eq:training_covariance} already gives $C(f)=\frac{1}{n}\sum_{i=1}^n e_i(f)c_i$, we can make use of Jensen's inequality that yields a sample-additive upper bound to the squared-covariance term directly.}
+
+
+{
+\begin{equation}
+\label{eq:surrogate_upper_bound}
+C(f)^2
+=
+\left(
+\frac{1}{n}\sum_{i=1}^n e_i(f)c_i
+\right)^2
+\leq
+\frac{1}{n}\sum_{i=1}^n e_i(f)^2c_i^2.
+\end{equation}
+}
+
+{This inequality motivates the fully observation-additive surrogate penalty}
+\begin{equation}
+\label{eq:surrogate}
+\Psi^{\mathrm{surr}}(f)
+=
+\frac{1}{n}\sum_{i=1}^n e_i(f)^2c_i^2
+=
+\frac{1}{n}\sum_{i=1}^n
+e_i(f)^2(y_i-\bar y)^2.
+\end{equation}
+The resulting \emph{surrogate-penalized learner} is therefore
+\begin{equation}
+\label{eq:surrogate_learning}
+f_\rho^{\mathrm{surr}}
+\in
+\argminop_{f\in\Hcal}
+\left\{
+{J_0(f)}
++
+\rho\Psi^{\mathrm{surr}}(f)
+\right\}.
+\end{equation}
+
+
+{
+Thus, $\Psi^{\mathrm{surr}}(f)$ is a genuine upper bound on the squared empirical covariance in~\eqref{eq:training_covariance}. Its exact relationship with the direct-covariance penalty can be seen by making the observation
+
+
+\begin{equation}
+\label{eq:surrogate_decomposition}
+\Psi^{\mathrm{surr}}(f)
+=
+C(f)^2
++
+\frac{1}{n}
+\sum_{i=1}^n
+\left(e_i(f)c_i-C(f)\right)^2.
+\end{equation}
+
+Hence, $\Psi^{\mathrm{surr}}(f)$ exceeds $C(f)^2$ by the nonnegative dispersion term in~\eqref{eq:surrogate_decomposition}: opposite-signed observation-level contributions can cancel in $C(f)$ but not in the surrogate. This upper-bound relation should not be interpreted as control of a broader class of nonlinear residual--price relationships; neither the bound nor its weighted-loss representation directly penalizes nonlinear conditional-mean lack-of-fit.
+}
+
+
+Combining the baseline loss with the surrogate gives
+\begin{equation}
+\label{eq:surrogate_weighted_loss}
+L(f)+\rho\Psi^{\mathrm{surr}}(f)
+=
+\frac{1}{n}\sum_{i=1}^n
+\left[1+\rho(y_i-\bar y)^2\right]e_i(f)^2.
+\end{equation}
+Thus, the surrogate is equivalent to a weighted squared-error objective with fixed observation weights
+\begin{equation}
+\label{eq:surrogate_weights}
+w_i(\rho)=1+\rho(y_i-\bar y)^2.
+\end{equation}
+Properties near the center of the log-price distribution receive weights close to the baseline weight, whereas properties in the lower and upper tails receive larger weights.
+
+
+{Since $\exp(\bar y)$ is the geometric mean sale price, the weight function is symmetric in log-distance from this center: prices that differ from the geometric mean by reciprocal multiplicative factors receive the same additional weight. This symmetry concerns the weighting function only: the empirical lower and upper tails, and the resulting prediction changes, need not be symmetric. Moreover, because the additional weight grows quadratically with log-price distance, observations far from the center can receive disproportionate influence. The log transformation compresses this leverage relative to an analogous raw-price construction, but does not bound it.}
+
+
+{This representation clarifies the mechanism without imposing a directional assumption on individual observations. The surrogate raises the cost of residuals farther from the center of the log-price distribution. Unlike the direct penalty, its observation-level correction is not determined by the sign of the aggregate covariance: it depends on the residual $e_i(f)$ and the squared log-price deviation $c_i^2$. Its resulting effect on the signed covariance and on assessor-facing vertical-equity diagnostics must therefore be evaluated out of sample.}
+
+
+For squared loss, the observation-wise gradient and Hessian are
+\begin{align}
+\label{eq:surrogate_derivatives}
+g_i
+&=
+\frac{2}{n}e_i(f)
+\left[1+\rho(y_i-\bar y)^2\right],
+\\
+h_i
+&=
+\frac{2}{n}
+\left[1+\rho(y_i-\bar y)^2\right].
+\end{align}
+
+Both quantities depend only on observation $i$ once $\bar y$ has been computed. They can therefore be supplied through a standard second-order boosting custom-objective interface. Equation~\eqref{eq:surrogate_weighted_loss} also shows that the same mathematical objective can, in principle, be expressed as weighted squared loss in regression software that supports fixed observation weights. The CCAO paths reported in this paper use the custom-objective implementation below; an alternative native-weighted implementation should not be assumed to reproduce the identical finite boosting path without an explicit implementation-equivalence check.
+
+
+{For the LightGBM implementation, we multiply the complete objective by the common positive factor $n/2$. This leaves the minimizer and the relative weighting indexed by $\rho$ unchanged while putting the $\rho=0$ derivatives on LightGBM's native squared-error scale. The supplied surrogate derivatives are therefore
+\[
+g_i=e_i(f)\left[1+\rho c_i^2\right],
+\qquad
+h_i=1+\rho c_i^2.
+\]
+The corresponding direct-objective implementation is given in Appendix~\ref{app:implementation}.}
+
+
+{Unlike the direct covariance penalty, the surrogate is not invariant to a common shift in all log predictions because it penalizes the magnitude of $e_i(f)$ itself. It can therefore affect
+
+overall valuation level in addition to the value-related trend.
+}
+
+
+\subsection{Interpretation and Scope}
+\label{subsec:correction_scope}
+
+
+{
+
+The two formulations intervene differently. The Direct objective responds to the aggregate signed first-order association between log valuation ratios and log sale prices. The Surrogate instead changes the data-fit objective itself by upweighting squared errors farther from the center of the log-price distribution. Although this observation-additive objective upper-bounds squared covariance, it is not merely an implementation approximation to the Direct objective: its additional dispersion term in~\eqref{eq:surrogate_decomposition} gives it a distinct mechanism and can produce different path behavior. Because the two penalties have different scales, the numerical values of $\rho$ are not directly comparable across formulations. Their appropriate scale can also vary across training samples and jurisdictions, so the two regularization paths are traced separately through chronological validation.}
+
+
+{Neither formulation directly optimizes PRD, PRB, VEI, COD, or valuation level. Nor does zero training covariance imply the absence of nonlinear, geographic, property-class, temporal, or other local value-related patterns. The training covariance is therefore treated as a mechanism target rather than as a sufficient measure of vertical equity. Predictive performance, valuation level, PRD, PRB, VEI, ratio curves, the correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$ in~\eqref{eq:nonlinearity_gap}, and the broader distance-correlation diagnostic remain separate validation and out-of-sample evaluation criteria; subgroup diagnostics remain necessary complements for later operational validation.}
+
+{Sale price is required to construct the regularization only for verified sales used during model fitting. Once a model has been trained, the resulting valuation function continues to generate predictions from $x$ alone, as in the baseline AVM; the regularization does not require a current sale price for an unsold property.}
+
+For comparisons across training samples, the raw numerical value of $\rho$ is not intrinsically portable. Under a rescaling $y\mapsto ay$, squared error scales as $a^2$ while $C(f)^2$ scales as $a^4$; the scale-invariant Direct coordinate is therefore
+\begin{equation}
+\label{eq:normalized_rho}
+\widetilde\rho=\rho\,\widehat{\Var}_{\mathrm{train}}(y).
+\end{equation}
+Raw $\rho$ remains the coordinate of the CCAO implementation reported below. Any cross-jurisdiction comparison must recompute the training-block variance without leakage and report $\widetilde\rho$; even then, normalization is a comparability device, not a universal operating rule.
+
+
+Section~\ref{sec:empirical_design} specifies the chronological validation and regularization-path procedure used in the empirical application. Appendix~\ref{app:theory} gives parallel fixed-prediction-space benchmarks for the two penalties. For the Direct objective, increasing $\rho$ shrinks the targeted covariance smoothly and, when the space contains an intercept, the exact path is a one-parameter centered spread rescaling of the unpenalized fit. For the Surrogate, the exact path is instead a log-price-distance-weighted projection of the outcome onto the same prediction space; locally, it moves in the learnable component of the baseline residuals weighted by squared log-price distance from the sample center. In both cases, the increase in baseline in-sample squared error is second order near $\rho=0$. These results clarify the rank-one geometry of the Direct correction and the generally multi-directional geometry of the Surrogate, while remaining interpretive benchmarks rather than guarantees for fully retrained boosted trees, whose splits, leaves, and stopping behavior can change with the objective.
+
+
+\section{Application and Evaluation Design}
+\label{sec:empirical_design}
+
+{This section specifies the empirical design used to evaluate the proposed regularization. We first describe the CCAO application, data, and research implementation, then define the chronological validation and complete-path protocol, and finally specify the baseline, in-processing, and required post-hoc comparators. The main empirical claim is CCAO-specific; external benchmarking is not used to strengthen the primary result.}
+
+
+\subsection{The CCAO Residential Pipeline: Application, Data, and Implementation}
+\label{subsec:ccao_design}
+
+
+{For the primary application, we implement in Python the components of CCAO's residential valuation workflow required for model development and evaluation. The implementation follows the data, feature, model-fitting, and ratio-study structure of CCAO's published residential pipeline, but it is a research translation rather than a direct production run. The reported results should therefore be interpreted as evidence within this translated workflow, not as official CCAO assessment outputs.}
+
+
+{Within the LightGBM comparison, the intervention is deliberately restricted to the training objective. We hold fixed the sale filters, log-price target, underlying predictor information, temporal design, transformation back to the price scale, and evaluation procedures. The
+
+fixed Section-2 LightGBM hyperparameter configuration is held fixed across the standard and penalized fits, so $\rho$ is the only dimension varied within each penalized family.
+
+
+Holding the surrounding model specification fixed makes the training-objective change as controlled as possible. Implementation equivalence of the custom objectives at $\rho=0$ is treated as a reproducibility audit and reported in Appendix~\ref{app:implementation}; until the canonical parity audit is frozen, attribution of positive-penalty changes is made within each custom-objective family.}
+
+
+The primary CCAO application uses verified Cook County residential sales from the research extract that generated the evaluation samples. We retain the executed transaction filters, including exclusion of multicard PINs and sales marked as outliers, but do not infer the exact production property-class scope from the research extract alone.
+\todo{P0 provenance and scope freeze: replace this paragraph with the exact CCAO extract/version, build or retrieval date, citable source, sale-eligibility rules, and final property-class scope. Reconcile explicitly whether condominiums are included in this research extract with the scope stated in CCAO's current published residential AVM documentation. State which parts of the Python translation reproduce the published CCAO workflow and which are research-specific adaptations.}
+
+
+Eligible 2016--2024 sales are ordered chronologically. The oldest 90\% (344,607 sales, through 2023-11-09) form the development/CV pool, and the newest 10\% (38,290 sales, 2023-11-09 through 2024-12-31) form the primary held-out evaluation. The separate 2025 block contains 26,641 sales and is evaluated after each specification is refit on all 382,897 eligible 2016--2024 sales.
+
+The original out-of-time paths had already been inspected during paper development. For the later lower-$\rho$ resolution extension described in Section~\ref{subsec:path_design}, however, the augmented chronological-CV result was frozen before the newly added lower-tail points were evaluated on the held-out and 2025 samples.
+Because earlier project development inspected 2024 outputs, we describe the primary sample as held out rather than as an untouched or preregistered confirmatory test.
+
+Because the 90/10 split is defined on chronologically ordered observations rather than on distinct calendar dates, sales occurring on the cutoff date can appear on both sides of the split; no sale observation appears in both samples.
+\todo{P1 split audit: rebuild or audit the chronology so all observations sharing a sale date remain on the same side of each boundary; quantify repeated-PIN/resale overlap across development, held-out, and 2025 samples and report a parcel-blocked sensitivity analysis. Recompute all time-derived and prior-sale features using only information available before the target sale.}
+\todo{P1 retransformation sensitivity: compare direct exponentiation of log predictions with a cross-fitted global smearing correction and, if sample support permits, a prespecified conditional smearing/calibration alternative. Report whether price-scale accuracy and ratio-study conclusions are materially affected; do not alter the log-scale training target.}
+
+\begin{table}[!ht]
+\centering
+\caption{Final CCAO temporal samples.}
+\label{tab:ccao_samples}
+\begin{tabular}{llr}
+\toprule
+Sample & Period & Observations \\
+\midrule
+Development / validation & 2016-01-01--2023-11-09 & 344,607 \\
+\makecell[l]{Primary held-out evaluation} & 2023-11-09--2024-12-31 & 38,290 \\
+\makecell[l]{Full 2016--2024 refit sample} & 2016-01-01--2024-12-31 & 382,897 \\
+Secondary forward evaluation & 2025-01-01--2025-12-29 & 26,641 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+{\footnotesize Observed eligible sales in the final 2016--2024 modeling universe begin on 2016-01-01.}
+
+The model uses 95 predictors, including property characteristics, location and proximity variables, Census measures, time variables, parcel-shape measures, neighborhood identifiers, and other assessor variables. Twenty-three are treated as categorical.
+
+{All predictors are constructed upstream by the CCAO pipeline. Standard and penalized LightGBM fits use the same 95 predictors, with the same 23 variables treated as categorical; the penalty introduces no additional predictors or feature engineering. The linear benchmark uses the same underlying predictor information with learner-specific representation where required.}
+
+{Table~\ref{tab:feature_groups} summarizes the predictor information used by the models. The full feature list is fixed before model fitting and should be archived with the replication materials.}
+
+{
+
+\begin{table}[!ht]
+\centering
+\caption{CCAO predictor groups used in the empirical models.}
+\label{tab:feature_groups}
+\begin{tabular}{lrl}
+\toprule
+Feature group & Count & Examples \\
+\midrule
+Assessor/property variables & 30 & Class, building area, land area, age, rooms, neighborhood \\
+Location variables & 9 & Coordinates, census tract, school district, municipality \\
+Proximity variables & 26 & Transit, parks, roads, hospitals, water, airports \\
+ACS 5-year measures & 16 & Income, education, poverty, employment, tenure \\
+Time variables & 8 & Sale year, month, quarter, day, post-COVID indicator \\
+Parcel-shape variables & 6 & Edge/angle dispersion, bounding ratios, vertex count \\
+\midrule
+Total & 95 & 23 categorical predictors in LightGBM \\
+\bottomrule
+\end{tabular}
+\end{table}
+}
+
+
+\subsection{Temporal Validation and Complete-Path Design}
+\label{subsec:path_design}
+
+Within the 344,607-sale development/CV pool, we use seven expanding-window
+rolling-origin folds. The cumulative windows advance in 15-month steps anchored at
+2016-01-01, and within each cumulative window the newest 10\% of observations form
+validation. For fold $v$, let $\mathcal T_v$ and $\mathcal V_v$ denote its training
+and validation samples. The training window expands across folds, and all
+training-dependent quantities used by the proposed objectives, including $\bar y$
+and the centered log-price deviations, are recomputed from $\mathcal T_v$ only.
+
+The exact fold dates and sample sizes are reported in Appendix~\ref{app:ccao_path_details}, Table~\ref{tab:fold_structure}; because the newest-10\% validation rule is identical in every fold, it is stated once rather than repeated as a table column.
+
+The experiment traces the full regularization paths rather than choosing a penalty
+strength at this stage.
+
+The substantive comparison contains standard LightGBM and the positive-penalty Direct and Surrogate LightGBM families.
+
+Each final family path contains 82 positive penalty values spanning the low-activity through high-penalty regimes. A one-time lower-tail extension was fixed from chronological-CV diagnostics before those added points were evaluated on the held-out and 2025 samples. The exact grid construction and the historical turning-point diagnostics are documented in Appendix~\ref{subsec:candidate_screen_appendix}; they do not define a selected or preferred penalty range.
+Because the direct and surrogate objectives have different numerical scales, their $\rho$
+values are not interpreted as comparable magnitudes. The LightGBM hyperparameters were tuned on the same seven chronological folds before any penalty path was estimated. The tuning criterion was the equal-weight mean of fold validation price RMSE, $\operatorname{RMSE}_P(S)=\sqrt{n_S^{-1}\sum_{i\in S}(\widehat P_i-P_i)^2}$. The adopted configuration uses 994 trees and was then frozen for ordinary LightGBM, Direct, and Surrogate fits. The held-out and 2025 samples were not used for this hyperparameter choice. With that vector held fixed, $\rho$ is the only dimension varied within each penalized family.
+\todo{P1 learner-capacity sensitivity: after the parity-correct main paths are frozen, refit a small prespecified set of low/moderate/high path anchors with ordinary early stopping or limited retuning to test whether the fixed 994-tree configuration materially changes the qualitative path. Keep the fixed-base-learner path as the primary controlled experiment and label this sensitivity separately.}
+
+\todo{P0 reproducibility: archive the exact frozen 994-tree LightGBM parameter vector and configuration hash in the replication materials; the main text need not list every parameter.}
+
+For each configuration and fold, we retain the complete set of predictive,
+valuation-level, ratio-dispersion, vertical-equity, and mechanism/residual-structure diagnostics.
+We report equal-weight fold means and standard deviations to describe the
+chronological behavior of the regularization paths.
+
+No deployment operating point is selected in the present analysis. Chronological CV is used to describe the direction and stability of the complete paths. A historical path-screening diagnostic is retained only in the appendix for reproducibility and does not narrow, rank, or select the configurations used in the main paper.
+
+\paragraph{Secondary exploratory path summaries.}
+The complete paths are the primary empirical objects. Appendix~\ref{subsec:candidate_screen_appendix} retains the historical turning-point and path-screening diagnostics only as secondary reproducibility material for high-penalty deterioration. Those diagnostics are explicitly secondary: their endpoints are not confidence intervals, candidate operating regions, safe ranges, or model-selection rules, and they do not enter the abstract, contribution statement, or main figures.
+
+For compact presentation, we use five nominal decade-spaced positive display anchors,
+\[
+\rho_{\mathrm{display}}\in\{0.01,0.1,1,10,100\},
+\]
+and represent each by the nearest already-tested point on the frozen 82-point positive grid. The corresponding tested values are $0.0104811$, $0.1$, $0.954095$, $10.4811$, and $100$. This convention is presentation-only: it does not define a transition rule or select a penalty strength. Ordinary LightGBM remains the unpenalized baseline.
+
+All 82 positive values per family remain in the final path figures and machine-readable result table.
+
+Ratio-shape figures additionally show the zero-penalty path origin for visual continuity. Because the Direct and Surrogate objectives have different numerical scales, equal nominal display anchors are common presentation coordinates only and must not be interpreted as equal-strength interventions across families.
+
+
+The same final augmented regularization paths are evaluated on the two out-of-time samples. For the held-out evaluation, every valid configuration is refit on the full
+344,607-sale development pool and evaluated on the 38,290-sale held-out sample. For
+the 2025 forward evaluation, the same configuration is refit on all 382,897 eligible
+2016--2024 sales and evaluated on the 26,641-sale 2025 sample. 
+These held-out and forward paths are descriptive. The lower-tail grid extension was fixed from chronological-CV diagnostics before the newly added points were evaluated out of time; held-out and 2025 results were not used to revise the objective definitions, base learner, or augmented grid. The three samples are therefore complementary temporal views of the final experiment rather than stages of a penalty-selection procedure.
+
+All scalar evaluation statistics are computed on the full relevant validation or
+evaluation sample after predictions are transformed back to the price scale. For
+the ratio-shape figures in the Results, each evaluation sample is partitioned into
+30 equal-count sale-price bins and we plot the median valuation ratio in each bin
+against sale price on a logarithmic horizontal axis. The binning is used only for
+visualization; all scalar metrics are computed on the full evaluation sample.
+
+\begin{table}[t]
+\centering
+\caption{CCAO application and regularization-path design.}
+\label{tab:ccao_design}
+\begin{tabularx}{\textwidth}{@{}p{3.5cm}X@{}}
+\toprule
+Item & Design \\
+\midrule
+Population & Verified Cook County residential sales \\
+Development / CV & Oldest 90\% of eligible 2016--2024 sales: 344,607, through 2023-11-09 \\
+Primary held-out evaluation & Newest 10\%: 38,290 sales, 2023-11-09--2024-12-31 \\
+Full 2016--2024 refit sample & 382,897 eligible 2016--2024 sales \\
+2025 forward evaluation & 26,641 sales, 2025-01-01--2025-12-29 \\
+Predictors & 95 total; 23 categorical \\
+Validation & Seven expanding-window rolling-origin folds; newest 10\% validates \\
+Base nonlinear learner & LightGBM on log sale price; 994 trees; hyperparameters frozen before the penalty sweep \\
+Regularization families & Direct-diagonal covariance path and observation-additive Surrogate \\
+Penalty path & 82 positive values per family: original 50-point $[0.1,100]$ path plus a 32-point lower-tail extension $[0.00110,0.08685]$ \\
+Current analysis & Full CV, held-out, and forward paths; no deployment operating-point selection \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Models and Comparisons}
+\label{subsec:comparators}
+
+
+The empirical design distinguishes three layers: baseline model classes, the two training-time regularization families, and comparator/sensitivity analyses. The baseline and complete regularization paths form the primary experiment. The centered-spread map below is the closest required post-hoc comparator because it is implied by the Direct fixed-space geometry; a domain-specific correction serves as a broader robustness comparison.
+
+\paragraph{Linear and nonlinear baselines.}
+
+Linear regression provides the simpler historically motivated benchmark; standard LightGBM, trained with the ordinary squared log-price objective, is the relevant nonlinear AVM baseline. Both use the same outcome, development observations, and underlying predictor information under the common temporal design.
+
+\paragraph{Direct and surrogate penalties.}
+
+
+The empirical \emph{Direct-diagonal} comparator uses the Direct objective's exact covariance gradient together with the diagonal-curvature approximation described in Appendix~\ref{app:implementation}; the omitted rank-one cross-observation curvature means that this fitted LightGBM path should not be described as an exact optimizer of the mathematical Direct objective. The Surrogate uses the exact observation-additive objective from Section~\ref{subsec:surrogate}. For readability, figures produced by the frozen code may label the first family simply ``Direct''; captions and text identify that curve as the Direct-diagonal implementation.
+
+
+\paragraph{Required centered-spread post-hoc comparator.}
+Corollary~\ref{cor:path_scaling} shows that, in a fixed prediction space containing an intercept, the exact mathematical Direct path is a one-parameter centered-spread transformation. The empirical analysis therefore requires a comparison between retraining and the validation-fitted map
+\[
+f_b(x)=\bar y_{\mathcal T}+b\bigl(f_0(x)-\bar y_{\mathcal T}\bigr),
+\]
+where $f_0$ is the unpenalized predictor, $\bar y_{\mathcal T}$ is computed from the training block only, and $b$ is varied or chosen using the same chronological validation information available to the penalized learners. This comparator preserves deployability because it depends only on the fitted prediction and a training-sample constant at inference time.
+\todo{P0 comparator experiment: implement the complete centered-spread path using the same seven rolling-origin folds, held-out block, and 2025 refit. Freeze its path before held-out/2025 inspection; report the same headline prediction, PRB/VEI, beta_log, Delta_NL, and subgroup diagnostics. Compare Direct-diagonal and Surrogate with the post-hoc map at matched first-order correction and matched predictive loss. Until this is populated, do not claim that in-processing is superior to post-processing.}
+
+\paragraph{Domain-specific comparator sensitivity.}
+As a broader robustness comparison, we include at least one established property-assessment remedy that changes model structure or calibration rather than only the loss; this prevents the contribution from being evaluated solely against ordinary LightGBM.
+\todo{P1 comparator sensitivity: predefine and implement one feasible domain comparator on identical temporal splits--preferably the K-segment approach of Candogan, Han, and Lu if reproducible in the current pipeline, otherwise a clearly specified validation-fitted quantile/segmented calibration benchmark. Treat this as a sensitivity analysis, not as a requirement to establish universal dominance.}
+
+
+Better spatial, temporal, neighborhood, and property information can improve both prediction and equity, but this is a modeling extension rather than a comparator in the headline experiment. We therefore discuss richer information as a complementary direction in Section~\ref{sec:discussion} rather than treating it as a completed empirical control here.
+
+
+\paragraph{External-evidence boundary.}
+The primary evidentiary claim is CCAO-specific. A separate normalized multi-jurisdiction stress test uses commercially harmonized data and a common research model rather than each assessor office's production data, legal rules, feature engineering, or review process. It is therefore treated only as secondary robustness material, and Appendix~\ref{app:external_status} records its current evidentiary status.
+
+\section{Results}
+\label{sec:results}
+
+The primary empirical object is the complete CCAO regularization path under a fixed base-learner configuration. The current tables and figures are descriptive outputs from the frozen implementation. Because the native/custom $\rho=0$ parity audit is not yet frozen in the exact final refits, changes should be interpreted within each custom-objective path rather than as fully isolated causal effects of the positive penalty. The final submission must regenerate the path origins, headline contrasts, and paired uncertainty after the parity-aligned rerun.
+\todo{P0 parity rerun: use initialization-aligned native LightGBM, Direct-diagonal at $\rho=0$, and a true custom-objective Surrogate at $\rho=0$ on the full held-out and 2025 refits. Record max and mean absolute prediction differences and require near-numerical agreement before treating native-to-positive-penalty contrasts as penalty effects. If parity fails, diagnose and report the implementation difference rather than relabeling $\rho$. Regenerate all affected tables and figures from the corrected path.}
+
+\subsection{Accuracy Alone Does Not Remove the CCAO Ratio Trend}
+\label{subsec:ccao_baseline_results}
+
+Section~\ref{subsec:baseline_tension} reports the Linear versus ordinary LightGBM
+comparison on the held-out and 2025 forward samples. Those baseline artifacts are
+regenerated under the corrected metric code and the frozen Section-2 LightGBM
+configuration; they do not involve a penalized-model choice. The remainder of the
+primary CCAO Results treats the \emph{regularization path itself} as the empirical
+object of interest. No $\rho$, penalty family, or operating point is selected in the
+present analysis.
+
+
+\subsection{Complete CCAO Paths: First-Order Improvement and Predictive Limits}
+\label{subsec:path_results}
+
+
+The Direct and Surrogate objectives are evaluated over their complete final augmented grids. Since the two penalties have different numerical scales, their
+$\rho$ values are not compared as equal-strength interventions. The principal
+question at this stage is descriptive: how do prediction, valuation level,
+horizontal uniformity, assessor-facing vertical-equity diagnostics, and the targeted
+dependence measures evolve as regularization increases?
+
+
+Table~\ref{tab:path_anchor_summary} is the compact main-text view of prediction and assessor-facing vertical equity at the nominal decade-spaced display anchors defined in Section~\ref{subsec:path_design}. Appendix Table~\ref{tab:path_anchor_complementary} reports valuation level, horizontal uniformity, and mechanism/residual-structure diagnostics at the same nominal anchors. The full 82-point positive path for each family remains the scientific object of analysis; the compact rows are presentation-only snapshots and do not constitute model selection.
+
+
+{
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.08}
+\caption{Primary regularization-path summary at nominal decade-spaced display anchors: prediction and assessor-facing vertical equity. Rows follow the fixed presentation rule $\rho\in\{0.01,0.1,1,10,100\}$ (nearest tested grid points) and do not constitute model selection. All values are descriptive point estimates; no cell formatting denotes superiority or significance.}
+\label{tab:path_anchor_summary}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Method & $\rho$
+& $R^2_P$
+& MAE
+& MAPE
+& $\operatorname{RMSE}_{\log P}$
+& PRD
+& PRB
+& MKI
+& VEI \\
+\midrule
+\multicolumn{10}{l}{\textit{Panel A: Held-out evaluation}} \\
+\addlinespace[2pt]
+\multicolumn{10}{l}{Baseline models} \\
+\cmidrule(lr){1-10}
+Linear regression & -- & 0.799 & \$90,092 & 24.1\% & 0.322 & 1.042 & -0.016 & 0.975 & -11.6\% \\
+Ordinary LightGBM & -- & 0.894 & \$75,655 & 21.2\% & 0.289 & 1.069 & -0.091 & 0.923 & -26.5\% \\
+\addlinespace[3pt]
+\multicolumn{10}{l}{Direct objective} \\
+\cmidrule(lr){1-10}
+Direct-diagonal & $\approx0.01$ & 0.893 & \$76,058 & 21.2\% & 0.290 & 1.069 & -0.089 & 0.924 & -26.9\% \\
+Direct-diagonal & $0.1$ & 0.894 & \$76,235 & 21.3\% & 0.291 & 1.068 & -0.088 & 0.926 & -27.0\% \\
+Direct-diagonal & $\approx1$ & 0.899 & \$74,485 & 21.1\% & 0.290 & 1.060 & -0.075 & 0.940 & -21.9\% \\
+Direct-diagonal & $\approx10$ & 0.895 & \$75,218 & 21.4\% & 0.294 & 1.036 & -0.040 & 0.984 & -10.5\% \\
+Direct-diagonal & 100 & 0.869 & \$84,918 & 23.9\% & 0.325 & 1.029 & -0.015 & 0.998 & 0.7\% \\
+\addlinespace[3pt]
+\multicolumn{10}{l}{Surrogate penalty} \\
+\cmidrule(lr){1-10}
+Surrogate & $\approx0.01$ & 0.894 & \$75,748 & 21.2\% & 0.289 & 1.069 & -0.088 & 0.924 & -25.8\% \\
+Surrogate & $0.1$ & 0.894 & \$75,897 & 21.1\% & 0.292 & 1.064 & -0.079 & 0.931 & -22.7\% \\
+Surrogate & $\approx1$ & 0.897 & \$75,468 & 21.0\% & 0.298 & 1.049 & -0.045 & 0.953 & -12.6\% \\
+Surrogate & $\approx10$ & 0.893 & \$78,110 & 21.6\% & 0.329 & 1.024 & 0.013 & 0.988 & 0.2\% \\
+Surrogate & 100 & 0.889 & \$82,094 & 22.8\% & 0.357 & 1.010 & 0.042 & 1.013 & 4.0\% \\
+\midrule
+\addlinespace[2pt]
+\multicolumn{10}{l}{\textit{Panel B: 2025 forward evaluation}} \\
+\addlinespace[2pt]
+\multicolumn{10}{l}{Baseline models} \\
+\cmidrule(lr){1-10}
+Linear regression & -- & 0.799 & \$99,371 & 24.9\% & 0.313 & 1.052 & -0.029 & 0.954 & -17.3\% \\
+Ordinary LightGBM & -- & 0.904 & \$78,484 & 20.8\% & 0.278 & 1.079 & -0.106 & 0.907 & -28.6\% \\
+\addlinespace[3pt]
+\multicolumn{10}{l}{Direct objective} \\
+\cmidrule(lr){1-10}
+Direct-diagonal & $\approx0.01$ & 0.905 & \$78,442 & 20.7\% & 0.278 & 1.078 & -0.105 & 0.909 & -29.8\% \\
+Direct-diagonal & $0.1$ & 0.906 & \$78,029 & 20.7\% & 0.278 & 1.077 & -0.102 & 0.910 & -27.7\% \\
+Direct-diagonal & $\approx1$ & 0.910 & \$77,139 & 20.7\% & 0.279 & 1.069 & -0.090 & 0.926 & -23.9\% \\
+Direct-diagonal & $\approx10$ & 0.902 & \$79,187 & 20.9\% & 0.281 & 1.042 & -0.049 & 0.971 & -11.9\% \\
+Direct-diagonal & 100 & 0.873 & \$89,309 & 23.1\% & 0.307 & 1.036 & -0.029 & 0.983 & -4.5\% \\
+\addlinespace[3pt]
+\multicolumn{10}{l}{Surrogate penalty} \\
+\cmidrule(lr){1-10}
+Surrogate & $\approx0.01$ & 0.904 & \$78,620 & 20.7\% & 0.279 & 1.077 & -0.101 & 0.910 & -27.4\% \\
+Surrogate & $0.1$ & 0.905 & \$78,546 & 20.6\% & 0.279 & 1.074 & -0.095 & 0.914 & -24.7\% \\
+Surrogate & $\approx1$ & 0.908 & \$78,196 & 20.4\% & 0.284 & 1.060 & -0.062 & 0.932 & -15.3\% \\
+Surrogate & $\approx10$ & 0.905 & \$81,075 & 20.9\% & 0.310 & 1.033 & 0.000 & 0.967 & -2.0\% \\
+Surrogate & 100 & 0.900 & \$85,257 & 22.0\% & 0.336 & 1.020 & 0.030 & 0.987 & 1.7\% \\
+\bottomrule
+\end{tabular}}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+Display anchors are nominal decade-spaced presentation points $\{0.01,0.1,1,10,100\}$ mapped to the nearest already-tested values $\{0.0104811,0.1,0.954095,10.4811,100\}$. This presentation convention was adopted after the final augmented path analysis solely for readability and does not enter the frozen transition, LOFO, temporal-concordance, span-regret, or model-selection calculations. Direct and Surrogate penalty magnitudes are not numerically comparable across families.
+Point estimates are shown without superiority markers because paired uncertainty and the final parity-aligned rerun are still required. Display anchors are presentation-only snapshots of the complete frozen grid and do not constitute model selection. Complementary valuation-level, horizontal-uniformity, and mechanism/residual-structure values at the same anchors are reported in Appendix Table~\ref{tab:path_anchor_complementary}.
+\end{minipage}
+\end{table}
+\todo{P0 table freeze: repopulate Table~\ref{tab:path_anchor_summary} from the parity-correct paths and add paired 95\% intervals for the primary contrasts. If the centered-spread comparator is available by the same freeze, include matched-effect rows or a companion table rather than adding more boldface.}
+
+}
+
+
+In the currently frozen artifacts, the nominal $\rho=1$ Direct-diagonal display anchor (tested $\rho=0.954095$) has held-out $R^2_P=0.899$ and MAE of \$74,485, while the ordinary LightGBM context anchor has $0.894$ and \$75,655; PRD, PRB, MKI, VEI, and $\beta_{\log}$ also move in their neutral directions. The 2025 panel shows the same qualitative pattern. Because the native/custom path origins are not yet the final parity-aligned refits, these numbers establish the descriptive shape of the implemented path but should not yet be interpreted as isolated penalty effects. The Surrogate path shows a similar moderate-regularization possibility.
+
+Thus the empirical paths are not a simple monotone exchange of prediction accuracy for vertical equity. At stronger penalties, price-scale accuracy eventually deteriorates, while some vertical-equity diagnostics approach or cross their neutral values and others become non-monotone.
+
+
+The decade-spaced rows in Table~\ref{tab:path_anchor_summary} remain descriptive snapshots of the full paths. No interval or endpoint is promoted in the main Results; the exploratory CV path-screening diagnostics are documented only in Appendix~\ref{subsec:candidate_screen_appendix}.
+
+\subsection{How the Valuation-Ratio Shape Changes Along the Path}
+\label{subsec:ratio_shape_results}
+
+
+Scalar diagnostics do not show where along the value distribution the ratio pattern changes. We therefore complement the sweep table with a selection-free ratio-shape view using the same 30 equal-count-bin construction as the baseline motivation figure, the zero-penalty path origin, and the nominal decade-spaced positive display anchors $\{0.01,0.1,1,10,100\}$ mapped to their nearest tested grid points.
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/ratio_shape_evolution.pdf}
+\caption{Valuation-ratio profiles against sale price at the zero-penalty path origin and nominal decade-spaced positive display anchors $\rho\in\{0.01,0.1,1,10,100\}$, each represented by the nearest tested grid point. The horizontal line at 1 is the principal neutrality reference; lines at 0.9 and 1.1 are aggregate appraisal-level reference guides and are not binwise acceptance criteria. The display anchors are presentation-only and do not select a penalty strength.}
+\label{fig:ratio_shape_path_placeholder}
+\end{figure}
+
+Both formulations attenuate the broad decline in valuation ratios as regularization
+increases, but they change the profile differently.
+
+Across the decade-spaced display snapshots, the Direct-diagonal profile changes more smoothly than the Surrogate profile. Under stronger Surrogate regularization, the profile
+develops a pronounced non-monotone trough through the lower and middle sale-price
+range before recovering at higher prices. This visual contrast is descriptive rather than a structural guarantee: The Direct covariance target controls the affine residual--price component but does not protect against nonlinear conditional-mean departures at stronger regularization. Nonlinear shape is therefore evaluated for both families with the common $\Delta_{\mathrm{NL}}$ diagnostic rather than inferred from visual smoothness alone.
+
+Consequently, a near-neutral global slope or high-versus-low grouped statistic need not imply a flat valuation-ratio profile across the value distribution.
+
+The fixed cross-fitted $\Delta_{\mathrm{NL}}$ nonlinearity gap separates these families. Along the Direct-diagonal path, held-out $\Delta_{\mathrm{NL}}$ remains near $0.116$--$0.132$ over the previously reported representative configurations and is $0.115$ at $\rho=100$; the 2025 Direct-diagonal path is similarly stable, ending at $0.119$. The Surrogate path instead falls through moderate regularization, from $0.116$ at $\rho=0$ to $0.099$ near the nominal $\rho=1$ display anchor (tested $\rho=0.954095$) on the held-out sample and from $0.121$ to $0.092$ near the nominal $\rho=10$ display anchor (tested $\rho=10.4811$) in 2025, then rises at $\rho=100$ to $0.124$ and $0.111$, respectively. That rebound coincides with the non-monotone Surrogate ratio trough above. We do not infer a specific functional shape from the scalar gap alone; the shape label comes from the ratio-profile figure.
+
+\subsection{First-Order Attenuation and Residual Structure Along the Path}
+\label{subsec:mechanism_results}
+
+
+{The Direct objective's training target is covariance, and $\beta_{\log}$ is its signed first-order slope equivalent up to the fixed variance of log sale price within an evaluation sample. The correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$ then measures conditional-mean explanatory power beyond the best affine residual--price relationship, while distance correlation provides a broader omnibus check for remaining distributional dependence. These diagnostics answer nested but distinct questions---first-order trend, non-affine conditional mean, and broader dependence---and are therefore traced along the complete paths rather than evaluated only at a single positive-$\rho$ model.}
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/mechanism_vs_rho.pdf}
+\caption{Mechanism and residual-structure paths versus $\rho$ for Direct-diagonal and Surrogate on held-out (solid) and 2025 (dashed) evaluations. No operating region or selected penalty is highlighted. $\beta_{\log}$ is the targeted first-order slope, $\Delta_{\mathrm{NL}}$ measures non-affine conditional-mean structure beyond the best linear trend, and distance correlation is a broader dependence diagnostic.}
+\label{fig:mechanism_path_placeholder}
+\end{figure}
+\todo{P1 figure regeneration: create mechanism_vs_rho_main.pdf from the frozen path data without exploratory-screen shading, transition-span overlays, or preferred-point markers. Preserve held-out/2025 distinction and label the empirical family Direct-diagonal.}
+
+The first-order mechanism moves in the intended direction in both families. Along
+the held-out Direct-diagonal anchors, $\beta_{\log}$ changes from $-0.147$ at
+$\rho=0$ to $-0.079$ at $\rho=100$; the corresponding 2025 values move from
+$-0.161$ to $-0.093$. The Surrogate path moves closer to first-order neutrality,
+reaching $-0.001$ on the held-out sample and $-0.015$ in 2025 at $\rho=100$.
+
+The broader distance-correlation diagnostic is not monotone along the Surrogate path, however. For the Surrogate,
+held-out dCor falls from $0.382$ at $\rho=0$ to $0.250$ near
+$\rho=10.481$ and then rises to $0.267$ at $\rho=100$; the 2025 path shows
+the same rebound from $0.258$ to $0.266$.
+
+This rebound is consistent with the non-monotone ratio shapes above and shows that broader sale-price-related dependence can remain even as the targeted first-order association approaches zero. Because distance correlation is an omnibus dependence measure, the rebound does not by itself establish that nonlinear conditional-mean structure has increased; that distinction is assessed with $\Delta_{\mathrm{NL}}$.
+Figure~\ref{fig:mechanism_path_placeholder} traces that distinction on the complete grids. On Direct, $\lvert\beta_{\log}\rvert$ declines from $\rho=0$ to $\rho=100$ while $\Delta_{\mathrm{NL}}$ stays in a narrow band and is not increasing at the strongest penalty. On Surrogate, $\lvert\beta_{\log}\rvert$ continues to fall as $\Delta_{\mathrm{NL}}$ first declines and then rises at high $\rho$, including the held-out movement from $0.099$ near $\rho=0.954$ to $0.124$ at $\rho=100$. First-order slope reduction and the correlation-ratio nonlinearity gap are therefore not the same object, and the Surrogate path is the clearer CCAO example of that separation.
+
+\subsection{Accuracy--Equity Trajectories}
+\label{subsec:tradeoff_results}
+
+The central assessor-facing result is the path traced jointly by predictive
+performance and vertical-equity diagnostics.
+
+The main tradeoff figure reports all four assessor-facing vertical-equity diagnostics---PRD, PRB, MKI, and VEI---against $R^2_P$. Appendix~\ref{app:ccao_path_details} broadens the accuracy dimension to MAE, MAPE, and $\operatorname{RMSE}_{\log P}$ and separately reports mechanism-versus-accuracy trajectories.
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.98\textwidth]{img/generated_v12_994/accuracy_equity_trajectories_inprocessing_only.pdf}
+\caption{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims. Arrows indicate increasing $\rho$ and do not mark a selected point.}
+\label{fig:accuracy_equity_placeholder}
+\end{figure}
+The trajectories are not simple monotone accuracy--equity frontiers. At moderate regularization, parts of both paths move toward more neutral PRD and VEI while preserving or improving price-scale fit relative to the corresponding custom-objective $\rho=0$ control.
+
+At stronger regularization, $R^2_P$ bends downward while several vertical-equity diagnostics approach or cross their neutral values; the resulting trajectories can themselves become non-monotone. This is why the complete path, rather than a single endpoint or a presumed accuracy cost, is
+
+the relevant empirical object before selecting an operating point. Accordingly, the main accuracy--equity figure does not highlight a preferred segment; temporal stability is assessed from the complete paths rather than from a selected interval.
+
+\subsection{Temporal Stability and the Limits of Raw Penalty Coordinates}
+\label{subsec:path_stability_results}
+
+The qualitative direction of the paths is more stable than any exact raw-$\rho$ location. Across rolling-origin folds, held-out evaluation, and the 2025 forward block, increasing regularization generally attenuates the first-order log-ratio slope before sufficiently strong penalties degrade prediction, valuation level, or ratio shape. The penalty value at which a particular metric turns, however, varies across periods and metrics. We therefore do not interpret a CV endpoint as an uncertainty bound, a safe interval, or a portable operating rule.
+
+The detailed exploratory turning-point and screening diagnostics are retained in Appendix~\ref{subsec:candidate_screen_appendix} for reproducibility because they helped diagnose the frozen path. They are not part of the paper's primary contribution and do not define a selected model. The main evidence is the complete path together with the held-out and forward overlays.
+
+\todo{P1 temporal uncertainty: add paired block-bootstrap uncertainty for headline path differences and a concise fold-range or ribbon in the main/supplementary path figures. The bootstrap scheme must be fixed before inspecting the final parity-correct results.}
+\todo{P1 subgroup audit: report the same baseline and representative path diagnostics by CCAO-relevant geography (for example township/triad where supported), residential property class, value band, and time period, with prespecified minimum cell sizes. Include worst-group changes and uncertainty. These analyses are required to support an assessor-facing diagnostic claim because countywide improvement can conceal local deterioration.}
+\todo{P1 sold-versus-unsold scope: characterize how the verified-sale sample differs from the broader residential roll using variables available on both populations. Where feasible, estimate sale/verification propensity or reweight the sale evaluation as a sensitivity analysis. If full-roll data are not available for reproducible analysis, narrow the claim explicitly to verified sales and document the limitation.}
+
+\section{Discussion and Conclusions}
+\label{sec:discussion}
+
+This paper studies a narrow question motivated by CCAO's residential AVM workflow: whether a price-related valuation-ratio pattern that remains after fitting a strong predictive learner can be made an explicit training-time control without redesigning the surrounding valuation pipeline. The current evidence supports three conclusions.
+
+First, the controlled CCAO baseline comparison illustrates why predictive fit and vertical-equity diagnostics must be evaluated separately. Ordinary LightGBM predicts substantially better than the linear benchmark in the held-out and 2025 periods, yet PRB, VEI, and the direct log-ratio slope are more regressive. This is an application-specific empirical tension, not evidence that nonlinear machine learning is intrinsically regressive.
+
+Second, the two covariance-guided objectives act differently. The Direct objective controls one signed sample-wide covariance and has rank-one fixed-space geometry. The empirical LightGBM implementation is Direct-diagonal because the standard custom-objective interface omits cross-observation curvature. The Surrogate is exactly observation-additive weighted squared error, emphasizing errors farther from the training-sample log-price center. Both can attenuate the first-order pattern, but the Surrogate's tail weighting can alter several learnable directions at once. The observed high-penalty nonlinear deformation is therefore an empirical failure mode of this Surrogate path, not something implied mechanically by the fixed-space spectrum.
+
+Third, complete paths are the appropriate empirical object for this study rather than a selected penalty. Moderate regions of the currently frozen paths exhibit favorable movements in the targeted slope and several assessor-facing diagnostics, whereas stronger regularization eventually worsens prediction, valuation level, or nonlinear ratio shape. Exact raw-$\rho$ turning points are temporally unstable. The appropriate output of this paper is therefore an auditable intervention path and a map of its limitations, not a universal penalty or a deployment rule.
+
+The fixed-space Direct result also places an important burden on the empirical contribution. With an intercept and a fixed prediction space, Direct is exactly a one-parameter centered-spread transformation of the unpenalized fit. A matched post-hoc centered-spread comparator is therefore required before the final manuscript can claim incremental value from retraining. If the comparator reproduces the Direct-diagonal path, the paper's contribution becomes primarily diagnostic and mechanistic. If retraining provides a meaningfully different path after parity and uncertainty are accounted for, that difference becomes an additional applied-method result. Either outcome is scientifically informative; the manuscript should report it without changing the estimand or selection rule after observing the result.
+
+\subsection{Implications for CCAO-style model development}
+The operational value of covariance-guided regularization is that it turns an assessor-facing price-related concern into a transparent model-development option that can be evaluated with the same chronological validation and ratio-study procedures already used for AVMs. It should be treated as one component of model review. Before any operational use, an assessor would still need to verify valuation level, horizontal uniformity, local and property-class equity, temporal robustness, parcel-level reasonableness, and the downstream institutional consequences of any changed valuations.
+
+The CCAO focus is therefore empirical and procedural rather than a claim of production adoption. The paper uses a research translation of the office's published residential workflow, not official assessment outputs. Final reproducibility materials must state exactly which data filters, property classes, predictors, LightGBM settings, and evaluation components correspond to the published CCAO pipeline and which are research-specific adaptations.
+
+\subsection{Limitations}
+The first limitation is conceptual. Sale price is a transaction-based proxy for latent market value and also the prediction target. Even the population squared-error predictor can have negative residual--outcome covariance when sale prices contain conditionally unpredictable variation. Driving that covariance toward zero can therefore spread predictions toward realized transactions rather than recover latent market values. The method controls a first-order observed-sale pattern; it does not establish fairness relative to latent market value.
+
+Second, the analysis is sales-based and countywide. Verified transacting properties need not represent the full residential roll, and aggregate improvements can conceal geographic, property-class, value-band, or temporal deterioration. The required subgroup and sold-versus-unsold sensitivity analyses are therefore empirical P1 items, not optional deployment embellishments.
+
+Third, the current Direct LightGBM implementation is an approximation to the mathematical Direct objective because its second-order interface omits dense cross-observation curvature. In addition, the currently frozen native and custom $\rho=0$ paths are not yet the final parity-aligned artifacts. The paper must complete the zero-penalty parity audit before attributing native-to-penalized differences solely to positive regularization.
+
+Fourth, the base learner is deliberately held fixed along each path. This isolates objective changes but does not estimate a globally retuned accuracy--equity frontier. Accordingly, we describe the reported objects as ``fixed-base-learner paths'' rather than as an attainable frontier.
+
+Fifth, the assessor-facing metrics and residual-structure diagnostics answer different questions. PRB, VEI, PRD, and MKI rely on observed value proxies; $\beta_{\log}$ is a mechanism diagnostic; $\Delta_{\mathrm{NL}}$ captures non-affine conditional-mean structure; and distance correlation is an omnibus dependence measure. Neutrality of one statistic does not imply neutrality of the others, local equity, or residual--price independence.
+
+Finally, the paper does not identify effects on statutory assessed value, exemptions, equalization, appeals, tax rates, or final tax burdens. It also does not establish demographic fairness or external validity across jurisdictions.
+
+\subsection{Future work}
+The immediate work is not to add another penalty family. It is to close the empirical attribution and assessor-validation gaps already identified: parity-correct the primary paths; add the centered-spread and one domain-specific comparator; add paired uncertainty; audit date/parcel leakage and retransformation; verify CCAO data provenance and property scope; and report local/property-class/value-band diagnostics. After those items are frozen, the separate normalized multi-jurisdiction benchmark can be used as a secondary stress test of qualitative path portability. A genuinely untouched future year or never-seen jurisdiction should be reserved for any later confirmatory claim.
+
+\todo{Final editorial freeze: after every P0/P1 empirical placeholder has been populated, remove provisional words that are no longer needed, verify every table/figure against one canonical manifest, run a citation/reference audit, compile with no missing figures or references, and visually inspect every page. The reader-facing PDF must contain no TODOs, revision colors, struck text, version-history paragraphs, or obsolete external results.}
+
+\appendix
+
+\section{Metric Details and Guidance Status}
+\label{app:metrics}
+
+\subsection{Assessor-facing definitions and guidance status}
+
+The 2013 IAAO Standard on Ratio Studies is the established standard cited for PRD, PRB, and property-class-specific COD guidance in this paper \cite{IAAO2013Ratio}. The May 2026 ratio-studies document remains an exposure draft as of September 2026. Measures introduced or emphasized there, including MKI and VEI, are therefore reported as descriptive assessor-facing diagnostics rather than as final adopted compliance standards \cite{IAAO2026ExposureRatio}. Reference bands are interpretive guides in the present regularization-path analysis; the paper does not infer legal compliance from a point estimate.
+
+For completeness, the complementary predictive measures are
+\[
+\operatorname{MAPE}_P(S)=100\times\frac{1}{n_S}\sum_{i\in S}\left|\frac{\widehat P_i-P_i}{P_i}\right|
+=100\times\frac{1}{n_S}\sum_{i\in S}|r_i-1|
+\]
+and
+\[
+\operatorname{RMSE}_{\log P}(S)=\left\{\frac{1}{n_S}\sum_{i\in S}e_i^2\right\}^{1/2}.
+\]
+The valuation-level statistics are the median ratio $m_S$, arithmetic mean ratio $\bar r_S=n_S^{-1}\sum_i r_i$, and price-weighted mean ratio
+\[
+\bar r_{W,S}=\frac{\sum_{i\in S}\widehat P_i}{\sum_{i\in S}P_i}
+=\frac{\sum_{i\in S}r_iP_i}{\sum_{i\in S}P_i}.
+\]
+Their neutral market-value-scale reference is one, but aggregate level is distinct from vertical equity.
+
+Ratio dispersion is summarized by
+\[
+\operatorname{COD}(S)=100\times\frac{1}{n_S}\sum_{i\in S}\frac{|r_i-m_S|}{m_S}
+\]
+and
+\[
+\operatorname{COV}(S)=100\times\frac{s_{r,S}}{\bar r_S}.
+\]
+COD expectations depend on property type, market heterogeneity, and the applicable professional standard; this paper does not treat $[5,15]$ as a universal compliance interval. COV is used descriptively without a universal reference range.
+
+The price-related differential is
+\[
+\operatorname{PRD}(S)=\frac{\bar r_S}{\bar r_{W,S}},
+\]
+with the 2013 IAAO reference range $[0.98,1.03]$. PRD can be sensitive to high-value observations and extreme ratios, so it is interpreted jointly with PRB, VEI, and MKI.
+
+PRB and VEI use the equal-weight proxy in Eq.~\eqref{eq:market_value_proxy} and are defined in Eqs.~\eqref{eq:prb} and~\eqref{eq:vei}. For reproducibility, the executed metric code must implement the same proxy convention in every evaluation and bootstrap replicate.
+
+For MKI, order observations by nondecreasing sale price as $\pi(1),\ldots,\pi(n_S)$ and define $q_j=(j-1/2)/n_S$. The concentration index of predicted values and Gini coefficient of sale prices are
+\[
+C_{\widehat P\mid P}(S)=\frac{2}{n_S\bar{\widehat P}_S}\sum_{j=1}^{n_S}\widehat P_{\pi(j)}q_j-1,
+\qquad
+G_P(S)=\frac{2}{n_S\bar P_S}\sum_{j=1}^{n_S}P_{\pi(j)}q_j-1,
+\]
+with
+\[
+\operatorname{MKI}(S)=\frac{C_{\widehat P\mid P}(S)}{G_P(S)}.
+\]
+When price variation is sufficient, one is the neutral reference; values below one are the regressive direction. Because MKI ranks on sale price, its exact tie-handling convention is part of the replication specification.
+
+\subsection{Mechanism and residual-structure diagnostics}
+
+The three diagnostics introduced after the assessor-facing measures play distinct
+roles. The sample slope $\beta_{\log}(S)$ in Eq.~\eqref{eq:log_ratio_slope} is the
+direct out-of-sample analogue of the covariance mechanism: on a fixed evaluation
+sample it differs from empirical covariance only by the fixed factor
+$\widehat{\Var}_S(y)^{-1}$.
+
+For the nonlinear diagnostic, let
+\[
+Z=\frac{y-\E[y]}{\sqrt{\Var(y)}},
+\qquad
+m(z)=\E[e\mid Z=z],
+\]
+and let $\Pi_{\mathrm{aff}}m$ denote the $L^2(P_Z)$ projection of $m$ onto the
+affine span of $\{1,Z\}$. Pearson's correlation ratio, also called the
+nonparametric coefficient of determination, is
+\[
+\eta^2(e\mid Z)
+=
+\frac{\Var\!\left(m(Z)\right)}{\Var(e)}
+=
+\frac{\Var\!\left(\E[e\mid Z]\right)}{\Var(e)}
+\]
+\cite{DoksumSamarov1995}. Because $Z$ is standardized, the affine component explains
+the fraction $\Corr(e,Z)^2$ of the variance of $e$. Orthogonal projection therefore
+gives
+\begin{equation}
+\label{eq:nonlinearity_gap_projection}
+\Delta_{\mathrm{NL}}
+=
+\eta^2(e\mid Z)-\Corr(e,Z)^2
+=
+\frac{
+\E\!\left[
+\left\{
+m(Z)-(\Pi_{\mathrm{aff}}m)(Z)
+\right\}^2
+\right]
+}{
+\Var(e)
+}
+\geq 0.
+\end{equation}
+Thus $\Delta_{\mathrm{NL}}$ isolates the conditional-mean explanatory power that is
+not captured by the best affine residual--price relationship. We use
+\emph{correlation-ratio nonlinearity gap} as a descriptive name and
+$\Delta_{\mathrm{NL}}$ as paper-specific shorthand; neither the name nor the symbol
+is claimed as canonical notation from \textcite{DoksumSamarov1995}. That paper
+provides the correlation-ratio/nonparametric-$R^2$ foundation and explicitly notes
+its use in constructing measures of regression nonlinearity. The integrated
+squared-difference goodness-of-fit framework of \textcite{HardleMammen1993} is
+closely related to the projection representation above, but it is not the source of
+the exact normalized statistic in Eq.~\eqref{eq:nonlinearity_gap_projection}.
+
+For the empirical CCAO analysis, the finite-sample implementation is fixed before
+the penalized paths are compared. Each held-out or forward evaluation sample $S$ is
+assigned deterministically to five folds using sale identifiers. For each fold, we
+fit on the complementary observations (i) an affine regression of $e$ on $Z$ and
+(ii) a cubic $B$-spline regression of $e$ on $Z$ with eight quantile knots, and we
+score both fits on the omitted fold. Let
+$\operatorname{MSE}_{\mathrm{aff}}(S)$ and
+$\operatorname{MSE}_{\mathrm{spl}}(S)$ denote the resulting pooled out-of-fold mean
+squared errors. The reported sample statistic is
+\begin{equation}
+\label{eq:nonlinearity_gap_estimator}
+\widehat{\Delta}_{\mathrm{NL}}(S)
+=
+\max\left\{
+0,\,
+\frac{
+\operatorname{MSE}_{\mathrm{aff}}(S)
+-
+\operatorname{MSE}_{\mathrm{spl}}(S)
+}{
+\widehat{\Var}_S(e)
+}
+\right\}.
+\end{equation}
+The nonnegative truncation respects the population inequality in
+Eq.~\eqref{eq:nonlinearity_gap_projection}; finite-sample cross-fitting can otherwise
+produce a small negative difference when the flexible fit does not improve
+out-of-fold squared error. For readability, the empirical tables use
+$\Delta_{\mathrm{NL}}$ as shorthand for
+$\widehat{\Delta}_{\mathrm{NL}}(S)$. 
+The estimator is reported on the primary held-out and 2025 forward paths. The same frozen cross-fitted estimator was later applied, fold by fold, to the already-stored chronological validation predictions; those CV values are a retrospective diagnostic and were not used to define the frozen prediction/COD transition span, the $\rho$ grid, or a model-selection rule.
+
+Finally, we write the sample distance-correlation diagnostic as
+\begin{equation}
+\label{eq:dcor_diagnostic}
+\operatorname{dCor}(e,y)=\operatorname{dCor}(\log r,\log P).
+\end{equation}
+Population distance correlation is zero if and only if independence under
+the usual moment conditions \cite{SzekelyRizzoBakirov2007}. The paper uses its
+sample analogue only as an omnibus diagnostic of residual--price dependence; unlike
+$\beta_{\log}$ it is unsigned, and unlike $\Delta_{\mathrm{NL}}$ it is not restricted
+to conditional-mean structure. It has no assessor-standard reference range.
+
+\todo{P1 reproducibility: confirm and archive the exact finite-sample distance-correlation implementation
+used in the executed metric code (including whether the reported estimator is the
+standard biased/V-statistic or an unbiased/U-centered variant) so the replication
+materials match the manuscript exactly.}
+
+\section{Squared-Error Prediction and Residual--Value Dependence}
+\label{app:population_identity}
+
+Let $Y=\log P$, let $X$ be the observed feature vector, and let
+\[
+f^\star(X)=\E[Y\mid X]
+\]
+be the squared-error Bayes predictor. Define $e^\star=f^\star(X)-Y$. If $\E[Y^2]<\infty$, then
+\begin{proposition}
+\label{prop:bayes_covariance}
+\[
+\Cov(e^\star,Y)
+=
+-\E[\Var(Y\mid X)]
+\le 0.
+\]
+\end{proposition}
+\begin{proof}
+Using the law of total variance,
+\[
+\Cov(e^\star,Y)
+=
+\Cov(\E[Y\mid X]-Y,Y)
+=
+\Var(\E[Y\mid X])-\Var(Y)
+=
+-\E[\Var(Y\mid X)].
+\]
+\end{proof}
+
+This identity explains a source of negative log-residual dependence when important price variation remains unresolved after conditioning on $X$. It does not imply that every finite-sample model is regressive under every assessor metric. It also does not imply that adding features cannot improve both accuracy and equity.
+
+\section{Covariance and PRD on the Price Scale}
+\label{app:cov_prd}
+
+Let $P>0$ and $r=\widehat P/P>0$. The population PRD can be written as
+\[
+\mathrm{PRD}
+=
+\frac{\E[r]\E[P]}{\E[rP]}.
+\]
+Then
+\begin{proposition}
+\label{prop:cov_prd}
+\[
+\operatorname{sign}\!\left(\Cov(r,P)\right)
+=
+\operatorname{sign}(1-\mathrm{PRD}).
+\]
+\end{proposition}
+\begin{proof}
+Since $\E[rP]>0$,
+\[
+1-\mathrm{PRD}
+=
+\frac{\E[rP]-\E[r]\E[P]}{\E[rP]}
+=
+\frac{\Cov(r,P)}{\E[rP]}.
+\]
+\end{proof}
+
+The penalty in the paper acts on $\Cov(\log r,\log P)$, not on $\Cov(r,P)$. Proposition~\ref{prop:cov_prd} therefore gives directional motivation rather than an equality between the training target and PRD.
+
+\section{Fixed-Space Regularization Paths: Direct and Surrogate}
+\label{app:theory}
+
+
+This appendix isolates the data-fit geometry of the two penalties when the prediction space is held fixed, omitting model-specific complexity penalties in order to expose the regularization mechanisms cleanly. The Direct result provides an exact rank-one benchmark for the targeted covariance correction. The Surrogate result provides the corresponding log-price-distance-weighted projection benchmark and makes precise why its path need not remain one-dimensional. These finite-sample projection results are used for mechanism interpretation only; they do not assert that a fully retrained boosting path remains in a fixed prediction space or that the fixed-space formulas describe LightGBM's finite boosting trajectory exactly.
+
+\subsection{Direct objective: rank-one covariance path}
+
+Let $\Vcal\subseteq\R^n$ be a closed linear prediction space, define
+\[
+\langle u,v\rangle_n=\frac{1}{n}u^\top v,
+\qquad
+\|u\|_n^2=\langle u,u\rangle_n,
+\qquad
+c=y-\bar y\1,
+\]
+and consider
+\begin{equation}
+\label{eq:path_problem}
+f_\rho\in\argminop_{f\in\Vcal}
+\left\{
+\|f-y\|_n^2
++\frac{\rho}{2}\langle f-y,c\rangle_n^2
+\right\}.
+\end{equation}
+Let $P_{\Vcal}$ be the orthogonal projection under $\langle\cdot,\cdot\rangle_n$ and set
+\[
+f_0=P_{\Vcal}y,\qquad
+C_0=\langle f_0-y,c\rangle_n,\qquad
+g=P_{\Vcal}c,\qquad
+A=\|g\|_n^2.
+\]
+
+\begin{proposition}[Covariance shrinkage path]
+\label{prop:path}
+If $A>0$, then
+\[
+f_\rho=f_0-\frac{\rho}{2}C_\rho g,
+\qquad
+C_\rho=\frac{C_0}{1+\rho A/2}.
+\]
+Consequently, the slope of residuals on $y$ is multiplied by
+\[
+q(\rho)=\frac{1}{1+\rho A/2}.
+\]
+\end{proposition}
+
+\begin{proof}
+For every $h\in\Vcal$, first-order optimality gives
+\[
+2\langle f_\rho-y,h\rangle_n
++\rho C_\rho\langle c,h\rangle_n=0.
+\]
+Since $f_0=P_{\Vcal}y$, $\langle f_0-y,h\rangle_n=0$. Writing
+$d_\rho=f_\rho-f_0\in\Vcal$ and $g=P_{\Vcal}c$ gives
+\[
+2d_\rho+\rho C_\rho g=0.
+\]
+Taking the inner product with $c$ yields
+\[
+C_\rho=C_0-\frac{\rho}{2}AC_\rho,
+\]
+which proves the result.
+\end{proof}
+
+{
+\begin{corollary}[Centered-spread form of the fixed-space Direct path]
+\label{cor:path_scaling}
+If $\1\in\Vcal$, then $g=f_0-\bar y\1$ and
+\[
+f_\rho
+=
+\bar y\1
++
+b_\rho\bigl(f_0-\bar y\1\bigr),
+\qquad
+b_\rho
+=
+1-\frac{\rho}{2}C_\rho.
+\]
+Moreover, $C_0=-\|f_0-y\|_n^2$. Hence, whenever the unpenalized fit is non-perfect, $C_0<0$, $b_\rho>1$ for $\rho>0$, and $C_\rho$ approaches zero from below without changing sign at any finite $\rho$.
+\end{corollary}
+
+\begin{proof}
+Because $\1\in\Vcal$,
+\[
+g=P_{\Vcal}(y-\bar y\1)=f_0-\bar y\1.
+\]
+Substituting this identity into Proposition~\ref{prop:path} gives the centered-spread representation. Also,
+\[
+c=(f_0-\bar y\1)+(y-f_0),
+\]
+and the projection residual $y-f_0$ is orthogonal to $\Vcal$, so
+\[
+C_0
+=
+\langle f_0-y,c\rangle_n
+=
+-\|f_0-y\|_n^2.
+\]
+The remaining statements follow from $C_\rho=C_0/(1+\rho A/2)$.
+\end{proof}
+
+\begin{remark}[Mechanical component of the in-sample residual--outcome covariance]
+\label{rem:mechanical_covariance}
+Corollary~\ref{cor:path_scaling} implies that, in this fixed-space squared-error benchmark with an intercept, $C_0$ is nonpositive even without imposing any equity interpretation: $C_0=-\|f_0-y\|_n^2$. The negative training covariance therefore contains a mechanical residual--outcome component induced by fitting the same observed $y$ that is later used to define the log valuation ratio. This identity does not hold mechanically on a new evaluation sample, and it does not imply that observed out-of-sample regressivity is spurious. Rather, it limits the interpretation of the training penalty: $C(f)$ is a controllable first-order mechanism, not a standalone estimator of inequity relative to latent market value. This is why the empirical analysis evaluates the fitted paths chronologically with proxy-aware assessor measures, ratio profiles, and residual-structure diagnostics.
+\end{remark}
+
+
+This equivalence is specific to the exact fixed-prediction-space benchmark. It reveals that, within that benchmark, Direct covariance regularization is no richer than a one-parameter centered spread correction. This is both a mechanism result and an empirical identification requirement: the final paper must compare retraining with the corresponding validation-fitted post-hoc map before attributing incremental value to in-processing. It does not imply that the empirical Direct-diagonal LightGBM path is one-dimensional, because retraining can change tree splits and leaf structure and the standard-library implementation uses only the diagonal of the covariance Hessian.
+\todo{P0: populate the matched centered-spread comparator described in Section~\ref{subsec:comparators}; update this paragraph to summarize whether retraining generates a materially different path after matched first-order correction, predictive loss, and uncertainty.}
+}
+
+\begin{proposition}[Accuracy cost]
+\label{prop:path_cost}
+Under Proposition~\ref{prop:path},
+\[
+\|f_\rho-y\|_n^2-\|f_0-y\|_n^2
+=
+\frac{C_0^2}{A}\bigl(1-q(\rho)\bigr)^2.
+\]
+\end{proposition}
+
+Within a fixed prediction space, the targeted covariance falls to first order near $\rho=0$, while the in-sample squared-error cost is second order. For boosted trees this is a local benchmark only. Retraining can change splits, leaves, and stopping iteration.
+
+\subsection{Surrogate penalty: weighted-projection path}
+
+{
+Let
+\[
+D=\diag(c_1^2,\ldots,c_n^2),
+\qquad
+W_\rho=I+\rho D,
+\qquad
+e_0=f_0-y,
+\]
+where $f_0=P_{\Vcal}y$ is the ordinary least-squares projection defined above. The exact fixed-space Surrogate problem corresponding to Eq.~\eqref{eq:surrogate_weighted_loss} is
+\begin{equation}
+\label{eq:surrogate_fixed_space_problem}
+f_\rho^{\mathrm{surr}}
+=
+\argminop_{f\in\Vcal}
+\left\{
+\|f-y\|_n^2
++
+\rho\langle f-y,D(f-y)\rangle_n
+\right\}.
+\end{equation}
+Because $W_\rho$ is positive definite for every $\rho\geq0$, this problem has a unique solution. Define the weighted inner product
+\[
+\langle u,v\rangle_{n,W_\rho}
+=
+\langle u,W_\rho v\rangle_n,
+\]
+let $P_{\Vcal}^{W_\rho}$ denote projection onto $\Vcal$ under this inner product, and define the self-adjoint positive-semidefinite operator
+\[
+T=P_{\Vcal}D\big|_{\Vcal}
+\]
+together with the baseline tail-weighted residual direction
+\[
+g_{\mathrm{surr}}
+=
+P_{\Vcal}De_0.
+\]}
+
+{
+\begin{proposition}[Surrogate weighted-projection path]
+\label{prop:surrogate_fixed_space}
+For every $\rho\geq0$,
+\begin{equation}
+\label{eq:surrogate_weighted_projection}
+f_\rho^{\mathrm{surr}}
+=
+P_{\Vcal}^{W_\rho}y,
+\end{equation}
+and its departure from the unpenalized fit is
+\begin{equation}
+\label{eq:surrogate_correction_operator}
+f_\rho^{\mathrm{surr}}-f_0
+=
+-\rho
+\left(I_{\Vcal}+\rho T\right)^{-1}
+g_{\mathrm{surr}}.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For every $h\in\Vcal$, first-order optimality for~\eqref{eq:surrogate_fixed_space_problem} gives
+\[
+\langle f_\rho^{\mathrm{surr}}-y,h\rangle_n
++
+\rho\langle D(f_\rho^{\mathrm{surr}}-y),h\rangle_n
+=
+0,
+\]
+or equivalently
+\[
+\langle f_\rho^{\mathrm{surr}}-y,h\rangle_{n,W_\rho}=0.
+\]
+This is exactly the weighted-projection characterization in~\eqref{eq:surrogate_weighted_projection}. Now write
+\[
+\delta_\rho=f_\rho^{\mathrm{surr}}-f_0\in\Vcal.
+\]
+Since $f_0=P_{\Vcal}y$, the ordinary projection residual $e_0=f_0-y$ is orthogonal to $\Vcal$. Substituting
+$f_\rho^{\mathrm{surr}}-y=e_0+\delta_\rho$ into the first-order condition and projecting the $D$ terms onto $\Vcal$ yields
+\[
+\delta_\rho
++
+\rho T\delta_\rho
++
+\rho g_{\mathrm{surr}}
+=
+0.
+\]
+Because $T$ is positive semidefinite, $I_{\Vcal}+\rho T$ is invertible for $\rho\geq0$, which proves~\eqref{eq:surrogate_correction_operator}.
+\end{proof}
+}
+
+{
+\begin{corollary}[Local Surrogate direction and baseline-loss cost]
+\label{cor:surrogate_local}
+As $\rho\downarrow0$,
+\begin{equation}
+\label{eq:surrogate_local_direction}
+f_\rho^{\mathrm{surr}}
+=
+f_0
+-
+\rho g_{\mathrm{surr}}
++
+O(\rho^2)
+=
+f_0
+-
+\rho P_{\Vcal}
+\left[
+c^{\odot2}\odot e_0
+\right]
++
+O(\rho^2).
+\end{equation}
+where $\odot$ denotes elementwise multiplication and $c^{\odot2}=(c_1^2,\ldots,c_n^2)^\top$. Moreover,
+\begin{equation}
+\label{eq:surrogate_baseline_loss_cost}
+\|f_\rho^{\mathrm{surr}}-y\|_n^2
+-
+\|f_0-y\|_n^2
+=
+\rho^2\|g_{\mathrm{surr}}\|_n^2
++
+O(\rho^3).
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+The expansion
+\[
+(I_{\Vcal}+\rho T)^{-1}
+=
+I_{\Vcal}-\rho T+O(\rho^2)
+\]
+in~\eqref{eq:surrogate_correction_operator} gives~\eqref{eq:surrogate_local_direction}. For the second claim, $\delta_\rho=f_\rho^{\mathrm{surr}}-f_0$ belongs to $\Vcal$ and $e_0=f_0-y$ is orthogonal to $\Vcal$, so
+\[
+\|e_0+\delta_\rho\|_n^2-\|e_0\|_n^2
+=
+\|\delta_\rho\|_n^2.
+\]
+Using $\delta_\rho=-\rho g_{\mathrm{surr}}+O(\rho^2)$ gives~\eqref{eq:surrogate_baseline_loss_cost}.
+\end{proof}
+}
+
+\subsection{Direct--Surrogate comparison in a fixed prediction space}
+
+{
+The preceding results expose a structural difference that is not visible from the upper-bound relation alone. For the Direct objective, Proposition~\ref{prop:path} shows that the entire fixed-space path moves along the single direction $P_{\Vcal}c$; when $\1\in\Vcal$, Corollary~\ref{cor:path_scaling} identifies this direction with the centered fitted-value spread $f_0-\bar y\1$. The Direct correction is therefore rank one in this benchmark. For the Surrogate, the initial direction is instead
+\[
+-g_{\mathrm{surr}}
+=
+-P_{\Vcal}
+\left[c^{\odot2}\odot e_0\right],
+\]
+the learnable component of the baseline residual pattern after weighting observations by squared log-price distance from the sample center. The complete Surrogate path generally changes direction as $\rho$ varies.}
+
+{
+To see this explicitly, let $\{u_j\}$ be an orthonormal eigenbasis of $T$ on $\Vcal$, with
+\[
+Tu_j=\lambda_j u_j,
+\qquad
+\lambda_j\geq0,
+\]
+and write
+\[
+g_{\mathrm{surr}}=\sum_j a_j u_j.
+\]
+Then Proposition~\ref{prop:surrogate_fixed_space} gives
+\begin{equation}
+\label{eq:surrogate_spectral_path}
+f_\rho^{\mathrm{surr}}-f_0
+=
+-\sum_j
+\frac{\rho}{1+\rho\lambda_j}
+a_j u_j.
+\end{equation}
+Thus, unless the nonzero components of $g_{\mathrm{surr}}$ lie in a single eigenspace of $T$, the relative contribution of the learnable correction modes changes with $\rho$. This contrasts with the one-direction Direct-diagonal path. It also makes clear that the Surrogate does not inherit the Direct formula
+$C_\rho=C_0/(1+\rho A/2)$: the Surrogate minimizes a log-price-distance-weighted prediction loss rather than the signed covariance itself, so monotone covariance shrinkage is not guaranteed by the fixed-space theory. Likewise, the spectral representation does not imply that stronger Surrogate regularization must generate any particular nonlinear ratio shape; the empirical shape and $\Delta_{\mathrm{NL}}$ results remain separate diagnostics.}
+
+\todo{P1 mechanism interpretation: treat Eq.~\eqref{eq:surrogate_spectral_path} as a mechanism interpretation only. Do not attribute the empirical high-$\rho$ S-shape to particular eigenmodes unless a separate diagnostic explicitly projects the fitted-path changes onto these fixed-space modes.}
+
+{
+
+Taken together, the fixed-space results clarify the distinct mechanisms of the two methods. Direct regularization applies a rank-one correction aligned with the projected centered-price direction and, with an intercept in the prediction space, becomes an exact centered spread rescaling. Surrogate regularization changes the projection geometry through the diagonal weights $1+\rho c_i^2$: locally it repairs the learnable tail-weighted residual pattern, and globally it can combine multiple correction modes. In both cases the baseline squared-error cost is second order near $\rho=0$, but only the Direct objective guarantees monotone shrinkage of the targeted covariance in this benchmark. The comparison therefore supports the paper's interpretation of the Surrogate as a related but distinct objective rather than as a purely computational approximation to Direct.
+}
+
+\section{Linear and Boosting Implementations}
+\label{app:implementation}
+
+
+\subsection{Linear Model}
+
+Let $X\in\R^{n\times p}$ and $e=X\theta-y$. With
+\[
+c=y-\bar y\1,\qquad a=X^\top c,\qquad b=y^\top c,
+\]
+the direct penalized estimator under loss $\|X\theta-y\|_2^2/n$ satisfies
+\[
+\left(
+\frac{1}{n}X^\top X+\frac{\rho}{2n^2}aa^\top
+\right)\theta
+=
+\frac{1}{n}X^\top y+\frac{\rho}{2n^2}ba.
+\]
+This is a rank-one modification of the normal equations.
+
+For the surrogate, let $D=\diag(c_1^2,\ldots,c_n^2)$. Then
+\[
+\left(
+\frac{1}{n}X^\top X+\frac{\rho}{n}X^\top DX
+\right)\theta
+=
+\frac{1}{n}X^\top y+\frac{\rho}{n}X^\top Dy.
+\]
+
+\subsection{LightGBM Custom-Objective Initialization and Scaling}
+
+For the canonical custom objectives, let $b=\bar y$ denote the mean log sale price
+in the current training sample. We fit the custom-objective model to centered labels
+$\widetilde y_i=y_i-b$ with zero initial score and add $b$ back to predictions.
+Equivalently, the fitted model predicts on the original log-price scale as
+$f(x)=b+\widetilde f(x)$.
+
+This construction is designed to match the native squared-error LightGBM starting prediction while leaving $e_i=f(x_i)-y_i$ and $c_i=y_i-\bar y$ unchanged.
+
+The corresponding native/custom zero-penalty audit is reported in the next subsection.
+
+The mathematical objectives in the main text are written as sample averages. In
+the LightGBM custom-objective implementation we multiply the complete objective by
+$n/2$, a common positive factor that does not change its minimizer. This yields a
+native squared-error baseline gradient $g_i=e_i$ and Hessian $h_i=1$ at $\rho=0$.
+For the direct objective, the supplied gradient and diagonal Hessian are
+\[
+g_i^{\mathrm{cov}}
+=
+e_i+\frac{\rho}{2}z c_i,
+\qquad
+h_i^{\mathrm{cov,diag}}
+=
+1+\frac{\rho}{2n}c_i^2,
+\qquad
+z=\frac{1}{n}\sum_{i=1}^n e_i c_i.
+\]
+For the surrogate, the supplied derivatives are
+\[
+g_i^{\mathrm{surr}}=e_i(1+\rho c_i^2),
+\qquad
+h_i^{\mathrm{surr}}=1+\rho c_i^2.
+\]
+Thus the direct implementation uses the exact covariance gradient and only the
+diagonal of its dense covariance curvature, whereas the surrogate derivatives are
+exactly observation-additive. The $\rho=0$ custom-objective path is retained as an
+implementation control.
+
+\subsection{Zero-Penalty Implementation Audit}
+\label{subsec:zero_control_results}
+
+Before attributing within-family changes to positive regularization, we compare ordinary LightGBM with the Direct and Surrogate implementations at $\rho=0$. The two custom-objective controls coincide with each other in the reported metrics, but the currently frozen artifacts are not numerically identical to ordinary LightGBM. Because the supplied zero-penalty gradient and Hessian match squared-error derivatives algebraically, this audit identifies a native-versus-custom training-path difference rather than a positive-penalty objective effect; it does not by itself isolate a unique software cause.
+
+{
+\begin{table}[!ht]
+\centering
+\caption{Implementation-control comparison at $\rho=0$. Prediction differences are log-price deviations from ordinary LightGBM, aligned on sale identifiers and computed independently on the held-out and 2025 samples.}
+\label{tab:rho_zero_control}
+\begin{tabular}{llrrrrr}
+\toprule
+Sample & Model & $R^2_P$ & $\operatorname{RMSE}_{\log P}$ & $\beta_{\log}$ & Mean $|\Delta\widehat y|$ & Max $|\Delta\widehat y|$ \\
+\midrule
+Held-out & Ordinary LightGBM & 0.894 & 0.289 & -0.150 & -- & -- \\
+Held-out & Direct-diagonal, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
+Held-out & Surrogate, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
+\addlinespace
+2025 forward & Ordinary LightGBM & 0.904 & 0.278 & -0.164 & -- & -- \\
+2025 forward & Direct-diagonal, $\rho=0$ & 0.904 & 0.279 & -0.161 & 3.06e-02 & 2.83e-01 \\
+2025 forward & Surrogate, $\rho=0$ & 0.904 & 0.279 & -0.161 & 3.06e-02 & 2.83e-01 \\
+\bottomrule
+\end{tabular}
+\end{table}
+}
+
+\todo[inline]{P0 implementation audit: together with the parity rerun specified in the main Results, audit the exact executed code against Eqs.~\eqref{eq:baseline_learning}, \eqref{eq:direct_penalty}, and \eqref{eq:surrogate_learning} and against the $n/2$ LightGBM scaling stated here. Record the executed commit/configuration hash. Reconcile any factor-of-two or sample-size convention explicitly rather than absorbing it into a relabeled $\rho$. Regenerate Table~\ref{tab:rho_zero_control} only from the parity-correct implementation.}
+
+\subsection{Direct Penalty in Boosting}
+
+For current predictions $f$, define $e=f-y$ and
+\[
+z=\frac{1}{n}e^\top c.
+\]
+Under squared loss, the direct objective has
+\[
+g_i=\frac{2e_i}{n}+\frac{\rho}{n}zc_i,
+\]
+and exact Hessian
+\[
+\nabla_f^2
+=
+\frac{2}{n}I+\frac{\rho}{n^2}cc^\top.
+\]
+The diagonal approximation uses
+\[
+h_i^{\mathrm{diag}}
+=
+\frac{2}{n}+\frac{\rho}{n^2}c_i^2.
+\]
+For a fixed tree with leaves $I_1,\ldots,I_J$, let
+\[
+b_j=\sum_{i\in I_j}e_i,
+\qquad
+s_j=\sum_{i\in I_j}c_i,
+\qquad
+n_j=|I_j|.
+\]
+With leaf-weight vector $w$, ridge parameter $\lambda$, and $s=(s_1,\ldots,s_J)^\top$, the exact local quadratic system is
+\[
+A_Tw^\star=-g_T,
+\qquad
+g_{T,j}=\frac{2b_j}{n}+\frac{\rho z s_j}{n},
+\]
+\[
+A_T
+=
+\diag\!\left(\frac{2n_1}{n}+\lambda,\ldots,\frac{2n_J}{n}+\lambda\right)
++\frac{\rho}{n^2}ss^\top.
+\]
+Thus $w^\star=-A_T^{-1}g_T$ when $A_T$ is nonsingular. This solver retains the cross-observation curvature but requires a custom tree-construction procedure; it is not available through the usual observation-wise API.
+
+\subsection{Surrogate in Boosting}
+
+For
+\[
+\Psi^{\mathrm{surr}}(f)
+=
+\frac{1}{n}\sum_i e_i^2c_i^2,
+\]
+the derivatives are observation-wise:
+\[
+g_i=\frac{2e_i}{n}+\frac{2\rho}{n}e_ic_i^2,
+\qquad
+h_i=\frac{2}{n}+\frac{2\rho}{n}c_i^2.
+\]
+This is the canonical surrogate implementation evaluated in the CCAO regularization path.
+
+
+\section{Primary CCAO Regularization-Path Details}
+\label{app:ccao_path_details}
+
+
+This appendix contains the complete diagnostics underlying the compact main-text regularization-path presentation. It is organized around the final augmented paths and not around a selected configuration; the compact nominal decade-spaced anchors are presentation-only snapshots of those frozen paths.
+
+\subsection{Complete Regularization-Path Results}
+
+
+The complete regularization path is provided in the machine-readable replication
+artifacts \path{combined_path_table.csv} and
+\path{combined_path_table.parquet}. These files contain every family--$\rho$
+configuration together with the seven fold values, equal-weight CV mean and
+standard deviation, held-out results, and 2025 forward results for the
+Section~\ref{subsec:metrics} evaluation metrics. 
+The compact main-text table uses only the nominal decade-spaced positive display anchors $\{0.01,0.1,1,10,100\}$, mapped to the nearest frozen-grid points, together with the ordinary-LightGBM baseline; zero-penalty custom-objective diagnostics are kept in the implementation appendix. No path row is omitted from the machine-readable results because of its observed performance.
+For completeness, the complementary baseline diagnostics and the complementary representative-$\rho$ diagnostics are reported here rather than in the main empirical narrative.
+
+{
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{1.06}
+\newcommand{\baselinecompmetric}[1]{\hspace*{0.6em}#1}
+\caption{Complementary baseline comparison: valuation level, horizontal uniformity, and mechanism/residual structure.}
+\label{tab:ccao_baseline_complementary}
+\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{2.80cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+\toprule
+\textbf{Measure} & \multicolumn{2}{c}{\textbf{Held-out evaluation}} & \multicolumn{2}{c}{2025 forward evaluation} \\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+& \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} & \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} \\
+\midrule
+\multicolumn{5}{@{}l}{\textbf{Valuation level}} \\
+\cmidrule(r){1-1}
+\baselinecompmetric{Median ratio $m_S$} & 0.969 & 0.929 & 1.020 & 0.950 \\
+\baselinecompmetric{Mean ratio $\bar r_S$} & 1.020 & 0.989 & 1.081 & 1.015 \\
+\baselinecompmetric{Weighted mean $\bar r_{W,S}$} & 0.979 & 0.924 & 1.027 & 0.941 \\
+\addlinespace[5pt]
+\multicolumn{5}{@{}l}{\textbf{Horizontal uniformity}} \\
+\cmidrule(r){1-1}
+\baselinecompmetric{COD} & 24.7\% & 21.6\% & 24.3\% & 21.3\% \\
+\baselinecompmetric{COV} & 45.2\% & 39.7\% & 42.1\% & 37.2\% \\
+\addlinespace[5pt]
+\multicolumn{5}{@{}l}{\textbf{Mechanism and residual structure}} \\
+\cmidrule(r){1-1}
+\baselinecompmetric{$\beta_{\log}$} & -0.092 & -0.150 & -0.109 & -0.164 \\
+\baselinecompmetric{$\Delta_{\mathrm{NL}}$} & 0.131 & 0.119 & 0.122 & 0.121 \\
+\baselinecompmetric{$\operatorname{dCor}(e,y)$} & 0.250 & 0.387 & 0.269 & 0.422 \\
+\bottomrule
+\end{tabularx}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+Median, mean, weighted-mean ratio, COD, and COV are assessor-facing valuation-level or horizontal-uniformity diagnostics defined in Section~\ref{subsec:metrics}. The first-order mechanism slope $\beta_{\log}$, correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$, and distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope}, \eqref{eq:nonlinearity_gap}, and~\eqref{eq:dcor_diagnostic}. The mechanism and residual-structure diagnostics are reported as descriptive point estimates. Smaller $|\beta_{\log}|$, $\Delta_{\mathrm{NL}}$, and distance correlation indicate less first-order, non-affine conditional-mean, and broader residual--price structure, respectively; these directions are diagnostic rather than assessor-standard equity targets.
+\end{minipage}
+\end{table}
+}
+
+
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\renewcommand{\arraystretch}{1.08}
+\caption{Complementary regularization-path summary at the same nominal decade-spaced display anchors: valuation level, horizontal uniformity, and mechanism/residual structure.}
+\label{tab:path_anchor_complementary}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrrr}
+\toprule
+Method & $\rho$
+& Median $r$
+& Mean $r$
+& W. mean $r$
+& COD
+& COV
+& $\beta_{\log}$
+& $\Delta_{\mathrm{NL}}$
+& dCor \\
+\midrule
+\multicolumn{10}{l}{\textit{Panel A: Held-out evaluation}} \\
+\addlinespace[2pt]
+\multicolumn{10}{l}{\textbf{Baseline models}} \\
+\cmidrule(lr){1-10}
+Linear regression & -- & 0.969 & 1.020 & 0.979 & 24.7\% & 45.2\% & -0.092 & 0.131 & 0.250 \\
+Ordinary LightGBM & -- & 0.929 & 0.989 & 0.924 & 21.6\% & 39.7\% & -0.150 & 0.119 & 0.387 \\
+\addlinespace[3pt]
+
+\multicolumn{10}{l}{\textbf{Direct objective}} \\
+\cmidrule(lr){1-10}
+Direct-diagonal & $\approx0.01$ & 0.926 & 0.986 & 0.922 & 21.7\% & 39.9\% & -0.148 & 0.119 & 0.385 \\
+Direct-diagonal & $0.1$ & 0.924 & 0.983 & 0.920 & 21.6\% & 39.8\% & -0.147 & 0.119 & 0.382 \\
+Direct-diagonal & $\approx1$ & 0.936 & 0.993 & 0.936 & 21.6\% & 39.9\% & -0.134 & 0.122 & 0.359 \\
+Direct-diagonal & $\approx10$ & 0.953 & 1.005 & 0.970 & 21.9\% & 39.4\% & -0.096 & 0.132 & 0.302 \\
+Direct-diagonal & 100 & 0.968 & 1.022 & 0.993 & 24.5\% & 41.5\% & -0.079 & 0.115 & 0.265 \\
+\addlinespace[3pt]
+
+\multicolumn{10}{l}{\textbf{Surrogate penalty}} \\
+\cmidrule(lr){1-10}
+Surrogate & $\approx0.01$ & 0.929 & 0.987 & 0.924 & 21.6\% & 39.9\% & -0.147 & 0.116 & 0.383 \\
+Surrogate & $0.1$ & 0.927 & 0.982 & 0.923 & 21.5\% & 39.9\% & -0.138 & 0.113 & 0.367 \\
+Surrogate & $\approx1$ & 0.929 & 0.975 & 0.930 & 21.4\% & 38.2\% & -0.102 & 0.099 & 0.310 \\
+Surrogate & $\approx10$ & 0.927 & 0.953 & 0.931 & 22.2\% & 38.5\% & -0.036 & 0.103 & 0.250 \\
+Surrogate & 100 & 0.923 & 0.937 & 0.928 & 23.5\% & 40.3\% & -0.001 & 0.124 & 0.267 \\
+
+\midrule
+\addlinespace[2pt]
+\multicolumn{10}{l}{\textit{Panel B: 2025 forward evaluation}} \\
+\addlinespace[2pt]
+
+\multicolumn{10}{l}{\textbf{Baseline models}} \\
+\cmidrule(lr){1-10}
+Linear regression & -- & 1.020 & 1.081 & 1.027 & 24.3\% & 42.1\% & -0.109 & 0.122 & 0.269 \\
+Ordinary LightGBM & -- & 0.950 & 1.015 & 0.941 & 21.3\% & 37.2\% & -0.164 & 0.121 & 0.422 \\
+\addlinespace[3pt]
+
+\multicolumn{10}{l}{\textbf{Direct objective}} \\
+\cmidrule(lr){1-10}
+Direct-diagonal & $\approx0.01$ & 0.948 & 1.013 & 0.939 & 21.2\% & 37.1\% & -0.163 & 0.123 & 0.420 \\
+Direct-diagonal & $0.1$ & 0.952 & 1.015 & 0.942 & 21.2\% & 37.2\% & -0.160 & 0.121 & 0.416 \\
+Direct-diagonal & $\approx1$ & 0.957 & 1.019 & 0.954 & 21.2\% & 37.2\% & -0.148 & 0.127 & 0.392 \\
+Direct-diagonal & $\approx10$ & 0.978 & 1.032 & 0.991 & 21.3\% & 37.4\% & -0.105 & 0.134 & 0.318 \\
+Direct-diagonal & 100 & 0.992 & 1.049 & 1.012 & 23.3\% & 40.3\% & -0.093 & 0.119 & 0.281 \\
+\addlinespace[3pt]
+
+\multicolumn{10}{l}{\textbf{Surrogate penalty}} \\
+\cmidrule(lr){1-10}
+Surrogate & $\approx0.01$ & 0.948 & 1.011 & 0.938 & 21.2\% & 37.2\% & -0.159 & 0.119 & 0.413 \\
+Surrogate & $0.1$ & 0.948 & 1.009 & 0.939 & 21.1\% & 36.8\% & -0.153 & 0.116 & 0.402 \\
+Surrogate & $\approx1$ & 0.950 & 1.003 & 0.946 & 20.9\% & 36.1\% & -0.120 & 0.096 & 0.343 \\
+Surrogate & $\approx10$ & 0.949 & 0.979 & 0.948 & 21.5\% & 35.9\% & -0.050 & 0.092 & 0.258 \\
+Surrogate & 100 & 0.948 & 0.964 & 0.945 & 22.7\% & 36.8\% & -0.015 & 0.111 & 0.266 \\
+
+\bottomrule
+\end{tabular}}
+
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+The nominal display anchors $\{0.01,0.1,1,10,100\}$ correspond to tested values $\{0.0104811,0.1,0.954095,10.4811,100\}$ on the frozen augmented grid.
+All entries in this appendix table are descriptive point estimates. The three valuation-level ratios are interpreted by distance from one; COD and COV summarize horizontal dispersion. For the mechanism/residual-structure diagnostics, smaller $|\beta_{\log}|$, $\Delta_{\mathrm{NL}}$, and dCor indicate less first-order, non-affine conditional-mean, and broader residual--price structure, respectively. No typographic emphasis is used to imply statistical significance, formal compliance, model superiority, or model selection; paired uncertainty is a required P0/P1 freeze item.
+\end{minipage}
+\end{table}
+
+
+The machine-readable combined path table includes held-out and 2025 $\Delta_{\mathrm{NL}}$ for Linear, ordinary LightGBM, and every Direct/Surrogate grid point. Chronological-CV $\Delta_{\mathrm{NL}}$ was later reconstructed, fold by fold, from the already-frozen validation predictions using the same fixed cross-fitted estimator; those CV values are archived separately and were not used to define the frozen prediction/COD transition span, the $\rho$ grid, or a model-selection rule. Split-specific $\rho=0$ prediction-parity audits are stored in the same result root.
+
+
+The transition diagnostics are computed read-only from the final augmented 994-tree path table. The original $0.1$--$100$ fits are unchanged; 32 lower-tail values per family were evaluated first in chronological CV, after which the augmented CV state was frozen and the same values were evaluated out of time. The five-metric transition rule is independent of the later display-anchor convention. The replication package should archive the lower-grid protocol, event and leave-one-fold-out tables, temporal-concordance and regret outputs, figure-QA manifest, and hashes linking every artifact to the same data, split, seed, predictors, and 994-tree configuration.
+
+\subsection{Exploratory CV Path-Screening Diagnostic}
+\label{subsec:candidate_screen_appendix}
+
+{
+The exploratory-screen analysis is computed read-only from the same frozen augmented path and uses no CCAO-specific $\rho$ constants. All event detection is performed on $x=\log_{10}\rho$ at observed positive grid points. The minimum segment size and breakpoint-clustering tolerance are functions of the grid length and median log-grid spacing rather than fixed raw-$\rho$ distances. A scale-equivariance check multiplies every positive $\rho$ by a constant while leaving all metric paths unchanged; the selected event indices are unchanged and the reported $\rho$ values rescale by the same factor. Synthetic Direct-like, Surrogate-like, and no-pathology paths verify that the screen detects the intended qualitative regimes and abstains when a guardrail is unsupported. Two independent Phase-A runs reproduce the same machine-readable endpoint hashes.
+
+For the benefit-side activity onset, the screen uses neutral-distance versions of PRD, PRB, MKI, VEI, and $\beta_{\log}$ and requires at least three of five supported active-improvement regimes. For Direct, the upper guardrail is the earliest qualifying cluster of sustained predictive-deterioration events among $R^2_P$, MAE, MAPE, and $\operatorname{RMSE}_{\log P}$. For Surrogate, that first predictive bend is recorded but does not bind by itself. Predictive harm additionally requires exhaustion of the corresponding within-family $\rho=0$ advantage, and the final Surrogate guardrail is the earlier of a stable predictive-harm cluster and a stable post-valley $\Delta_{\mathrm{NL}}$ rebound. In the CCAO path the nonlinear caution binds before the predictive-harm cluster. Distance correlation is classified as flattening rather than rebounding at the caution event, and the ratio-profile QA shows visible deformation mostly farther along the path. Thus the Surrogate upper endpoint is an early structural warning, not a claim that visible pathology starts exactly there.
+
+For reproducibility, the historical screen yields the corresponding Direct and Surrogate activity/guardrail endpoints archived with the frozen path. These endpoints are diagnostic outputs only. They are not confidence intervals, validated selectors, safe regions, or part of the main paper's contribution, and no later result is used to redefine them.
+}
+
+\todo{Appendix reproducibility: if the exploratory screen remains in the supplement, archive and cite exactly one versioned specification and its deterministic outputs. Do not use its endpoints in the abstract, contribution statement, main figures, or model-selection language.}
+
+\subsection{\texorpdfstring{Cross-Metric Turning Points and Temporal Concordance}{Cross-Metric Turning Points and Temporal Concordance}}
+\label{subsec:transition_appendix}
+
+
+The main text reports only the interpretation of the five-metric transition diagnostic. The objects below provide the auditable event locations, fold/leave-one-fold-out stability checks, and family-symmetric value-based span regret. Any family-specific interval is described only as a \emph{CV-derived descriptive transition span}, never as a recommended, safe, optimal, preferred, or deployment range.
+
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{Cross-metric turning-event summary for the frozen augmented-grid chronological-CV diagnostic and its retrospective temporal comparison. The family-specific intervals are CV-derived descriptive transition spans, not selected or recommended penalty ranges.}
+\label{tab:transition_summary}
+\begin{tabularx}{\textwidth}{@{} l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X @{}}
+\toprule
+& \textbf{Direct} & \textbf{Surrogate} \\
+\midrule
+CV $R^2_P$ max & $\rho=1.099$ (interior $+$)
+& $\rho=0.829$ (interior $+$) \\
+CV $\operatorname{MAE}_P$ min & $\rho=0.543$ (interior $+$)
+& $\rho=0.0569$ (interior $+$) \\
+CV $\operatorname{MAPE}_P$ min & $\rho=0.471$ (interior $+$)
+& $\rho=0.829$ (interior $+$) \\
+CV $\operatorname{RMSE}_{\log P}$ min & $\rho=0.0494$ (interior $+$)
+& $\rho=0.00222$ (interior $+$) \\
+CV COD min & $\rho=0.543$ (interior $+$)
+& $\rho=0.954$ (interior $+$) \\
+\addlinespace
+Common five-metric CV span
+& valid positive-interior span $[0.0494,\,1.099]$; $\log_{10}$-width $1.35$
+& valid positive-interior span $[0.00222,\,0.954]$; $\log_{10}$-width $2.63$ \\
+First-positive-grid note
+& lower span endpoint $0.0494$ is interior; smallest positive tested value is $0.00110$
+& lower span endpoint $0.00222$ is interior; smallest positive tested value is $0.00110$ \\
+LOFO five-event support
+& 7/7; lower $[0.004498,\,0.065513]$, upper $[1.098541,\,1.264855]$
+& 7/7; lower $[0.001099,\,0.010481]$, upper $[0.828643,\,1.676833]$ \\
+Held-out exact concordance
+& 0/5
+& 1/5 (MAE) \\
+2025 exact concordance
+& 0/5
+& 1/5 (MAE) \\
+Temporal reading
+& valid full-CV span and 7/7 LOFO support, but 0/5 exact concordance in both later periods
+& valid full-CV span and 7/7 LOFO support, but only 1/5 exact concordance in each later period \\
+\bottomrule
+\end{tabularx}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+Event locations are discrete observed grid points on equal-weight chronological CV.
+A common span is reported only when all five events are positive and interior.
+The five-metric rule is unchanged from v1; only the near-zero grid resolution was extended before the new lower-tail out-of-time fits were run.
+Held-out and 2025 comparisons are retrospective temporal concordance, not prospective confirmation.
+No $\rho$ is selected.
+Leave-one-fold-out 7/7 records that a positive-interior five-event span exists in every omitted-fold aggregation; it does not imply precise endpoint stability. Direct $\log_{10}$-width min/median/max is $1.286/1.347/2.449$ with $0/7$ first-positive lower-bound hits; Surrogate $\log_{10}$-width min/median/max is $2.204/2.633/2.939$ with $1/7$ first-positive lower-bound hits. Lower-end location is materially less stable than the upper end.
+\end{minipage}
+\end{table}
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/paper_transition_event_locations.pdf}
+\caption{Turning-event locations for the five fixed prediction/COD criteria. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span; they are not a selected or recommended penalty interval.}
+\label{fig:transition_event_locations}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/vertical_equity_event_locations.pdf}
+\caption{Closest-to-neutral observed-grid locations for PRD, PRB, MKI, and VEI. Gray fill and dashed vertical boundaries mark the already-frozen CV-derived descriptive transition span constructed from the five prediction/COD criteria; these events do not redefine that span and do not select $\rho$.}
+\label{fig:vertical_equity_event_locations}
+\end{figure}
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/mechanism_event_locations.pdf}
+\caption{Mechanism turning-event locations corresponding to minimum $|\beta_{\log}|$, minimum $\Delta_{\mathrm{NL}}$, and minimum dCor. Gray fill and dashed vertical boundaries mark, for context only, the frozen CV-derived prediction/COD transition span. Chronological-CV $\Delta_{\mathrm{NL}}$ events use the same frozen estimator applied retrospectively to stored validation predictions; they do not redefine that span or select $\rho$.}
+\label{fig:mechanism_event_locations}
+\end{figure}
+
+A post-hoc six-metric CV equity/mechanism bend diagnostic did not yield a common leave-one-fold-out-stable span, so no second $\rho$ band is reported.
+
+
+{
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\renewcommand{\arraystretch}{1.08}
+\caption{Value-based cost of restricting each out-of-time path to its family-specific frozen CV-derived descriptive transition span. No materiality threshold is imposed.}
+\label{tab:transition_regret}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrr}
+\toprule
+Family & Metric & $\rho^{*}$ & $\rho_{\mathrm{span}}$ & raw regret & norm.\ regret & $\log_{10}$ dist. \\
+\midrule
+\multicolumn{7}{l}{\textit{Panel A: Held-out evaluation}} \\
+\addlinespace[2pt]
+Direct-diagonal & $R^2_P$ & 3.393 & 1.099 & 0.0018 & 0.056 & 0.490 \\
+Direct-diagonal & $\operatorname{MAE}_P$ & 1.931 & 0.829 & \$485 & 0.044 & 0.245 \\
+Direct-diagonal & $\operatorname{MAPE}_P$ & 1.265 & 0.829 & 0.033 pp & 0.011 & 0.061 \\
+Direct-diagonal & $\operatorname{RMSE}_{\log P}$ & 0.0160 & 0.0569 & 0.000461 & 0.013 & 0.490 \\
+Direct-diagonal & COD & 1.265 & 1.099 & 0.01451 & 0.005 & 0.061 \\
+Surrogate & $R^2_P$ & 2.947 & 0.954 & 0.0004 & 0.042 & 0.490 \\
+Surrogate & $\operatorname{MAE}_P$ & 0.0494 & 0.0494 & \$0 & 0 & 0 \\
+Surrogate & $\operatorname{MAPE}_P$ & 1.265 & 0.954 & 0.001 pp & 0.001 & 0.122 \\
+Surrogate & $\operatorname{RMSE}_{\log P}$ & 0.00168 & 0.00391 & 0 & 0.000 & 0.122 \\
+Surrogate & COD & 1.265 & 0.954 & 0.01622 & 0.007 & 0.122 \\
+\midrule
+\multicolumn{7}{l}{\textit{Panel B: 2025 forward evaluation}} \\
+\addlinespace[2pt]
+Direct-diagonal & $R^2_P$ & 1.931 & 1.099 & 0.0014 & 0.037 & 0.245 \\
+Direct-diagonal & $\operatorname{MAE}_P$ & 2.560 & 1.099 & \$289 & 0.023 & 0.367 \\
+Direct-diagonal & $\operatorname{MAPE}_P$ & 2.223 & 0.309 & 0.052 pp & 0.020 & 0.306 \\
+Direct-diagonal & $\operatorname{RMSE}_{\log P}$ & 0.0121 & 0.625 & 0.000108 & 0.004 & 0.612 \\
+Direct-diagonal & COD & 2.223 & 0.309 & 0.06171 & 0.027 & 0.306 \\
+Surrogate & $R^2_P$ & 2.947 & 0.954 & 0.0008 & 0.083 & 0.490 \\
+Surrogate & $\operatorname{MAE}_P$ & 0.115 & 0.115 & \$0 & 0 & 0 \\
+Surrogate & $\operatorname{MAPE}_P$ & 1.456 & 0.954 & 0.095 pp & 0.057 & 0.184 \\
+Surrogate & $\operatorname{RMSE}_{\log P}$ & 0.00193 & 0.00222 & 0.000157 & 0.003 & 0.061 \\
+Surrogate & COD & 1.456 & 0.829 & 0.09823 & 0.053 & 0.184 \\
+\bottomrule
+\end{tabular}}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+Each family is restricted to its own frozen CV-derived descriptive transition span.
+Normalized regret is raw regret divided by the full-path metric range when that range is nonzero.
+
+An exact zero regret means that the split-specific global optimum \emph{value} is attained by at least one observed-grid point inside the frozen span; the event location $\rho^{*}$ may still lie outside the span when the optimum value is tied across grid points. Displayed regret values are rounded, and the machine-readable table retains the unrounded values.
+Exact event concordance and value-based regret answer different questions.
+No interpolation, near-optimality tolerance, or materiality threshold is imposed, and no $\rho$ is selected.
+\end{minipage}
+\end{table}
+}
+
+
+Exact event concordance is used here only as a strict location diagnostic. Machine-readable event-sharpness diagnostics document flat versus sharp events without defining a near-optimality tolerance or a new $\rho$ interval.
+
+
+That standalone companion is removed from the active presentation because PRB and MKI now appear in the four-metric main accuracy--equity figure and in the complete appendix tradeoff atlas.
+
+\subsection{Prediction, Valuation-Level, and Horizontal-Uniformity Paths}
+
+
+Throughout the $\rho$-evolution figures below, gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span when one exists. It is a path-description aid, not a selected, safe, preferred, or recommended penalty interval.
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/predictive_metric_paths_candidate_region.pdf}\\[1mm]
+\safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/level_uniformity_paths_candidate_region.pdf}
+\caption{Predictive-metric and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. The light fill marks the frozen CV-derived exploratory screen interval; the dashed left boundary is activity onset and the solid right boundary is the upper guardrail. The older prediction/COD transition span is retained as subordinate context. Valuation-level panels include the ratio $=1$ reference.}
+\label{fig:other_metric_paths_placeholder}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vertical_equity_metric_paths_candidate_region.pdf}
+\caption{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate with the frozen CV-derived exploratory screen interval overlaid. The dashed left boundary is the soft activity onset and the solid right boundary is the upper guardrail; the older prediction/COD span is subordinate context. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}
+\label{fig:vertical_equity_metric_paths}
+\end{figure}
+
+\subsection{Exact Rolling-Origin Fold Structure}
+
+Table~\ref{tab:fold_structure} records the exact cumulative windows and sample sizes underlying the seven-fold chronological design described in Section~\ref{subsec:path_design}. In every fold, the chronologically newest 10\% of the cumulative window is used for validation; because that rule is identical across folds, it is stated once here rather than repeated as a table column.
+
+{
+\begin{table}[!ht]
+\centering
+\caption{Rolling-origin validation structure for the final CCAO development sample. In every fold, the newest 10\% of observations in the cumulative window form the validation block.}
+\label{tab:fold_structure}
+\begin{tabular}{clrr}
+\toprule
+Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
+\midrule
+1 & 2016-01-01--2017-04-01 & 46,888 & 5,209 \\
+2 & 2016-01-01--2018-07-01 & 100,776 & 11,197 \\
+3 & 2016-01-01--2019-10-01 & 151,187 & 16,798 \\
+4 & 2016-01-01--2021-01-01 & 200,908 & 22,323 \\
+5 & 2016-01-01--2022-04-01 & 252,486 & 28,053 \\
+6 & 2016-01-01--2023-07-01 & 298,022 & 33,113 \\
+7 & 2016-01-01--2023-11-09 & 310,147 & 34,460 \\
+\bottomrule
+\end{tabular}
+\end{table}
+}
+
+\subsection{Chronological Fold Stability}
+
+
+That summary figure is removed from the active presentation because the comprehensive fold figures immediately below now report prediction, valuation level and horizontal uniformity, vertical equity, and mechanism paths separately for all available CV metrics.\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_predictive_metric_paths_candidate_region.pdf}
+\caption{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick), with the CV-derived exploratory screen interval overlaid. The dashed activity-onset boundary is soft; the solid upper guardrail marks the family-specific screening cutoff. The older prediction/COD transition span remains secondary context.}
+\label{fig:cv_predictive_metric_paths}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_level_uniformity_paths_candidate_region.pdf}
+\caption{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick), with the frozen CV-derived exploratory screen interval overlaid. The activity onset is a soft left marker and the upper guardrail is the screening boundary. Valuation-level panels include the ratio $=1$ reference.}
+\label{fig:cv_level_uniformity_paths}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_vertical_equity_metric_paths_candidate_region.pdf}
+\caption{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick), with the frozen CV-derived exploratory screen interval overlaid. The lower boundary marks activity onset, while the upper boundary is the family-specific screening guardrail. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}
+\label{fig:cv_vertical_equity_metric_paths}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_mechanism_metric_paths_candidate_region.pdf}
+\caption{Chronological-fold mechanism paths for $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and distance correlation (thin gray) and equal-weight CV means (thick), with the CV-derived exploratory screen interval overlaid. For Surrogate, the solid upper guardrail is the stable post-valley $\Delta_{\mathrm{NL}}$ caution event; dCor is classified as flattening rather than rebounding there. The older prediction/COD span is shown only as context.}
+\label{fig:cv_mechanism_metric_paths}
+\end{figure}
+
+Descriptively, on the frozen tested grid, the retrospectively reconstructed CV $\Delta_{\mathrm{NL}}$ paths also differ across the two objectives: the Direct equal-weight CV mean reaches its smallest observed value, $0.08685$, only at the upper tested boundary $\rho=100$, whereas the Surrogate CV mean reaches an interior minimum of $0.08677$ at $\rho\approx1.677$. These locations are not selected operating points; they further illustrate that first-order, nonlinear conditional-mean, broader-dependence, and assessor-facing vertical-equity diagnostics need not share a common transition scale.
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/ratio_shape_cv_transition_span_only.pdf}
+\caption{Ratio-shape profiles restricted to the nominal decade-spaced display anchors whose nearest tested grid points lie inside each family's frozen CV-derived descriptive transition span. The horizontal line at 1 is the principal neutrality reference; lines at 0.9 and 1.1 are aggregate appraisal-level reference guides and are not binwise acceptance criteria. The filtering is presentation-only and does not redefine the span.}
+\label{fig:ratio_shape_cv_transition_span_only}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_equity_vs_accuracy_heldout.pdf}
+\caption{Held-out assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims.}
+\label{fig:tradeoff_equity_vs_accuracy_heldout}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_equity_vs_accuracy_2025.pdf}
+\caption{2025 assessor-facing diagnostics (horizontal) versus predictive metrics (vertical) along the Direct and Surrogate paths. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims.}
+\label{fig:tradeoff_equity_vs_accuracy_2025}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_mechanism_vs_accuracy_heldout.pdf}
+\caption{Held-out mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical). The dotted vertical line at $\beta_{\log}=0$ is a first-order neutrality reference where applicable; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets.}
+\label{fig:tradeoff_mechanism_vs_accuracy_heldout}
+\end{figure}\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.95\textwidth]{img/generated_v12_994/tradeoff_mechanism_vs_accuracy_2025.pdf}
+\caption{2025 mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical). The dotted vertical line at $\beta_{\log}=0$ is a first-order neutrality reference where applicable; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets.}
+\label{fig:tradeoff_mechanism_vs_accuracy_2025}
+\end{figure}
+
+\subsection{VEI Percentile-Group Profiles}
+
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vei_percentile_group_profile.pdf}
+\caption{VEI percentile-group median valuation ratios for Linear and ordinary LightGBM on the held-out and 2025 samples, with deterministic 90\% bootstrap intervals.}
+\label{fig:vei_group_profile_placeholder}
+\end{figure}
+
+\section{CCAO Reproducibility and Provenance}
+\label{app:reproducibility}
+The final replication release should make every primary CCAO claim traceable to one data/split identity and one executed code/configuration identity. At minimum, it must archive the complete penalty grids; fold-level, held-out, and 2025 predictions; the fixed LightGBM parameter vector; native/custom $\rho=0$ parity outputs; the exact $\Delta_{\mathrm{NL}}$, VEI, MKI, and distance-correlation implementations; the centered-spread comparator outputs; and machine-readable tables used to populate the manuscript. Data that cannot be redistributed should be documented with source, build date, eligibility filters, schema, and cryptographic hashes rather than promised as public files.
+
+\todo{P0 reproducibility freeze: before submission, replace the future-tense paragraph above with an assertive manifest of artifacts actually released. Record the exact executed commit or complete diff, environment/lockfile, data-build identity, configuration hash, figure/table generation commands, and deterministic output hashes. Delete any item that is not truly released rather than promising it.}
+
+\section{Status of the External Benchmark (Not Primary Evidence)}
+\label{app:external_status}
+The repository contains a broader normalized multi-jurisdiction benchmark with rolling-origin development paths and a protocol-frozen calendar-2025 reanalysis. That project is scientifically useful as a standardized stress test, but it is not equivalent to transfer into each jurisdiction's assessor workflow. Its data are commercially harmonized, its learner is common across jurisdictions, and some 2025 outcomes had been inspected in earlier project experiments. The current paper therefore does not use it to strengthen the primary CCAO claim. Before any later integration, the report layer should be audited for native/custom zero-penalty parity, protocol-valid versus invalid candidate statuses, paired uncertainty, and criteria that define any qualitative success label. Any eventual external section should report continuous effect sizes rather than binary ``success'' counts and should describe 2025 as a protocol-frozen reanalysis rather than an analyst-blind confirmation.
+\todo{P1 external robustness: after the external audit is closed, decide whether one compact stress-test table belongs in the supplement. If included, keep Direct and Surrogate results separate, distinguish county names from principal cities, report actual slope and NMSE changes with uncertainty, and state explicitly that the common-model benchmark is not a production-workflow replication. Do not let this material displace the CCAO-centered main narrative.}
+
+
+\end{document}
