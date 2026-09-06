@@ -6,3 +6,6 @@
 22120027	zero_reference_fits_27 (array 0-8)	sched_mit_sloan_batch_r8
 22127226	centered_spread_path (array 0-19)	sched_mit_sloan_batch_r8
 22128981	centered_spread_path rerun (shards 7,17 pooled_oof)	sched_mit_sloan_batch_r8
+22138040	temporal_robustness dsnap+dpurge (array 0-53)	sched_mit_sloan_batch_r8
+dsnap_refinement 22151066
+dsnap_refinement retry shard 1 (stale-NFS numba cache) 22155049

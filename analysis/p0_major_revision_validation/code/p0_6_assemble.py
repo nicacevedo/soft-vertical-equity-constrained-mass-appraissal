@@ -536,6 +536,32 @@ def _refined_dsnap():
     out = pd.concat(parts, ignore_index=True)
     n0 = len(out)
     out = out.drop_duplicates(["block", "family", "rho"], keep="first")
+
+    # The gate may never run on partial refinement evidence: every rho of every region
+    # must be present for every one of the nine blocks, on each family the frozen
+    # refinement config declares. Missing fits would silently shrink the tested support.
+    g = json.loads((c.CONFIGS / "dsnap_refinement_grid.json").read_text())
+    scr = {round(float(x), 12)
+           for x in json.loads((c.CONFIGS / "robustness_rho_grid.json").read_text())
+           ["positive_rhos"]}
+    missing = []
+    for reg in g["regions"]:
+        for fam in reg["families"]:
+            disp = FAM_DISPLAY[fam]
+            for rho in (round(float(x), 12) for x in reg["refinement_rhos"]):
+                if rho in scr:
+                    raise c.ProtocolViolation(
+                        f"refinement rho {rho} is already a screening rho; the refinement "
+                        "grid must contain only original-grid points the screen skipped")
+                for blk in BLOCKS:
+                    if not len(out[(out.family == disp) & (out.block == blk)
+                                   & np.isclose(out.rho.astype(float), rho,
+                                                rtol=0, atol=1e-12)]):
+                        missing.append(f"{reg['id']}/{blk}/{fam}/rho={rho}")
+    if missing:
+        raise c.ProtocolViolation(
+            f"{len(missing)} refinement fits missing, e.g. {missing[:5]}; "
+            "Gate G5b cannot be evaluated on partial evidence")
     return out.sort_values(["family", "rho", "block"]), n0 - len(out)
 
 
@@ -555,8 +581,16 @@ def mode_g5b() -> int:
             f"TAU_MATCH {TAU_MATCH} does not equal the frozen matching tolerance {tau_frozen}")
     refined, ndup = _refined_dsnap()
     froz = _frozen_screening()
-    # the frozen table carries all 82 points, so restrict BOTH sides to the same rho set
-    keep = sorted(set(np.round(refined[refined.family == "Direct"].rho.astype(float), 12)))
+    # The frozen table carries all 82 points, so both sides are restricted to the rho
+    # values the refined D-SNAP path actually contains. Region A refined BOTH families;
+    # region B refined the Surrogate only (it exists to test the Surrogate held-out sign
+    # alert). A single Direct-derived rho set would therefore silently discard every
+    # region-B fit, so the ordering test uses the rhos common to both families and the
+    # sign test uses each family's own refined support.
+    rho_by_fam = {fam: sorted(set(np.round(
+        refined[refined.family == fam].rho.astype(float), 12)))
+        for fam in ("Direct", "Surrogate")}
+    keep = sorted(set(rho_by_fam["Direct"]) & set(rho_by_fam["Surrogate"]))
     fullf = pd.read_csv(c.V12 / "analysis" / "data_id=d4929d43ec19badf"
                         / "split_id=3d464d4a611b131b" / "penalty_path_analysis"
                         / "transition_regions_paper_assets_v4_delta_nl_bends" / "tables"
@@ -599,17 +633,20 @@ def mode_g5b() -> int:
         # sign status of each family's path
         sf, sr = {}, {}
         for fam in ("Direct", "Surrogate"):
-            fv = np.array([froz_beta(fam, blk, r) for r in keep], dtype=float)
+            fam_rhos = rho_by_fam[fam]
+            fv = np.array([froz_beta(fam, blk, r) for r in fam_rhos], dtype=float)
             rv = np.array([float(ref_all[(ref_all.family == fam) & (ref_all.block == blk)
                                          & np.isclose(ref_all.rho.astype(float), r,
                                                       rtol=0, atol=1e-12)].beta_log.iloc[0])
                            if len(ref_all[(ref_all.family == fam) & (ref_all.block == blk)
                                           & np.isclose(ref_all.rho.astype(float), r,
                                                        rtol=0, atol=1e-12)]) else np.nan
-                           for r in keep], dtype=float)
+                           for r in fam_rhos], dtype=float)
             m = np.isfinite(fv) & np.isfinite(rv)
-            sf[fam] = {"all_negative": bool(np.all(fv[m] < 0)), "max": float(np.nanmax(fv[m]))}
-            sr[fam] = {"all_negative": bool(np.all(rv[m] < 0)), "max": float(np.nanmax(rv[m]))}
+            sf[fam] = {"all_negative": bool(np.all(fv[m] < 0)), "max": float(np.nanmax(fv[m])),
+                       "n_rho": int(m.sum())}
+            sr[fam] = {"all_negative": bool(np.all(rv[m] < 0)), "max": float(np.nanmax(rv[m])),
+                       "n_rho": int(m.sum())}
         sign_changed = any(sf[f]["all_negative"] != sr[f]["all_negative"]
                            for f in ("Direct", "Surrogate"))
         sign_material = any(
@@ -633,9 +670,10 @@ def mode_g5b() -> int:
     out = {
         "gate": "G5b",
         "trigger_re_evaluated": "T1_beta_log_sign_or_ordering",
-        "refinement_rhos_added": int(len(keep) - 28),
+        "refinement_rhos_added": {fam: int(len(v) - 28) for fam, v in rho_by_fam.items()},
         "duplicate_rows_dropped_on_merge": int(ndup),
-        "n_rho_after_refinement": int(len(keep)),
+        "n_rho_after_refinement": {fam: int(len(v)) for fam, v in rho_by_fam.items()},
+        "n_rho_ordering_test_both_families": int(len(keep)),
         "materiality_rule": {
             "TAU_MATCH": TAU_MATCH,
             "source": ("the beta_log matching tolerance frozen in "
