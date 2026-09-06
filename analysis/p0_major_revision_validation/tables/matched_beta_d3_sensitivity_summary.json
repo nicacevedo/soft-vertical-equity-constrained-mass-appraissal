@@ -1,0 +1,118 @@
+{
+  "D3_MATERIAL": true,
+  "classification_counts": {
+    "MATERIAL_SIGN_FLIP": 10,
+    "both_below_floor": 41,
+    "sign_agrees": 259,
+    "structural_zero": 5
+  },
+  "configurations_reselected": 13,
+  "configurations_total": 24,
+  "headline_sign_comparisons": 315,
+  "material_sign_flips": 10,
+  "material_sign_flips_detail": [
+    {
+      "delta_D1": -0.0010674221992285,
+      "delta_D3": 0.000100401959133,
+      "evaluation": "CV_mean",
+      "j": 3,
+      "metric": "dCor_e_y",
+      "pair": "Direct_minus_Cposthoc"
+    },
+    {
+      "delta_D1": -0.0015834440032236,
+      "delta_D3": 0.0004607155001621,
+      "evaluation": "CV_mean",
+      "j": 4,
+      "metric": "dCor_e_y",
+      "pair": "Surrogate_minus_Cposthoc"
+    },
+    {
+      "delta_D1": 0.0003063034990561,
+      "delta_D3": -0.0020130185450268,
+      "evaluation": "CV_mean",
+      "j": 5,
+      "metric": "beta_log",
+      "pair": "Surrogate_minus_Cposthoc"
+    },
+    {
+      "delta_D1": 15.255897219409237,
+      "delta_D3": -149.02888657985022,
+      "evaluation": "heldout",
+      "j": 2,
+      "metric": "MAE_price",
+      "pair": "Direct_minus_Cposthoc"
+    },
+    {
+      "delta_D1": -0.0003453173593195,
+      "delta_D3": 0.0005518902284061,
+      "evaluation": "heldout",
+      "j": 5,
+      "metric": "R2_price",
+      "pair": "Surrogate_minus_Cposthoc"
+    },
+    {
+      "delta_D1": -0.0002254703279936,
+      "delta_D3": 0.0007598076268311,
+      "evaluation": "forward_2025",
+      "j": 2,
+      "metric": "R2_price",
+      "pair": "Direct_minus_Cposthoc"
+    },
+    {
+      "delta_D1": 0.0003707512816153,
+      "delta_D3": -0.0030532462273824,
+      "evaluation": "forward_2025",
+      "j": 2,
+      "metric": "dCor_e_y",
+      "pair": "Surrogate_minus_Cposthoc"
+    },
+    {
+      "delta_D1": -2.1442928758552693e-05,
+      "delta_D3": 0.0019121832166799,
+      "evaluation": "forward_2025",
+      "j": 2,
+      "metric": "beta_log",
+      "pair": "Surrogate_minus_Cposthoc"
+    },
+    {
+      "delta_D1": 0.0052693330439667,
+      "delta_D3": -7.710938305099946e-05,
+      "evaluation": "forward_2025",
+      "j": 2,
+      "metric": "dCor_e_y",
+      "pair": "Surrogate_minus_Direct"
+    },
+    {
+      "delta_D1": -0.002391243781823,
+      "delta_D3": 0.0006972531801619,
+      "evaluation": "forward_2025",
+      "j": 2,
+      "metric": "beta_log",
+      "pair": "Surrogate_minus_Direct"
+    }
+  ],
+  "materiality_floors": {
+    "COD": 0.05,
+    "Delta_NL": 0.001,
+    "MAE_price": 100.0,
+    "R2_price": 0.0005,
+    "RMSE_log": 0.0005,
+    "beta_log": 0.001,
+    "dCor_e_y": 0.001
+  },
+  "max_headline_metric_shift": {
+    "COD": 0.08919723843442284,
+    "Delta_NL": 0.0024824674269709884,
+    "MAE_price": 281.6679740627005,
+    "R2_price": 0.0015311123439034624,
+    "RMSE_log": 0.000904584497667893,
+    "beta_log": 0.0035211353954678892,
+    "dCor_e_y": 0.006215448590937478
+  },
+  "note_on_structural_zeros": "Under D1 the match forces the CV_mean beta_log delta between a family and C-posthoc to be exactly zero by construction, so its 'sign' carries no information; those comparisons are classed structural_zero, not flips.",
+  "primary_coordinate": "D1 (equal-weight seven-fold mean) -- UNCHANGED",
+  "raw_sign_agreement_rate": 0.9365079365079365,
+  "sensitivity_coordinate": "D3 (row-balanced pooled OOF, w_ik = 1/m_i)",
+  "why_material": "max|D1-D3| = 0.004867 > tau = 0.002, and the K=6 construction selects a different fitted Direct config at j=2 (rho 1.930698 under D3 vs 1.676833 under D1)"
+}

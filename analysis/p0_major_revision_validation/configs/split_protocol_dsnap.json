@@ -1,0 +1,289 @@
+{
+  "boundary_audit": [
+    {
+      "boundary": "fold_1",
+      "boundary_date": "2017-02-16",
+      "design": "dsnap",
+      "primary_train": 46888,
+      "primary_val": 5209,
+      "rows_moved_to_eval": 46,
+      "snap_train": 46842,
+      "snap_val": 5255,
+      "strict": true,
+      "train_max_date": "2017-02-15",
+      "val_min_date": "2017-02-16"
+    },
+    {
+      "boundary": "fold_2",
+      "boundary_date": "2018-04-23",
+      "design": "dsnap",
+      "primary_train": 100776,
+      "primary_val": 11197,
+      "rows_moved_to_eval": 156,
+      "snap_train": 100620,
+      "snap_val": 11353,
+      "strict": true,
+      "train_max_date": "2018-04-22",
+      "val_min_date": "2018-04-23"
+    },
+    {
+      "boundary": "fold_3",
+      "boundary_date": "2019-06-03",
+      "design": "dsnap",
+      "primary_train": 151187,
+      "primary_val": 16798,
+      "rows_moved_to_eval": 121,
+      "snap_train": 151066,
+      "snap_val": 16919,
+      "strict": true,
+      "train_max_date": "2019-06-02",
+      "val_min_date": "2019-06-03"
+    },
+    {
+      "boundary": "fold_4",
+      "boundary_date": "2020-08-04",
+      "design": "dsnap",
+      "primary_train": 200908,
+      "primary_val": 22323,
+      "rows_moved_to_eval": 123,
+      "snap_train": 200785,
+      "snap_val": 22446,
+      "strict": true,
+      "train_max_date": "2020-08-03",
+      "val_min_date": "2020-08-04"
+    },
+    {
+      "boundary": "fold_5",
+      "boundary_date": "2021-08-17",
+      "design": "dsnap",
+      "primary_train": 252486,
+      "primary_val": 28053,
+      "rows_moved_to_eval": 35,
+      "snap_train": 252451,
+      "snap_val": 28088,
+      "strict": true,
+      "train_max_date": "2021-08-16",
+      "val_min_date": "2021-08-17"
+    },
+    {
+      "boundary": "fold_6",
+      "boundary_date": "2022-08-01",
+      "design": "dsnap",
+      "primary_train": 298022,
+      "primary_val": 33113,
+      "rows_moved_to_eval": 132,
+      "snap_train": 297890,
+      "snap_val": 33245,
+      "strict": true,
+      "train_max_date": "2022-07-31",
+      "val_min_date": "2022-08-01"
+    },
+    {
+      "boundary": "fold_7",
+      "boundary_date": "2022-11-21",
+      "design": "dsnap",
+      "primary_train": 310147,
+      "primary_val": 34460,
+      "rows_moved_to_eval": 158,
+      "snap_train": 309989,
+      "snap_val": 34618,
+      "strict": true,
+      "train_max_date": "2022-11-20",
+      "val_min_date": "2022-11-21"
+    },
+    {
+      "boundary": "development_heldout",
+      "boundary_date": "2023-11-09",
+      "design": "dsnap",
+      "primary_train": 344607,
+      "primary_val": 38290,
+      "rows_moved_to_eval": 42,
+      "snap_train": 344565,
+      "snap_val": 38332,
+      "strict": true,
+      "train_max_date": "2023-11-08",
+      "val_min_date": "2023-11-09"
+    },
+    {
+      "boundary": "production_2025",
+      "boundary_date": "2025-01-01",
+      "design": "dsnap",
+      "primary_train": 382897,
+      "primary_val": 26641,
+      "rows_moved_to_eval": 0,
+      "snap_train": 382897,
+      "snap_val": 26641,
+      "strict": true,
+      "train_max_date": "2024-12-31",
+      "val_min_date": "2025-01-01"
+    }
+  ],
+  "canonical_utilities": "imported from utils.motivation_utils; never modified in place",
+  "design": "dsnap",
+  "design_type": "strict_date_robustness",
+  "development_idx": {
+    "n": 344565,
+    "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_development.npy",
+    "sha256": "bd647ab69f3e4e6d92258d04fbe5ae5d38c89ddc4235f91b54668f43aa24e118"
+  },
+  "development_indices_hash": "bd647ab69f3e4e6d92258d04fbe5ae5d38c89ddc4235f91b54668f43aa24e118",
+  "folds": [
+    {
+      "fold_1based": 1,
+      "train_idx": {
+        "n": 46842,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold1_train.npy",
+        "sha256": "b91470a927419de477b8dff23aa2dc416fa9204f4a7a4e71a1e058ba9bd01dd2"
+      },
+      "train_index_hash": "b91470a927419de477b8dff23aa2dc416fa9204f4a7a4e71a1e058ba9bd01dd2",
+      "train_size": 46842,
+      "val_idx": {
+        "n": 5255,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold1_val.npy",
+        "sha256": "8e400470a79c3c8c2f33e29da7f3f828ca2786b81f42840ebed819f16e2e4761"
+      },
+      "val_index_hash": "8e400470a79c3c8c2f33e29da7f3f828ca2786b81f42840ebed819f16e2e4761",
+      "val_size": 5255
+    },
+    {
+      "fold_1based": 2,
+      "train_idx": {
+        "n": 100620,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold2_train.npy",
+        "sha256": "929e40c486d0a6a7c91576da9882795d99266e687ce5da3293d1e170fe643259"
+      },
+      "train_index_hash": "929e40c486d0a6a7c91576da9882795d99266e687ce5da3293d1e170fe643259",
+      "train_size": 100620,
+      "val_idx": {
+        "n": 11353,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold2_val.npy",
+        "sha256": "8852e41a2be7b8f830d67f1cbb6b9f07a7ac6df15b13bbcfcd96cb1e11d70655"
+      },
+      "val_index_hash": "8852e41a2be7b8f830d67f1cbb6b9f07a7ac6df15b13bbcfcd96cb1e11d70655",
+      "val_size": 11353
+    },
+    {
+      "fold_1based": 3,
+      "train_idx": {
+        "n": 151066,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold3_train.npy",
+        "sha256": "8f62412fbd983faed1137badaf52ba29438f714f9e3d80cf2cf87f65c8c79abb"
+      },
+      "train_index_hash": "8f62412fbd983faed1137badaf52ba29438f714f9e3d80cf2cf87f65c8c79abb",
+      "train_size": 151066,
+      "val_idx": {
+        "n": 16919,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold3_val.npy",
+        "sha256": "6168b427623cc49db0e1e6ce25a66320da1cf2be8ca8eda1c4e49c2354802ee8"
+      },
+      "val_index_hash": "6168b427623cc49db0e1e6ce25a66320da1cf2be8ca8eda1c4e49c2354802ee8",
+      "val_size": 16919
+    },
+    {
+      "fold_1based": 4,
+      "train_idx": {
+        "n": 200785,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold4_train.npy",
+        "sha256": "5236ad3c5809a6ebc36b9ec50d49919b434df3d17230bd21f1de1b803f531227"
+      },
+      "train_index_hash": "5236ad3c5809a6ebc36b9ec50d49919b434df3d17230bd21f1de1b803f531227",
+      "train_size": 200785,
+      "val_idx": {
+        "n": 22446,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold4_val.npy",
+        "sha256": "6429e5d47ce9672799aa9882857eab4fae96434bed20885f39b0047830c88152"
+      },
+      "val_index_hash": "6429e5d47ce9672799aa9882857eab4fae96434bed20885f39b0047830c88152",
+      "val_size": 22446
+    },
+    {
+      "fold_1based": 5,
+      "train_idx": {
+        "n": 252451,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold5_train.npy",
+        "sha256": "a5e0bedfe1f6eb71399bf98323a44875759a7fcaf49fe8139ce97db83e84b430"
+      },
+      "train_index_hash": "a5e0bedfe1f6eb71399bf98323a44875759a7fcaf49fe8139ce97db83e84b430",
+      "train_size": 252451,
+      "val_idx": {
+        "n": 28088,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold5_val.npy",
+        "sha256": "eefa0503842626583cf73565ca6cf9808c5745de7dd36106d0195e0a0facb91e"
+      },
+      "val_index_hash": "eefa0503842626583cf73565ca6cf9808c5745de7dd36106d0195e0a0facb91e",
+      "val_size": 28088
+    },
+    {
+      "fold_1based": 6,
+      "train_idx": {
+        "n": 297890,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold6_train.npy",
+        "sha256": "4ea89132bd073369dba19b733263aa5faa9c3fac45c386957a67a1efe6a8c8d5"
+      },
+      "train_index_hash": "4ea89132bd073369dba19b733263aa5faa9c3fac45c386957a67a1efe6a8c8d5",
+      "train_size": 297890,
+      "val_idx": {
+        "n": 33245,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold6_val.npy",
+        "sha256": "6282d278cdcc140ec35e2bd17a00ac6b217f46182e1de5db72b5fc07f41a911e"
+      },
+      "val_index_hash": "6282d278cdcc140ec35e2bd17a00ac6b217f46182e1de5db72b5fc07f41a911e",
+      "val_size": 33245
+    },
+    {
+      "fold_1based": 7,
+      "train_idx": {
+        "n": 309989,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold7_train.npy",
+        "sha256": "d9c431e3eeb841aa04ac7cc9b9c27c553fdf968f1c3db22fb96daf93b2ed9686"
+      },
+      "train_index_hash": "d9c431e3eeb841aa04ac7cc9b9c27c553fdf968f1c3db22fb96daf93b2ed9686",
+      "train_size": 309989,
+      "val_idx": {
+        "n": 34618,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_fold7_val.npy",
+        "sha256": "ad1f24e8ed7235f7cc3a32b0d7a2d1c48ed58296a8bdfe16377314825f71da60"
+      },
+      "val_index_hash": "ad1f24e8ed7235f7cc3a32b0d7a2d1c48ed58296a8bdfe16377314825f71da60",
+      "val_size": 34618
+    }
+  ],
+  "heldout_idx": {
+    "n": 38332,
+    "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dsnap_heldout.npy",
+    "sha256": "ca9051d79b5cd4cc519ca0edf98945cde887de6a1e95f465318fa28ea133f33a"
+  },
+  "heldout_indices_hash": "ca9051d79b5cd4cc519ca0edf98945cde887de6a1e95f465318fa28ea133f33a",
+  "n_development": 344565,
+  "n_forward_2025": 26641,
+  "n_heldout": 38332,
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "407f6d38715457e5a6a47bd38459d7cb19504bfe",
+      "dirty": true,
+      "status_porcelain": "?? analysis/p0_major_revision_validation/code/p0_6_temporal_designs.py"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "rule": "snap the positional cut BACK to the first row sharing the boundary date, so every boundary-date row lands on the evaluation side and max(train_date) < min(eval_date) strictly at all 8 boundaries"
+}

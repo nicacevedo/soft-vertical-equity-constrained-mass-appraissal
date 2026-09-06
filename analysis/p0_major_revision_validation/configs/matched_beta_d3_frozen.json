@@ -1,0 +1,583 @@
+{
+  "A_does_not_determine": [
+    "common support",
+    "CORE target selection",
+    "whether a CORE target exists"
+  ],
+  "K_core": 6,
+  "coordinate_role": "D3 = row-balanced robustness sensitivity",
+  "core_construction": "q_j = L + j/(K-1)*(U-L); c_j = unused fitted Direct config minimizing |beta_dev - q_j| (tie-break smaller rho); target_j = ACHIEVED beta of c_j, not q_j",
+  "core_targets": [
+    {
+      "abs_target_minus_q": 0.0,
+      "direct_rho": 0.0,
+      "j": 0,
+      "q_j": -0.1377438408828227,
+      "target": -0.1377438408828227
+    },
+    {
+      "abs_target_minus_q": 0.00042988055289019944,
+      "direct_rho": 0.7196856730011519,
+      "j": 1,
+      "q_j": -0.1255359927732516,
+      "target": -0.1259658733261418
+    },
+    {
+      "abs_target_minus_q": 0.00038821767437856314,
+      "direct_rho": 1.9306977288832496,
+      "j": 2,
+      "q_j": -0.11332814466368046,
+      "target": -0.1129399269893019
+    },
+    {
+      "abs_target_minus_q": 0.00012182810392745436,
+      "direct_rho": 3.906939937054617,
+      "j": 3,
+      "q_j": -0.10112029655410934,
+      "target": -0.1012421246580368
+    },
+    {
+      "abs_target_minus_q": 0.0006189722106297868,
+      "direct_rho": 9.102981779915218,
+      "j": 4,
+      "q_j": -0.08891244844453822,
+      "target": -0.089531420655168
+    },
+    {
+      "abs_target_minus_q": 0.0,
+      "direct_rho": 86.85113737513521,
+      "j": 5,
+      "q_j": -0.0767046003349671,
+      "target": -0.0767046003349671
+    }
+  ],
+  "development_coordinate": "beta_D3",
+  "excluded": {
+    "B": "Centered-label native L2 (initialization-aligned) -- decomposition only"
+  },
+  "ext_matched": [
+    {
+      "achieved_dev_beta": -0.0590897474740697,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "match_gap": 0.0009102525259302996,
+      "match_mode": "nearest_fitted",
+      "max_achieved_dev_correction": -0.0138664460386537,
+      "rho": 5.17947467923121,
+      "role": "PRIMARY",
+      "target": -0.06
+    },
+    {
+      "achieved_dev_beta": -0.0767046003349671,
+      "attained": false,
+      "b": null,
+      "family": "Direct",
+      "match_gap": 0.016704600334967096,
+      "match_mode": "NOT_ATTAINED",
+      "max_achieved_dev_correction": -0.0767046003349671,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.06
+    },
+    {
+      "achieved_dev_beta": -0.06000000000000005,
+      "attained": true,
+      "b": 1.0915484254994292,
+      "family": "C-posthoc",
+      "match_gap": 5.551115123125783e-17,
+      "match_mode": "exact_posthoc_solve",
+      "max_achieved_dev_correction": null,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.06
+    },
+    {
+      "achieved_dev_beta": -0.05999999999999994,
+      "attained": true,
+      "b": 1.0916798658575328,
+      "family": "A-posthoc",
+      "match_gap": 5.551115123125783e-17,
+      "match_mode": "exact_posthoc_solve",
+      "max_achieved_dev_correction": null,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.06
+    },
+    {
+      "achieved_dev_beta": -0.0292430259075385,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "match_gap": 0.0007569740924614973,
+      "match_mode": "nearest_fitted",
+      "max_achieved_dev_correction": -0.0138664460386537,
+      "rho": 24.420530945486497,
+      "role": "PRIMARY",
+      "target": -0.03
+    },
+    {
+      "achieved_dev_beta": -0.0767046003349671,
+      "attained": false,
+      "b": null,
+      "family": "Direct",
+      "match_gap": 0.046704600334967095,
+      "match_mode": "NOT_ATTAINED",
+      "max_achieved_dev_correction": -0.0767046003349671,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.03
+    },
+    {
+      "achieved_dev_beta": -0.030000000000000138,
+      "attained": true,
+      "b": 1.1268753753104424,
+      "family": "C-posthoc",
+      "match_gap": 1.3877787807814457e-16,
+      "match_mode": "exact_posthoc_solve",
+      "max_achieved_dev_correction": null,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.03
+    },
+    {
+      "achieved_dev_beta": -0.030000000000000027,
+      "attained": true,
+      "b": 1.1270110696135158,
+      "family": "A-posthoc",
+      "match_gap": 2.7755575615628914e-17,
+      "match_mode": "exact_posthoc_solve",
+      "max_achieved_dev_correction": null,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.03
+    },
+    {
+      "achieved_dev_beta": -0.0138664460386537,
+      "attained": false,
+      "b": null,
+      "family": "Surrogate",
+      "match_gap": 0.0138664460386537,
+      "match_mode": "NOT_ATTAINED",
+      "max_achieved_dev_correction": -0.0138664460386537,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": 0.0
+    },
+    {
+      "achieved_dev_beta": -0.0767046003349671,
+      "attained": false,
+      "b": null,
+      "family": "Direct",
+      "match_gap": 0.0767046003349671,
+      "match_mode": "NOT_ATTAINED",
+      "max_achieved_dev_correction": -0.0767046003349671,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": 0.0
+    },
+    {
+      "achieved_dev_beta": 0.0,
+      "attained": true,
+      "b": 1.1622023251214557,
+      "family": "C-posthoc",
+      "match_gap": 0.0,
+      "match_mode": "exact_posthoc_solve",
+      "max_achieved_dev_correction": null,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": 0.0
+    },
+    {
+      "achieved_dev_beta": 0.0,
+      "attained": true,
+      "b": 1.1623422733694988,
+      "family": "A-posthoc",
+      "match_gap": 0.0,
+      "match_mode": "exact_posthoc_solve",
+      "max_achieved_dev_correction": null,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": 0.0
+    }
+  ],
+  "ext_targets": [
+    -0.06,
+    -0.03,
+    0.0
+  ],
+  "frozen_at_utc": "2026-09-06T16:56:23.821444Z",
+  "matched_configurations": [
+    {
+      "achieved_dev_beta": -0.1377438408828227,
+      "attained": true,
+      "b": null,
+      "family": "Direct",
+      "j": 0,
+      "match_gap": 0.0,
+      "match_mode": "exact_anchor",
+      "requires_new_fit": false,
+      "rho": 0.0,
+      "role": "PRIMARY",
+      "target": -0.1377438408828227
+    },
+    {
+      "achieved_dev_beta": -0.1377438408828227,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "j": 0,
+      "match_gap": 0.0,
+      "match_mode": "nearest_fitted",
+      "requires_new_fit": false,
+      "rho": 0.0,
+      "role": "PRIMARY",
+      "target": -0.1377438408828227
+    },
+    {
+      "achieved_dev_beta": -0.13774384088282254,
+      "attained": true,
+      "b": 1.0000000000000002,
+      "family": "C-posthoc",
+      "j": 0,
+      "match_gap": 1.6653345369377348e-16,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.1377438408828227
+    },
+    {
+      "achieved_dev_beta": -0.13774384088282265,
+      "attained": true,
+      "b": 1.0001204164240753,
+      "family": "A-posthoc",
+      "j": 0,
+      "match_gap": 5.551115123125783e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.1377438408828227
+    },
+    {
+      "achieved_dev_beta": -0.1259658733261418,
+      "attained": true,
+      "b": null,
+      "family": "Direct",
+      "j": 1,
+      "match_gap": 0.0,
+      "match_mode": "exact_anchor",
+      "requires_new_fit": false,
+      "rho": 0.7196856730011519,
+      "role": "PRIMARY",
+      "target": -0.1259658733261418
+    },
+    {
+      "achieved_dev_beta": -0.1264540711184828,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "j": 1,
+      "match_gap": 0.0004881977923410219,
+      "match_mode": "nearest_fitted",
+      "requires_new_fit": false,
+      "rho": 0.1325711365590109,
+      "role": "PRIMARY",
+      "target": -0.1259658733261418
+    },
+    {
+      "achieved_dev_beta": -0.12596587332614184,
+      "attained": true,
+      "b": 1.013869322291687,
+      "family": "C-posthoc",
+      "j": 1,
+      "match_gap": 5.551115123125783e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.1259658733261418
+    },
+    {
+      "achieved_dev_beta": -0.12596587332614162,
+      "attained": true,
+      "b": 1.013991408809957,
+      "family": "A-posthoc",
+      "j": 1,
+      "match_gap": 1.6653345369377348e-16,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.1259658733261418
+    },
+    {
+      "achieved_dev_beta": -0.1129399269893019,
+      "attained": true,
+      "b": null,
+      "family": "Direct",
+      "j": 2,
+      "match_gap": 0.0,
+      "match_mode": "exact_anchor",
+      "requires_new_fit": false,
+      "rho": 1.9306977288832496,
+      "role": "PRIMARY",
+      "target": -0.1129399269893019
+    },
+    {
+      "achieved_dev_beta": -0.1123504857376211,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "j": 2,
+      "match_gap": 0.0005894412516807973,
+      "match_mode": "nearest_fitted",
+      "requires_new_fit": false,
+      "rho": 0.4714866363457393,
+      "role": "PRIMARY",
+      "target": -0.1129399269893019
+    },
+    {
+      "achieved_dev_beta": -0.11293992698930189,
+      "attained": true,
+      "b": 1.0292082207077702,
+      "family": "C-posthoc",
+      "j": 2,
+      "match_gap": 1.3877787807814457e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.1129399269893019
+    },
+    {
+      "achieved_dev_beta": -0.11293992698930178,
+      "attained": true,
+      "b": 1.0293321542813367,
+      "family": "A-posthoc",
+      "j": 2,
+      "match_gap": 1.249000902703301e-16,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.1129399269893019
+    },
+    {
+      "achieved_dev_beta": -0.1012421246580368,
+      "attained": true,
+      "b": null,
+      "family": "Direct",
+      "j": 3,
+      "match_gap": 0.0,
+      "match_mode": "exact_anchor",
+      "requires_new_fit": false,
+      "rho": 3.906939937054617,
+      "role": "PRIMARY",
+      "target": -0.1012421246580368
+    },
+    {
+      "achieved_dev_beta": -0.1005315326768199,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "j": 3,
+      "match_gap": 0.0007105919812168959,
+      "match_mode": "nearest_fitted",
+      "requires_new_fit": false,
+      "rho": 0.8286427728546845,
+      "role": "PRIMARY",
+      "target": -0.1012421246580368
+    },
+    {
+      "achieved_dev_beta": -0.10124212465803684,
+      "attained": true,
+      "b": 1.0429831432362953,
+      "family": "C-posthoc",
+      "j": 3,
+      "match_gap": 4.163336342344337e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.1012421246580368
+    },
+    {
+      "achieved_dev_beta": -0.10124212465803684,
+      "attained": true,
+      "b": 1.0431087355367745,
+      "family": "A-posthoc",
+      "j": 3,
+      "match_gap": 4.163336342344337e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.1012421246580368
+    },
+    {
+      "achieved_dev_beta": -0.089531420655168,
+      "attained": true,
+      "b": null,
+      "family": "Direct",
+      "j": 4,
+      "match_gap": 0.0,
+      "match_mode": "exact_anchor",
+      "requires_new_fit": false,
+      "rho": 9.102981779915218,
+      "role": "PRIMARY",
+      "target": -0.089531420655168
+    },
+    {
+      "achieved_dev_beta": -0.0902353851156762,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "j": 4,
+      "match_gap": 0.0007039644605082024,
+      "match_mode": "nearest_fitted",
+      "requires_new_fit": false,
+      "rho": 1.4563484775012436,
+      "role": "PRIMARY",
+      "target": -0.089531420655168
+    },
+    {
+      "achieved_dev_beta": -0.08953142065516817,
+      "attained": true,
+      "b": 1.0567732583216611,
+      "family": "C-posthoc",
+      "j": 4,
+      "match_gap": 1.6653345369377348e-16,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.089531420655168
+    },
+    {
+      "achieved_dev_beta": -0.08953142065516806,
+      "attained": true,
+      "b": 1.0569005111784866,
+      "family": "A-posthoc",
+      "j": 4,
+      "match_gap": 5.551115123125783e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.089531420655168
+    },
+    {
+      "achieved_dev_beta": -0.0767046003349671,
+      "attained": true,
+      "b": null,
+      "family": "Direct",
+      "j": 5,
+      "match_gap": 0.0,
+      "match_mode": "exact_anchor",
+      "requires_new_fit": false,
+      "rho": 86.85113737513521,
+      "role": "PRIMARY",
+      "target": -0.0767046003349671
+    },
+    {
+      "achieved_dev_beta": -0.0760291525273528,
+      "attained": true,
+      "b": null,
+      "family": "Surrogate",
+      "j": 5,
+      "match_gap": 0.0006754478076142906,
+      "match_mode": "nearest_fitted",
+      "requires_new_fit": false,
+      "rho": 2.559547922699536,
+      "role": "PRIMARY",
+      "target": -0.0767046003349671
+    },
+    {
+      "achieved_dev_beta": -0.07670460033496707,
+      "attained": true,
+      "b": 1.0718776729112154,
+      "family": "C-posthoc",
+      "j": 5,
+      "match_gap": 2.7755575615628914e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "PRIMARY",
+      "target": -0.0767046003349671
+    },
+    {
+      "achieved_dev_beta": -0.07670460033496718,
+      "attained": true,
+      "b": 1.0720067445876333,
+      "family": "A-posthoc",
+      "j": 5,
+      "match_gap": 8.326672684688674e-17,
+      "match_mode": "exact_posthoc_solve",
+      "requires_new_fit": false,
+      "rho": null,
+      "role": "SECONDARY",
+      "target": -0.0767046003349671
+    }
+  ],
+  "no_oos_interpolation": "every reported OOS number is an actual fit or an actually evaluated transformation; no metric is interpolated between rho values",
+  "no_oos_read_during_freeze": true,
+  "payload_sha256": "40f0682fd398c9f041b5f76a13723d8048a7cf7b296faa9eff2f1dd6637557a3",
+  "posthoc_linear_relation": {
+    "A": {
+      "alpha": -0.9869538678024821,
+      "form": "beta(b) = alpha + slope*b (exact; residual <= 1e-12)",
+      "slope": 0.8491077803970895
+    },
+    "C": {
+      "alpha": -0.9869538678024825,
+      "form": "beta(b) = alpha + slope*b (exact; residual <= 1e-12)",
+      "slope": 0.8492100269196597
+    }
+  },
+  "primary_families": [
+    "Direct",
+    "Surrogate",
+    "C-posthoc"
+  ],
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "407f6d38715457e5a6a47bd38459d7cb19504bfe",
+      "dirty": true,
+      "status_porcelain": "M analysis/p0_major_revision_validation/logs/submitted_jobs.txt\n?? analysis/p0_major_revision_validation/code/p0_5_beta_coordinates.py\n?? analysis/p0_major_revision_validation/code/p0_5_matched_beta.py\n?? analysis/p0_major_revision_validation/code/p0_6_temporal_designs.py\n?? analysis/p0_major_revision_validation/configs/matched_beta_frozen.json\n?? analysis/p0_major_revision_validation/configs/matched_beta_frozen_hash.json\n?? analysis/p0_major_revision_validation/configs/robustness_rho_grid.json\n?? analysis/p0_major_revision_validation/configs/split_protocol_dpurge.json\n?? analysis/p0_major_revision_validation/configs/split_protocol_dsnap.json\n?? analysis/p0_major_revision_validation/configs/unseen_subset_definition.json\n?? analysis/p0_major_revision_validation/provenance/POST_G3_ADJUDICATION.md\n?? analysis/p0_major_revision_validation/slurm/07_temporal_robustness.sbatch\n?? analysis/p0_major_revision_validation/tables/development_beta_coordinate_audit.csv\n?? analysis/p0_major_revision_validation/tables/development_beta_coordinate_summary.json\n?? analysis/p0_major_revision_validation/tables/dpurge_purge_audit.csv\n?? analysis/p0_major_revision_validation/tables/dsnap_boundary_audit.csv\n?? analysis/p0_major_revision_validation/tables/matched_beta_comparison.csv\n?? analysis/p0_major_revision_validation/tables/matched_beta_crossings.csv\n?? analysis/p0_major_revision_validation/tables/matched_beta_ext_targets.csv\n?? analysis/p0_major_revision_validation/tables/matched_beta_origin_identity.csv\n?? analysis/p0_major_revision_validation/tables/matched_beta_pairwise_deltas.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_1__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_2__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_3__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_4__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_1__direct.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_1__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_3__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_4__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_5__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_6__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_7__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__forward_2025__native.csv\n?? analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__heldout__native.csv"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "schema_version": 1,
+  "secondary_families": [
+    "A-posthoc"
+  ],
+  "stage": "STAGE_3_MATCHED_BETA",
+  "tau": 0.002,
+  "tau_source": "frozen P0 matching tolerance (plan rev.3 I.3)",
+  "three_way_common_support": [
+    -0.1377438408828227,
+    -0.0767046003349671
+  ]
+}

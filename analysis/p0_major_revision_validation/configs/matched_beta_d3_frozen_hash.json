@@ -1,0 +1,6 @@
+{
+  "assertion": "hashed BEFORE any held-out or 2025 comparator outcome was read; the evaluate mode validates this hash before running",
+  "file_sha256": "3a3b6d29135bd4e7cf549712fad29c4aa8294bec9270471de99355680d7d8826",
+  "frozen_at_utc": "2026-09-06T16:56:23.821444Z",
+  "payload_sha256": "40f0682fd398c9f041b5f76a13723d8048a7cf7b296faa9eff2f1dd6637557a3"
+}

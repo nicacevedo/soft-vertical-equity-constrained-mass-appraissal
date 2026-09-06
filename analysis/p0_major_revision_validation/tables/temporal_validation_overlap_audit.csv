@@ -1,0 +1,7 @@
+design,scope,pair,n_appearances,n_unique,n_duplicated_appearances,share_duplicated,max_appearances_of_any_row
+primary,all_seven_folds_pooled,,151153.0,130165.0,20988,0.13885268568933465,2.0
+primary,fold_pair,fold_6&fold_7,,,20988,,
+dsnap,all_seven_folds_pooled,,151924.0,130778.0,21146,0.13918801506016165,2.0
+dsnap,fold_pair,fold_6&fold_7,,,21146,,
+dpurge,all_seven_folds_pooled,,151153.0,130165.0,20988,0.13885268568933465,2.0
+dpurge,fold_pair,fold_6&fold_7,,,20988,,

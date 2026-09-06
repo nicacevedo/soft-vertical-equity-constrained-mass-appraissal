@@ -1,0 +1,37 @@
+{
+  "dpurge": {
+    "max_appearances_of_any_row": 2.0,
+    "n_appearances": 151153.0,
+    "n_duplicated_appearances": "20988",
+    "n_unique": 130165.0,
+    "share_duplicated": 0.13885268568933465
+  },
+  "dpurge_assertion": "verified elementwise for all seven folds -- D-PURGE purges TRAINING rows only",
+  "dpurge_evaluation_sets_identical_to_primary": true,
+  "dsnap": {
+    "max_appearances_of_any_row": 2.0,
+    "n_appearances": 151924.0,
+    "n_duplicated_appearances": "21146",
+    "n_unique": 130778.0,
+    "share_duplicated": 0.13918801506016165
+  },
+  "interpretation": "The seven validation blocks are not mutually disjoint under the primary design, so the CV mean is a mean over overlapping evaluation evidence. D-SNAP moves boundary-date rows to the evaluation side and therefore changes the overlap slightly; D-PURGE leaves it exactly unchanged by construction.",
+  "overlapping_fold_pairs": {
+    "dpurge": [
+      "fold_6&fold_7"
+    ],
+    "dsnap": [
+      "fold_6&fold_7"
+    ],
+    "primary": [
+      "fold_6&fold_7"
+    ]
+  },
+  "primary": {
+    "max_appearances_of_any_row": 2.0,
+    "n_appearances": 151153.0,
+    "n_duplicated_appearances": "20988",
+    "n_unique": 130165.0,
+    "share_duplicated": 0.13885268568933465
+  }
+}

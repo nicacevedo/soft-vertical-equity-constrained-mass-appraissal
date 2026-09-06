@@ -300,26 +300,29 @@ def test_no_full_f0bar_path_generated():
     assert "center_f0bar" not in set(p["map"].unique())
 
 
-# --------------------------------------------------------------- not-yet-run
-def test_no_matched_beta_output_exists():
-    for bad in ("matched_beta_comparison.csv", "matched_beta_crossings.csv"):
+# ------------------------------------------------- still-forbidden at every stage
+# The original Gate-G3 versions of these three guards forbade the matched-beta and
+# temporal artifacts outright, because at Gate G3 those stages had not been authorized.
+# Stage 3 authorized them, so the guards are narrowed to the items that remain
+# forbidden. Stage 3's own suite (test_stage3_assertions.py) carries the current,
+# strictly stronger boundary for the newly authorized work.
+def test_no_p1_output_from_this_stage():
+    for bad in ("prb_inference.csv", "vei_significance.csv", "smearing_sensitivity.csv"):
         assert not (T / bad).exists(), bad
-    assert not (c.CONFIGS / "matched_beta_frozen.json").exists()
 
 
-def test_no_temporal_or_p1_output_from_this_stage():
-    for bad in ("robustness_path_dsnap.csv", "robustness_path_dpurge.csv",
-                "robustness_unseen_subset.csv", "dsnap_refinement.csv",
-                "prb_inference.csv", "vei_significance.csv", "smearing_sensitivity.csv"):
+def test_no_full_regeneration_output_exists():
+    for bad in ("combined_path_table_regen.csv", "combined_path_table_dsnap_full.csv"):
         assert not (T / bad).exists(), bad
-    for bad in ("split_protocol_dsnap.json", "split_protocol_dpurge.json",
-                "unseen_subset_definition.json"):
-        assert not (c.CONFIGS / bad).exists(), bad
+    for d in (c.P0_OUTPUT_ROOT / "full_path_regen",
+              c.P0_OUTPUT_ROOT / "dsnap_full_regen"):
+        assert not d.exists(), str(d)
 
 
-def test_no_dsnap_dpurge_jobs_submitted():
-    txt = (c.LOGS / "submitted_jobs.txt").read_text().lower()
-    for bad in ("dsnap", "dpurge", "dunseen", "matched_beta", "smearing", "regen"):
+def test_no_regeneration_or_p1_jobs_submitted():
+    log = c.LOGS / "submitted_jobs.txt"
+    txt = log.read_text().lower() if log.exists() else ""
+    for bad in ("full_path_regen", "regen_dsnap", "smearing", "inferential_extras"):
         assert bad not in txt, bad
 
 

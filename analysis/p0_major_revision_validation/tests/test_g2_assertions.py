@@ -271,24 +271,34 @@ def test_every_rg_row_cites_evidence_artifacts():
 
 
 # ----------------------------------------------------------------- not-yet-run
-def test_no_matched_beta_executed():
-    """Gate-G2 boundary.  The centered-spread comparator was authorized for Stage 2 and its
-    artifacts legitimately exist from that stage onward; the still-forbidden items are the
-    matched-beta outputs.  Stage 2's own suite (test_g3_assertions) carries the stricter
-    current-boundary guards."""
-    for bad in ("matched_beta_comparison.csv", "matched_beta_crossings.csv",
-                "matched_beta_frozen.json"):
-        assert not (T / bad).exists() and not (c.CONFIGS / bad).exists(), bad
+def test_no_manuscript_or_regeneration_work_from_the_g2_era():
+    """Gate-G2 boundary, narrowed twice as later stages were authorized.
+
+    The centered-spread comparator became authorized at Stage 2 and the matched-beta
+    outputs at Stage 3, so neither is forbidden any more. What was forbidden at Gate G2
+    and remains forbidden is manuscript revision, the P1 extras, and full-path
+    regeneration. Stage 2's and Stage 3's suites carry the current boundary.
+    """
+    for bad in ("prb_inference.csv", "vei_significance.csv", "smearing_sensitivity.csv"):
+        assert not (T / bad).exists(), bad
+    assert not (c.REPORTS / "MANUSCRIPT_IMPACT_MEMO.md").exists()
+    out = subprocess.run(["git", "status", "--porcelain", "--", "paper/"],
+                         cwd=str(c.REPO), capture_output=True, text=True).stdout.strip()
+    assert out == "", f"manuscript modified:\n{out}"
 
 
-def test_no_temporal_robustness_jobs_submitted():
+def test_no_forbidden_jobs_ever_submitted():
+    """Gate-G2-era guard, narrowed to the items still forbidden at the current stage.
+
+    'centered_spread' became authorized at Stage 2, and 'dsnap'/'dpurge'/'dunseen'/
+    'matched_beta' at Stage 3; those are no longer listed here. Stage 2's and Stage 3's
+    suites assert the current boundary, which is strictly stronger. Full-path
+    regeneration and the P1 inferential extras remain forbidden throughout.
+    """
     log = c.LOGS / "submitted_jobs.txt"
-    txt = log.read_text() if log.exists() else ""
-    # 'centered_spread' is authorized from Stage 2 onward and is therefore not listed here;
-    # Stage 2's suite asserts the current boundary.
-    for bad in ("dsnap", "dpurge", "dunseen", "full_path_regen",
-                "matched_beta", "inferential_extras"):
-        assert bad not in txt.lower(), bad
+    txt = log.read_text().lower() if log.exists() else ""
+    for bad in ("full_path_regen", "inferential_extras", "smearing"):
+        assert bad not in txt, bad
 
 
 def test_no_p1_extras_produced():

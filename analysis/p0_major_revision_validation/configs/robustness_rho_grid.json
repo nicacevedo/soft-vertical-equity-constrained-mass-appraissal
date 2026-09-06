@@ -1,0 +1,77 @@
+{
+  "construction": "frozen 82-point positive grid: rho=0 plus every 4th grid index (21 points), force-including the five display anchors and the four candidate-region endpoints, then deduplicated. Exact scientific anchors outrank an arbitrary row count.",
+  "forced_candidate_endpoints": [
+    0.2023589647725157,
+    0.3556480306223128,
+    2.2229964825261943,
+    2.559547922699543
+  ],
+  "forced_display_anchors": [
+    0.0104811313415468,
+    0.1,
+    0.954095476349994,
+    10.481131341546853,
+    100.0
+  ],
+  "includes_rho_zero": true,
+  "n_configs_per_design": 55,
+  "n_every_4th": 21,
+  "n_positive_screening": 27,
+  "positive_rhos": [
+    0.0010985411419875619,
+    0.0019306977288832557,
+    0.0033932217718953372,
+    0.005963623316594655,
+    0.010481131341546875,
+    0.018420699693267185,
+    0.03237457542817647,
+    0.05689866029018299,
+    0.1,
+    0.1757510624854792,
+    0.20235896477251572,
+    0.3088843596477481,
+    0.35564803062231287,
+    0.5428675439323859,
+    0.9540954763499939,
+    1.6768329368110082,
+    2.2229964825261943,
+    2.5595479226995357,
+    2.9470517025518097,
+    5.17947467923121,
+    9.102981779915218,
+    10.481131341546853,
+    15.998587196060573,
+    28.11768697974231,
+    49.417133613238335,
+    86.85113737513521,
+    100.0
+  ],
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "407f6d38715457e5a6a47bd38459d7cb19504bfe",
+      "dirty": true,
+      "status_porcelain": "?? analysis/p0_major_revision_validation/code/p0_6_temporal_designs.py\n?? analysis/p0_major_revision_validation/configs/split_protocol_dpurge.json\n?? analysis/p0_major_revision_validation/configs/split_protocol_dsnap.json\n?? analysis/p0_major_revision_validation/configs/unseen_subset_definition.json\n?? analysis/p0_major_revision_validation/tables/dpurge_purge_audit.csv\n?? analysis/p0_major_revision_validation/tables/dsnap_boundary_audit.csv"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  }
+}

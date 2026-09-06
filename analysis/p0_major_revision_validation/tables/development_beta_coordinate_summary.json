@@ -1,0 +1,164 @@
+{
+  "D1": {
+    "definition": "equal-weight mean of seven fold-specific beta_log values",
+    "interpretation": "every fold-level prediction remains genuinely out-of-training-sample, and D1's mathematical definition is unchanged; but the validation blocks are not fully disjoint, so fold-level statistics are NOT independent and some observations contribute to more than one fold-specific value",
+    "no_iid_interpretation": true,
+    "role": "FROZEN PRIMARY development coordinate",
+    "three_way_common_support": [
+      -0.13827122854325777,
+      -0.0786514918143895
+    ]
+  },
+  "D2": {
+    "note": "the concatenation explicitly gives overlapping rows multiple observation weight",
+    "role": "duplicate-weighted historical / reproducibility sensitivity ONLY"
+  },
+  "D3": {
+    "construction": "w_ik = 1/m_i so each unique sale carries total weight exactly one",
+    "development_only": true,
+    "role": "row-balanced robustness sensitivity",
+    "three_way_common_support": [
+      -0.1377438408828227,
+      -0.07670460033496714
+    ],
+    "weights_sum_to_one_max_dev": 0.0
+  },
+  "D3_MATERIAL": true,
+  "core_achieved_within_tau": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "core_same_config_under_D3": [
+    true,
+    true,
+    false,
+    true,
+    true,
+    true
+  ],
+  "core_targets_D1": [
+    {
+      "achieved": -0.13827122854325777,
+      "gap": 0.0,
+      "j": 0,
+      "q": -0.13827122854325777,
+      "rho": 0.0
+    },
+    {
+      "achieved": -0.12649038808133944,
+      "gap": 0.00014310688385532622,
+      "j": 1,
+      "q": -0.12634728119748412,
+      "rho": 0.7196856730011519
+    },
+    {
+      "achieved": -0.11473257324419515,
+      "gap": 0.00030923939248468646,
+      "j": 2,
+      "q": -0.11442333385171047,
+      "rho": 1.6768329368110082
+    },
+    {
+      "achieved": -0.10203274437520327,
+      "gap": 0.0004666421307335522,
+      "j": 3,
+      "q": -0.10249938650593682,
+      "rho": 3.906939937054617
+    },
+    {
+      "achieved": -0.09090152147743993,
+      "gap": 0.0003260823172767796,
+      "j": 4,
+      "q": -0.09057543916016315,
+      "rho": 9.102981779915218
+    },
+    {
+      "achieved": -0.0786514918143895,
+      "gap": 0.0,
+      "j": 5,
+      "q": -0.0786514918143895,
+      "rho": 86.85113737513521
+    }
+  ],
+  "core_targets_D3": [
+    {
+      "achieved": -0.1377438408828227,
+      "gap": 0.0,
+      "j": 0,
+      "q": -0.1377438408828227,
+      "rho": 0.0
+    },
+    {
+      "achieved": -0.12596587332614187,
+      "gap": 0.0004298805528902827,
+      "j": 1,
+      "q": -0.1255359927732516,
+      "rho": 0.7196856730011519
+    },
+    {
+      "achieved": -0.11293992698930198,
+      "gap": 0.00038821767437849375,
+      "j": 2,
+      "q": -0.11332814466368048,
+      "rho": 1.9306977288832496
+    },
+    {
+      "achieved": -0.10124212465803686,
+      "gap": 0.00012182810392749599,
+      "j": 3,
+      "q": -0.10112029655410937,
+      "rho": 3.906939937054617
+    },
+    {
+      "achieved": -0.08953142065516806,
+      "gap": 0.0006189722106298146,
+      "j": 4,
+      "q": -0.08891244844453824,
+      "rho": 9.102981779915218
+    },
+    {
+      "achieved": -0.07670460033496714,
+      "gap": 0.0,
+      "j": 5,
+      "q": -0.07670460033496714,
+      "rho": 86.85113737513521
+    }
+  ],
+  "max_abs_D1_minus_D3": 0.004867498943410613,
+  "max_abs_D2_minus_D3": 0.0042311133331151135,
+  "monotonicity": {
+    "A-posthoc": {
+      "D1_monotone": true,
+      "D3_monotone": true
+    },
+    "C-posthoc": {
+      "D1_monotone": true,
+      "D3_monotone": true
+    },
+    "Direct": {
+      "D1_monotone": false,
+      "D3_monotone": false
+    },
+    "Surrogate": {
+      "D1_monotone": false,
+      "D3_monotone": false
+    }
+  },
+  "overlap_structure": {
+    "m_i_distribution": {
+      "1": 109177,
+      "2": 41976
+    },
+    "max_abs_unique_row_weight_minus_one": 0.0,
+    "n_concatenated": 151153,
+    "n_duplicated_appearances": 20988,
+    "n_unique": 130165,
+    "share_duplicated": 0.13885268568933465
+  },
+  "rank_order_preserved_D1_vs_D3": false,
+  "tau": 0.002
+}

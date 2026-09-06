@@ -1,0 +1,264 @@
+{
+  "NOT_PROSPECTIVELY_IMPLEMENTABLE": true,
+  "design": "dpurge",
+  "design_type": "oracle_diagnostic",
+  "development_indices_hash": "58d30a62860463146515c27f860127da6bd76e6cbc5edc1901362faa81ee70eb",
+  "development_train_idx": {
+    "n": 331416,
+    "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_development_train.npy",
+    "sha256": "58d30a62860463146515c27f860127da6bd76e6cbc5edc1901362faa81ee70eb"
+  },
+  "folds": [
+    {
+      "fold_1based": 1,
+      "train_idx": {
+        "n": 46383,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold1_train.npy",
+        "sha256": "77f29f8fac8dc75397539d94bb5173d29bd663fce41824938d52734e677c7ce6"
+      },
+      "train_index_hash": "77f29f8fac8dc75397539d94bb5173d29bd663fce41824938d52734e677c7ce6",
+      "train_size": 46383,
+      "val_idx": {
+        "n": 5209,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold1_val.npy",
+        "sha256": "7478f5add9d9a4a9ffa468e8cd4b6e780a18bf46abccb2f1c55d4e9b08ff8bb2"
+      },
+      "val_index_hash": "7478f5add9d9a4a9ffa468e8cd4b6e780a18bf46abccb2f1c55d4e9b08ff8bb2",
+      "val_size": 5209
+    },
+    {
+      "fold_1based": 2,
+      "train_idx": {
+        "n": 99380,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold2_train.npy",
+        "sha256": "16d146f668432316a19239ba544ea50d00912d7f208e98b8f389d5b8a29b35a6"
+      },
+      "train_index_hash": "16d146f668432316a19239ba544ea50d00912d7f208e98b8f389d5b8a29b35a6",
+      "train_size": 99380,
+      "val_idx": {
+        "n": 11197,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold2_val.npy",
+        "sha256": "b48fc4766e38f6b16f425e801ac5ee7f8adfd66f97b1f3ca792a6365cb0b3e84"
+      },
+      "val_index_hash": "b48fc4766e38f6b16f425e801ac5ee7f8adfd66f97b1f3ca792a6365cb0b3e84",
+      "val_size": 11197
+    },
+    {
+      "fold_1based": 3,
+      "train_idx": {
+        "n": 148315,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold3_train.npy",
+        "sha256": "e300904643caf26e04d56611c22608b3b61cb05cea3a118e3b657997ecb1b135"
+      },
+      "train_index_hash": "e300904643caf26e04d56611c22608b3b61cb05cea3a118e3b657997ecb1b135",
+      "train_size": 148315,
+      "val_idx": {
+        "n": 16798,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold3_val.npy",
+        "sha256": "a76b526f7be22916d96c193e6f3f96ba28888e5c380204a600bf32b145e6473f"
+      },
+      "val_index_hash": "a76b526f7be22916d96c193e6f3f96ba28888e5c380204a600bf32b145e6473f",
+      "val_size": 16798
+    },
+    {
+      "fold_1based": 4,
+      "train_idx": {
+        "n": 195707,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold4_train.npy",
+        "sha256": "f1cb448824bff9b71d04b43f7eba13df48a7d7379805494e6f232e1d05052e69"
+      },
+      "train_index_hash": "f1cb448824bff9b71d04b43f7eba13df48a7d7379805494e6f232e1d05052e69",
+      "train_size": 195707,
+      "val_idx": {
+        "n": 22323,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold4_val.npy",
+        "sha256": "4728ddc1342a2ca1033644d3af17252edcf48a54e51e5a5cd3e2ddc28a9a420b"
+      },
+      "val_index_hash": "4728ddc1342a2ca1033644d3af17252edcf48a54e51e5a5cd3e2ddc28a9a420b",
+      "val_size": 22323
+    },
+    {
+      "fold_1based": 5,
+      "train_idx": {
+        "n": 244950,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold5_train.npy",
+        "sha256": "bc1ce158319bbde0c34feffa0e91b34b46a7b2fe585a6f964cc7f468bd0e5ba6"
+      },
+      "train_index_hash": "bc1ce158319bbde0c34feffa0e91b34b46a7b2fe585a6f964cc7f468bd0e5ba6",
+      "train_size": 244950,
+      "val_idx": {
+        "n": 28053,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold5_val.npy",
+        "sha256": "8fe79d8329c775579116f962ea4a662a4ebf3c8db70ba29f9c0ad65706951f60"
+      },
+      "val_index_hash": "8fe79d8329c775579116f962ea4a662a4ebf3c8db70ba29f9c0ad65706951f60",
+      "val_size": 28053
+    },
+    {
+      "fold_1based": 6,
+      "train_idx": {
+        "n": 288234,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold6_train.npy",
+        "sha256": "39811feddbc7f4346a7cdc3e91e5b9589cbd235314b786e802ede762e7e45c7c"
+      },
+      "train_index_hash": "39811feddbc7f4346a7cdc3e91e5b9589cbd235314b786e802ede762e7e45c7c",
+      "train_size": 288234,
+      "val_idx": {
+        "n": 33113,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold6_val.npy",
+        "sha256": "f67c1de75db8de5039ca1745ed4e4f8629aba9c3abf263e8c5edc0db2fa71008"
+      },
+      "val_index_hash": "f67c1de75db8de5039ca1745ed4e4f8629aba9c3abf263e8c5edc0db2fa71008",
+      "val_size": 33113
+    },
+    {
+      "fold_1based": 7,
+      "train_idx": {
+        "n": 299524,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold7_train.npy",
+        "sha256": "70d4edc279c7da3af3543627de58467152ea4a5cf4f343d646323210bafe185f"
+      },
+      "train_index_hash": "70d4edc279c7da3af3543627de58467152ea4a5cf4f343d646323210bafe185f",
+      "train_size": 299524,
+      "val_idx": {
+        "n": 34460,
+        "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_fold7_val.npy",
+        "sha256": "a5b350500a9c29b4498fd0693424b00f12899c71a52013ab6f282897b1d74f79"
+      },
+      "val_index_hash": "a5b350500a9c29b4498fd0693424b00f12899c71a52013ab6f282897b1d74f79",
+      "val_size": 34460
+    }
+  ],
+  "n_development_train": 331416,
+  "n_production_train": 372097,
+  "n_unique_pins": 327052,
+  "not_a_proposed_ccao_split": true,
+  "production_indices_hash": "f821590bacb418cdce68902569fb66b2fe4443045a72395e41487a0d0fd0661f",
+  "production_train_idx": {
+    "n": 372097,
+    "npy": "output/p0_major_revision_validation/temporal_robustness/protocols/dpurge_production_train.npy",
+    "sha256": "f821590bacb418cdce68902569fb66b2fe4443045a72395e41487a0d0fd0661f"
+  },
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p0-major-revision-validation",
+      "commit": "407f6d38715457e5a6a47bd38459d7cb19504bfe",
+      "dirty": true,
+      "status_porcelain": "?? analysis/p0_major_revision_validation/code/p0_6_temporal_designs.py\n?? analysis/p0_major_revision_validation/configs/split_protocol_dsnap.json"
+    },
+    "thread_env": {
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "purge_audit": [
+    {
+      "block": "fold_1",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 5209,
+      "primary_train": 46888,
+      "purged_train": 46383,
+      "rows_removed": 505,
+      "share_removed": 0.010770346357276915
+    },
+    {
+      "block": "fold_2",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 11197,
+      "primary_train": 100776,
+      "purged_train": 99380,
+      "rows_removed": 1396,
+      "share_removed": 0.013852504564578868
+    },
+    {
+      "block": "fold_3",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 16798,
+      "primary_train": 151187,
+      "purged_train": 148315,
+      "rows_removed": 2872,
+      "share_removed": 0.018996342278105923
+    },
+    {
+      "block": "fold_4",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 22323,
+      "primary_train": 200908,
+      "purged_train": 195707,
+      "rows_removed": 5201,
+      "share_removed": 0.025887470882194834
+    },
+    {
+      "block": "fold_5",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 28053,
+      "primary_train": 252486,
+      "purged_train": 244950,
+      "rows_removed": 7536,
+      "share_removed": 0.029847199448682304
+    },
+    {
+      "block": "fold_6",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 33113,
+      "primary_train": 298022,
+      "purged_train": 288234,
+      "rows_removed": 9788,
+      "share_removed": 0.032843212917167186
+    },
+    {
+      "block": "fold_7",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 34460,
+      "primary_train": 310147,
+      "purged_train": 299524,
+      "rows_removed": 10623,
+      "share_removed": 0.03425150009511619
+    },
+    {
+      "block": "development_pool",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 38290,
+      "primary_train": 344607,
+      "purged_train": 331416,
+      "rows_removed": 13191,
+      "share_removed": 0.03827838668396173
+    },
+    {
+      "block": "production_2016_2024",
+      "design": "dpurge",
+      "eval_pins_in_train_after_purge": 0,
+      "eval_size_unchanged": 26641,
+      "primary_train": 382897,
+      "purged_train": 372097,
+      "rows_removed": 10800,
+      "share_removed": 0.0282060188510226
+    }
+  ],
+  "purpose": "bound the contribution of parcel-specific history to the reported results; it deliberately over-corrects",
+  "rule": "evaluation sets preserved BITWISE from the frozen primary design; from each TRAINING block remove every row whose meta_pin appears in the paired evaluation block. Requires knowing future evaluation PINs at training time, which no assessor could know -- hence oracle."
+}

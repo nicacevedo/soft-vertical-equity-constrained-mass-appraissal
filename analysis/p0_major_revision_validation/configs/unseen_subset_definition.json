@@ -1,0 +1,64 @@
+{
+  "blocks": {
+    "fold_1": {
+      "mask_hash": "fce6109afd404421998a1f6ec243a5c348651660c4f4888e82033680f12236f2",
+      "n_eval": 5209,
+      "n_unseen": 4713,
+      "share_unseen": 0.9047801881359187
+    },
+    "fold_2": {
+      "mask_hash": "4694a1ea06ed138ffa843a34a799585666ee4acd36dbdf426c1928dc218944f7",
+      "n_eval": 11197,
+      "n_unseen": 9859,
+      "share_unseen": 0.8805037063499151
+    },
+    "fold_3": {
+      "mask_hash": "fdb6a089f31a5c8988eae75f31f43d8b5d67fcf07044a17bff80960c13ec19cc",
+      "n_eval": 16798,
+      "n_unseen": 14120,
+      "share_unseen": 0.8405762590784617
+    },
+    "fold_4": {
+      "mask_hash": "5c80e85d6282612ec70284f7ede0a33578b28300fb3772865a1d15501551b5b8",
+      "n_eval": 22323,
+      "n_unseen": 17629,
+      "share_unseen": 0.7897236034583165
+    },
+    "fold_5": {
+      "mask_hash": "00bdda2cc0646bdfa45322f4133391c6124dddef52868671482283d98976822e",
+      "n_eval": 28053,
+      "n_unseen": 21439,
+      "share_unseen": 0.7642319894485439
+    },
+    "fold_6": {
+      "mask_hash": "f9575daac5bcb25dc9c3d2f21a1eb34e944115bc582c4750ec8d9ce7a90f81d2",
+      "n_eval": 33113,
+      "n_unseen": 24624,
+      "share_unseen": 0.7436354301935796
+    },
+    "fold_7": {
+      "mask_hash": "38299962828a2b9dc8268d88e535f5e8371954686f52d129501158c9b603dd1a",
+      "n_eval": 34460,
+      "n_unseen": 25340,
+      "share_unseen": 0.7353453279164248
+    },
+    "forward_2025": {
+      "mask_hash": "dac6aac9404c180484ad8bf74a808024f8dfa1ad921d25bcdf5518ba044cc329",
+      "n_eval": 26641,
+      "n_unseen": 17744,
+      "share_unseen": 0.666041064524605
+    },
+    "heldout": {
+      "mask_hash": "37e99bd79a5fd1a1e1a64d585af7c4d98ece788880a6d0c08a5f2f060931facb",
+      "n_eval": 38290,
+      "n_unseen": 27126,
+      "share_unseen": 0.7084356228780361
+    }
+  },
+  "denominator_changes": true,
+  "design": "dunseen",
+  "design_type": "evaluation_subset_secondary",
+  "fits": 0,
+  "not_differenced_against_frozen_numbers": true,
+  "rule": "restrict each evaluation block of the FROZEN primary models to parcels whose meta_pin never occurred in that model's training block"
+}
