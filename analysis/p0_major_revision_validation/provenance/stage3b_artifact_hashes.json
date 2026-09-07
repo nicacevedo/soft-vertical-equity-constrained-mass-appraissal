@@ -1,0 +1,360 @@
+{
+  "artifacts": {
+    "code/p0_6_assemble.py": {
+      "bytes": 38486,
+      "sha256": "08cd916418b3d9c3ad877da0d24540048cb8324da5581d7ccd49a9984f04bc66"
+    },
+    "code/p0_6_race_assemble_task12.py": {
+      "bytes": 12457,
+      "sha256": "44923a0256e9364e01ff7fef1eef4a676aaaba3e989a7cfb21c283b6d078cb25"
+    },
+    "code/p0_6_race_task12.py": {
+      "bytes": 3602,
+      "sha256": "2b67e00e204717e11713787a5ab43d80dd6767c873b329636111e75fac9652a7"
+    },
+    "code/p0_6_temporal_designs.py": {
+      "bytes": 25450,
+      "sha256": "7490e1c433a6ae8378db52a204564e10e546581c028e5faef4277403c2108f84"
+    },
+    "code/p0_6_write_temporal_report.py": {
+      "bytes": 36510,
+      "sha256": "a02eec17b710f1e747bb1c00a40a9366e8ee58eabae2037dfee15d1b7057947e"
+    },
+    "configs/dsnap_refinement_grid.json": {
+      "bytes": 3856,
+      "sha256": "efb2fbc97ed97d5fa71d28302d2f98071c0a8265d0661b933ca7285813358e0f"
+    },
+    "configs/robustness_rho_grid.json": {
+      "bytes": 2507,
+      "sha256": "695b52cd4b9696952b037e8ced41568802fa6b847ec2c809bdaa6320bde116f0"
+    },
+    "configs/split_protocol_dpurge.json": {
+      "bytes": 10058,
+      "sha256": "a2b372728ce7f6a3348c657b7963870e78c08e9face76e83413c59e14213051b"
+    },
+    "configs/split_protocol_dsnap.json": {
+      "bytes": 10340,
+      "sha256": "289c6024fe488c0aa7f44bd72aff614b7b3ae1da836cd80ebddb3465909e33d9"
+    },
+    "configs/unseen_subset_definition.json": {
+      "bytes": 2124,
+      "sha256": "36d0238cfdd2cea058497128e4b57cb30c8972cb8354fc0860e685e21fb779f9"
+    },
+    "provenance/DEVIATIONS_STAGE3B.md": {
+      "bytes": 6832,
+      "sha256": "3bf77645a85a4e9c1bb8d7d7fb988ca3ee32671d72eec5945f05a731e2a8d83e"
+    },
+    "provenance/POST_G5_ADJUDICATION.md": {
+      "bytes": 7314,
+      "sha256": "ca8a16261a251657f9383ae9d5fa0c103edca2e6308dc8d6c1d35bd826db61ef"
+    },
+    "reports/TEMPORAL_ROBUSTNESS_REPORT.md": {
+      "bytes": 23458,
+      "sha256": "9e68246c5a4724347c88305114814ad5b2fa748dc865ea06c31fbfdccff5362b"
+    },
+    "slurm/09_dsnap_refinement.sbatch": {
+      "bytes": 1170,
+      "sha256": "d61838c644a2a1135e33c1bd28eacfe7d0b5187d05d3e0c78ded527be7e482e1"
+    },
+    "slurm/10_race_task12.sbatch": {
+      "bytes": 2101,
+      "sha256": "79706970ed70ef45a98cbca90e47b32c22581bb54ba7f77ca3ec99b0665638ea"
+    },
+    "tables/dsnap_refinement.csv": {
+      "bytes": 55,
+      "sha256": "90ea312e7fd9be77a629fb62419f482ea0c942bea48f5e6d93dbbb5c22072d15"
+    },
+    "tables/dsnap_refinement_provenance.csv": {
+      "bytes": 20231,
+      "sha256": "0c5ac5629073e250fea451f594f5c32db61e5f0f7fff4844cb61a63e705353d3"
+    },
+    "tables/gate_g5a_outcome.json": {
+      "bytes": 749,
+      "sha256": "94618b63fa3322523561e12fd8d1f5ad93712e2c92bc73ebef5ddd28d2ef9a7f"
+    },
+    "tables/gate_g5b_outcome.json": {
+      "bytes": 3646,
+      "sha256": "64bc5d426538e9e3a0cf3faf31e6fa6a59c2cd847cf0c2e6b8d976806b0d4767"
+    },
+    "tables/robustness_path_dpurge.csv": {
+      "bytes": 314200,
+      "sha256": "49da79781e64fa05a9d990b7416ebb44a2153a8145375c6d55aaea6b6bb37a30"
+    },
+    "tables/robustness_path_dsnap.csv": {
+      "bytes": 316364,
+      "sha256": "69ac0db7e097d0a78e0fe0980e432af6fa40a309813801251c1e694322f8b888"
+    },
+    "tables/robustness_unseen_subset.csv": {
+      "bytes": 215979,
+      "sha256": "d77867217e6fbef5292f62d33339a24b2a69ca722f90dcc319a1001f31a9b421"
+    },
+    "tables/robustness_vs_frozen_deltas.csv": {
+      "bytes": 348538,
+      "sha256": "5e35b5bdf606f9a80b183d8fd01f457bb1e88de6eaa43e786db31b95b02d6e41"
+    },
+    "tables/temporal_material_change_triggers.csv": {
+      "bytes": 13667,
+      "sha256": "338b6ba123506857522a451838817cdd189127a83005e178ec559f40a8beda94"
+    },
+    "tables/temporal_material_change_triggers_detail.json": {
+      "bytes": 17492,
+      "sha256": "2a99b265541271ab9084e79247cc77886ec2a952662b8567c4c1e77209364eae"
+    },
+    "tables/temporal_validation_overlap_audit.csv": {
+      "bytes": 470,
+      "sha256": "106be50c9aebebf1dac3b674e1ed84e8930a3d483b1e27a316c07a48c3e6c976"
+    },
+    "tables/temporal_validation_overlap_summary.json": {
+      "bytes": 1247,
+      "sha256": "3fc97205548b49fc091ad32da530caef91d1907b5f26411695699c89e56fb84c"
+    },
+    "tests/test_g5b_assertions.py": {
+      "bytes": 9898,
+      "sha256": "5aa9ea195766950fa4afe1d17f3a4e457d7de79d09e4cd409ee0f9b4438b7680"
+    }
+  },
+  "counts": {
+    "refinement_fits": 459,
+    "refinement_shards": 45,
+    "screening_shards": 54
+  },
+  "gate": "G5b",
+  "note": "SHA-256 index of the Stage-3B temporal artifacts. Compact outputs are tracked under the P0 Git exception; bulky split-index arrays live untracked under output/ and are referenced by hash from configs/split_protocol_*.json.",
+  "race": {
+    "dsnap_refine_shard__A__fold_7__direct__c0.RACE.csv": {
+      "bytes": 6991,
+      "sha256": "3df0940193192c6776f89be3e43fdd1748c6de5388671023a4850664135ccec1"
+    },
+    "race_manifest.json": {
+      "bytes": 7129,
+      "sha256": "7b33919ca60a31c0b31182d7f53e6ba2c7b80c32566361fc5b96baf75ad2d3c3"
+    },
+    "rho_00.csv": {
+      "bytes": 903,
+      "sha256": "c33e184563b78cc8af29c1c5d517b8b34cef4886ae2962a653a12eba09e9f42f"
+    },
+    "rho_01.csv": {
+      "bytes": 907,
+      "sha256": "3aaf99db942400d30219b936a1b31b7c0206447ff6edc4845b115b6df341212c"
+    },
+    "rho_02.csv": {
+      "bytes": 902,
+      "sha256": "890e1e0c90c82dbaecce06dae180a3a2f130f21a4b9ca572e706aa20f710f969"
+    },
+    "rho_03.csv": {
+      "bytes": 905,
+      "sha256": "a9303d9a8b144ed2f4b7646ace93c149450840a33217c6d436eb384a6691c5c3"
+    },
+    "rho_04.csv": {
+      "bytes": 906,
+      "sha256": "21bb61ade9b2ee15c0034ad0048dfe64da0cd62bdb5fba14f36ba80cc98e29d2"
+    },
+    "rho_05.csv": {
+      "bytes": 906,
+      "sha256": "797eae8896d40c14de74938deb1c34fc04025866328befae0968e43cbabc4cef"
+    },
+    "rho_06.csv": {
+      "bytes": 903,
+      "sha256": "18cc512a4144c601c1b981b919fa8b422a37932d73fdef89a414c768ba229796"
+    },
+    "rho_07.csv": {
+      "bytes": 902,
+      "sha256": "88467c766aaa855720289b707576bde8fe59a582d6d2c87095dba54639e23524"
+    },
+    "rho_08.csv": {
+      "bytes": 905,
+      "sha256": "e3d822ec80d4c3f97c9e05b841d29c6ce05dd14be016211db48bebf5ca8a95f9"
+    },
+    "rho_09.csv": {
+      "bytes": 903,
+      "sha256": "110f511c751f89df843bae401e7dbf9c49d771f9fe294a94f75939fab0876982"
+    },
+    "rho_10.csv": {
+      "bytes": 905,
+      "sha256": "522507d30456bba80f36def8afd7b329cbc35cb8db276ec447e229a7b475844d"
+    }
+  },
+  "refinement_shards": {
+    "dsnap_refine_shard__A__fold_1__direct__c0.csv": {
+      "bytes": 7062,
+      "sha256": "48c369bae7419ee4e51958c47d9daa38147f77049237baaabf664dd3c9083d65"
+    },
+    "dsnap_refine_shard__A__fold_1__direct__c1.csv": {
+      "bytes": 6449,
+      "sha256": "ea775e78703333257b93b08d2dfc917d06cde96aca1d9a2546aa4b01c082b88d"
+    },
+    "dsnap_refine_shard__A__fold_1__surrogate__c0.csv": {
+      "bytes": 7095,
+      "sha256": "d21aa58801165b457afdd353060dfad7c25b8faf6cf6a7ebfe05792e7f2e36f2"
+    },
+    "dsnap_refine_shard__A__fold_1__surrogate__c1.csv": {
+      "bytes": 6498,
+      "sha256": "14bc68462785ac43c58d03e94354947f29110c2febe75f303aa03106cbe91539"
+    },
+    "dsnap_refine_shard__A__fold_2__direct__c0.csv": {
+      "bytes": 7076,
+      "sha256": "c507230b486ae3976a8d332194861a9c5d9abdbfc43637929e2035ef984b03a2"
+    },
+    "dsnap_refine_shard__A__fold_2__direct__c1.csv": {
+      "bytes": 6468,
+      "sha256": "bd6bb5fe675d5e8cdb5fc685dfbb349cc48bfb059a3e904796f1cf5b2b544b0e"
+    },
+    "dsnap_refine_shard__A__fold_2__surrogate__c0.csv": {
+      "bytes": 7130,
+      "sha256": "bc0a2398c6d9c6424b73efd9466e01c047f34fa363ba3b841e466b696452ad4e"
+    },
+    "dsnap_refine_shard__A__fold_2__surrogate__c1.csv": {
+      "bytes": 6502,
+      "sha256": "4cf403079a3bedb8c511fd80936904d7f632c188b3a0c075f5de99df868a91f2"
+    },
+    "dsnap_refine_shard__A__fold_3__direct__c0.csv": {
+      "bytes": 7092,
+      "sha256": "d49540dd36155d1385a8bd23370a4d7a1db9ba02eb11b666c95546fd2a326a63"
+    },
+    "dsnap_refine_shard__A__fold_3__direct__c1.csv": {
+      "bytes": 6465,
+      "sha256": "6772333e5e7ba70753c1bd8bc5477982730721ea1c8d2f0948a39e25e00bbd37"
+    },
+    "dsnap_refine_shard__A__fold_3__surrogate__c0.csv": {
+      "bytes": 7115,
+      "sha256": "04771e5daaaded991588864a837db2d93ab3f61c8c803ad625b81be7a837eb50"
+    },
+    "dsnap_refine_shard__A__fold_3__surrogate__c1.csv": {
+      "bytes": 6501,
+      "sha256": "557698edcfbfffd63dd24364339672b63fba6fbf11e1dde06442017ea97eab17"
+    },
+    "dsnap_refine_shard__A__fold_4__direct__c0.csv": {
+      "bytes": 7094,
+      "sha256": "8e3997df01ff981a281384960cec2bf356a4826e2625ca51f8dd08e191a29e5c"
+    },
+    "dsnap_refine_shard__A__fold_4__direct__c1.csv": {
+      "bytes": 6476,
+      "sha256": "8471958d06d4f2651623b6ef86f08fcdb88328bdbe642c53ff8db4b5e9b89f04"
+    },
+    "dsnap_refine_shard__A__fold_4__surrogate__c0.csv": {
+      "bytes": 7138,
+      "sha256": "c7617f94e4bf5c910106fc07de8fe048b504ac858effcebd4b04ea8169075605"
+    },
+    "dsnap_refine_shard__A__fold_4__surrogate__c1.csv": {
+      "bytes": 6515,
+      "sha256": "a79a2a9e4d4bbbf0c7ffbaed1b8016f75ba56b68e05969634d5e0299026ef6f4"
+    },
+    "dsnap_refine_shard__A__fold_5__direct__c0.csv": {
+      "bytes": 7083,
+      "sha256": "de8769e31a7b89515edd1972eda7f2f0c4fc6ed6564970ba26352f7e24ac424a"
+    },
+    "dsnap_refine_shard__A__fold_5__direct__c1.csv": {
+      "bytes": 6482,
+      "sha256": "e10d46bd4c4c87aeaa8d94165219adf57aeb1e941d1985776c4cad258f22204d"
+    },
+    "dsnap_refine_shard__A__fold_5__surrogate__c0.csv": {
+      "bytes": 7116,
+      "sha256": "86d3daf6930c0ffb633297c32af29f00b0ab2c247ae2bc88aeb41e08f65dc731"
+    },
+    "dsnap_refine_shard__A__fold_5__surrogate__c1.csv": {
+      "bytes": 6505,
+      "sha256": "0730b9e7474182cddb001776d99ba331424ebedce18649e77013c9ab93d98094"
+    },
+    "dsnap_refine_shard__A__fold_6__direct__c0.csv": {
+      "bytes": 7073,
+      "sha256": "01102a2332fc89443b3c9e79263ba6dfa3e8f699bf1c6aeac58ab5559ab1c685"
+    },
+    "dsnap_refine_shard__A__fold_6__direct__c1.csv": {
+      "bytes": 6482,
+      "sha256": "2f0727145c102cea97698f26ce70d306fe26a70b55610e22d0d06d114df56d3b"
+    },
+    "dsnap_refine_shard__A__fold_6__surrogate__c0.csv": {
+      "bytes": 7111,
+      "sha256": "5c74b3195573406edc3d79220dd0fecb8d06f3bff245a141ae4a52486bf3cd49"
+    },
+    "dsnap_refine_shard__A__fold_6__surrogate__c1.csv": {
+      "bytes": 6499,
+      "sha256": "26a4c7a0a83101e897cf3bee3caac7f85abab4ca9cf0321ea7394f7730e45d33"
+    },
+    "dsnap_refine_shard__A__fold_7__direct__c0.csv": {
+      "bytes": 6991,
+      "sha256": "3df0940193192c6776f89be3e43fdd1748c6de5388671023a4850664135ccec1"
+    },
+    "dsnap_refine_shard__A__fold_7__direct__c1.csv": {
+      "bytes": 6476,
+      "sha256": "9f30c79258413e199f7c17c2deb4cd8dcccc669362fdeac118243c89da579c6a"
+    },
+    "dsnap_refine_shard__A__fold_7__surrogate__c0.csv": {
+      "bytes": 7128,
+      "sha256": "96d2f3b1360c46644d1b76263d4978034ca0c73f6a1a412e114c1dacd8ce60d6"
+    },
+    "dsnap_refine_shard__A__fold_7__surrogate__c1.csv": {
+      "bytes": 6501,
+      "sha256": "1eb3868d3a5d5abfbddaaa259da65e0d0ce51cbb19d07be9c802d402536a7401"
+    },
+    "dsnap_refine_shard__A__forward_2025__direct__c0.csv": {
+      "bytes": 7156,
+      "sha256": "eb2465a43810399378f64cb76413bc36d651baa756ce26e0de9e666a9651afcd"
+    },
+    "dsnap_refine_shard__A__forward_2025__direct__c1.csv": {
+      "bytes": 6526,
+      "sha256": "e6ee999d6a8c95133ba6a5608b17befe49b9792ce9f3d956b1c45ec570325107"
+    },
+    "dsnap_refine_shard__A__forward_2025__surrogate__c0.csv": {
+      "bytes": 7180,
+      "sha256": "345595469582d135614cba06353183a7167fa5b9fe80efc8c568dca43b3cff1b"
+    },
+    "dsnap_refine_shard__A__forward_2025__surrogate__c1.csv": {
+      "bytes": 6560,
+      "sha256": "1994e2d5d04d335e062ea8d9973d45a3257b659fa6b3efdf9914b826293d8826"
+    },
+    "dsnap_refine_shard__A__heldout__direct__c0.csv": {
+      "bytes": 7105,
+      "sha256": "e40bef2ecbde60958a5c46ed78101bb5b1e06c6b3c0dfd2d8028edf9c279c3b3"
+    },
+    "dsnap_refine_shard__A__heldout__direct__c1.csv": {
+      "bytes": 6488,
+      "sha256": "4f86035958ae237eb9b7705a803e570e6c3a1a5b84eefa5c594ba46de3189151"
+    },
+    "dsnap_refine_shard__A__heldout__surrogate__c0.csv": {
+      "bytes": 7137,
+      "sha256": "e5406b4cc3d6dc5a607f16da103c31aeb49e33aec56665a1dac2011673f79ba9"
+    },
+    "dsnap_refine_shard__A__heldout__surrogate__c1.csv": {
+      "bytes": 6515,
+      "sha256": "2ef784735fabaeed3f152636bf3609a69ec5594887b0c344424f7e0eb0e06c55"
+    },
+    "dsnap_refine_shard__B__fold_1__surrogate__c0.csv": {
+      "bytes": 5856,
+      "sha256": "6523f36424c58ed304cc9b117e74647a1a0f06b79713ad0ac0d5a43cc3544d7a"
+    },
+    "dsnap_refine_shard__B__fold_2__surrogate__c0.csv": {
+      "bytes": 5877,
+      "sha256": "6de2bd18fcc33dbaf86b813a13a14c141c660250ea3af8033c4fe0f8eb4410f4"
+    },
+    "dsnap_refine_shard__B__fold_3__surrogate__c0.csv": {
+      "bytes": 5865,
+      "sha256": "7e0012c730319c5d99b6b1932c785a9bf9a83d6246f68fe9fdd863a05c9471c9"
+    },
+    "dsnap_refine_shard__B__fold_4__surrogate__c0.csv": {
+      "bytes": 5850,
+      "sha256": "360a6bc4f323752d9ed9767677c6063a88f32c7ac253e830bc64583d296c7db3"
+    },
+    "dsnap_refine_shard__B__fold_5__surrogate__c0.csv": {
+      "bytes": 5872,
+      "sha256": "ed78b26d85b489fa97c503954c098bb50c71ac8d13ba0623493509144ad5af08"
+    },
+    "dsnap_refine_shard__B__fold_6__surrogate__c0.csv": {
+      "bytes": 5871,
+      "sha256": "7b50329fe9dd8417e39f86782d5a112912ce4603da1eb3db01a38a41d4184311"
+    },
+    "dsnap_refine_shard__B__fold_7__surrogate__c0.csv": {
+      "bytes": 5856,
+      "sha256": "ff52422b48e7b100b2b32c23a718a6080163bb7e237b2ae8eb20f35b4adf63d1"
+    },
+    "dsnap_refine_shard__B__forward_2025__surrogate__c0.csv": {
+      "bytes": 5930,
+      "sha256": "d17e60feef93a4fb61db3a60ecc46e54971b62a709d04d49b8d026aaff4d98ff"
+    },
+    "dsnap_refine_shard__B__heldout__surrogate__c0.csv": {
+      "bytes": 5870,
+      "sha256": "5bb787cb8307668f97fd288420af20e313f60b47ccf1af69c7a239eb150bf411"
+    }
+  },
+  "stage": "3B"
+}

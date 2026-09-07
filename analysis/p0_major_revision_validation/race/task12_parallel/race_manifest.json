@@ -1,0 +1,242 @@
+{
+  "all_checks_passed": true,
+  "candidate_file": "dsnap_refine_shard__A__fold_7__direct__c0.RACE.csv",
+  "candidate_sha256": "3df0940193192c6776f89be3e43fdd1748c6de5388671023a4850664135ccec1",
+  "canonical_array_task": 12,
+  "cell": {
+    "block": "fold_7",
+    "chunk": "1/2",
+    "design": "dsnap",
+    "family": "direct",
+    "n_rho": 11,
+    "region": "A"
+  },
+  "checks": [
+    {
+      "check": "exactly_11_rows",
+      "detail": "11",
+      "passed": true
+    },
+    {
+      "check": "exactly_11_unique_rho",
+      "detail": "11",
+      "passed": true
+    },
+    {
+      "check": "no_duplicate_rho",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "rho_set_equals_frozen_task12",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "rho_ascending_frozen_convention",
+      "detail": "region A chunk 0 is ascending by construction",
+      "passed": true
+    },
+    {
+      "check": "design_is_dsnap",
+      "detail": "{'dsnap'}",
+      "passed": true
+    },
+    {
+      "check": "design_type_strict_date",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "block_is_fold_7",
+      "detail": "{'fold_7'}",
+      "passed": true
+    },
+    {
+      "check": "family_is_direct",
+      "detail": "{'direct'}",
+      "passed": true
+    },
+    {
+      "check": "grid_label_refinement",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "lgbm_params_sha256_matches_frozen",
+      "detail": "8f0f2acd83118de7",
+      "passed": true
+    },
+    {
+      "check": "historical_execution_settings",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "seed_is_frozen_random_state_2025",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "single_split_identity_n_train",
+      "detail": "{309989}",
+      "passed": true
+    },
+    {
+      "check": "single_split_identity_n_eval",
+      "detail": "{34618}",
+      "passed": true
+    },
+    {
+      "check": "n_train_equals_dsnap_fold7_protocol",
+      "detail": "309989 vs 309989",
+      "passed": true
+    },
+    {
+      "check": "n_eval_equals_dsnap_fold7_protocol",
+      "detail": "34618 vs 34618",
+      "passed": true
+    },
+    {
+      "check": "schema_identical_to_canonical_sibling",
+      "detail": "30 cols",
+      "passed": true
+    },
+    {
+      "check": "no_nan_in_required_metrics",
+      "detail": "[]",
+      "passed": true
+    },
+    {
+      "check": "all_required_metrics_present",
+      "detail": "[]",
+      "passed": true
+    },
+    {
+      "check": "pred_sha256_present_and_unique",
+      "detail": "",
+      "passed": true
+    },
+    {
+      "check": "cross_execution_beta_log_agrees",
+      "detail": "worst 0.00e+00",
+      "passed": true
+    },
+    {
+      "check": "cross_execution_R2_price_agrees",
+      "detail": "worst 0.00e+00",
+      "passed": true
+    },
+    {
+      "check": "cross_execution_rows_compared",
+      "detail": "6 of 11 available",
+      "passed": true
+    },
+    {
+      "check": "candidate_is_single_lineage_race",
+      "detail": "every row read from race/task12_parallel/rho_NN.csv; no canonical row spliced",
+      "passed": true
+    },
+    {
+      "check": "canonical_filename_not_written_by_race",
+      "detail": "canonical shard absent while the race candidate is built",
+      "passed": true
+    }
+  ],
+  "cross_execution_check": [
+    {
+      "R2_price_fallback_logged": 0.89349,
+      "R2_price_race": 0.8934873054007813,
+      "abs_diff_R2_at_log_precision": 0.0,
+      "abs_diff_beta_at_log_precision": 0.0,
+      "beta_log_fallback_logged": -0.17136,
+      "beta_log_race": -0.1713607431831899,
+      "rho": 0.0012648552168553
+    },
+    {
+      "R2_price_fallback_logged": 0.89263,
+      "R2_price_race": 0.8926277778779645,
+      "abs_diff_R2_at_log_precision": 0.0,
+      "abs_diff_beta_at_log_precision": 0.0,
+      "beta_log_fallback_logged": -0.17079,
+      "beta_log_race": -0.1707854055658647,
+      "rho": 0.001676832936811
+    },
+    {
+      "R2_price_fallback_logged": 0.89211,
+      "R2_price_race": 0.8921100910202857,
+      "abs_diff_R2_at_log_precision": 0.0,
+      "abs_diff_beta_at_log_precision": 0.0,
+      "beta_log_fallback_logged": -0.17094,
+      "beta_log_race": -0.1709415328330681,
+      "rho": 0.0025595479226995
+    },
+    {
+      "R2_price_fallback_logged": 0.89273,
+      "R2_price_race": 0.8927344611150881,
+      "abs_diff_R2_at_log_precision": 0.0,
+      "abs_diff_beta_at_log_precision": 0.0,
+      "beta_log_fallback_logged": -0.17316,
+      "beta_log_race": -0.1731572764616221,
+      "rho": 0.0039069399370546
+    },
+    {
+      "R2_price_fallback_logged": 0.89257,
+      "R2_price_race": 0.8925727460543297,
+      "abs_diff_R2_at_log_precision": 0.0,
+      "abs_diff_beta_at_log_precision": 0.0,
+      "beta_log_fallback_logged": -0.17403,
+      "beta_log_race": -0.174029424042547,
+      "rho": 0.0051794746792312
+    },
+    {
+      "R2_price_fallback_logged": 0.8922,
+      "R2_price_race": 0.8922001422465129,
+      "abs_diff_R2_at_log_precision": 0.0,
+      "abs_diff_beta_at_log_precision": 0.0,
+      "beta_log_fallback_logged": -0.17385,
+      "beta_log_race": -0.1738471619089557,
+      "rho": 0.0079060432109077
+    }
+  ],
+  "event": "redundant_parallel_re_execution",
+  "fallback_job": "22151066_12",
+  "lgbm_params_sha256": "8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b",
+  "n_eval": 34618,
+  "n_train": 309989,
+  "per_rho_files": {
+    "rho_00.csv": "c33e184563b78cc8af29c1c5d517b8b34cef4886ae2962a653a12eba09e9f42f",
+    "rho_01.csv": "3aaf99db942400d30219b936a1b31b7c0206447ff6edc4845b115b6df341212c",
+    "rho_02.csv": "890e1e0c90c82dbaecce06dae180a3a2f130f21a4b9ca572e706aa20f710f969",
+    "rho_03.csv": "a9303d9a8b144ed2f4b7646ace93c149450840a33217c6d436eb384a6691c5c3",
+    "rho_04.csv": "21bb61ade9b2ee15c0034ad0048dfe64da0cd62bdb5fba14f36ba80cc98e29d2",
+    "rho_05.csv": "797eae8896d40c14de74938deb1c34fc04025866328befae0968e43cbabc4cef",
+    "rho_06.csv": "18cc512a4144c601c1b981b919fa8b422a37932d73fdef89a414c768ba229796",
+    "rho_07.csv": "88467c766aaa855720289b707576bde8fe59a582d6d2c87095dba54639e23524",
+    "rho_08.csv": "e3d822ec80d4c3f97c9e05b841d29c6ce05dd14be016211db48bebf5ca8a95f9",
+    "rho_09.csv": "110f511c751f89df843bae401e7dbf9c49d771f9fe294a94f75939fab0876982",
+    "rho_10.csv": "522507d30456bba80f36def8afd7b329cbc35cb8db276ec447e229a7b475844d"
+  },
+  "race_job": "22166048",
+  "race_topology": "one rho per Slurm array element (11 elements)",
+  "rhos_frozen_order": [
+    0.0012648552168553,
+    0.0016768329368110132,
+    0.0025595479226995428,
+    0.0039069399370546265,
+    0.005179474679231222,
+    0.007906043210907715,
+    0.012067926406393306,
+    0.015998587196060603,
+    0.02442053094548654,
+    0.03727593720314943,
+    0.04941713361323837
+  ],
+  "scheduler_only_changes": [
+    "--mem 110G -> 16G (measured MaxRSS of every completed refinement task 2.4-2.7 GB)",
+    "--exclude=node2621 (the oversubscribed node the canonical task is stuck on)",
+    "--array=0-10 (execution granularity)",
+    "NUMBA_CACHE_DIR isolated per task (cache location only)"
+  ],
+  "scientific_settings_changed": "none"
+}

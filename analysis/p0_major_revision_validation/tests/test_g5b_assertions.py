@@ -210,19 +210,20 @@ def test_temporal_report_distinguishes_all_four_designs():
     p = REP / "TEMPORAL_ROBUSTNESS_REPORT.md"
     assert p.exists()
     r = p.read_text()
+    flat = r.replace("*", "").replace("`", "")      # strip markdown emphasis before matching
     for k in ("PRIMARY frozen temporal design", "D-SNAP", "D-PURGE", "D-UNSEEN"):
         assert k in r, f"the report must name {k} explicitly"
-    assert "oracle" in r.lower() and "not a proposed sample-construction rule" in r.lower(), \
+    assert "oracle" in flat.lower() and "not a proposed sample-construction rule" in flat.lower(), \
         "D-PURGE must be labelled an oracle diagnostic in the report"
-    assert "Denominators change" in r or "denominators change" in r, \
+    assert "denominators change" in flat.lower(), \
         "D-UNSEEN denominator change must be stated"
-    assert "not IID standard errors" in r or "not IID" in r, \
+    assert "not IID standard errors" in flat, \
         "the non-IID fold-SD reading must be preserved"
-    assert "no row is ever predicted by a" in r, \
+    assert "no row is ever predicted by a" in flat, \
         "the report must state predictions remain out-of-training-sample"
 
 
 def test_report_does_not_claim_d1_simply_unaffected():
-    r = (REP / "TEMPORAL_ROBUSTNESS_REPORT.md").read_text()
+    r = (REP / "TEMPORAL_ROBUSTNESS_REPORT.md").read_text().replace("*", "")
     assert "fold-level results are not independent" in r
     assert "D1 is unaffected" not in r
