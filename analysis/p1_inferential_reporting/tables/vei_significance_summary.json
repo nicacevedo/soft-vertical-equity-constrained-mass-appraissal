@@ -1,0 +1,77 @@
+{
+  "adopted_reference": "IAAO Standard on Ratio Studies (2013) remains the adopted/current guidance.",
+  "bootstrap_role": "separately labelled SENSITIVITY columns only",
+  "bootstrap_scope": [
+    "heldout",
+    "forward_2025"
+  ],
+  "ci_level": 0.9,
+  "ci_method": "ED2 App. D.2 rank-based order statistic (NOT the bootstrap)",
+  "ci_rank_clamped_any": false,
+  "ed2_source": {
+    "appendix_D2_page": 67,
+    "appendix_E_pages": "78-81",
+    "bytes": 2013844,
+    "sha256": "e950e00d0c3684dd067734d401e5278dcf659f471fcfb0d6db65c7584f7c56b8",
+    "title_as_printed": "Exposure Draft May 2026",
+    "url": "https://www.iaao.org/wp-content/uploads/StandardonRatioStudies_Exposure-Mar2026.pdf"
+  },
+  "frozen_reconciliation": {
+    "max_abs_frozen_minus_recomputed": 7.105427357601002e-15,
+    "n_compared": 234
+  },
+  "guidance_status": "May-2026 Exposure Draft / proposed guidance; not adopted IAAO guidance.",
+  "max_abs_step5_minus_canonical_vei": 0.0,
+  "not_a_compliance_determination": true,
+  "pooled_oof": "ED2 App. D.2 is a rank-based order-statistic CI on distinct observations and has no row-balanced analogue; the pooled-OOF sample contains 20,988 unique rows twice, so the ED2 procedure is not applied there. No weighted variant was invented.",
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p1-inferential-reporting",
+      "commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+      "dirty": true,
+      "status_porcelain": "?? analysis/p1_inferential_reporting/"
+    },
+    "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "p0_tag": "p0-major-revision-final-20260907",
+    "thread_env": {
+      "MKL_NUM_THREADS": "",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "rows": 480,
+  "rows_evaluated": 396,
+  "rows_not_attained": 40,
+  "step5_gate_counts": {
+    "nan": 84,
+    "step5_outside_pm10_escalate": 279,
+    "step5_within_pm10_stop": 117
+  },
+  "step5_gate_note": "evaluated independently for every display cell from its own computed VEI; no cell's outcome was anticipated from any existing reported value",
+  "step6_counts": {
+    "ci_no_overlap_escalate": 279,
+    "nan": 84,
+    "not_run": 117
+  },
+  "step7_counts": {
+    "fail_to_reject_null": 51,
+    "nan": 84,
+    "not_run": 117,
+    "reject_null": 228
+  }
+}

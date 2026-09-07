@@ -1,0 +1,199 @@
+{
+  "display_set": {
+    "attained": 44,
+    "distinct_realizations_incl_not_attained_key": 43,
+    "entries": 48,
+    "evaluation_blocks": 10,
+    "fitted_realizations": 43,
+    "not_attained": 4
+  },
+  "ed2_source": {
+    "adopted_reference": "IAAO Standard on Ratio Studies (2013) remains the adopted/current guidance.",
+    "appendix_D2_page": 67,
+    "appendix_E_pages": "78-81",
+    "bytes": 2013844,
+    "committed": false,
+    "guidance_status": "May-2026 Exposure Draft / proposed guidance; not adopted IAAO guidance.",
+    "sha256": "e950e00d0c3684dd067734d401e5278dcf659f471fcfb0d6db65c7584f7c56b8",
+    "title_as_printed": "Exposure Draft May 2026",
+    "url": "https://www.iaao.org/wp-content/uploads/StandardonRatioStudies_Exposure-Mar2026.pdf"
+  },
+  "note": "Machine-derived. The P1 reports quote numbers from this file only.",
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p1-inferential-reporting",
+      "commit": "3bef64626b23bb46b43b34e70ee5028de4a5365d",
+      "dirty": true,
+      "status_porcelain": "M analysis/p1_inferential_reporting/code/p1_4_smearing_sensitivity.py\n?? analysis/p1_inferential_reporting/code/p1_9_freeze_evidence.py\n?? analysis/p1_inferential_reporting/code/p1_9_headline_numbers.py\n?? analysis/p1_inferential_reporting/provenance/p0_suite_at_tag.json\n?? analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json\n?? analysis/p1_inferential_reporting/reports/\n?? analysis/p1_inferential_reporting/tables/smearing_apply_delta_nl_subset.csv\n?? analysis/p1_inferential_reporting/tables/smearing_apply_ed2_stability.csv\n?? analysis/p1_inferential_reporting/tables/smearing_apply_fastpath_reconciliation.csv\n?? analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv\n?? analysis/p1_inferential_reporting/tables/smearing_apply_summary.json\n?? analysis/p1_inferential_reporting/tests/test_p1_headline_numbers.py\n?? analysis/p1_inferential_reporting/tests/test_p1_smearing_apply_assertions.py\n?? analysis/p1_inferential_reporting/tests/test_p1_vei_assertions.py"
+    },
+    "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "p0_tag": "p0-major-revision-final-20260907",
+    "thread_env": {
+      "MKL_NUM_THREADS": "",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "schema_version": 1,
+  "task1_dcor": {
+    "abs_diff_vs_U_statistic": 0.007516477932003329,
+    "abs_diff_vs_V_statistic": 1.3322676295501878e-15,
+    "bias_corrected": false,
+    "call": "dcor.distance_correlation(e, y_true_log, ...)  ->  x=e, y=log P",
+    "consistency_verdict": "ALL reported path metrics use ONE estimator. dCor_e_y is produced only by utils/motivation_utils.distance_correlation_e_y, reached via paper_mechanism_metrics -> compute_taxation_metrics/_compute_extended_metrics from run_temporal_cv.py and every P0 script; the path tables are a pure merge of those shards with no recomputation. The two other call sites do not feed any manuscript table.",
+    "estimator_class": "BIASED / V-statistic (double-centered)",
+    "exponent": "1",
+    "kwargs": "e, y_true_log, method=\"auto\"",
+    "library": "dcor 0.6",
+    "manuscript_definition": "paper/paper_v17_option1.tex:1160-1168 (eq:dcor_diagnostic)",
+    "manuscript_todo": "paper/paper_v17_option1.tex:3204-3206",
+    "n_probe": 400,
+    "subsampling": "none - full evaluation sample"
+  },
+  "task2_prb": {
+    "attained": 440,
+    "ci_level": 0.95,
+    "class_counts_all": {
+      "NOT_ATTAINED": 40,
+      "outside_pm005_but_not_pm010": 193,
+      "outside_pm010": 21,
+      "overlaps_pm005": 40,
+      "within_pm005": 186
+    },
+    "class_counts_standards_facing": {
+      "NOT_ATTAINED": 8,
+      "outside_pm005_but_not_pm010": 44,
+      "outside_pm010": 3,
+      "overlaps_pm005": 8,
+      "within_pm005": 33
+    },
+    "classification_rule": "the ENTIRE 95% CI must lie outside a band before that band is deemed exceeded; a CI that merely crosses a threshold is 'overlaps_pm005', never evidence of exceeding it",
+    "d3_pooled_oof_reweighting_effect_max_abs": 0.0027225657356132,
+    "frozen_reconciliation_max_abs": 7.632783294297951e-16,
+    "frozen_reconciliation_n": 234,
+    "not_attained": 40,
+    "reconciliation_unweighted_max_abs": 1.1790152187884928e-12,
+    "rows": 480
+  },
+  "task3_vei": {
+    "ci_rank_clamped_any": false,
+    "evaluated_cells": 396,
+    "frozen_reconciliation_max_abs": 7.105427357601002e-15,
+    "frozen_reconciliation_n": 234,
+    "identity": "44 attained x 9 ED2-applicable blocks = 396",
+    "max_abs_step5_minus_canonical_vei": 0.0,
+    "pooled_oof_reason": "ED2 App. D.2 is a rank-based order-statistic CI on distinct observations and has no row-balanced analogue; the pooled-OOF sample contains 20,988 unique rows twice, so the ED2 procedure is not applied there. No weighted variant was invented.",
+    "pooled_oof_treatment": "NOT_APPLICABLE_FOR_ED2_INFERENCE",
+    "rows": 480,
+    "standards_facing": {
+      "cells": 88,
+      "ci_overlap_stop_at_step6": 0,
+      "escalated_past_step5": 63,
+      "fail_to_reject_at_step7": 11,
+      "reject_null": 52,
+      "stop_at_step5_within_band": 25,
+      "vei_max": 14.769870796387837,
+      "vei_min": -29.78552349345996
+    },
+    "step5_gate_counts": {
+      "nan": 84,
+      "step5_outside_pm10_escalate": 279,
+      "step5_within_pm10_stop": 117
+    },
+    "step6_counts": {
+      "ci_no_overlap_escalate": 279,
+      "nan": 84,
+      "not_run": 117
+    },
+    "step7_counts": {
+      "fail_to_reject_null": 51,
+      "nan": 84,
+      "not_run": 117,
+      "reject_null": 228
+    },
+    "unevaluated_breakdown": {
+      "not_attained": 40,
+      "pooled_oof_all": 48,
+      "pooled_oof_attained": 44
+    },
+    "unevaluated_cells": 84
+  },
+  "task4_smearing": {
+    "cells": 430,
+    "d3": {
+      "appearances": 151153,
+      "duplicated_unique_rows": 20988,
+      "max_multiplicity": 2,
+      "unique": 130165
+    },
+    "delta_nl_max_rel_diff": 1.8132892847038278e-15,
+    "delta_nl_subset_cells": 30,
+    "ed2_cells_applied": 387,
+    "ed2_cells_not_applicable": 43,
+    "ed2_verdicts_unchanged": true,
+    "fastpath_comparisons": 450,
+    "fastpath_max_rel_diff": 0.0,
+    "flagged": 0,
+    "invariance_or_scale_checks": 5160,
+    "level_shift_pct_max": 14.269162343376319,
+    "level_shift_pct_min": 4.293067974234965,
+    "max_abs_s_minus_s_naive": 0.0039355056251861,
+    "max_rel_diff_invariant": 1.0011069074835367e-11,
+    "max_rel_diff_scales_by_s": 1.2638783260013826e-15,
+    "metric_checks": 6450,
+    "moves_by_design": {
+      "MAE_price": {
+        "max_abs_delta": 20809.348878781777
+      },
+      "MAPE": {
+        "max_abs_delta": 0.05811496835853305
+      },
+      "R2_price": {
+        "max_abs_delta": 0.05769600282085874
+      }
+    },
+    "n_realizations": 43,
+    "per_metric_max_rel_diff": {
+      "COD": 5.273061390621573e-16,
+      "COV": 5.191636516856658e-16,
+      "Cov_log_residual_log_price": 2.3442824021259224e-13,
+      "MKI": 2.5611661979999347e-15,
+      "PRB": 3.693159374904582e-14,
+      "PRD": 6.501921303139208e-16,
+      "VEI": 2.845607125668017e-13,
+      "beta_log": 2.3445042731801097e-13,
+      "dCor_e_y": 1.0011069074835367e-11,
+      "mean_ratio": 1.2638783260013826e-15,
+      "median_ratio": 1.069430871021435e-15,
+      "weighted_mean_ratio": 1.2049450851318252e-15
+    },
+    "s_max": 1.1426916234337632,
+    "s_median": 1.0602010551302514,
+    "s_min": 1.0429306797423497,
+    "worst_invariant_metric": "dCor_e_y"
+  },
+  "test_suites": {
+    "scientific_subtotal": 64,
+    "test_p1_headline_numbers.py": 8,
+    "test_p1_prb_assertions.py": 12,
+    "test_p1_smearing_apply_assertions.py": 19,
+    "test_p1_vei_assertions.py": 28,
+    "test_smearing_sign.py": 5,
+    "total": 72
+  }
+}

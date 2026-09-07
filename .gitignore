@@ -151,3 +151,27 @@ analysis/p0_major_revision_validation/**/*.out
 analysis/p0_major_revision_validation/**/*.err
 analysis/p0_major_revision_validation/**/*.log
 analysis/p0_major_revision_validation/**/__pycache__/
+
+# ---------------------------------------------------------------------------
+# P1 inferential-reporting exception (mirrors the P0 block above).
+# Applies ONLY under analysis/p1_inferential_reporting/.
+# Compact machine-readable evidence is tracked; bulky twins and logs are not.
+# The IAAO ED2 PDF stays ignored via the deeper .gitignore in
+# provenance/ed2_source_cache/ -- it is NOT redistributed in this repository.
+!analysis/p1_inferential_reporting/
+!analysis/p1_inferential_reporting/**/
+!analysis/p1_inferential_reporting/**/*.csv
+!analysis/p1_inferential_reporting/**/*.json
+!analysis/p1_inferential_reporting/**/*.yaml
+!analysis/p1_inferential_reporting/**/*.yml
+!analysis/p1_inferential_reporting/**/*.md
+!analysis/p1_inferential_reporting/**/*.py
+!analysis/p1_inferential_reporting/**/*.sh
+!analysis/p1_inferential_reporting/**/*.sbatch
+!analysis/p1_inferential_reporting/**/*.txt
+
+analysis/p1_inferential_reporting/**/*.parquet
+analysis/p1_inferential_reporting/**/*.out
+analysis/p1_inferential_reporting/**/*.err
+analysis/p1_inferential_reporting/**/*.log
+analysis/p1_inferential_reporting/**/__pycache__/

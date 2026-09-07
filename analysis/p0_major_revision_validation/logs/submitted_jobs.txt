@@ -9,3 +9,4 @@
 22138040	temporal_robustness dsnap+dpurge (array 0-53)	sched_mit_sloan_batch_r8
 dsnap_refinement 22151066
 dsnap_refinement retry shard 1 (stale-NFS numba cache) 22155049
+race_task12 redundant parallel re-execution of 22151066_12 (array 0-10, one rho each) 22166048

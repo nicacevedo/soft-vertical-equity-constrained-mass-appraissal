@@ -1,0 +1,374 @@
+{
+  "artifacts": {
+    "P1_CHECKPOINT.md": {
+      "bytes": 13567,
+      "sha256": "32e1e58351138d3001eb7ccfe4e173f91503a63505e9bb2effda1fc71c3cb2cc"
+    },
+    "code/p1_0_freeze_display_set.py": {
+      "bytes": 10274,
+      "sha256": "7832b9997063aeeeb31704c70975066bc4db4bc5e120d02e3610596f0d19ada2"
+    },
+    "code/p1_1_dcor_documentation.py": {
+      "bytes": 8219,
+      "sha256": "182aba42bd93c55d0fa702874eded02ab6bf56f9a01915ba5a8d0de1ba62b1c5"
+    },
+    "code/p1_2_prb_inference.py": {
+      "bytes": 18537,
+      "sha256": "2c84f194b71fead97e6877bc9d61e300be33c2ac2987487e6d162b0ca871609d"
+    },
+    "code/p1_3_vei_ed2_inference.py": {
+      "bytes": 16461,
+      "sha256": "490291ce372e2373730da6601bb3a874a4426526f2f9a98470ba5c51b8e88280"
+    },
+    "code/p1_4_smearing_sensitivity.py": {
+      "bytes": 25279,
+      "sha256": "648c0584fc071743b098a68673cba19f9a72187af761b5d09a2b6fc48c573f39"
+    },
+    "code/p1_9_freeze_evidence.py": {
+      "bytes": 10898,
+      "sha256": "c1f58b920f259e679542a3392a63b0e8b960e52341553ce5926a48c765111da7"
+    },
+    "code/p1_9_headline_numbers.py": {
+      "bytes": 8883,
+      "sha256": "448d9f16b9ad7efa5ad30ecb2bcb0dc44b717808ddf43649acba1fb4b4fe24d3"
+    },
+    "code/p1_common.py": {
+      "bytes": 12459,
+      "sha256": "9a2d175400c950a34542d622af70e3225daae1d3c40c92283bad4e609eaaa1e4"
+    },
+    "configs/display_set_frozen.json": {
+      "bytes": 107181,
+      "sha256": "b050a2bbd08b09ac83b3cbce0678eb4e54cd27099f7b1072e4f0fba8c8bcd6a8"
+    },
+    "configs/display_set_frozen_hash.json": {
+      "bytes": 180,
+      "sha256": "f30b79763d0094a5a5d114621fa9aeb5c186a993e65ea3f3f1dd6e1d26964d52"
+    },
+    "configs/ed2_vei_procedure.json": {
+      "bytes": 11702,
+      "sha256": "5bf62c9de6b22d906abd299d54694b3389ef8e9229301bbd964f1ee85e813b63"
+    },
+    "configs/smearing_estimator_frozen.json": {
+      "bytes": 3598,
+      "sha256": "6e00c9fa14b3fa5813be00691d48b36fb6917110b6cd8faa0ff9201fbd36bf18"
+    },
+    "configs/smearing_estimator_frozen_hash.json": {
+      "bytes": 225,
+      "sha256": "132247499af161d1b7d67e4e438ddeb6f781b8890cc3c0baa56dfb4c42fd8dbb"
+    },
+    "provenance/DEVIATIONS_P1.md": {
+      "bytes": 22963,
+      "sha256": "6c1b281d3478c6fcd53b8b6d4907a2cb6f9bfaa9964f4de39b00c28b64f5ff55"
+    },
+    "provenance/ed2_source_cache/.gitignore": {
+      "bytes": 328,
+      "sha256": "2ec2a270697986aa7bc68788a43f94a43920aa8e71bd9217086a27a7e675392c"
+    },
+    "provenance/ed2_source_manifest.json": {
+      "bytes": 2856,
+      "sha256": "63306a00dc6aeaf4198a3397966d3f4f7096edbece345b2518553632d294eb82"
+    },
+    "provenance/p0_suite_at_tag.json": {
+      "bytes": 4078,
+      "sha256": "37f6e58b3680d1bba2c724e2b85dec9beb89c84b4a33a6563c28a72e00a73e4f"
+    },
+    "provenance/p0_suite_on_p1_branch.json": {
+      "bytes": 1831,
+      "sha256": "eeac249650760a7ba22c586d1c7203982987197e70732794ec78493cc2376372"
+    },
+    "provenance/p1_headline_numbers.json": {
+      "bytes": 8155,
+      "sha256": "45116898f7de32e69ff471c42ee3de0813bc28ac0066584882ea9c5f9acbc748"
+    },
+    "reports/MANUSCRIPT_EVIDENCE_PACKAGE.md": {
+      "bytes": 22762,
+      "sha256": "6f28490d21e76e12ba5469f96c2f702889a6390b088f85aa239cc74ff6a52df0"
+    },
+    "reports/MANUSCRIPT_IMPACT_MEMO.md": {
+      "bytes": 15039,
+      "sha256": "94316684d102bc833079285796468d9d53ce211faf72ba916dd5f3a71364792f"
+    },
+    "tables/dcor_estimator_audit.csv": {
+      "bytes": 1004,
+      "sha256": "735d26066d16f5a34b92da3b28fb9080174fbea94fd1f3d69ef401d0c5c6db45"
+    },
+    "tables/dcor_estimator_facts.json": {
+      "bytes": 3553,
+      "sha256": "175bf4ca7eb597ecfb47872a2288766d36cbdaafdf5faaa0eb77761503463a94"
+    },
+    "tables/prb_inference.csv": {
+      "bytes": 250523,
+      "sha256": "fb7e8f117c7916d0a22f14f4c2e7f00d1e84eceaff63c12a4edd5833f7ef926a"
+    },
+    "tables/prb_inference_summary.json": {
+      "bytes": 2999,
+      "sha256": "1458c8466af0a3ec7f1e961d9ecb039ff2cb1a38d77cf35acb39748a011ed0b9"
+    },
+    "tables/smearing_apply_delta_nl_subset.csv": {
+      "bytes": 5313,
+      "sha256": "08f439a20c5b31cefcd00dda45d69e31d3c1a528e9515d8f6ad9420c025c06ab"
+    },
+    "tables/smearing_apply_ed2_stability.csv": {
+      "bytes": 303131,
+      "sha256": "9251db3502e5bf9e5b0c2549b7e5804f108564c9e4117122e6acad7b1daaa749"
+    },
+    "tables/smearing_apply_fastpath_reconciliation.csv": {
+      "bytes": 43269,
+      "sha256": "24c6c9e6187edbb5784a806cde66ea3a21000fdba816eb753e431bec14ce473e"
+    },
+    "tables/smearing_apply_invariance.csv": {
+      "bytes": 1571430,
+      "sha256": "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    },
+    "tables/smearing_apply_summary.json": {
+      "bytes": 5009,
+      "sha256": "b9e0de564ddd9f48b23cc9d4152af55c7a5791ea4761f75c2222ab7c55f6fd5c"
+    },
+    "tables/smearing_factor_provenance.csv": {
+      "bytes": 12295,
+      "sha256": "54a2c4332dbb23f9f3e533bc405a2c83a74612a8f4ae56625df6311116986d58"
+    },
+    "tables/vei_significance.csv": {
+      "bytes": 532784,
+      "sha256": "8e27d0ae0bd25d337ff078f79273de9205f668134883a441119ffb6c622fa757"
+    },
+    "tables/vei_significance_summary.json": {
+      "bytes": 2734,
+      "sha256": "2a0f93a965153741d9cb98ffee1d00aca9cdf42401fa207c21df1141759a5bab"
+    },
+    "tests/test_p1_headline_numbers.py": {
+      "bytes": 6882,
+      "sha256": "51444279aa6fffe97a8f048bb60321b534b277880e4423927cd6d7680383273b"
+    },
+    "tests/test_p1_prb_assertions.py": {
+      "bytes": 5825,
+      "sha256": "ed3d5b60cbecf2dfb2ac873262ccb6acdb025c4e06796cf5aff9f784075e3b51"
+    },
+    "tests/test_p1_smearing_apply_assertions.py": {
+      "bytes": 12582,
+      "sha256": "c583cacb2fc2004f6cdbf6fd0baf28b6386d6e42b43115f4125d533cf19c64df"
+    },
+    "tests/test_p1_vei_assertions.py": {
+      "bytes": 20159,
+      "sha256": "905d14754b9ed89227554e8ad3b84e9778e07c2b7e7436add8993353e0fa3d6f"
+    },
+    "tests/test_smearing_sign.py": {
+      "bytes": 5568,
+      "sha256": "7f254a3f340140d2e0e777fabf1c3f2b3fbad536e2a344a4a0409336288150fc"
+    }
+  },
+  "ed2_source_not_committed": {
+    "bytes": 2013844,
+    "committed": false,
+    "path_gitignored": "analysis/p1_inferential_reporting/provenance/ed2_source_cache/StandardonRatioStudies_Exposure-Mar2026.pdf",
+    "present_on_run_host": true,
+    "redistribution_permission_established": false,
+    "sha256": "e950e00d0c3684dd067734d401e5278dcf659f471fcfb0d6db65c7584f7c56b8",
+    "url": "https://www.iaao.org/wp-content/uploads/StandardonRatioStudies_Exposure-Mar2026.pdf",
+    "verified_on_run_host": true
+  },
+  "generated_by": "code/p1_9_freeze_evidence.py",
+  "n_artifacts": 39,
+  "note": "SHA-256 index of every TRACKED P1 artifact at the final evidence freeze. Parquet twins and logs are gitignored by design (mirroring P0). The IAAO ED2 PDF is cached at a gitignored path and is NOT redistributed; its hash is recorded separately below.",
+  "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+  "p0_immutability": {
+    "P0_UNCHANGED": true,
+    "commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "files_changed_outside_p1_and_gitignore": [],
+    "files_changed_since_tag": 40,
+    "final_gate_index_byte_exact": true,
+    "frozen_hash_indexes": {
+      "output_artifact_hashes.json": {
+        "MISMATCH": 7,
+        "byte_exact": 118,
+        "mismatched_paths": [
+          "analysis/p0_major_revision_validation/provenance/POSTFLIGHT.json",
+          "analysis/p0_major_revision_validation/provenance/large_local_artifacts.json",
+          "analysis/p0_major_revision_validation/provenance/output_artifact_hashes.json",
+          "analysis/p0_major_revision_validation/provenance/slurm_graph.json",
+          "analysis/p0_major_revision_validation/tests/run_all_tests.py",
+          "analysis/p0_major_revision_validation/tests/test_g2_assertions.py",
+          "analysis/p0_major_revision_validation/tests/test_g3_assertions.py"
+        ],
+        "mismatched_paths_AT_TAG": [
+          "analysis/p0_major_revision_validation/provenance/POSTFLIGHT.json",
+          "analysis/p0_major_revision_validation/provenance/large_local_artifacts.json",
+          "analysis/p0_major_revision_validation/provenance/output_artifact_hashes.json",
+          "analysis/p0_major_revision_validation/provenance/slurm_graph.json",
+          "analysis/p0_major_revision_validation/tests/run_all_tests.py",
+          "analysis/p0_major_revision_validation/tests/test_g2_assertions.py",
+          "analysis/p0_major_revision_validation/tests/test_g3_assertions.py"
+        ],
+        "missing": 0,
+        "n": 125,
+        "no_new_mismatch_vs_tag": true,
+        "stale_by_p0_design": [
+          "analysis/p0_major_revision_validation/provenance/POSTFLIGHT.json",
+          "analysis/p0_major_revision_validation/provenance/large_local_artifacts.json",
+          "analysis/p0_major_revision_validation/provenance/output_artifact_hashes.json",
+          "analysis/p0_major_revision_validation/provenance/slurm_graph.json",
+          "analysis/p0_major_revision_validation/tests/run_all_tests.py",
+          "analysis/p0_major_revision_validation/tests/test_g2_assertions.py",
+          "analysis/p0_major_revision_validation/tests/test_g3_assertions.py"
+        ],
+        "why_stale": "early-stage snapshot superseded by P0's own later gates; output_artifact_hashes.json additionally lists itself"
+      },
+      "stage1_frozen_hashes.json": {
+        "MISMATCH": 1,
+        "byte_exact": 48,
+        "mismatched_paths": [
+          "analysis/p0_major_revision_validation/tables/regeneration_triggers.csv"
+        ],
+        "mismatched_paths_AT_TAG": [
+          "analysis/p0_major_revision_validation/tables/regeneration_triggers.csv"
+        ],
+        "missing": 0,
+        "n": 49,
+        "no_new_mismatch_vs_tag": true,
+        "stale_by_p0_design": [
+          "analysis/p0_major_revision_validation/tables/regeneration_triggers.csv"
+        ],
+        "why_stale": "early-stage snapshot superseded by P0's own later gates; output_artifact_hashes.json additionally lists itself"
+      },
+      "stage3b_artifact_hashes.json": {
+        "MISMATCH": 0,
+        "byte_exact": 28,
+        "gate": "G5b",
+        "mismatched_paths": [],
+        "missing": 0,
+        "n": 28,
+        "no_new_mismatch_vs_tag": true,
+        "note": "the FINAL P0 gate index; this one IS fully byte-exact"
+      }
+    },
+    "git_diff_vs_tag_p0_tree": "",
+    "immutability_criterion": "P0 is unchanged iff: (1) git diff vs the tag over the P0 tree is empty; (2) the FINAL gate index (Stage-3B / G5b) is fully byte-exact; (3) no index acquired a mismatch that the tag did not already have; (4) no index entry went missing; (5) protected paths are clean; (6) the only files changed since the tag are the P1 directory and .gitignore. Requiring zero mismatches in the two early-stage indexes would be wrong: it was never true, not even at the tag.",
+    "no_index_entry_is_missing": true,
+    "no_new_mismatch_in_any_index": true,
+    "only_p1_and_gitignore_changed": true,
+    "p0_tree_identical_to_tag": true,
+    "protected_paths_clean": true,
+    "protected_paths_dirty": "",
+    "tag": "p0-major-revision-final-20260907"
+  },
+  "p0_suite": {
+    "RESULT": "153 passed, 0 failed, 0 skipped",
+    "environment_reconstitution": {
+      "steps": [
+        {
+          "paths": [
+            "output/paper_v6_preselection_994",
+            "output/paper_v12_lower_rho_extension_994_v2",
+            "output/p0_major_revision_validation"
+          ],
+          "reason": "large derived artifacts are gitignored by design and are not in any checkout",
+          "step": "symlink the gitignored prediction trees"
+        },
+        {
+          "paths": [
+            "data/ATTOM",
+            "data/berry_cmf",
+            "data/CCAO",
+            "data/CensusData",
+            "data/dewey-downloads"
+          ],
+          "reason": "gitignored raw datasets. Created as real directories with symlinked children so the existing `data/<X>/` gitignore patterns still match \u2014 a bare symlink is not a directory and would have shown as an untracked path, tripping the Stage-1 write-location guard",
+          "step": "symlink the gitignored source-data trees"
+        },
+        {
+          "detail": "0444 in the main tree; git checkout creates 0664. chmod 444 restored it.",
+          "paths": [
+            "analysis/p0_major_revision_validation/APPROVED_EXECUTION_PLAN.md"
+          ],
+          "reason": "three P0 tests assert the approved plan is read-only; git records only the exec bit",
+          "step": "restore the read-only file mode git does not track"
+        },
+        {
+          "reason": "test_source_equivalence_precedes_reproduction_interpretation asserts a RELATIVE mtime ordering (source_equivalence_verdict.json older than frozen_artifact_reproduction.csv). git does not record mtimes, so `git worktree add` stamps every file with the checkout time and the assertion is unreproducible from git content alone. The authoritative record of the P0 execution order is the main working tree.",
+          "step": "reconstitute mtimes for the 309 tracked P0 files from the main working tree"
+        }
+      ],
+      "why": "a fresh `git worktree add` contains only tracked git CONTENT. Three classes of state that the P0 suite legitimately asserts are not carried by git and had to be re-attached from the authoritative main working tree, where P0 actually ran. No P0 test was modified, skipped or weakened, and no file CONTENT was altered."
+    },
+    "n_tests_total": 153,
+    "note": "This is the authoritative reproduction of the tag's 153/153 certification. It was NOT run on the P1 branch; see p0_suite_on_p1_branch.json for that separate measurement.",
+    "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "p0_not_modified": true,
+    "p0_suite_not_modified": true,
+    "p0_tag": "p0-major-revision-final-20260907",
+    "result_structured": {
+      "failed": 0,
+      "failed_tests": [],
+      "passed": 153,
+      "skipped": 0,
+      "suites": {
+        "Stage-1 assertions": 28,
+        "Stage-1.5 / Gate-G2 assertions": 36,
+        "Stage-2 / Gate-G3 assertions": 36,
+        "Stage-3 matched-beta + temporal assertions": 29,
+        "Stage-3B / Gate-G5b temporal-completion assertions": 24
+      }
+    },
+    "runner": "analysis/p0_major_revision_validation/tests/run_all_tests.py",
+    "schema_version": 1,
+    "suites": {
+      "Stage-1 assertions": 28,
+      "Stage-1.5 / Gate-G2 assertions": 36,
+      "Stage-2 / Gate-G3 assertions": 36,
+      "Stage-3 matched-beta + temporal assertions": 29,
+      "Stage-3B / Gate-G5b temporal-completion assertions": 24
+    },
+    "two_measurements": {
+      "content_only_checkout": {
+        "RESULT": "152 passed, 1 failed",
+        "interpretation": "the single failure is the mtime-ordering assertion, which NO checkout can reproduce because git does not store mtimes. It is not a P0 content defect.",
+        "sole_failure": [
+          "test_source_equivalence_precedes_reproduction_interpretation"
+        ]
+      },
+      "with_mtimes_reconstituted": {
+        "RESULT": "153 passed, 0 failed",
+        "failures": [],
+        "interpretation": "the certification the tag carries: 153/153."
+      }
+    },
+    "what": "P0 assertion suite executed at the IMMUTABLE TAG in an isolated detached git worktree",
+    "worktree": "detached git worktree, separate checkout, outside the P1 working tree"
+  },
+  "p0_tag": "p0-major-revision-final-20260907",
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p1-inferential-reporting",
+      "commit": "1e8008ed11e2d16726c1c4f45d01815703d62207",
+      "dirty": true,
+      "status_porcelain": "A  analysis/p1_inferential_reporting/provenance/p0_suite_on_p1_branch.json"
+    },
+    "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "p0_tag": "p0-major-revision-final-20260907",
+    "thread_env": {
+      "MKL_NUM_THREADS": "",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "schema_version": 2,
+  "self_excluded": "provenance/p1_artifact_hashes.json",
+  "self_exclusion_reason": "a hash index cannot contain its own hash; this file is the only tracked P1 path it does not cover, and it is generated after every file it does cover is final",
+  "stage": "P1_INFERENTIAL_REPORTING",
+  "status": "FINAL"
+}

@@ -1,0 +1,104 @@
+{
+  "RMSE_log_note": "NOT mathematically invariant to adding a constant. It is simply not recomputed: Duan smearing is a post-exponentiation price-scale retransformation sensitivity and does not alter the canonical log prediction.",
+  "application": "y_hat_level = s * exp(f(x));  equivalently y_pred_log -> y_pred_log + log(s)",
+  "applied_s_source": "configs/smearing_estimator_frozen.json (hash-validated) + tables/smearing_factor_provenance.csv (frozen estimate, unchanged)",
+  "delta_nl_subset": {
+    "all_ok": true,
+    "analytic_reason": "e -> e + log(s); the affine and spline heads both carry an intercept and Var(e) is translation invariant, so the OOF residuals and hence Delta_NL are unchanged by construction",
+    "max_rel_diff": 1.8132892847038278e-15,
+    "n_cells": 30,
+    "realizations": [
+      "fit:LGBCovPenalty:1fb838f7d6bfda88",
+      "fit:LGBMRegressor:252a25d9c0ce796b",
+      "fit:LGBSmoothPenalty:d5704816049673ad"
+    ],
+    "rule": "the two included reference cells (C, A) plus the realization with the largest frozen s; all ten evaluation blocks; both arms"
+  },
+  "duan_log_error": "u_ik = y_true_log - y_pred_log = -e_ik",
+  "ed2_stability": {
+    "all_verdicts_unchanged": true,
+    "max_vei_rel_diff": 2.845607125668017e-13,
+    "n_cells_ed2_applied": 387,
+    "n_cells_not_applicable": 43,
+    "n_rows_total": 430,
+    "n_verdict_unchanged": 387,
+    "not_applicable_reason": "ED2 App. D.2 is a rank-based order-statistic CI on distinct observations and has no row-balanced analogue; the pooled-OOF sample contains 20,988 unique rows twice, so the ED2 procedure is not applied there. No weighted variant was invented.",
+    "scope": "the nine ED2-applicable evaluation blocks (fold_1..fold_7, heldout, forward_2025); pooled_oof is NOT_APPLICABLE_FOR_ED2_INFERENCE"
+  },
+  "fastpath_reconciliation": {
+    "max_rel_diff_vs_p0_metrics_from": 0.0,
+    "n_comparisons": 450
+  },
+  "forward_2025_assumption": "The 2025 forward evaluation's fitting set is the 382,897-row production block, which has no out-of-fold analogue. The development-estimated s is applied there unchanged. This is an explicit assumption and a stated limitation, not a validated property.",
+  "level_metrics_scale_by_s": [
+    "mean_ratio",
+    "median_ratio",
+    "weighted_mean_ratio"
+  ],
+  "max_rel_diff_invariant": 1.0011069074835367e-11,
+  "max_rel_diff_scales_by_s": 1.2638783260013826e-15,
+  "moves_by_design": {
+    "MAE_price": {
+      "max_abs_delta": 20809.348878781777
+    },
+    "MAPE": {
+      "max_abs_delta": 0.05811496835853305
+    },
+    "R2_price": {
+      "max_abs_delta": 0.05769600282085874
+    }
+  },
+  "n_cells": 430,
+  "n_evaluations": 10,
+  "n_flagged": 0,
+  "n_invariance_or_scale_checks": 5160,
+  "n_metric_checks": 6450,
+  "n_realizations": 43,
+  "per_metric_max_rel_diff": {
+    "COD": 5.273061390621573e-16,
+    "COV": 5.191636516856658e-16,
+    "Cov_log_residual_log_price": 2.3442824021259224e-13,
+    "MKI": 2.5611661979999347e-15,
+    "PRB": 3.693159374904582e-14,
+    "PRD": 6.501921303139208e-16,
+    "VEI": 2.845607125668017e-13,
+    "beta_log": 2.3445042731801097e-13,
+    "dCor_e_y": 1.0011069074835367e-11,
+    "mean_ratio": 1.2638783260013826e-15,
+    "median_ratio": 1.069430871021435e-15,
+    "weighted_mean_ratio": 1.2049450851318252e-15
+  },
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p1-inferential-reporting",
+      "commit": "3bef64626b23bb46b43b34e70ee5028de4a5365d",
+      "dirty": true,
+      "status_porcelain": "M analysis/p1_inferential_reporting/code/p1_4_smearing_sensitivity.py\n?? analysis/p1_inferential_reporting/code/p1_9_freeze_evidence.py\n?? analysis/p1_inferential_reporting/provenance/p0_suite_at_tag.json\n?? analysis/p1_inferential_reporting/tables/smearing_apply_delta_nl_subset.csv\n?? analysis/p1_inferential_reporting/tables/smearing_apply_ed2_stability.csv\n?? analysis/p1_inferential_reporting/tables/smearing_apply_fastpath_reconciliation.csv\n?? analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv\n?? analysis/p1_inferential_reporting/tests/test_p1_smearing_apply_assertions.py\n?? analysis/p1_inferential_reporting/tests/test_p1_vei_assertions.py"
+    },
+    "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "p0_tag": "p0-major-revision-final-20260907",
+    "thread_env": {
+      "MKL_NUM_THREADS": "",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "role": "SENSITIVITY ONLY -- canonical model unaltered, nothing retuned, no headline replaced",
+  "s_recomputed_in_apply": false,
+  "tolerance_rel": 1e-09
+}

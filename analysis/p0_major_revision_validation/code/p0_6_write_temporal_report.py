@@ -118,7 +118,7 @@ def _git(*a):
 def mode_report() -> int:
     g5a = json.loads((T / "gate_g5a_outcome.json").read_text())
     g5b = json.loads((T / "gate_g5b_outcome.json").read_text())
-    det = json.loads((T / "temporal_material_change_triggers_detail.json").read_text())
+    det = json.loads((T / "temporal_material_change_triggers_detail.json").read_text())["detail"]
     ov = json.loads((T / "temporal_validation_overlap_summary.json").read_text())
     grid = json.loads((c.CONFIGS / "robustness_rho_grid.json").read_text())
     rg = json.loads((c.CONFIGS / "dsnap_refinement_grid.json").read_text())
@@ -412,13 +412,20 @@ def mode_report() -> int:
     orda = sum(e["ordering_flips_any"] for e in g5b["evidence"])
     sgnm = any(e["sign_change_material"] for e in g5b["evidence"])
     W(f"| **A** | T1 — Direct/Surrogate β_log ordering | 8 flips on the screening grid "
-      f"(4 `CV_mean`, 4 `heldout`) | on the refined grid {orda} flips remain, of which "
-      f"**{ordm} are material** at τ=0.002 | "
+      f"(4 `CV_mean`, 4 `heldout`) | the denser grid exposes **more** near-ties, not fewer: "
+      f"{orda} flips on the refined support, of which **{ordm} are material** at τ=0.002 | "
       f"**{'CONFIRMED_MATERIAL_CHANGE' if ordm else 'NOT_CONFIRMED'}** |")
-    W(f"| **B** | T1 — Surrogate held-out β_log sign status | frozen reaches +1.07e−04 at "
-      f"ρ=86.85; D-SNAP stays negative (max −1.54e−04) | the 9 filled-in ρ in [18.4, 75.4] leave "
-      f"the D-SNAP path negative throughout; the discrepancy stays at the 1e−04 scale, ~19× "
-      f"below τ | **{'CONFIRMED_MATERIAL_CHANGE' if sgnm else 'NOT_CONFIRMED'}** |")
+    ho = [e for e in g5b["evidence"] if e["evaluation"] == "heldout"][0]
+    fmax = ho["frozen_sign"]["Surrogate"]["max"]
+    dmax = ho["dsnap_sign"]["Surrogate"]["max"]
+    tau = g5b["materiality_rule"]["TAU_MATCH"]
+    W(f"| **B** | T1 — Surrogate held-out β_log sign status | on the screening grid the frozen "
+      f"path reaches +1.07e−04 at ρ=86.85 while D-SNAP stays negative (max −1.54e−04) | the 9 "
+      f"filled-in ρ in [18.4, 75.4] leave the **D-SNAP path negative throughout** (refined max "
+      f"{dmax:+.3e}). The refinement does raise the *frozen* path's maximum to {fmax:+.3e} at "
+      f"ρ=75.43 — a newly filled point — so the status difference is real but still "
+      f"{tau / abs(fmax):.1f}× below τ={tau} | "
+      f"**{'CONFIRMED_MATERIAL_CHANGE' if sgnm else 'NOT_CONFIRMED'}** |")
     W("")
     W(f"**Gate G5b = `{g5b['status']}`.** {g5b['promotion']}")
     W("")

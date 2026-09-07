@@ -1,0 +1,79 @@
+{
+  "bands": {
+    "acceptable_pm005": 0.05,
+    "unacceptable_pm010": 0.1
+  },
+  "ci_level": 0.95,
+  "class_counts": {
+    "NOT_ATTAINED": 40,
+    "outside_pm005_but_not_pm010": 193,
+    "outside_pm010": 21,
+    "overlaps_pm005": 40,
+    "within_pm005": 186
+  },
+  "class_counts_standards_facing": {
+    "NOT_ATTAINED": 8,
+    "outside_pm005_but_not_pm010": 44,
+    "outside_pm010": 3,
+    "overlaps_pm005": 8,
+    "within_pm005": 33
+  },
+  "classification_rule": "the ENTIRE 95% CI must lie outside a band before that band is deemed exceeded; a CI that merely crosses a threshold is 'overlaps_pm005', never evidence of exceeding it",
+  "classification_states": [
+    "within_pm005",
+    "overlaps_pm005",
+    "outside_pm005_but_not_pm010",
+    "outside_pm010"
+  ],
+  "d3_pooled_oof_reweighting_effect": {
+    "_meaning": "|D3 row-balanced WLS slope - unweighted canonical prb()| on pooled_oof. This is NOT an error: it is the measured effect of giving each unique sale one vote instead of letting the 20,988 fold_6/fold_7 rows count twice. Reported as a sensitivity.",
+    "max_abs": 0.0027225657356132,
+    "median_abs": 0.0023317491348149996,
+    "n": 44
+  },
+  "display_se": "classical (homoskedastic); HC1 reported beside it as robustness",
+  "fold_as_iid_replicates": "NEVER -- no mean +/- SD/sqrt(7) appears in this table",
+  "frozen_reconciliation": {
+    "max_abs_frozen_minus_recomputed": 7.632783294297951e-16,
+    "median_abs": 7.849623728795052e-17,
+    "n_compared": 234
+  },
+  "pooled_oof": "D3 row-balanced WLS (w_ik = 1/m_i) with standard errors clustered on row_id -- reported as a SENSITIVITY, not the standards-facing result",
+  "provenance": {
+    "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
+    "git": {
+      "branch": "p1-inferential-reporting",
+      "commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+      "dirty": true,
+      "status_porcelain": "?? analysis/p1_inferential_reporting/"
+    },
+    "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "p0_tag": "p0-major-revision-final-20260907",
+    "thread_env": {
+      "MKL_NUM_THREADS": "",
+      "NUMEXPR_NUM_THREADS": "",
+      "OMP_NUM_THREADS": "",
+      "OPENBLAS_NUM_THREADS": "",
+      "SLURM_CPUS_PER_TASK": "",
+      "SLURM_JOB_ID": ""
+    },
+    "versions": {
+      "dcor": "0.6",
+      "lightgbm": "4.6.0",
+      "node": "sloan-login001.mit.edu",
+      "numpy": "1.26.4",
+      "pandas": "2.3.1",
+      "pyarrow": "14.0.1",
+      "python": "3.9.19",
+      "scikit-learn": "1.6.1",
+      "scipy": "1.13.1"
+    }
+  },
+  "reconciliation_unweighted_rows": {
+    "_meaning": "|P1 OLS slope - utils.motivation_utils.prb()| on the SAME observations, for every unweighted evaluation. Must be ~0: it proves the P1 regression reproduces the canonical function that produced the frozen values.",
+    "max_abs": 1.1790152187884928e-12
+  },
+  "rows": 480,
+  "rows_not_attained": 40,
+  "standard": "IAAO Standard on Ratio Studies (2013), p.19 -- adopted guidance"
+}

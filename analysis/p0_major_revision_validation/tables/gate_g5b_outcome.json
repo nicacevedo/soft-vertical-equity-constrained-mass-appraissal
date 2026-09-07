@@ -1,0 +1,125 @@
+{
+  "duplicate_rows_dropped_on_merge": 0,
+  "evidence": [
+    {
+      "dsnap_sign": {
+        "Direct": {
+          "all_negative": true,
+          "max": -0.07663378728965071,
+          "n_rho": 49
+        },
+        "Surrogate": {
+          "all_negative": true,
+          "max": -0.018295924612993984,
+          "n_rho": 58
+        }
+      },
+      "evaluation": "CV_mean",
+      "frozen_sign": {
+        "Direct": {
+          "all_negative": true,
+          "max": -0.0786514918143895,
+          "n_rho": 49
+        },
+        "Surrogate": {
+          "all_negative": true,
+          "max": -0.0186094650282942,
+          "n_rho": 58
+        }
+      },
+      "n_rho_compared": 49,
+      "ordering_flips_any": 10,
+      "ordering_flips_material": 0,
+      "sign_change_material": false,
+      "sign_status_changed": false,
+      "tau_match": 0.002
+    },
+    {
+      "dsnap_sign": {
+        "Direct": {
+          "all_negative": true,
+          "max": -0.0806603478074908,
+          "n_rho": 49
+        },
+        "Surrogate": {
+          "all_negative": true,
+          "max": -0.0001540536261184,
+          "n_rho": 58
+        }
+      },
+      "evaluation": "heldout",
+      "frozen_sign": {
+        "Direct": {
+          "all_negative": true,
+          "max": -0.0794110489128689,
+          "n_rho": 49
+        },
+        "Surrogate": {
+          "all_negative": false,
+          "max": 0.0008383543937158,
+          "n_rho": 58
+        }
+      },
+      "n_rho_compared": 49,
+      "ordering_flips_any": 13,
+      "ordering_flips_material": 0,
+      "sign_change_material": false,
+      "sign_status_changed": true,
+      "tau_match": 0.002
+    },
+    {
+      "dsnap_sign": {
+        "Direct": {
+          "all_negative": true,
+          "max": -0.0893753652219565,
+          "n_rho": 49
+        },
+        "Surrogate": {
+          "all_negative": true,
+          "max": -0.0148348797189632,
+          "n_rho": 58
+        }
+      },
+      "evaluation": "forward_2025",
+      "frozen_sign": {
+        "Direct": {
+          "all_negative": true,
+          "max": -0.0893753652219565,
+          "n_rho": 49
+        },
+        "Surrogate": {
+          "all_negative": true,
+          "max": -0.0148348797189632,
+          "n_rho": 58
+        }
+      },
+      "n_rho_compared": 49,
+      "ordering_flips_any": 0,
+      "ordering_flips_material": 0,
+      "sign_change_material": false,
+      "sign_status_changed": false,
+      "tau_match": 0.002
+    }
+  ],
+  "full_dsnap_regeneration_launched_in_this_run": false,
+  "gate": "G5b",
+  "hard_stop": "Per the stage authorization, the full 82-point D-SNAP regeneration is NOT launched in this run even under a confirmed promotion; it requires separate authorization.",
+  "materiality_rule": {
+    "TAU_MATCH": 0.002,
+    "ordering": "material only if min(|gap_frozen|, |gap_dsnap|) >= TAU_MATCH, i.e. the families are genuinely separated on BOTH paths and the ordering genuinely reversed",
+    "sign": "material only if the path maximum crossing zero exceeds TAU_MATCH in absolute value",
+    "source": "the beta_log matching tolerance frozen in configs/matched_beta_frozen.json BEFORE this stage read any outcome; no new constant was introduced at decision time"
+  },
+  "n_rho_after_refinement": {
+    "Direct": 49,
+    "Surrogate": 58
+  },
+  "n_rho_ordering_test_both_families": 49,
+  "promotion": "no promotion -- the screening alert was a near-tie / near-zero artifact that did not survive local refinement; the primary design stands",
+  "refinement_rhos_added": {
+    "Direct": 21,
+    "Surrogate": 30
+  },
+  "status": "NOT_CONFIRMED",
+  "trigger_re_evaluated": "T1_beta_log_sign_or_ordering"
+}
