@@ -5125,3 +5125,293 @@ entries:
     attained_status: "ATTAINED"
     note: >-
       The 2025 forward counterpart, same unit correction.
+
+  # ---------------------------------------------------------------------------
+  # B2.3 -- the rho=0 reference-cell audit.
+  #
+  # Two anchors. subsec:zero_reference_result is the new main-text subsection and
+  # carries only the A<->C prediction deltas, which is the fact that makes the
+  # workflow-benchmark comparison unable to isolate rho. tab:rho_zero_control is
+  # the implementation appendix, where the completed parity audit replaces the two
+  # \todo promises: A<->B agrees at reduced capacity, B<->C does not agree at any
+  # tested capacity, determinism pinning reproduces the unpinned ladder exactly,
+  # and the frozen colsample_bytree is the setting that separates the two paths.
+  # ---------------------------------------------------------------------------
+
+  - entry_id: "TB-zero-meandelta-AC-heldout-results"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv"
+    artifact_sha256: "7857e46b4fb7a94a808b699919175dc3199730adc565ca794a5586454c845157"
+    artifact_kind: "csv"
+    selector: "cell_id=A<->C;eval_name=heldout"
+    column: "mean_abs_delta_log"
+    metric: "meandelta"
+    raw_value: "0.03238952393862062"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "3.24e-02"
+    manuscript_anchor: "subsec:zero_reference_result"
+    reference_cell: "C"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The same frozen cell the implementation appendix tabulates, restated in the
+      new Results subsection. It is a prediction difference between the workflow
+      benchmark and the penalty-isolating origin, not a penalty effect.
+
+  - entry_id: "TB-zero-maxdelta-AC-heldout-results"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv"
+    artifact_sha256: "7857e46b4fb7a94a808b699919175dc3199730adc565ca794a5586454c845157"
+    artifact_kind: "csv"
+    selector: "cell_id=A<->C;eval_name=heldout"
+    column: "max_abs_delta_log"
+    metric: "maxdelta"
+    raw_value: "0.3089424504824372"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "3.09e-01"
+    manuscript_anchor: "subsec:zero_reference_result"
+    reference_cell: "C"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Worst-case held-out log deviation between the two reference cells.
+
+  - entry_id: "TB-zero-meandelta-AC-forward_2025-results"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv"
+    artifact_sha256: "7857e46b4fb7a94a808b699919175dc3199730adc565ca794a5586454c845157"
+    artifact_kind: "csv"
+    selector: "cell_id=A<->C;eval_name=forward_2025"
+    column: "mean_abs_delta_log"
+    metric: "meandelta"
+    raw_value: "0.030562982853740893"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "3.06e-02"
+    manuscript_anchor: "subsec:zero_reference_result"
+    reference_cell: "C"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The 2025 forward counterpart; the difference is present on both out-of-time
+      blocks, so it is not an artifact of one evaluation window.
+
+  - entry_id: "TB-zero-maxdelta-AC-forward_2025-results"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv"
+    artifact_sha256: "7857e46b4fb7a94a808b699919175dc3199730adc565ca794a5586454c845157"
+    artifact_kind: "csv"
+    selector: "cell_id=A<->C;eval_name=forward_2025"
+    column: "max_abs_delta_log"
+    metric: "maxdelta"
+    raw_value: "0.28251973643910233"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "2.83e-01"
+    manuscript_anchor: "subsec:zero_reference_result"
+    reference_cell: "C"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Worst-case 2025 forward log deviation between the two reference cells.
+
+  - entry_id: "TB-parity-AB-mean-T-heldout"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv"
+    artifact_sha256: "c8ebb41288a27e01699f03a11297957caa0ebe320effd500c811bf1490def4f7"
+    artifact_kind: "csv"
+    selector: "track=historical;capacity=T;split=heldout;cell_pair=A<->B"
+    column: "mean_abs_delta_log"
+    metric: "meandelta"
+    raw_value: "7.689317835694368e-09"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "7.69e-09"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "B"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Native-versus-native agreement at the small diagnostic capacity. The
+      capacity qualifier is load-bearing: at the canonical capacity the same pair
+      additionally carries a single-precision label-representation effect, so
+      "A<->B parity holds" is true of the reduced-capacity ladder rungs and is not
+      a statement about the reported paths.
+
+  - entry_id: "TB-parity-AB-max-T-heldout"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv"
+    artifact_sha256: "c8ebb41288a27e01699f03a11297957caa0ebe320effd500c811bf1490def4f7"
+    artifact_kind: "csv"
+    selector: "track=historical;capacity=T;split=heldout;cell_pair=A<->B"
+    column: "max_abs_delta_log"
+    metric: "maxdelta"
+    raw_value: "2.5829878680383445e-08"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "2.58e-08"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "B"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Worst-case counterpart of the same rung.
+
+  - entry_id: "TB-parity-BC-mean-T-heldout"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv"
+    artifact_sha256: "c8ebb41288a27e01699f03a11297957caa0ebe320effd500c811bf1490def4f7"
+    artifact_kind: "csv"
+    selector: "track=historical;capacity=T;split=heldout;cell_pair=B<->C"
+    column: "mean_abs_delta_log"
+    metric: "meandelta"
+    raw_value: "0.017626449320983416"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "1.76e-02"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "B"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The contrary finding. At the same capacity where native-versus-native agrees
+      to 7.69e-09, the built-in-versus-custom pair differs by six orders of
+      magnitude more, so label centering is not the separating mechanism.
+
+  - entry_id: "TB-parity-BC-max-T-heldout"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv"
+    artifact_sha256: "c8ebb41288a27e01699f03a11297957caa0ebe320effd500c811bf1490def4f7"
+    artifact_kind: "csv"
+    selector: "track=historical;capacity=T;split=heldout;cell_pair=B<->C"
+    column: "max_abs_delta_log"
+    metric: "maxdelta"
+    raw_value: "0.14014371103911039"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "1.40e-01"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "B"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Worst-case counterpart of the same rung.
+
+  - entry_id: "TB-parity-BC-mean-F-heldout"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv"
+    artifact_sha256: "c8ebb41288a27e01699f03a11297957caa0ebe320effd500c811bf1490def4f7"
+    artifact_kind: "csv"
+    selector: "track=historical;capacity=F;split=heldout;cell_pair=B<->C"
+    column: "mean_abs_delta_log"
+    metric: "meandelta"
+    raw_value: "0.032594333266874755"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "3.26e-02"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "B"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The same pair at the canonical capacity that produced the reported paths.
+
+  - entry_id: "TB-parity-BC-max-F-heldout"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv"
+    artifact_sha256: "c8ebb41288a27e01699f03a11297957caa0ebe320effd500c811bf1490def4f7"
+    artifact_kind: "csv"
+    selector: "track=historical;capacity=F;split=heldout;cell_pair=B<->C"
+    column: "max_abs_delta_log"
+    metric: "maxdelta"
+    raw_value: "0.29705395810308133"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "2.97e-01"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "B"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Worst-case counterpart at the canonical capacity, on the unpinned track.
+
+  - entry_id: "TB-parity-BC-max-F-heldout-pinned"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/tables/parity_ladder_pinned.csv"
+    artifact_sha256: "30689b6c6c2e48b5a0db670e33c1c46842ece41d874265ba82d37c8c86482991"
+    artifact_kind: "csv"
+    selector: "track=pinned;capacity=F;split=heldout;cell_pair=B<->C"
+    column: "max_abs_delta_log"
+    metric: "maxdelta"
+    raw_value: "0.29705395810308133"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "2.97e-01"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "B"
+    comparison_purpose: "WITHIN_MODEL"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The determinism-pinned track, read from its own artifact rather than assumed
+      equal to the unpinned one. The two agree to the printed digit, which is what
+      licenses the sentence that pinning does not remove the difference. The
+      pinned track characterises the implementation prospectively and is never
+      cited as validating a historical positive-rho artifact.
+
+  - entry_id: "TB-frozen-colsample-bytree"
+    added_by_stage: "B2.3"
+    artifact_path: "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json"
+    artifact_sha256: "ce4a46f06f42c07e32e065f7984a48963a87750582b60e309a09fa998dbe7cb2"
+    artifact_kind: "json"
+    selector: "$.frozen_lgbm.lgbm_params.colsample_bytree"
+    metric: "colsample_bytree"
+    raw_value: "0.5410105713520937"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "0.541"
+    manuscript_anchor: "tab:rho_zero_control"
+    reference_cell: "NONE"
+    comparison_purpose: "NOT_APPLICABLE"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The single setting the discriminating experiment isolates. It was tuned as
+      part of the canonical configuration, so setting it to one specifies a
+      different learner rather than reproducing the frozen experiment.

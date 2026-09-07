@@ -1983,7 +1983,7 @@ the distinction necessary rather than merely cautious.}
 % \oldtext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability and retrospective temporal concordance. This diagnostic characterizes the path and does not define a selected or recommended range.}
 \latesttext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability, retrospective exact concordance, and family-symmetric value-based span regret. This diagnostic characterizes the path and does not define a selected or recommended range.}
 
-\latesttext{One implementation qualification applies to every headline path comparison. In the currently frozen CCAO artifacts, the two custom-objective fits at $\rho=0$ agree with each other but are not numerically identical to native LightGBM, despite algebraically matching squared-error derivatives. Positive-$\rho$ changes relative to the within-family $\rho=0$ origin describe the effect of regularization along that custom-objective training path; differences relative to native LightGBM can also include the native-versus-custom training-path discrepancy. Appendix~\ref{app:implementation} reports the audit. The substantive tables must be regenerated from an initialization-aligned parity run before any native-to-penalized contrast is interpreted as a pure penalty effect.}
+\latesttext{One implementation qualification applies to every headline path comparison, and Section~\ref{subsec:zero_reference_result} states it as a rule rather than a caveat. In the frozen CCAO artifacts the two custom-objective fits at $\rho=0$ agree with each other but are not numerically identical to ordinary LightGBM, despite algebraically matching squared-error derivatives. Positive-$\rho$ changes relative to the within-family $\rho=0$ origin describe the effect of regularization along that custom-objective training path; differences relative to ordinary LightGBM also carry the native-versus-custom execution-path difference. Appendix~\ref{subsec:zero_control_results} reports the audit.}
 
 \subsection{Accuracy Alone Does Not Remove the CCAO Ratio Trend}
 \label{subsec:ccao_baseline_results}
@@ -1997,6 +1997,40 @@ object of interest. No $\rho$, penalty family, or operating point is selected in
 present analysis.
 
 % \oldtext{A dedicated main-text subsection and table previously reported the $\rho=0$ native/custom implementation check.}
+
+
+\subsection{\latesttext{The Zero-Penalty Reference Cells and What They Permit}}
+\label{subsec:zero_reference_result}
+
+\latesttext{Every path statement below is read against one of two reference cells, and the
+difference between them governs how the rest of the Results is organized. \emph{Ordinary LightGBM
+(standard raw-label native)} is the assessor-facing workflow benchmark: the standard pipeline as an
+office would run it. \emph{Centered-label native L2 (initialization-aligned)} is an
+implementation-decomposition control only, and no regularization path is traced for it.
+\emph{Custom-objective $\rho=0$ origin} is the primary within-path penalty-isolating reference: the
+same custom-objective code path as the penalized fits, evaluated at zero penalty.}
+
+\latesttext{Three findings from the frozen zero-penalty audit fix how those cells may be used. First,
+the two custom-objective controls are the same object: at $\rho=0$ the Direct and Surrogate
+predictions coincide exactly, with a maximum absolute log difference of $0$ in every audited
+capacity-by-sample cell. Second, the custom-objective origin is \emph{not} numerically identical to
+ordinary LightGBM. Aligned on sale identifiers, the two differ by a mean absolute log deviation of
+3.24e-02, with a maximum of 3.09e-01, on the held-out sample, and by 3.06e-02, with a maximum of
+2.83e-01, on the 2025 forward sample. Those differences are large enough to move reported metrics
+and are not a rounding artifact. Third, the audit locates the difference in the execution path
+rather than in the objective: at the first boosting iteration the supplied zero-penalty gradients
+and Hessians match native squared-error derivatives exactly, so nothing in the covariance objective
+is implicated. Appendix~\ref{subsec:zero_control_results} reports the audit table and the
+implementation decomposition behind it.}
+
+\latesttext{The consequence is a rule rather than a caveat. A difference between ordinary LightGBM
+and a penalized fit is a workflow comparison: it carries the execution-path difference as well as
+the penalty, and it must not be attributed to $\rho$ alone. The comparison that isolates the penalty
+is the within-family one, from the custom-objective $\rho=0$ origin to positive $\rho$ along the same
+frozen implementation path. Both are reported throughout, marked with different devices, and
+labelled as the different questions they are. Because the two zero-penalty custom-objective controls
+coincide, that origin is shared by the Direct and Surrogate paths, and it is therefore also the
+common starting point against which the two penalized families are compared with each other.}
 
 
 
@@ -3024,7 +3058,7 @@ implementation control.
 \subsection{\newtext{Zero-Penalty Implementation Audit}}
 \label{subsec:zero_control_results}
 
-\newtext{Before attributing within-family changes to positive regularization, we compare ordinary LightGBM with the Direct and Surrogate implementations at $\rho=0$. The two custom-objective controls coincide with each other in the reported metrics, but the currently frozen artifacts are not numerically identical to ordinary LightGBM. Because the supplied zero-penalty gradient and Hessian match squared-error derivatives algebraically, this audit identifies a native-versus-custom training-path difference rather than a positive-penalty objective effect; it does not by itself isolate a unique software cause.}
+\newtext{Before attributing within-family changes to positive regularization, we compare ordinary LightGBM with the Direct and Surrogate implementations at $\rho=0$. The two custom-objective controls coincide with each other in the reported metrics, but the currently frozen artifacts are not numerically identical to ordinary LightGBM. Because the supplied zero-penalty gradient and Hessian match squared-error derivatives algebraically, this audit identifies a native-versus-custom execution-path difference rather than a positive-penalty objective effect. \latesttext{The paragraphs after the table report what the completed audit then established, and the boundary of that claim: the evidence isolates the setting responsible and the boosting iteration at which the two paths separate, but it does not directly instrument LightGBM's internal random-number stream, so no claim is made about library internals beyond what the tree, split and source evidence supports.}}
 
 {\color{impGreen}
 \begin{table}[!ht]
@@ -3047,9 +3081,53 @@ Held-out & Surrogate, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
 \end{table}
 }
 
-\todo{A later initialization-aligned parity experiment in the project achieved near-numerical native/custom agreement on the tested path. Before submission, rerun that canonical parity audit for both held-out and 2025 refits. If parity holds on both splits, regenerate Table~\ref{tab:rho_zero_control} and any affected path-origin artifacts from that implementation. Keep the audit in the appendix rather than reintroducing it as a main-text Results subsection.}
+\latesttext{\paragraph{The native-versus-custom decomposition, as measured.} The parity experiment
+that earlier drafts promised has been carried out, and it resolves in the negative. It compares the
+three cells at three learner capacities --- a small and an intermediate diagnostic capacity, and the
+canonical capacity that produced the reported paths --- on both out-of-time samples. Ordinary
+LightGBM and the centered-label native L2 control agree to numerical tolerance at the two reduced
+capacities: at the small capacity their held-out mean absolute log difference is 7.69e-09 with a
+maximum of 2.58e-08, and the intermediate capacity is of the same order. The centered-label native
+L2 control and the custom-objective $\rho=0$ origin do \emph{not} agree at any tested capacity: the
+same held-out comparison gives a mean absolute log difference of 1.76e-02 with a maximum of
+1.40e-01 at the small capacity, and 3.26e-02 with a maximum of 2.97e-01 at the canonical capacity.
+So the label-centering step is not what separates the two implementations. At the canonical capacity
+a second and separate effect --- the single-precision representation of the centered labels,
+amplified by capacity --- also enters the ordinary-versus-centered comparison, which is why the
+clean label-representation decomposition is legible only at reduced capacity.}
 
-\todo[inline]{\textcolor{impGreen}{Before freezing the final empirical artifacts, audit the exact executed code against the normalization in Eqs.~\eqref{eq:baseline_learning}, \eqref{eq:direct_penalty}, and \eqref{eq:surrogate_learning} and against the $n/2$ LightGBM scaling stated here. Record the exact executed code/configuration hash and archive the commit or complete working-tree diff that generated the reported artifacts. Because the empirical paths are indexed by numerical values of $\rho$, any factor-of-two or sample-size convention must be reconciled explicitly rather than absorbed silently into a relabeled $\rho$.}}
+\latesttext{Two further results fix the interpretation. Repeating the whole ladder with LightGBM's
+determinism controls engaged reproduces the unpinned ladder cell for cell, with the same largest
+absolute log difference of 2.97e-01 under both, so pinning does not remove the difference and
+run-to-run numerical variation cannot account for it; the same-host replicate check puts that
+numerical floor at exactly zero. Tracing single-tree fits then isolates one setting. With the frozen
+\texttt{colsample\_bytree} of 0.541 the two learners already differ in the structure of the first
+tree, and pinning the histogram path changes nothing; setting \texttt{colsample\_bytree} to $1$ makes
+them bitwise identical. The accepted characterization is therefore a deterministic
+built-in-versus-custom feature-subsampling execution-path divergence under the canonical
+feature-subsampling setting. It is not evidence of an error in the covariance objective: given the
+same feature subsets, the custom $\rho=0$ objective reproduces native squared-error learning exactly.
+Because \texttt{colsample\_bytree} was tuned as part of the canonical configuration, setting it to $1$
+specifies a different learner rather than reproducing the frozen experiment, so it is not an
+available repair. Table~\ref{tab:rho_zero_control} is accordingly reported as measured and is not
+regenerated, and the workflow-benchmark comparisons in the Results are labelled as such rather than
+read as penalty effects.}
+
+\latesttext{\paragraph{Normalization and scaling, as audited.} The executed code has been audited
+against the normalization in Eqs.~\eqref{eq:baseline_learning}, \eqref{eq:direct_penalty}
+and~\eqref{eq:surrogate_learning} and against the $n/2$ LightGBM scaling stated above. The audit
+covers all nine fitting blocks --- the seven chronological training blocks, the development
+pool, and the production block used for the forward year --- and records the same three facts in
+each. The $n/2$ factor is applied analytically, so the supplied derivatives reduce to $g_i=e_i$ and
+$h_i=1$ at $\rho=0$. The supplied Direct diagonal Hessian is $1+(\rho/2n)c_i^2$, against an exact
+scaled Hessian $I+(\rho/2n)cc^{\top}$ whose off-diagonal rank-one term the observation-wise
+interface cannot carry. The supplied Surrogate Hessian is $1+\rho c_i^2$. The executed LightGBM
+parameter vector is pinned by the configuration hash
+\texttt{\small 8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b}, re-verified against
+the frozen record, and the complete working-tree diff that generated the reported artifacts is
+archived with the replication materials. No factor-of-two or sample-size convention is absorbed into
+a relabelled $\rho$: the $\rho$ values indexing the reported paths are the values the executed
+objective received.}
 
 \subsection{Direct Penalty in Boosting}
 
