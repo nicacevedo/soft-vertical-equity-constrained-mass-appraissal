@@ -73,6 +73,10 @@ error), and `prb_inference_summary.json` parses cleanly with 16 top-level keys.
 
 ## 3. Artifact hashes (SHA256)
 
+> **Authoritative machine-readable index:** `provenance/p1_artifact_hashes.json`,
+> regenerated at the end of the checkpoint over every *tracked* P1 file. The table
+> below is a human-readable extract; where the two differ, the JSON governs.
+
 ### Committed evidence
 
 | file | bytes | sha256 |
@@ -82,7 +86,7 @@ error), and `prb_inference_summary.json` parses cleanly with 16 top-level keys.
 | `configs/ed2_vei_procedure.json` | 11702 | `5bf62c9de6b22d906abd299d54694b3389ef8e9229301bbd964f1ee85e813b63` |
 | `configs/smearing_estimator_frozen.json` | 3598 | `6e00c9fa14b3fa5813be00691d48b36fb6917110b6cd8faa0ff9201fbd36bf18` |
 | `configs/smearing_estimator_frozen_hash.json` | 225 | `132247499af161d1b7d67e4e438ddeb6f781b8890cc3c0baa56dfb4c42fd8dbb` |
-| `provenance/DEVIATIONS_P1.md` | 9785 | `3f5c3743e07ea48df0a9e4e94c534233ecef44634f2f21eecc19c61e796989cb` |
+| `provenance/DEVIATIONS_P1.md` | *(see `provenance/p1_artifact_hashes.json`)* | — |
 | `provenance/ed2_source_manifest.json` | 2856 | `63306a00dc6aeaf4198a3397966d3f4f7096edbece345b2518553632d294eb82` |
 | `tables/dcor_estimator_audit.csv` | 1004 | `735d26066d16f5a34b92da3b28fb9080174fbea94fd1f3d69ef401d0c5c6db45` |
 | `tables/dcor_estimator_facts.json` | 3553 | `175bf4ca7eb597ecfb47872a2288766d36cbdaafdf5faaa0eb77761503463a94` |
