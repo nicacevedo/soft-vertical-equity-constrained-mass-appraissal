@@ -125,6 +125,26 @@ topics:
     artifact backs any claim, and every ATTOM number sits in an \iffalse region
     that is not compiled.
 
+- topic_id: T-visual-provenance
+  title: Visual provenance of the path figures
+  requirement: >-
+    Visual provenance obeys the same rule as numeric provenance. No active
+    figure may draw the candidate-region fill, the activity-onset or upper-
+    guardrail boundaries, or the transition-span shading, because no frozen
+    artifact reproduces that screen. The path curves and the genuine
+    metric-definition reference lines are supported and stay; the overlay goes,
+    which means swapping each `_candidate_region` asset for the plain path asset
+    that already exists in the repository.
+
+- topic_id: T-vei-figure-interval-semantics
+  title: The VEI profile figure's intervals are not ED2 inference
+  requirement: >-
+    Three different intervals sit at the same nominal 90% level: ED2's
+    rank-based order-statistic interval that drives Steps 6 and 7; P1's
+    bootstrap sensitivity on the escalating standards-facing cells; and the
+    descriptive bootstrap intervals drawn in the figure. The figure's intervals
+    must be labelled descriptive and must carry no ED2 verdict.
+
 - topic_id: T-certification
   title: Frozen-stage certification
   requirement: >-

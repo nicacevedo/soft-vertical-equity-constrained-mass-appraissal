@@ -51,6 +51,14 @@ re-derive both independently of the builders.
   `DELETE_OR_REPLACE` or `REWRITE_WITH_SUPPORTED_EVIDENCE`. The wildcard
   allowlist is also barred from the blocks under review, so a bare `7` inside
   `tab:transition_summary` cannot be laundered into a design constant.
+- **Visual provenance obeys the same rule as numeric provenance.** A path figure
+  can have supported caption numbers while the *graphic itself* draws the
+  candidate-region fill, the activity-onset/upper-guardrail boundaries or the
+  transition-span shading — the same screen result that makes
+  `tab:rho_candidate_regions` a deletion. Such a figure may not be `KEEP`, and
+  the build fails if it is. 11 of 19 active figures carry an unsupported
+  overlay; 7 of them reference a `_candidate_region` asset (8 assets), and a
+  verified plain replacement already exists for every one.
 - **A and C are two frozen roles, not a substitution.** A is the assessor-facing
   workflow benchmark and its contrasts stay reportable descriptively; C is the
   primary within-path penalty-isolating reference. No row may pair A with

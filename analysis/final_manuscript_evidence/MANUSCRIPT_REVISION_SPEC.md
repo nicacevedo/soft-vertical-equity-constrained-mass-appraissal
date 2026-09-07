@@ -40,7 +40,7 @@ A row-level guard enforces the machine-readable half of this: no map row may car
 
 ## 1. Items by priority
 
-### Priority P0 (37 items)
+### Priority P0 (40 items)
 
 #### `C-abstract-001` — KEEP
 
@@ -226,6 +226,18 @@ A row-level guard enforces the machine-readable half of this: no map row may car
 - **why this is missing** — Absent from the manuscript. The frozen convention makes the C-based map PRIMARY and the A-based map SECONDARY_PRACTICAL, with no full path for B.
 - **required final message** — Add the comparator with C primary and A secondary. Note that the frozen report's sections 8 and 9 carry unrendered f-string placeholders -- resolve them to values (executed_in_stage_2 = false, n_grid = 124, len(path) = 2,480) and never quote the literals.
 - **evidence** — `analysis/p0_major_revision_validation/reports/CENTERED_SPREAD_COMPARATOR_REPORT.md`, `analysis/p0_major_revision_validation/configs/posthoc_comparator_convention.yaml`
+- **reference cell / purpose** — C · `PENALTY_ISOLATING`
+- **confidence** — HIGH
+
+#### `C-results-021` — REWRITE_WITH_SUPPORTED_EVIDENCE
+
+- **where** — subsection: First-Order Correction and Residual Structure Along the Path, baseline L2845, anchor `subsec:mechanism_results`, label `fig:mechanism_path_placeholder`, render bucket `ACTIVE`
+- **baseline excerpt** — `\begin{figure}[!htbp]` (sha256 `ba4f725c74c6dd02...`)
+- **current claim** — The main-text mechanism path figure overlays the frozen CV-derived candidate region, with a soft activity-onset boundary and a family-specific upper guardrail.
+- **why this is a problem** — The graphic the manuscript references is mechanism_vs_rho_candidate_region.pdf, and the caption states the candidate region, the activity onset and the upper guardrail in words. That is the same CV screening result the audit finds unreproducible from the frozen evidence, so it cannot survive visually while tab:rho_candidate_regions is deleted. Visual provenance obeys the same rule as numeric provenance.
+- **required final message** — Swap in the plain mechanism_vs_rho.pdf, which already exists in the repository, and delete the candidate-region, activity-onset and guardrail sentences. Keep the mechanism path curves and the beta_log = 0 neutrality reference, which are supported.
+- **evidence** — `paper/paper_v17_option1.tex`
+- **wording that must NOT be used** — “sweet spot”, “safe region”, “deployment point”
 - **reference cell / purpose** — C · `PENALTY_ISOLATING`
 - **confidence** — HIGH
 
@@ -455,6 +467,28 @@ A row-level guard enforces the machine-readable half of this: no map row may car
 - **why this is a problem** — Not resolvable. No frozen artifact carries the regret quantities, and this is the single largest concentration of unsupported numbers in the manuscript.
 - **required final message** — Delete the table, or rebuild it from a frozen artifact. If the qualitative point survives -- that event-location disagreement and value-based loss are distinct aspects of temporal portability -- it must be stated without these numbers.
 - **evidence** — *none required (editorial or wording constraint)*
+- **confidence** — HIGH
+
+#### `C-appendix-009` — REWRITE_WITH_SUPPORTED_EVIDENCE
+
+- **where** — Appendix subsection: Prediction, Valuation-Level, and Horizontal-Uniformity Paths, baseline L4206, anchor `tab:transition_regret`, label `fig:other_metric_paths_placeholder`, render bucket `ACTIVE`
+- **baseline excerpt** — `\begin{figure}[!htbp]` (sha256 `ba4f725c74c6dd02...`)
+- **current claim** — The appendix path figures overlay the frozen CV-derived candidate region on the predictive, valuation-level, vertical-equity and mechanism paths, for both the pooled and the chronological-fold views.
+- **why this is a problem** — Six appendix figures reference _candidate_region graphics -- seven assets in total across other_metric_paths, vertical_equity_metric_paths and the four cv_* figures -- and their captions state the activity onset, the upper guardrail and the transition span. None of that is reproducible from the frozen evidence. A plain replacement asset already exists for every one of them.
+- **required final message** — Swap each _candidate_region asset for its plain counterpart, listed figure by figure in TABLE_FIGURE_DISPOSITION.md and in section 6.1 of this document, and strip the overlay wording from every caption. Keep the path curves and the metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0, ratio = 1).
+- **evidence** — `paper/paper_v17_option1.tex`
+- **confidence** — HIGH
+
+#### `C-appendix-010` — REWRITE_WITH_SUPPORTED_EVIDENCE
+
+- **where** — Appendix subsection: VEI Percentile-Group Profiles, baseline L4300, anchor `fig:tradeoff_mechanism_vs_accuracy_2025`, label `fig:vei_group_profile_placeholder`, render bucket `ACTIVE`
+- **baseline excerpt** — `\begin{figure}[!htbp]` (sha256 `ba4f725c74c6dd02...`)
+- **current claim** — The VEI percentile-group profile figure shows group median valuation ratios with deterministic 90% bootstrap intervals.
+- **why this is a problem** — Three different intervals sit at the same nominal 90% level and the caption distinguishes none of them. ED2's inferential interval is a rank-based order statistic (ci_method "ED2 App. D.2 rank-based order statistic", ci_level 0.9) and is what drives Steps 6 and 7. P1 separately computed a bootstrap SENSITIVITY on the escalating standards-facing cells -- 63 display entries, 61 unique realizations -- in columns suffixed _sensitivity. The intervals drawn in this figure are neither: they are descriptive bootstrap intervals on the plotted baseline group medians. A reader seeing "90%" beside VEI will most naturally read them as the first.
+- **required final message** — Label the +/-10% band a proposed exposure-draft diagnostic, never adopted guidance. If the intervals are retained, state in the caption that they are descriptive visualization intervals on the plotted group medians, that they are NOT the ED2 rank-based order-statistic interval driving Steps 6 and 7, and that they are NOT P1's bootstrap sensitivity either. Otherwise drop them. Attach no ED2 verdict to this figure.
+- **evidence** — `analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json`, `analysis/p1_inferential_reporting/tables/vei_significance.csv`, `analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json`
+- **wording that must NOT be used** — “ED2 is adopted guidance”
+- **counting unit** — `display_entry` (required for every aggregate/count statement)
 - **confidence** — HIGH
 
 ### Priority P1 (16 items)
@@ -856,7 +890,40 @@ Data-driven from `spec/forbidden_wording.yaml`; `tests/test_b0_role_guards.py` r
 
 ## 6. Tables and figures
 
-Full detail in `TABLE_FIGURE_DISPOSITION.md`. Summary: **13** DELETE, **18** KEEP, **2** REBUILD, **6** UPDATE.
+Full detail in `TABLE_FIGURE_DISPOSITION.md`. Summary: **13** DELETE, **12** KEEP, **2** REBUILD, **12** UPDATE.
+
+### 6.1 Visual provenance — the candidate-region asset swap
+
+**Visual provenance obeys the same rule as numeric provenance.** A path figure can have perfectly supported caption numbers while the *graphic itself* draws the unsupported construction: the light candidate-region fill, the dashed activity-onset boundary, the solid upper guardrail, the transition-span shading. Those overlays are the CV screening result that no frozen artifact reproduces — the same result that makes `tab:rho_candidate_regions`, `tab:transition_summary` and `tab:transition_regret` deletions. A figure carrying one may not be `KEEP`, and the Tier-B0 build and test suite both fail if it is.
+
+**11 of 19 active figures carry an unsupported overlay.** 7 of them reference a `_candidate_region` graphic (8 assets), and **a plain replacement already exists in the repository for every one** — verified present on disk and tracked in git:
+
+| figure | disposition | referenced today | replace with |
+|---|---|---|---|
+| `fig:mechanism_path_placeholder` | **UPDATE** | `mechanism_vs_rho_candidate_region.pdf` | `mechanism_vs_rho.pdf` |
+| `fig:other_metric_paths_placeholder` | **UPDATE** | `level_uniformity_paths_candidate_region.pdf` | `level_uniformity_paths.pdf` |
+| `fig:other_metric_paths_placeholder` | **UPDATE** | `predictive_metric_paths_candidate_region.pdf` | `predictive_metric_paths.pdf` |
+| `fig:vertical_equity_metric_paths` | **UPDATE** | `vertical_equity_metric_paths_candidate_region.pdf` | `vertical_equity_metric_paths.pdf` |
+| `fig:cv_predictive_metric_paths` | **UPDATE** | `cv_predictive_metric_paths_candidate_region.pdf` | `cv_predictive_metric_paths.pdf` |
+| `fig:cv_level_uniformity_paths` | **UPDATE** | `cv_level_uniformity_paths_candidate_region.pdf` | `cv_level_uniformity_paths.pdf` |
+| `fig:cv_vertical_equity_metric_paths` | **UPDATE** | `cv_vertical_equity_metric_paths_candidate_region.pdf` | `cv_vertical_equity_metric_paths.pdf` |
+| `fig:cv_mechanism_metric_paths` | **UPDATE** | `cv_mechanism_metric_paths_candidate_region.pdf` | `cv_mechanism_metric_paths.pdf` |
+
+For each of these figures the writing pass must:
+
+1. swap the `_candidate_region` asset for the plain path asset above;
+2. delete every candidate-region, activity-onset, upper-guardrail and transition-span sentence from the caption;
+3. **keep** the metric path curves themselves and the genuine metric-definition reference lines — PRD = 1, PRB = 0, MKI = 1, VEI = 0, beta_log = 0, ratio = 1. The complete descriptive paths are supported; only the screening overlay is not.
+
+The remaining overlay figures carry no `_candidate_region` asset but are *defined by* the same unsupported construction — turning-event locations, or a ratio profile restricted to the span — and are `DELETE`: `fig:transition_event_locations`, `fig:vertical_equity_event_locations`, `fig:mechanism_event_locations`, `fig:ratio_shape_cv_transition_span_only`.
+
+**Tier B0 swapped nothing.** No file under `paper/` was touched; this is the specification, and the swap is the writing pass's to make.
+
+### 6.2 `fig:vei_group_profile_placeholder` — three different intervals at the same 90% level
+
+A VEI percentile-group profile. Two distinct problems. First, VEI's construction and its +/-10% band come from the May-2026 Exposure Draft, which the caption does not say. Second, and much easier to miss: the caption advertises "deterministic 90% bootstrap intervals", and THREE different intervals are in play at the same nominal 90% level. (1) ED2's INFERENTIAL interval is a rank-based order statistic -- ci_method = "ED2 App. D.2 rank-based order statistic", ci_level 0.9 -- and it is what drives Step 6 and Step 7. (2) P1 additionally computed a BOOTSTRAP SENSITIVITY on exactly the cells where (1) drove the decision -- 63 display entries, which are 61 unique realizations, being precisely the standards-facing cells that escalated past Step 5 -- in columns suffixed _sensitivity, as a robustness cross-check on (1). It never replaces it. (The 63-versus-61 gap is the same duplicated realization that separates the entry-level ED2 counts from the unique-realization ones, so the unit must be named whenever this is quoted.) (3) The intervals drawn in THIS figure are neither: they are bootstrap intervals on the plotted percentile-group medians for the Linear and ordinary-LightGBM baselines, which carry no ED2 verdict at all. A reader seeing "90%" beside VEI will most naturally read them as (1).
+
+**Required.** Label the +/-10% band as a proposed exposure-draft diagnostic, never as adopted guidance. If the 90% intervals are retained, the caption must state explicitly that they are DESCRIPTIVE VISUALIZATION intervals on the plotted group medians, that they are NOT the ED2 App. D.2 rank-based order-statistic interval that drives Steps 6 and 7, and that they are NOT P1's bootstrap sensitivity on the 63 escalating standards-facing cells either. The shared 90% level makes this confusable, so the disclaimer must be explicit rather than implied; the alternative is to drop the intervals from the figure. Whichever is chosen, do not attach an ED2 verdict to this figure.
 
 | label | bucket | disposition | numbers |
 |---|---|---|---|
@@ -885,12 +952,12 @@ Full detail in `TABLE_FIGURE_DISPOSITION.md`. Summary: **13** DELETE, **18** KEE
 | `fig:vertical_equity_event_locations` | `ACTIVE` | **DELETE** | UNSUPPORTED |
 | `fig:mechanism_event_locations` | `ACTIVE` | **DELETE** | UNSUPPORTED |
 | `fig:ratio_shape_cv_transition_span_only` | `ACTIVE` | **DELETE** | UNSUPPORTED |
-| `fig:other_metric_paths_placeholder` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
-| `fig:vertical_equity_metric_paths` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
-| `fig:cv_predictive_metric_paths` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
-| `fig:cv_level_uniformity_paths` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
-| `fig:cv_vertical_equity_metric_paths` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
-| `fig:cv_mechanism_metric_paths` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
+| `fig:other_metric_paths_placeholder` | `ACTIVE` | **UPDATE** | FULLY_SUPPORTED |
+| `fig:vertical_equity_metric_paths` | `ACTIVE` | **UPDATE** | FULLY_SUPPORTED |
+| `fig:cv_predictive_metric_paths` | `ACTIVE` | **UPDATE** | FULLY_SUPPORTED |
+| `fig:cv_level_uniformity_paths` | `ACTIVE` | **UPDATE** | FULLY_SUPPORTED |
+| `fig:cv_vertical_equity_metric_paths` | `ACTIVE` | **UPDATE** | FULLY_SUPPORTED |
+| `fig:cv_mechanism_metric_paths` | `ACTIVE` | **UPDATE** | FULLY_SUPPORTED |
 | `fig:tradeoff_equity_vs_accuracy_heldout` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
 | `fig:tradeoff_equity_vs_accuracy_2025` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |
 | `fig:tradeoff_mechanism_vs_accuracy_heldout` | `ACTIVE` | **KEEP** | FULLY_SUPPORTED |

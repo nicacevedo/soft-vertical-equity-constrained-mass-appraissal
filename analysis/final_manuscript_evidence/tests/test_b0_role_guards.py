@@ -525,3 +525,192 @@ def test_declaration_sites_are_actually_excluded_from_scanning():
     assert len(scanned) < len(raw)
     # ... and prove the scan still SEES the rest of that document
     assert "highlighting and labelling convention" in scanned
+
+
+# --------------------------------------------------------------------------
+# Visual provenance obeys the same rule as numeric provenance (Tier B0.1).
+# --------------------------------------------------------------------------
+TF = c.read_yaml(c.SPEC / "table_figure_disposition.yaml")
+TF_MD = c.read_text(c.B0 / "TABLE_FIGURE_DISPOSITION.md")
+
+
+def _measured_figures():
+    """Label -> what the tex actually references and what its caption says."""
+    import b0_tex
+    out = {}
+    for f in b0_tex.Tex().floats():
+        if not f["env"].startswith("figure"):
+            continue
+        for lab in (f["labels"] or ["(no label)"]):
+            rec = out.setdefault(lab, {"bucket": f["bucket"], "graphics": [],
+                                       "caption": ""})
+            rec["graphics"] += ["paper/" + g for g in f["graphics"]]
+            rec["caption"] += " " + (f["caption_full"] or "")
+    return out
+
+
+def test_an_unsupported_overlay_figure_can_never_be_kept():
+    """The core B0.1 rule: an active figure whose ASSET or CAPTION encodes the
+    candidate-region / transition construction may not be classified KEEP."""
+    measured = _measured_figures()
+    bad = []
+    for e in TF["floats"]:
+        if e["kind"] != "figure" or e["render_bucket"] != "ACTIVE":
+            continue
+        lab = e["label"]
+        m = measured[lab]
+        asset_marked = [g for g in m["graphics"]
+                        if any(k in g for k in c.UNSUPPORTED_VISUAL_MARKERS)]
+        cap = m["caption"].lower()
+        caption_marked = [k for k in c.UNSUPPORTED_VISUAL_MARKERS
+                          if "_" not in k and k in cap]
+        encodes = bool(asset_marked or caption_marked)
+        if encodes and e["disposition"] == "KEEP":
+            bad.append(f"{lab}: KEEP, but asset={asset_marked} "
+                       f"caption={caption_marked}")
+        if encodes and e.get("visual_provenance") != "UNSUPPORTED_OVERLAY":
+            bad.append(f"{lab}: encodes an unsupported overlay but declares "
+                       f"visual_provenance={e.get('visual_provenance')!r}")
+        if not encodes and e.get("visual_provenance") == "UNSUPPORTED_OVERLAY":
+            bad.append(f"{lab}: declared UNSUPPORTED_OVERLAY but nothing in the "
+                       "tex encodes one")
+    assert not bad, "\n".join(bad)
+    # the rule must actually bite on something, or it proves nothing
+    overlay = [e for e in TF["floats"] if e["kind"] == "figure"
+               and e.get("visual_provenance") == "UNSUPPORTED_OVERLAY"]
+    assert len(overlay) >= 7, f"only {len(overlay)} overlay figures found"
+    assert all(e["disposition"] in ("UPDATE", "REBUILD", "DELETE",
+                                    "DEMOTE_TO_APPENDIX") for e in overlay)
+
+
+def test_every_candidate_region_asset_has_a_verified_plain_replacement():
+    measured = _measured_figures()
+    import subprocess
+    tracked = {l for l in subprocess.run(
+        ["git", "-C", str(c.REPO), "ls-files", "paper/img"],
+        capture_output=True, text=True, check=True).stdout.split("\n") if l.strip()}
+    n_assets = 0
+    bad = []
+    for e in TF["floats"]:
+        unsup = e.get("unsupported_assets") or []
+        repl = e.get("replacement_assets") or []
+        if not unsup:
+            continue
+        n_assets += len(unsup)
+        lab = e["label"]
+        if len(repl) != len(unsup):
+            bad.append(f"{lab}: {len(unsup)} unsupported vs {len(repl)} replacements")
+        for a in unsup:
+            if a not in measured[lab]["graphics"]:
+                bad.append(f"{lab}: declares {a} but does not reference it")
+            if "_candidate_region" not in a:
+                bad.append(f"{lab}: {a} is not a candidate-region asset")
+        for r in repl:
+            if not (c.REPO / r).exists():
+                bad.append(f"{lab}: replacement missing on disk: {r}")
+            if r not in tracked:
+                bad.append(f"{lab}: replacement not tracked: {r}")
+            if any(k in r for k in c.UNSUPPORTED_VISUAL_MARKERS):
+                bad.append(f"{lab}: replacement {r} is itself unsupported")
+        # each replacement must pair with its candidate-region original
+        for u, v in zip(sorted(unsup), sorted(repl)):
+            if u.replace("_candidate_region", "") != v:
+                bad.append(f"{lab}: {v} does not pair with {u}")
+    assert not bad, "\n".join(bad)
+    assert n_assets == 8, f"expected 8 candidate-region assets, found {n_assets}"
+
+
+def test_tier_b0_did_not_swap_any_asset_in_the_manuscript():
+    """B0.1 specifies the swap; it must not perform it."""
+    import subprocess
+    assert subprocess.run(
+        ["git", "-C", str(c.REPO), "diff", "--stat", c.TIER_A_COMMIT, "HEAD",
+         "--", "paper"], capture_output=True, text=True,
+        check=True).stdout.strip() == ""
+    # the candidate-region assets are still the ones the tex references
+    measured = _measured_figures()
+    still = [g for m in measured.values() for g in m["graphics"]
+             if "_candidate_region" in g]
+    assert len(still) == 8, len(still)
+    assert "did not swap" in TF_MD.lower() or "not swap" in TF_MD.lower()
+
+
+def test_the_writing_pass_is_told_to_swap_assets_and_strip_overlay_wording():
+    spec_md = c.read_text(c.B0 / "MANUSCRIPT_REVISION_SPEC.md")
+    for e in TF["floats"]:
+        if not e.get("unsupported_assets"):
+            continue
+        wp = " ".join(str(e["writing_pass"]).split()).lower()
+        assert "plain" in wp, e["label"]
+        assert "caption" in wp, e["label"]
+        for word in ("candidate-region", "activity-onset", "upper-guardrail",
+                     "transition-span"):
+            assert word in wp, f"{e['label']}: writing_pass omits {word}"
+        # and the retained elements must be named, per "keep only what is supported"
+        assert "keep" in wp, e["label"]
+    # both generated documents must carry the instruction
+    for doc, name in ((TF_MD, "TABLE_FIGURE_DISPOSITION.md"),
+                      (spec_md, "MANUSCRIPT_REVISION_SPEC.md")):
+        assert "_candidate_region" in doc, name
+        assert "plain" in doc.lower(), name
+
+
+def test_the_vei_bootstrap_intervals_are_not_confused_with_ed2_inference():
+    """The figure's 90% bootstrap intervals and ED2's inferential interval share
+    a nominal level and nothing else: ED2's is a rank-based order statistic."""
+    vei = c.read_csv_literal(c.P1_TABLES / "vei_significance.csv")
+    methods = {r["ci_method"] for r in vei} - {""}
+    assert methods == {"ED2 App. D.2 rank-based order statistic"}, methods
+    levels = {r["ci_level"] for r in vei} - {""}
+    assert levels == {"0.9"}, levels
+    # P1 kept its bootstrap strictly as a NAMED SENSITIVITY, computed on exactly
+    # the standards-facing cells where the rank-based CI drove a Step-6 decision
+    boot = [k for k in vei[0] if "bootstrap" in k]
+    assert boot and all(k.endswith("_sensitivity") for k in boot), boot
+    with_boot = {(r["realization_key"], r["evaluation"]) for r in vei
+                 if r[boot[0]].strip()}
+    escalated = {(r["realization_key"], r["evaluation"]) for r in vei
+                 if r["evaluation_role"] == "standards_facing"
+                 and r["step5_gate"] == "step5_outside_pm10_escalate"}
+    assert with_boot == escalated, (
+        "the bootstrap sensitivity is not the Step-5 escalation set")
+    hn = c.read_json(c.P1_PROV / "p1_headline_numbers.json")
+    # 63 is the DISPLAY_ENTRY count (it is what the headline record carries);
+    # 61 is the UNIQUE_REALIZATION count. They differ by the same duplicated
+    # realization that separates 396/279/228 from 387/270/219, so the unit has
+    # to be named here too.
+    n_rows = sum(1 for r in vei if r[boot[0]].strip())
+    assert n_rows == hn["task3_vei"]["standards_facing"][
+        "escalated_past_step5"] == 63, n_rows
+    assert len(with_boot) == 61, len(with_boot)
+    proc = c.read_json(c.P1_CONFIGS / "ed2_vei_procedure.json")
+    d2 = proc["appendix_D2_median_ci"]
+    assert d2["ci_level_used_for_VEI"] == 0.9
+    assert "rank" in str(d2).lower()
+    # the clarification must record all THREE intervals, not two
+    e = next(x for x in TF["floats"]
+             if x["label"] == "fig:vei_group_profile_placeholder")
+    why, wp = " ".join(str(e["why"]).split()), " ".join(str(e["writing_pass"]).split())
+    assert "rank-based order statistic" in why
+    assert "_sensitivity" in why and "63" in why
+    assert "display entr" in why.lower(), (
+        "the 63 must be labelled as a display-entry count, per the "
+        "counting-unit rule")
+    assert "neither" in why.lower()
+    assert "DESCRIPTIVE VISUALIZATION" in wp
+    assert "NOT the ED2" in wp and "NOT P1's bootstrap sensitivity" in wp
+    for doc in (TF_MD, c.read_text(c.B0 / "MANUSCRIPT_REVISION_SPEC.md")):
+        assert "rank-based order statistic" in doc
+        assert "DESCRIPTIVE VISUALIZATION" in doc
+
+
+def test_visual_provenance_is_required_on_figures_and_absent_on_tables():
+    bad = []
+    for e in TF["floats"]:
+        vis = e.get("visual_provenance")
+        if e["kind"] == "figure":
+            if vis not in c.VISUAL_PROVENANCE:
+                bad.append(f"{e['label']}: visual_provenance {vis!r}")
+        elif vis is not None:
+            bad.append(f"{e['label']}: tables must not carry visual_provenance")
+    assert not bad, "\n".join(bad)

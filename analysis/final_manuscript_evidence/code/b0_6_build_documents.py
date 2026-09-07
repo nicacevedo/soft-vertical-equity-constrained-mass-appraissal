@@ -462,6 +462,71 @@ def build_spec(d: dict, tex: b0_tex.Tex) -> str:
     A("Full detail in `TABLE_FIGURE_DISPOSITION.md`. Summary: "
       + ", ".join(f"**{v}** {k}" for k, v in sorted(tf.items())) + ".")
     A("")
+
+    # ---- 6.1 visual provenance ------------------------------------------
+    figs = [x for x in d["tf"]["floats"] if x["kind"] == "figure"]
+    overlay = [x for x in figs
+               if x.get("visual_provenance") == "UNSUPPORTED_OVERLAY"]
+    swaps = [x for x in overlay if x.get("unsupported_assets")]
+    n_assets = sum(len(x["unsupported_assets"]) for x in swaps)
+    A("### 6.1 Visual provenance — the candidate-region asset swap")
+    A("")
+    A("**Visual provenance obeys the same rule as numeric provenance.** A path "
+      "figure can have perfectly supported caption numbers while the *graphic "
+      "itself* draws the unsupported construction: the light candidate-region "
+      "fill, the dashed activity-onset boundary, the solid upper guardrail, the "
+      "transition-span shading. Those overlays are the CV screening result that "
+      "no frozen artifact reproduces — the same result that makes "
+      "`tab:rho_candidate_regions`, `tab:transition_summary` and "
+      "`tab:transition_regret` deletions. A figure carrying one may not be "
+      "`KEEP`, and the Tier-B0 build and test suite both fail if it is.")
+    A("")
+    A(f"**{len(overlay)} of {len(figs)} active figures carry an unsupported "
+      f"overlay.** {len(swaps)} of them reference a `_candidate_region` graphic "
+      f"({n_assets} assets), and **a plain replacement already exists in the "
+      "repository for every one** — verified present on disk and tracked in "
+      "git:")
+    A("")
+    A("| figure | disposition | referenced today | replace with |")
+    A("|---|---|---|---|")
+    for x in swaps:
+        for u, v in zip(sorted(x["unsupported_assets"]),
+                        sorted(x.get("replacement_assets", []))):
+            A(f"| `{x['label']}` | **{x['disposition']}** | "
+              f"`{u.split('/')[-1]}` | `{v.split('/')[-1]}` |")
+    A("")
+    A("For each of these figures the writing pass must:")
+    A("")
+    A("1. swap the `_candidate_region` asset for the plain path asset above;")
+    A("2. delete every candidate-region, activity-onset, upper-guardrail and "
+      "transition-span sentence from the caption;")
+    A("3. **keep** the metric path curves themselves and the genuine "
+      "metric-definition reference lines — PRD = 1, PRB = 0, MKI = 1, VEI = 0, "
+      "beta_log = 0, ratio = 1. The complete descriptive paths are supported; "
+      "only the screening overlay is not.")
+    A("")
+    rest = [x for x in overlay if not x.get("unsupported_assets")]
+    if rest:
+        A("The remaining overlay figures carry no `_candidate_region` asset but "
+          "are *defined by* the same unsupported construction — turning-event "
+          "locations, or a ratio profile restricted to the span — and are "
+          "`DELETE`: " + ", ".join(f"`{x['label']}`" for x in rest) + ".")
+        A("")
+    A("**Tier B0 swapped nothing.** No file under `paper/` was touched; this is "
+      "the specification, and the swap is the writing pass's to make.")
+    A("")
+
+    # ---- 6.2 the VEI interval collision ---------------------------------
+    vei = next((x for x in figs
+                if x["label"] == "fig:vei_group_profile_placeholder"), None)
+    if vei:
+        A("### 6.2 `fig:vei_group_profile_placeholder` — three different "
+          "intervals at the same 90% level")
+        A("")
+        A(" ".join(str(vei["why"]).split()))
+        A("")
+        A(f"**Required.** {' '.join(str(vei['writing_pass']).split())}")
+        A("")
     A("| label | bucket | disposition | numbers |")
     A("|---|---|---|---|")
     for x in d["tf"]["floats"]:

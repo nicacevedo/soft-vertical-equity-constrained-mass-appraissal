@@ -468,7 +468,12 @@ class Tex:
                     "line": self.line_of(m.start()),
                     "end_line": self.line_of(m.end() - 1),
                     "bucket": self.bucket_at(m.start()),
+                    # `caption` is truncated for display; `caption_full` is the
+                    # whole thing, because the visual-provenance guard must scan
+                    # complete caption prose -- a 200-char cut hid overlay
+                    # wording in five of the seven path figures.
                     "caption": caption[:200],
+                    "caption_full": caption,
                     # this project wraps \includegraphics in \safeincludegraphics
                     "graphics": re.findall(
                         r"\\(?:safe)?includegraphics(?:\[[^\]]*\])?\{([^}]+)\}",

@@ -466,6 +466,21 @@ TF_DISPOSITIONS = ("KEEP", "UPDATE", "REBUILD", "DEMOTE_TO_APPENDIX", "DELETE")
 
 TF_SUPPORT = ("FULLY_SUPPORTED", "PARTIALLY_SUPPORTED", "UNSUPPORTED", "NOT_RENDERED")
 
+# Visual provenance is a SEPARATE axis from numeric support. A path figure can
+# have perfectly supported numbers in its caption while the GRAPHIC ITSELF
+# encodes an unsupported construction -- the candidate-region fill, the
+# activity-onset and upper-guardrail boundaries, the transition-span shading.
+# Those overlays are exactly the screen result that no frozen artifact
+# reproduces, so a figure carrying one may not be classified KEEP.
+VISUAL_PROVENANCE = ("SUPPORTED", "UNSUPPORTED_OVERLAY", "NOT_RENDERED")
+
+# Wording and asset markers of an unsupported candidate-region / transition
+# construction. The guard is data-driven from these.
+UNSUPPORTED_VISUAL_MARKERS = (
+    "candidate_region", "candidate region", "activity onset", "activity-onset",
+    "upper guardrail", "guardrail", "transition span", "transition-span",
+)
+
 PRIMARY_OR_SENSITIVITY = ("PRIMARY", "SENSITIVITY", "DESCRIPTIVE", "NOT_APPLICABLE")
 
 # A and C are two frozen roles, not a substitution.

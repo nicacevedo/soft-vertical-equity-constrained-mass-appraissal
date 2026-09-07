@@ -19,6 +19,7 @@ disposition vocabulary.
 """
 from __future__ import annotations
 
+import subprocess
 from collections import Counter, defaultdict
 from pathlib import Path
 
@@ -28,6 +29,15 @@ import b0_tex
 SPEC_FILE = c.SPEC / "table_figure_disposition.yaml"
 OUT_MD = c.B0 / "TABLE_FIGURE_DISPOSITION.md"
 TOKENS = c.COVERAGE / "active_tex_numeric_tokens.csv"
+
+
+def tracked_images() -> set:
+    out = subprocess.run(["git", "-C", str(c.REPO), "ls-files", "paper/img"],
+                         capture_output=True, text=True, check=True).stdout
+    return {l for l in out.split("\n") if l.strip()}
+
+
+TRACKED_IMG = tracked_images()
 
 
 def token_tallies():
@@ -51,9 +61,12 @@ def main() -> int:
         for lab in (f["labels"] or ["(no label)"]):
             key = (lab, f["bucket"])
             rec = measured.setdefault(key, {"occurrences": 0, "lines": [],
-                                            "env": f["env"], "caption": f["caption"]})
+                                            "env": f["env"], "caption": f["caption"],
+                                            "caption_full": f["caption_full"],
+                                            "graphics": []})
             rec["occurrences"] += 1
             rec["lines"].append(f["line"])
+            rec["graphics"] += f["graphics"]
 
     failures, rows = [], []
     seen = set()
@@ -83,6 +96,77 @@ def main() -> int:
         if not e.get("why") or not e.get("writing_pass"):
             failures.append(f"{lab}: why and writing_pass are both required")
 
+        # ---- visual provenance: required on figures, absent on tables ----
+        vis = e.get("visual_provenance")
+        if e["kind"] == "figure":
+            if vis not in c.VISUAL_PROVENANCE:
+                failures.append(f"{lab}: visual_provenance {vis!r} not in "
+                                f"{c.VISUAL_PROVENANCE}")
+            if bucket != "ACTIVE" and vis != "NOT_RENDERED":
+                failures.append(f"{lab}: non-ACTIVE figure must be NOT_RENDERED")
+        elif vis is not None:
+            failures.append(f"{lab}: visual_provenance is for figures only")
+
+        unsup = e.get("unsupported_assets", []) or []
+        repl = e.get("replacement_assets", []) or []
+        if e["kind"] == "figure" and bucket == "ACTIVE":
+            # what the tex ACTUALLY references, and what the caption says
+            refd = {"paper/" + g for g in m["graphics"]}
+            marked_assets = sorted(a for a in refd
+                                   if any(k in a for k in
+                                          c.UNSUPPORTED_VISUAL_MARKERS))
+            cap = (m["caption_full"] or "").lower()
+            marked_caption = sorted(k for k in c.UNSUPPORTED_VISUAL_MARKERS
+                                    if k in cap and "_" not in k)
+            # the declaration must match what is measured
+            if (marked_assets or marked_caption) and vis != "UNSUPPORTED_OVERLAY":
+                failures.append(
+                    f"{lab}: declares visual_provenance {vis} but the tex "
+                    f"references {marked_assets or '[]'} and its caption says "
+                    f"{marked_caption or '[]'}")
+            if vis == "UNSUPPORTED_OVERLAY" and e["disposition"] == "KEEP":
+                failures.append(
+                    f"{lab}: UNSUPPORTED_OVERLAY may not be KEEP -- visual "
+                    "provenance obeys the same rule as numeric provenance")
+            # every declared unsupported asset must really be referenced here
+            for a in unsup:
+                if a not in refd:
+                    failures.append(f"{lab}: unsupported_assets names {a}, "
+                                    "which this figure does not reference")
+            if marked_assets and not unsup:
+                failures.append(f"{lab}: references {marked_assets} but declares "
+                                "no unsupported_assets")
+            if sorted(unsup) != sorted(marked_assets) and marked_assets:
+                failures.append(f"{lab}: unsupported_assets {sorted(unsup)} != "
+                                f"measured {marked_assets}")
+            # every replacement must exist, be tracked, and be plain
+            if unsup and len(repl) != len(unsup):
+                failures.append(f"{lab}: {len(unsup)} unsupported assets but "
+                                f"{len(repl)} replacements")
+            for a in repl:
+                if not (c.REPO / a).exists():
+                    failures.append(f"{lab}: replacement asset missing: {a}")
+                if a not in TRACKED_IMG:
+                    failures.append(f"{lab}: replacement asset not tracked: {a}")
+                if any(k in a for k in c.UNSUPPORTED_VISUAL_MARKERS):
+                    failures.append(f"{lab}: replacement {a} is itself a "
+                                    "candidate-region asset")
+            if unsup and repl:
+                for u, r in zip(sorted(unsup), sorted(repl)):
+                    if r.replace(".pdf", "") not in u.replace(
+                            "_candidate_region", ""):
+                        failures.append(f"{lab}: replacement {r} does not pair "
+                                        f"with {u}")
+            if e["disposition"] == "UPDATE" and vis == "UNSUPPORTED_OVERLAY":
+                wp = " ".join(str(e["writing_pass"]).split()).lower()
+                for need in ("replacement_assets", "caption"):
+                    pass
+                if "plain path asset" not in wp and "plain" not in wp:
+                    failures.append(f"{lab}: writing_pass must tell the pass to "
+                                    "use the plain asset")
+        elif unsup or repl:
+            failures.append(f"{lab}: asset fields are for ACTIVE figures only")
+
         t = tallies.get(lab, Counter())
         flagged = t.get("FLAGGED_UNSUPPORTED", 0)
         sourced = t.get("SOURCED", 0)
@@ -105,7 +189,8 @@ def main() -> int:
             failures.append(f"{lab} (ACTIVE): cannot declare NOT_RENDERED")
 
         rows.append({**e, "lines": sorted(m["lines"]), "env": m["env"],
-                     "caption": m["caption"], "sourced": sourced,
+                     "caption": m["caption"], "graphics": sorted(set(m["graphics"])),
+                     "sourced": sourced,
                      "allowlisted": t.get("ALLOWLISTED", 0), "flagged": flagged})
 
     for key in measured:
@@ -160,6 +245,40 @@ def render(rows: list, tex: b0_tex.Tex) -> str:
           "Every ATTOM table lives inside them, so none of that material is "
           "compiled.", ""]
 
+    # visual provenance
+    figs = [r for r in rows if r["kind"] == "figure"]
+    overlay = [r for r in figs if r.get("visual_provenance") == "UNSUPPORTED_OVERLAY"]
+    swaps = [r for r in figs if r.get("unsupported_assets")]
+    n_assets = sum(len(r["unsupported_assets"]) for r in swaps)
+    L += ["## Visual provenance", "",
+          "Visual provenance obeys the same rule as numeric provenance. A path "
+          "figure can have perfectly supported caption numbers while the "
+          "**graphic itself** encodes the unsupported candidate-region "
+          "construction — the light fill, the dashed activity-onset boundary, "
+          "the solid upper guardrail, the transition-span shading. Those are "
+          "the CV screening result that no frozen artifact reproduces, which is "
+          "why `tab:rho_candidate_regions` is `DELETE`. A figure carrying one "
+          "may not be classified `KEEP`, and the build fails if it is.", "",
+          f"**{len(overlay)} of {len(figs)} active figures carry an unsupported "
+          f"overlay.** {len(swaps)} of them reference a `_candidate_region` "
+          f"graphic ({n_assets} assets in total), and a plain replacement "
+          "already exists in the repository for every one:", ""]
+    L += ["| figure | disposition | references | plain replacement |",
+          "|---|---|---|---|"]
+    for r in swaps:
+        for u, v in zip(sorted(r["unsupported_assets"]),
+                        sorted(r.get("replacement_assets", []))):
+            L.append(f"| `{r['label']}` | **{r['disposition']}** | "
+                     f"`{u.split('/')[-1]}` | `{v.split('/')[-1]}` |")
+    L += ["",
+          "The remaining overlay figures carry no `_candidate_region` asset but "
+          "are defined by the same unsupported construction (turning-event "
+          "locations, or a span-restricted ratio profile) and are `DELETE`: "
+          + ", ".join(f"`{r['label']}`" for r in overlay
+                      if not r.get("unsupported_assets")) + ".", "",
+          "**Tier B0 did not swap any asset.** This is the specification for "
+          "the Tier-B writing pass; no file under `paper/` was touched.", ""]
+
     # orphaned image files
     used = set(re.findall(r"\\(?:safe)?includegraphics(?:\[[^\]]*\])?\{([^}]+)\}",
                           tex.src))
@@ -196,6 +315,17 @@ def render(rows: list, tex: b0_tex.Tex) -> str:
                   f"- numbers: **{r['numbers_fully_supported']}** "
                   f"(tokens: {r['sourced']} sourced, {r['allowlisted']} "
                   f"allowlisted, {r['flagged']} flagged unsupported)"]
+            if r.get("visual_provenance"):
+                L.append(f"- visual provenance: **{r['visual_provenance']}**")
+            if r.get("unsupported_assets"):
+                L.append("- **asset swap required** — the manuscript references "
+                         "the candidate-region variant:")
+                for u, v in zip(sorted(r["unsupported_assets"]),
+                                sorted(r.get("replacement_assets", []))):
+                    L.append(f"    - `{u}` → `{v}`")
+            elif r.get("graphics"):
+                L.append("- assets: "
+                         + ", ".join(f"`paper/{g}`" for g in r["graphics"]))
             if r["caption"]:
                 L.append(f"- caption: {r['caption'][:180]}")
             ev = r.get("frozen_evidence") or []

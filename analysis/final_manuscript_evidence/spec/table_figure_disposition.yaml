@@ -18,6 +18,20 @@
 # tallies from coverage/active_tex_numeric_tokens.csv and fails if a declared
 # support level contradicts them.
 #
+# visual_provenance: SUPPORTED / UNSUPPORTED_OVERLAY / NOT_RENDERED -- a
+# SEPARATE axis, because visual provenance must obey the same rule as numeric
+# provenance. A path figure can have perfectly supported caption numbers while
+# the GRAPHIC ITSELF encodes the unsupported candidate-region construction: the
+# light fill, the dashed activity-onset boundary, the solid upper guardrail, the
+# transition-span shading. Those are the screen result that no frozen artifact
+# reproduces. A figure whose asset or caption carries one may NOT be classified
+# KEEP; the builder and tests/test_b0_role_guards.py both enforce that.
+#
+# unsupported_assets / replacement_assets: the exact `_candidate_region` graphic
+# the manuscript references today, and the plain path graphic that already
+# exists in the repository to replace it. Both are verified against the tex and
+# the filesystem, so this cannot drift into a stale recommendation.
+#
 # Every label here must exist in the tex with the declared render bucket, and
 # every float in the tex must appear here. A float that has no entry fails the
 # build, so this inventory cannot silently fall behind the manuscript.
@@ -309,6 +323,7 @@ floats:
   render_bucket: ACTIVE
   disposition: KEEP
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: Descriptive baseline ratio pattern; the caption carries no result values.
   frozen_evidence: []
   writing_pass: Keep.
@@ -318,6 +333,7 @@ floats:
   render_bucket: ACTIVE
   disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: >-
     The figure itself is a descriptive ratio-shape path, but its surrounding
     caption and prose lean on candidate-region and LOFO-stability language whose
@@ -332,21 +348,38 @@ floats:
   render_bucket: ACTIVE
   disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: >-
-    Descriptive mechanism path. The adjacent prose quotes positive-rho dCor
-    values that do not resolve, while the beta_log values it quotes do.
+    Descriptive mechanism path, but the referenced graphic is the
+    `_candidate_region` variant and the caption names the candidate region, the soft
+    activity onset and the family-specific upper guardrail. The adjacent prose also
+    quotes positive-rho dCor values that do not resolve, while the beta_log values it
+    quotes do.
   frozen_evidence:
   - analysis/p0_major_revision_validation/tables/zero_control_full.csv
   - analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.csv
   writing_pass: >-
-    Keep the figure. Keep the beta_log statements, which resolve at both ends.
-    Re-derive or drop the positive-rho dCor path values.
+    Swap the `_candidate_region` asset for the plain path asset listed
+    under replacement_assets, which already exists in the repository. Delete every
+    candidate-region, activity-onset, upper-guardrail and transition-span sentence
+    from the caption. KEEP the metric path curves themselves and the genuine
+    metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0,
+    beta_log = 0, ratio = 1): the complete descriptive paths are supported, and only
+    the screening overlay is not. Do NOT swap the asset in the manuscript during
+    Tier B0 -- this is the specification for the Tier-B writing pass. Separately: keep the beta_log statements in
+    the neighbouring prose, which resolve at both ends, and re-derive or drop the
+    positive-rho dCor path values, which do not.
+  unsupported_assets:
+  - paper/img/generated_v12_994/mechanism_vs_rho_candidate_region.pdf
+  replacement_assets:
+  - paper/img/generated_v12_994/mechanism_vs_rho.pdf
 
 - label: fig:accuracy_equity_placeholder
   kind: figure
   render_bucket: ACTIVE
   disposition: KEEP
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: Descriptive accuracy-equity trajectory; no result values in the caption.
   frozen_evidence: []
   writing_pass: >-
@@ -358,9 +391,10 @@ floats:
   render_bucket: ACTIVE
   disposition: DELETE
   numbers_fully_supported: UNSUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: >-
     Displays the transition event locations that no frozen artifact reproduces.
-    It goes with tab:transition_summary.
+    It goes with tab:transition_summary. Its caption also states the frozen CV-derived transition span in words, so both the construction and the overlay wording go.
   frozen_evidence: []
   writing_pass: Delete alongside the transition tables.
 
@@ -369,6 +403,7 @@ floats:
   render_bucket: ACTIVE
   disposition: DELETE
   numbers_fully_supported: UNSUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: Same unsupported event-location construction.
   frozen_evidence: []
   writing_pass: Delete alongside the transition tables.
@@ -378,6 +413,7 @@ floats:
   render_bucket: ACTIVE
   disposition: DELETE
   numbers_fully_supported: UNSUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: Same unsupported event-location construction.
   frozen_evidence: []
   writing_pass: Delete alongside the transition tables.
@@ -387,73 +423,160 @@ floats:
   render_bucket: ACTIVE
   disposition: DELETE
   numbers_fully_supported: UNSUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: >-
     Restricted to the CV transition span, which is exactly the construction the
-    frozen evidence does not reproduce.
+    frozen evidence does not reproduce. The figure is defined BY the span: it restricts the display anchors to those inside it, so there is no supported subset to retain.
   frozen_evidence: []
   writing_pass: Delete, or replace with an unrestricted path figure.
 
 - label: fig:other_metric_paths_placeholder
   kind: figure
   render_bucket: ACTIVE
-  disposition: KEEP
+  disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: A complete descriptive path figure, not a selected region.
   frozen_evidence: []
-  writing_pass: Keep.
+  writing_pass: >-
+    Swap the `_candidate_region` asset for the plain path asset listed
+    under replacement_assets, which already exists in the repository. Delete every
+    candidate-region, activity-onset, upper-guardrail and transition-span sentence
+    from the caption. KEEP the metric path curves themselves and the genuine
+    metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0,
+    beta_log = 0, ratio = 1): the complete descriptive paths are supported, and only
+    the screening overlay is not. Do NOT swap the asset in the manuscript during
+    Tier B0 -- this is the specification for the Tier-B writing pass.
+  unsupported_assets:
+  - paper/img/generated_v12_994/predictive_metric_paths_candidate_region.pdf
+  - paper/img/generated_v12_994/level_uniformity_paths_candidate_region.pdf
+  replacement_assets:
+  - paper/img/generated_v12_994/predictive_metric_paths.pdf
+  - paper/img/generated_v12_994/level_uniformity_paths.pdf
 
 - label: fig:vertical_equity_metric_paths
   kind: figure
   render_bucket: ACTIVE
-  disposition: KEEP
+  disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: A complete descriptive path figure.
   frozen_evidence: []
-  writing_pass: Keep.
+  writing_pass: >-
+    Swap the `_candidate_region` asset for the plain path asset listed
+    under replacement_assets, which already exists in the repository. Delete every
+    candidate-region, activity-onset, upper-guardrail and transition-span sentence
+    from the caption. KEEP the metric path curves themselves and the genuine
+    metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0,
+    beta_log = 0, ratio = 1): the complete descriptive paths are supported, and only
+    the screening overlay is not. Do NOT swap the asset in the manuscript during
+    Tier B0 -- this is the specification for the Tier-B writing pass.
+  unsupported_assets:
+  - paper/img/generated_v12_994/vertical_equity_metric_paths_candidate_region.pdf
+  replacement_assets:
+  - paper/img/generated_v12_994/vertical_equity_metric_paths.pdf
 
 - label: fig:cv_predictive_metric_paths
   kind: figure
   render_bucket: ACTIVE
-  disposition: KEEP
+  disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: Complete fold-level CV paths, reported descriptively.
   frozen_evidence: []
-  writing_pass: Keep.
+  writing_pass: >-
+    Swap the `_candidate_region` asset for the plain path asset listed
+    under replacement_assets, which already exists in the repository. Delete every
+    candidate-region, activity-onset, upper-guardrail and transition-span sentence
+    from the caption. KEEP the metric path curves themselves and the genuine
+    metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0,
+    beta_log = 0, ratio = 1): the complete descriptive paths are supported, and only
+    the screening overlay is not. Do NOT swap the asset in the manuscript during
+    Tier B0 -- this is the specification for the Tier-B writing pass.
+  unsupported_assets:
+  - paper/img/generated_v12_994/cv_predictive_metric_paths_candidate_region.pdf
+  replacement_assets:
+  - paper/img/generated_v12_994/cv_predictive_metric_paths.pdf
 
 - label: fig:cv_level_uniformity_paths
   kind: figure
   render_bucket: ACTIVE
-  disposition: KEEP
+  disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: Complete fold-level CV paths, reported descriptively.
   frozen_evidence: []
-  writing_pass: Keep.
+  writing_pass: >-
+    Swap the `_candidate_region` asset for the plain path asset listed
+    under replacement_assets, which already exists in the repository. Delete every
+    candidate-region, activity-onset, upper-guardrail and transition-span sentence
+    from the caption. KEEP the metric path curves themselves and the genuine
+    metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0,
+    beta_log = 0, ratio = 1): the complete descriptive paths are supported, and only
+    the screening overlay is not. Do NOT swap the asset in the manuscript during
+    Tier B0 -- this is the specification for the Tier-B writing pass.
+  unsupported_assets:
+  - paper/img/generated_v12_994/cv_level_uniformity_paths_candidate_region.pdf
+  replacement_assets:
+  - paper/img/generated_v12_994/cv_level_uniformity_paths.pdf
 
 - label: fig:cv_vertical_equity_metric_paths
   kind: figure
   render_bucket: ACTIVE
-  disposition: KEEP
+  disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: Complete fold-level CV paths, reported descriptively.
   frozen_evidence: []
-  writing_pass: Keep.
+  writing_pass: >-
+    Swap the `_candidate_region` asset for the plain path asset listed
+    under replacement_assets, which already exists in the repository. Delete every
+    candidate-region, activity-onset, upper-guardrail and transition-span sentence
+    from the caption. KEEP the metric path curves themselves and the genuine
+    metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0,
+    beta_log = 0, ratio = 1): the complete descriptive paths are supported, and only
+    the screening overlay is not. Do NOT swap the asset in the manuscript during
+    Tier B0 -- this is the specification for the Tier-B writing pass.
+  unsupported_assets:
+  - paper/img/generated_v12_994/cv_vertical_equity_metric_paths_candidate_region.pdf
+  replacement_assets:
+  - paper/img/generated_v12_994/cv_vertical_equity_metric_paths.pdf
 
 - label: fig:cv_mechanism_metric_paths
   kind: figure
   render_bucket: ACTIVE
-  disposition: KEEP
+  disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: UNSUPPORTED_OVERLAY
   why: >-
-    Complete fold-level CV mechanism paths. The only numbers near it are figure
-    gridline values in a caption, allowlisted as typesetting.
+    The path curves are supported descriptive objects, but the
+    GRAPHIC the manuscript references is the `_candidate_region` variant: its light
+    fill, dashed activity-onset boundary and solid upper-guardrail boundary draw the
+    CV screening result that no frozen artifact reproduces, and the caption states
+    those boundaries in words. Visual provenance must obey the same rule as numeric
+    provenance, so this cannot stay KEEP while
+    tab:rho_candidate_regions is DELETE.
   frozen_evidence: []
-  writing_pass: Keep.
+  writing_pass: >-
+    Swap the `_candidate_region` asset for the plain path asset listed
+    under replacement_assets, which already exists in the repository. Delete every
+    candidate-region, activity-onset, upper-guardrail and transition-span sentence
+    from the caption. KEEP the metric path curves themselves and the genuine
+    metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0,
+    beta_log = 0, ratio = 1): the complete descriptive paths are supported, and only
+    the screening overlay is not. Do NOT swap the asset in the manuscript during
+    Tier B0 -- this is the specification for the Tier-B writing pass.
+  unsupported_assets:
+  - paper/img/generated_v12_994/cv_mechanism_metric_paths_candidate_region.pdf
+  replacement_assets:
+  - paper/img/generated_v12_994/cv_mechanism_metric_paths.pdf
 
 - label: fig:tradeoff_equity_vs_accuracy_heldout
   kind: figure
   render_bucket: ACTIVE
   disposition: KEEP
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: Descriptive tradeoff scatter over the complete path.
   frozen_evidence: []
   writing_pass: Keep. Do not mark a preferred point.
@@ -463,6 +586,7 @@ floats:
   render_bucket: ACTIVE
   disposition: KEEP
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: Descriptive tradeoff scatter over the complete path.
   frozen_evidence: []
   writing_pass: Keep. Do not mark a preferred point.
@@ -472,6 +596,7 @@ floats:
   render_bucket: ACTIVE
   disposition: KEEP
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: Descriptive tradeoff scatter over the complete path.
   frozen_evidence: []
   writing_pass: Keep. Do not mark a preferred point.
@@ -481,6 +606,7 @@ floats:
   render_bucket: ACTIVE
   disposition: KEEP
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: Descriptive tradeoff scatter over the complete path.
   frozen_evidence: []
   writing_pass: Keep. Do not mark a preferred point.
@@ -490,15 +616,41 @@ floats:
   render_bucket: ACTIVE
   disposition: UPDATE
   numbers_fully_supported: FULLY_SUPPORTED
+  visual_provenance: SUPPORTED
   why: >-
-    A VEI percentile-group profile. VEI's construction and its +/-10% band come
-    from the May-2026 Exposure Draft, which the caption does not say.
+    A VEI percentile-group profile. Two distinct problems. First, VEI's
+    construction and its +/-10% band come from the May-2026 Exposure Draft,
+    which the caption does not say. Second, and much easier to miss: the caption
+    advertises "deterministic 90% bootstrap intervals", and THREE different
+    intervals are in play at the same nominal 90% level.
+    (1) ED2's INFERENTIAL interval is a rank-based order statistic --
+    ci_method = "ED2 App. D.2 rank-based order statistic", ci_level 0.9 -- and
+    it is what drives Step 6 and Step 7.
+    (2) P1 additionally computed a BOOTSTRAP SENSITIVITY on exactly the cells
+    where (1) drove the decision -- 63 display entries, which are 61 unique
+    realizations, being precisely the standards-facing cells that escalated past
+    Step 5 -- in columns suffixed _sensitivity, as a robustness cross-check on
+    (1). It never replaces it. (The 63-versus-61 gap is the same duplicated
+    realization that separates the entry-level ED2 counts from the
+    unique-realization ones, so the unit must be named whenever this is quoted.)
+    (3) The intervals drawn in THIS figure are neither: they are bootstrap
+    intervals on the plotted percentile-group medians for the Linear and
+    ordinary-LightGBM baselines, which carry no ED2 verdict at all.
+    A reader seeing "90%" beside VEI will most naturally read them as (1).
   frozen_evidence:
   - analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json
   - analysis/p1_inferential_reporting/tables/vei_significance.csv
+  - analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json
   writing_pass: >-
-    Keep the figure and label the band as a proposed exposure-draft diagnostic,
-    never as adopted guidance.
+    Label the +/-10% band as a proposed exposure-draft diagnostic, never as
+    adopted guidance. If the 90% intervals are retained, the caption must state
+    explicitly that they are DESCRIPTIVE VISUALIZATION intervals on the plotted
+    group medians, that they are NOT the ED2 App. D.2 rank-based order-statistic
+    interval that drives Steps 6 and 7, and that they are NOT P1's bootstrap
+    sensitivity on the 63 escalating standards-facing cells either. The shared
+    90% level makes this confusable, so the disclaimer must be explicit rather
+    than implied; the alternative is to drop the intervals from the figure.
+    Whichever is chosen, do not attach an ED2 verdict to this figure.
 
 # ------------------------------------------- commented duplicates (not rendered)
 - label: tab:assessment_metrics_summary

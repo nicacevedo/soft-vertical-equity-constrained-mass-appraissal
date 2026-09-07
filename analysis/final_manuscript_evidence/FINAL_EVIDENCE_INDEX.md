@@ -12,7 +12,7 @@ Pinned to `paper/paper_v17_option1.tex` at integration HEAD `cd5bfce35e44`, sha2
 | P1 certification | **72/72** at tag `p1-inferential-reporting-final-20260907`, subtree byte-identical at HEAD |
 | artifacts indexed | 370 (359 present, 11 absent legacy, hashes quoted) |
 | numeric map | 291 rows, 235 distinct scientific values |
-| claims | 61 |
+| claims | 64 |
 | active numeric tokens | 846 (404 distinct) |
 | coverage | 300 sourced, 190 allowlisted, 356 flagged unsupported |
 
@@ -334,6 +334,7 @@ Census, reproduced by `code/b0_tex.py` and checked against the table `markup_pre
 | claim | disposition | primary / sensitivity | reference cell · purpose | evidence |
 |---|---|---|---|---|
 | `C-results-019` (L2834) | **ADD** | PRIMARY | C · PENALTY_ISOLATING | `CENTERED_SPREAD_COMPARATOR_REPORT.md`, `posthoc_comparator_convention.yaml` |
+| `C-results-021` (L2845) | **REWRITE_WITH_SUPPORTED_EVIDENCE** | DESCRIPTIVE | C · PENALTY_ISOLATING | `paper_v17_option1.tex` |
 | `C-results-010` (L2852) | **KEEP** | PRIMARY | C · PENALTY_ISOLATING | `zero_control_full.csv`, `frozen_artifact_reproduction.csv` |
 | `C-results-011` (L2859) | **REWRITE_WITH_SUPPORTED_EVIDENCE** | PRIMARY | C · PENALTY_ISOLATING | `zero_control_full.csv` |
 
@@ -342,6 +343,13 @@ Census, reproduced by `code/b0_tex.py` and checked against the table `markup_pre
 - *reason:* Absent from the manuscript. The frozen convention makes the C-based map PRIMARY and the A-based map SECONDARY_PRACTICAL, with no full path for B.
 - *required final message:* Add the comparator with C primary and A secondary. Note that the frozen report's sections 8 and 9 carry unrendered f-string placeholders -- resolve them to values (executed_in_stage_2 = false, n_grid = 124, len(path) = 2,480) and never quote the literals.
 - *anchor:* `fig:ratio_shape_path_placeholder` · bucket `ACTIVE` · priority P0 · confidence HIGH
+
+**`C-results-021`** — The main-text mechanism path figure overlays the frozen CV-derived candidate region, with a soft activity-onset boundary and a family-specific upper guardrail.
+
+- *reason:* The graphic the manuscript references is mechanism_vs_rho_candidate_region.pdf, and the caption states the candidate region, the activity onset and the upper guardrail in words. That is the same CV screening result the audit finds unreproducible from the frozen evidence, so it cannot survive visually while tab:rho_candidate_regions is deleted. Visual provenance obeys the same rule as numeric provenance.
+- *required final message:* Swap in the plain mechanism_vs_rho.pdf, which already exists in the repository, and delete the candidate-region, activity-onset and guardrail sentences. Keep the mechanism path curves and the beta_log = 0 neutrality reference, which are supported.
+- *must NOT be used:* “sweet spot”, “safe region”, “deployment point”
+- *anchor:* `subsec:mechanism_results` · bucket `ACTIVE` · priority P0 · confidence HIGH
 
 **`C-results-010`** — The first-order mechanism moves in the intended direction in both families: beta_log moves from its rho=0 value toward neutrality at rho=100.
 
@@ -637,6 +645,18 @@ Census, reproduced by `code/b0_tex.py` and checked against the table `markup_pre
 - *required final message:* Delete the table, or rebuild it from a frozen artifact. If the qualitative point survives -- that event-location disagreement and value-based loss are distinct aspects of temporal portability -- it must be stated without these numbers.
 - *anchor:* `fig:mechanism_event_locations` · bucket `ACTIVE` · priority P0 · confidence HIGH
 
+### Appendix subsection: Prediction, Valuation-Level, and Horizontal-Uniformity Paths
+
+| claim | disposition | primary / sensitivity | reference cell · purpose | evidence |
+|---|---|---|---|---|
+| `C-appendix-009` (L4206) | **REWRITE_WITH_SUPPORTED_EVIDENCE** | DESCRIPTIVE | NONE · NOT_APPLICABLE | `paper_v17_option1.tex` |
+
+**`C-appendix-009`** — The appendix path figures overlay the frozen CV-derived candidate region on the predictive, valuation-level, vertical-equity and mechanism paths, for both the pooled and the chronological-fold views.
+
+- *reason:* Six appendix figures reference _candidate_region graphics -- seven assets in total across other_metric_paths, vertical_equity_metric_paths and the four cv_* figures -- and their captions state the activity onset, the upper guardrail and the transition span. None of that is reproducible from the frozen evidence. A plain replacement asset already exists for every one of them.
+- *required final message:* Swap each _candidate_region asset for its plain counterpart, listed figure by figure in TABLE_FIGURE_DISPOSITION.md and in section 6.1 of this document, and strip the overlay wording from every caption. Keep the path curves and the metric-definition reference lines (PRD = 1, PRB = 0, MKI = 1, VEI = 0, ratio = 1).
+- *anchor:* `tab:transition_regret` · bucket `ACTIVE` · priority P0 · confidence HIGH
+
 ### Appendix subsection: Exact Rolling-Origin Fold Structure
 
 | claim | disposition | primary / sensitivity | reference cell · purpose | evidence |
@@ -650,6 +670,21 @@ Census, reproduced by `code/b0_tex.py` and checked against the table `markup_pre
 - *numeric values:* 4 row(s) in the numeric map, e.g. `N-fold-ntrain-1`
 - *counting unit:* `evaluation_cell`
 - *anchor:* `fig:vertical_equity_metric_paths` · bucket `ACTIVE` · priority P1 · confidence HIGH
+
+### Appendix subsection: VEI Percentile-Group Profiles
+
+| claim | disposition | primary / sensitivity | reference cell · purpose | evidence |
+|---|---|---|---|---|
+| `C-appendix-010` (L4300) | **REWRITE_WITH_SUPPORTED_EVIDENCE** | DESCRIPTIVE | NONE · NOT_APPLICABLE | `ed2_vei_procedure.json`, `vei_significance.csv`, `p1_headline_numbers.json` |
+
+**`C-appendix-010`** — The VEI percentile-group profile figure shows group median valuation ratios with deterministic 90% bootstrap intervals.
+
+- *reason:* Three different intervals sit at the same nominal 90% level and the caption distinguishes none of them. ED2's inferential interval is a rank-based order statistic (ci_method "ED2 App. D.2 rank-based order statistic", ci_level 0.9) and is what drives Steps 6 and 7. P1 separately computed a bootstrap SENSITIVITY on the escalating standards-facing cells -- 63 display entries, 61 unique realizations -- in columns suffixed _sensitivity. The intervals drawn in this figure are neither: they are descriptive bootstrap intervals on the plotted baseline group medians. A reader seeing "90%" beside VEI will most naturally read them as the first.
+- *required final message:* Label the +/-10% band a proposed exposure-draft diagnostic, never adopted guidance. If the intervals are retained, state in the caption that they are descriptive visualization intervals on the plotted group medians, that they are NOT the ED2 rank-based order-statistic interval driving Steps 6 and 7, and that they are NOT P1's bootstrap sensitivity either. Otherwise drop them. Attach no ED2 verdict to this figure.
+- *must NOT be used:* “ED2 is adopted guidance”
+- *counting unit:* `display_entry`
+- *guidance status:* `IAAO_2026_ED2_PROPOSED`
+- *anchor:* `fig:tradeoff_mechanism_vs_accuracy_2025` · bucket `ACTIVE` · priority P0 · confidence HIGH
 
 ### Appendix section: CCAO Reproducibility Requirements
 
@@ -735,7 +770,7 @@ Claims: `C-certification-002`, `C-results-018`
 
 The numbers are not resolvable from the frozen evidence, so the tables and cells must be deleted or replaced. The qualitative exploratory idea may survive; the numbers may not, and calling them "exploratory" is not enough.
 
-Claims: `C-appendix-004`, `C-discussion-002`, `C-results-003`, `C-results-012`, `C-results-013`, `C-results-014`, `C-results-015`
+Claims: `C-appendix-004`, `C-appendix-009`, `C-discussion-002`, `C-results-003`, `C-results-012`, `C-results-013`, `C-results-014`, `C-results-015`, `C-results-021`
 
 ### `T-temporal-robustness` — Temporal robustness -- D-SNAP, D-PURGE, D-UNSEEN, G5a, G5b
 
@@ -765,7 +800,7 @@ Claims: `C-results-004`, `C-results-006`
 
 ED2 is always described as a proposed exposure draft, never as adopted guidance; pooled-OOF carries NO ED2 inference; entry-level and unique-realization counts are never mixed in one statement.
 
-Claims: `C-appendix-002`, `C-metrics-003`, `C-results-004`, `C-results-005`
+Claims: `C-appendix-002`, `C-appendix-010`, `C-metrics-003`, `C-results-004`, `C-results-005`
 
 ### `T-smearing` — Duan smearing sensitivity
 
@@ -802,6 +837,18 @@ Claims: `C-appendix-005`, `C-appendix-008`, `C-baseline-002`, `C-design-001`, `C
 The external / ATTOM stream is OUT_OF_SCOPE_FOR_B0. No external-benchmark artifact backs any claim, and every ATTOM number sits in an \iffalse region that is not compiled.
 
 Claims: `C-appendix-006`, `C-appendix-007`, `C-appendix-008`, `C-design-008`, `C-results-016`
+
+### `T-visual-provenance` — Visual provenance of the path figures
+
+Visual provenance obeys the same rule as numeric provenance. No active figure may draw the candidate-region fill, the activity-onset or upper- guardrail boundaries, or the transition-span shading, because no frozen artifact reproduces that screen. The path curves and the genuine metric-definition reference lines are supported and stay; the overlay goes, which means swapping each `_candidate_region` asset for the plain path asset that already exists in the repository.
+
+Claims: `C-appendix-009`, `C-results-021`
+
+### `T-vei-figure-interval-semantics` — The VEI profile figure's intervals are not ED2 inference
+
+Three different intervals sit at the same nominal 90% level: ED2's rank-based order-statistic interval that drives Steps 6 and 7; P1's bootstrap sensitivity on the escalating standards-facing cells; and the descriptive bootstrap intervals drawn in the figure. The figure's intervals must be labelled descriptive and must carry no ED2 verdict.
+
+Claims: `C-appendix-010`
 
 ### `T-certification` — Frozen-stage certification
 

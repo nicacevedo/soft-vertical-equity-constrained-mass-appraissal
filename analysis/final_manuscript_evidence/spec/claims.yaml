@@ -1471,6 +1471,98 @@ claims:
   priority: optional cleanup
   confidence: HIGH
 
+- claim_id: C-results-021
+  baseline_line: 2845
+  latex_label: fig:mechanism_path_placeholder
+  claim_text: >-
+    The main-text mechanism path figure overlays the frozen CV-derived candidate
+    region, with a soft activity-onset boundary and a family-specific upper
+    guardrail.
+  disposition: REWRITE_WITH_SUPPORTED_EVIDENCE
+  reason: >-
+    The graphic the manuscript references is
+    mechanism_vs_rho_candidate_region.pdf, and the caption states the candidate
+    region, the activity onset and the upper guardrail in words. That is the
+    same CV screening result the audit finds unreproducible from the frozen
+    evidence, so it cannot survive visually while tab:rho_candidate_regions is
+    deleted. Visual provenance obeys the same rule as numeric provenance.
+  required_final_message: >-
+    Swap in the plain mechanism_vs_rho.pdf, which already exists in the
+    repository, and delete the candidate-region, activity-onset and guardrail
+    sentences. Keep the mechanism path curves and the beta_log = 0 neutrality
+    reference, which are supported.
+  forbidden_wording: ["sweet spot", "safe region", "deployment point"]
+  primary_or_sensitivity: DESCRIPTIVE
+  reference_cell: C
+  comparison_purpose: PENALTY_ISOLATING
+  supporting_artifacts: [paper/paper_v17_option1.tex]
+  coverage_topics: [T-visual-provenance, T-candidate-region-demotion]
+  priority: P0
+  confidence: HIGH
+
+- claim_id: C-appendix-009
+  baseline_line: 4206
+  latex_label: fig:other_metric_paths_placeholder
+  claim_text: >-
+    The appendix path figures overlay the frozen CV-derived candidate region on
+    the predictive, valuation-level, vertical-equity and mechanism paths, for
+    both the pooled and the chronological-fold views.
+  disposition: REWRITE_WITH_SUPPORTED_EVIDENCE
+  reason: >-
+    Six appendix figures reference _candidate_region graphics -- seven assets in
+    total across other_metric_paths, vertical_equity_metric_paths and the four
+    cv_* figures -- and their captions state the activity onset, the upper
+    guardrail and the transition span. None of that is reproducible from the
+    frozen evidence. A plain replacement asset already exists for every one of
+    them.
+  required_final_message: >-
+    Swap each _candidate_region asset for its plain counterpart, listed
+    figure by figure in TABLE_FIGURE_DISPOSITION.md and in section 6.1 of this
+    document, and strip the overlay wording from every caption. Keep the path
+    curves and the metric-definition reference lines (PRD = 1, PRB = 0,
+    MKI = 1, VEI = 0, ratio = 1).
+  primary_or_sensitivity: DESCRIPTIVE
+  supporting_artifacts: [paper/paper_v17_option1.tex]
+  coverage_topics: [T-visual-provenance, T-candidate-region-demotion]
+  priority: P0
+  confidence: HIGH
+
+- claim_id: C-appendix-010
+  baseline_line: 4300
+  latex_label: fig:vei_group_profile_placeholder
+  claim_text: >-
+    The VEI percentile-group profile figure shows group median valuation ratios
+    with deterministic 90% bootstrap intervals.
+  disposition: REWRITE_WITH_SUPPORTED_EVIDENCE
+  reason: >-
+    Three different intervals sit at the same nominal 90% level and the caption
+    distinguishes none of them. ED2's inferential interval is a rank-based
+    order statistic (ci_method "ED2 App. D.2 rank-based order statistic",
+    ci_level 0.9) and is what drives Steps 6 and 7. P1 separately computed a
+    bootstrap SENSITIVITY on the escalating standards-facing cells -- 63 display
+    entries, 61 unique realizations -- in columns suffixed _sensitivity. The
+    intervals drawn in this figure are neither: they are descriptive bootstrap
+    intervals on the plotted baseline group medians. A reader seeing "90%"
+    beside VEI will most naturally read them as the first.
+  required_final_message: >-
+    Label the +/-10% band a proposed exposure-draft diagnostic, never adopted
+    guidance. If the intervals are retained, state in the caption that they are
+    descriptive visualization intervals on the plotted group medians, that they
+    are NOT the ED2 rank-based order-statistic interval driving Steps 6 and 7,
+    and that they are NOT P1's bootstrap sensitivity either. Otherwise drop
+    them. Attach no ED2 verdict to this figure.
+  forbidden_wording: ["ED2 is adopted guidance"]
+  primary_or_sensitivity: DESCRIPTIVE
+  counting_unit: display_entry
+  guidance_status: IAAO_2026_ED2_PROPOSED
+  supporting_artifacts:
+  - analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json
+  - analysis/p1_inferential_reporting/tables/vei_significance.csv
+  - analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json
+  coverage_topics: [T-vei-figure-interval-semantics, T-vei-ed2-steps]
+  priority: P0
+  confidence: HIGH
+
 # ------------------------------------------------------------- certification
 - claim_id: C-certification-001
   baseline_line: 4307
