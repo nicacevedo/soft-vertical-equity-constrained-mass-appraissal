@@ -1,0 +1,42 @@
+{
+  "arguments": "dcor.distance_correlation(e, y_true_log, ...)  ->  x=e, y=log P",
+  "benign_redundancy_noted_not_repaired": "Three P0 scripts call _compute_extended_metrics (which already computes dCor_e_y) and then call paper_mechanism_metrics again, overwriting with the identical value: p0_4_centered_spread.py, p0_6_temporal_designs.py, p0_zero_control_assemble.py. dCor is therefore computed twice per cell. No effect on any value.",
+  "bias_corrected_passed": false,
+  "call_site": "utils/motivation_utils.py:1572",
+  "call_site_source": "def distance_correlation_e_y(y_true_log, y_pred_log) -> float:\n    \"\"\"Full-sample distance correlation of e = log(P_hat/P) and y = log P.\"\"\"\n    y_true_log = np.asarray(y_true_log, dtype=float).reshape(-1)\n    y_pred_log = np.asarray(y_pred_log, dtype=float).reshape(-1)\n    e = y_pred_log - y_true_log\n    import dcor\n\n    try:\n        return float(dcor.distance_correlation(e, y_true_log, method=\"auto\"))\n    except TypeError:\n        return float(dcor.distance_correlation(e, y_true_log, method=\"mergesort\"))\n",
+  "consistency_verdict": "ALL reported path metrics use ONE estimator. dCor_e_y is produced only by utils/motivation_utils.distance_correlation_e_y, reached via paper_mechanism_metrics -> compute_taxation_metrics/_compute_extended_metrics from run_temporal_cv.py and every P0 script; the path tables are a pure merge of those shards with no recomputation. The two other call sites do not feed any manuscript table.",
+  "default_compile_mode": "<CompileMode.AUTO: 1>",
+  "default_exponent": "1",
+  "default_method": "DistanceCovarianceMethod.AUTO",
+  "distance_correlation_sqr_docstring_first_line": "Usual (biased) estimator for the squared distance correlation.",
+  "estimator_class": "BIASED / V-statistic (double-centered)",
+  "function_called": "dcor.distance_correlation",
+  "kwargs_passed_at_call_site": "e, y_true_log, method=\"auto\"",
+  "library": "dcor",
+  "library_docstring_first_line": "Usual (biased) estimator for the distance correlation.",
+  "manuscript_todo_closed": {
+    "answer": "dcor v0.6, dcor.distance_correlation(e, y, method='auto'), exponent=1, compile_mode=AUTO, bias_corrected=False -> the standard biased / V-statistic (double-centered) estimator, computed on the full evaluation sample with e = log(P_hat) - log(P) and y = log P.",
+    "definition_to_match": "paper/paper_v17_option1.tex:1160-1168 (eq:dcor_diagnostic)",
+    "location": "paper/paper_v17_option1.tex:3204-3206"
+  },
+  "numerical_check": {
+    "abs_diff_vs_U_statistic": 0.007516477932003329,
+    "abs_diff_vs_V_statistic": 1.3322676295501878e-15,
+    "executed_dcor_distance_correlation_method_auto": 0.444254999811772,
+    "hand_rolled_double_centered_V_statistic": 0.44425499981177335,
+    "n": 400,
+    "sqrt_U_centered_unbiased_statistic": 0.4367385218797687,
+    "verdict": "executed == double-centered V-statistic to float tolerance; it is NOT the U-centered/unbiased statistic"
+  },
+  "python": "3.9.19",
+  "residual_convention": "e = y_pred_log - y_true_log",
+  "signature": "(x: 'Array', y: 'Array', *, exponent: 'float' = 1, method: 'DistanceCovarianceMethodLike' = DistanceCovarianceMethod.AUTO, compile_mode: 'CompileMode' = <CompileMode.AUTO: 1>) -> 'Array'",
+  "subsampling": "none - full evaluation sample",
+  "unbiased_alternatives_exported_but_never_called": [
+    "dcor.u_distance_correlation_sqr",
+    "dcor.distance_correlation_af_inv",
+    "dcor.u_centered"
+  ],
+  "version_declared_requirements_txt": "dcor>=0.6,<0.7",
+  "version_installed": "0.6"
+}

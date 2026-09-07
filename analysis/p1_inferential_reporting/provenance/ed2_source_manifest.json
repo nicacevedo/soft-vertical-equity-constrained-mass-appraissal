@@ -1,0 +1,48 @@
+{
+  "adopted_reference": "IAAO Standard on Ratio Studies (2013) remains the adopted/current guidance.",
+  "document_identity": {
+    "filename_date_mismatch": "The URL filename reads 'Exposure-Mar2026' while the title page and every running header read 'May 2026'. Resolves audit/bibliography item P1-12: the May-2026 date in the manuscript bibliography is correct; the URL filename is not.",
+    "filename_says": "Mar2026",
+    "http_last_modified": "Fri, 01 May 2026 13:43:24 GMT",
+    "internal_title_as_printed": "Exposure Draft May 2026",
+    "n_pages": 103,
+    "pdf_metadata_author": "Jennifer Rearich (ASR)",
+    "pdf_metadata_creation_date": "D:20260320150241-05'00'",
+    "pdf_metadata_mod_date": "D:20260501084050-05'00'",
+    "running_header_every_page": "EXPOSURE DRAFT - STANDARD ON RATIO STUDIES - MAY 2026",
+    "title_page_text": "STANDARD ON RATIO STUDIES / Exposure Draft May 2026"
+  },
+  "page_references": {
+    "appendix_D_1_mean_ci": 66,
+    "appendix_D_2_median_ci": 67,
+    "appendix_D_3_weighted_mean_ci": 67,
+    "appendix_D_4_median_ci_small_samples": 68,
+    "appendix_D_5_critical_t": 71,
+    "appendix_D_start": 66,
+    "appendix_E_1_vei_steps_1_to_5": 78,
+    "appendix_E_1_vei_steps_5_to_7": 79,
+    "appendix_E_2_further_analysis": 79,
+    "appendix_E_3_percentile_rank_methodologies": "79-81",
+    "appendix_E_start": 78,
+    "note": "PDF page index equals the printed page number throughout this document."
+  },
+  "purpose": "Provenance record for the authoritative IAAO ratio-studies exposure draft used to implement the P1 VEI inferential procedure. The PDF itself is NOT committed to this repository: redistribution permission has not been established. It is cached at the gitignored path below for local verification only.",
+  "schema_version": 1,
+  "source": {
+    "bytes": 2013844,
+    "committed_to_repo": false,
+    "landing_page": "https://www.iaao.org/about/board-of-directors/governing-documents/ratio-studies-exposure-draft/",
+    "local_cache_path_gitignored": "analysis/p1_inferential_reporting/provenance/ed2_source_cache/StandardonRatioStudies_Exposure-Mar2026.pdf",
+    "pdf_url": "https://www.iaao.org/wp-content/uploads/StandardonRatioStudies_Exposure-Mar2026.pdf",
+    "redistribution_permission_established": false,
+    "retrieved_utc": "2026-09-07T02:04:55Z",
+    "sha256": "e950e00d0c3684dd067734d401e5278dcf659f471fcfb0d6db65c7584f7c56b8"
+  },
+  "status_language_required_on_every_artifact": "May-2026 Exposure Draft / proposed guidance; not adopted IAAO guidance.",
+  "verification_notes": [
+    "SHA256 and byte length recomputed from the cached file at manifest-write time.",
+    "Title page and running headers read independently from the PDF, not assumed.",
+    "Appendix D.2 and Appendix E transcribed from pages 67 and 78-81 into configs/ed2_vei_procedure.json."
+  ],
+  "verified": true
+}

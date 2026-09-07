@@ -1,0 +1,6 @@
+{
+  "file": "smearing_estimator_frozen.json",
+  "file_sha256": "6e00c9fa14b3fa5813be00691d48b36fb6917110b6cd8faa0ff9201fbd36bf18",
+  "frozen_at_utc": "2026-09-07T02:44:25.290309+00:00",
+  "frozen_before_any_oos_read": true
+}

@@ -1,0 +1,151 @@
+{
+  "adopted_reference": "IAAO Standard on Ratio Studies (2013) remains the adopted/current guidance.",
+  "appendix_D2_median_ci": {
+    "applies_when": "sales sample greater than 30",
+    "ci_level_used_for_VEI": 0.9,
+    "implemented": {
+      "clamping": "ranks are clamped to [1, n]; any clamping sets ci_rank_clamped = true on that row",
+      "j_even": "j = ceil(1.645 * sqrt(n) / 2 + 0.5)",
+      "j_odd": "j = ceil(1.645 * sqrt(n) / 2)",
+      "limits": "lower_CI = sorted_ratio[lower_rank] ; upper_CI = sorted_ratio[upper_rank]",
+      "ranks_even": "lower_rank = n//2 + 1 - j ; upper_rank = n//2 + j          # 1-based ranks",
+      "ranks_odd": "m = (n+1)//2 ; lower_rank = m - j ; upper_rank = m + j     # 1-based ranks"
+    },
+    "interpretation_ED2_I_1": {
+      "issue": "For even n the median is not an array element, so 'count up and down the array from the median' does not by itself fix the two anchor ranks. ED2 gives no worked large-sample (D.2) example - the only worked median-CI example in the document is the small-sample D.4 case (n=17, page 71).",
+      "resolution": "Count outward from the two central order statistics: lower from rank n/2+1, upper from rank n/2. This is the reading under which ED2's own '+0.5' even-n adjustment and its 'round up' rule reproduce the standard normal-approximation order-statistic interval.",
+      "sanity_checks": [
+        "n=100, 95%: j = ceil(1.96*10/2 + 0.5) = ceil(10.3) = 11 -> ranks (40, 61); normal approximation gives 50-9.8=40.2 and 51+9.8=60.8 -> (40, 61). Agrees.",
+        "n=101, 95%: j = ceil(1.96*sqrt(101)/2) = ceil(9.849) = 10, m=51 -> ranks (41, 61); normal approximation gives 50.5-9.849=40.65 and 51.5+9.849=61.35 -> (41, 61). Agrees."
+      ],
+      "status": "documented interpretation, not a verbatim rule"
+    },
+    "not_used": "The deterministic percentile bootstrap in utils/motivation_utils.vei_percentile_group_profile is NOT the ED2-primary CI. It is reported only in separately labelled *_sensitivity columns.",
+    "page": 67,
+    "verbatim": [
+      "1. Array the ratios in ascending order and rank accordingly",
+      "2. Identify the ranks of ratios, j, corresponding to the upper and lower confidence limits for a 95% confidence interval as follows. For a 90% confidence interval, replace 1.96 with 1.645.",
+      "   a. If the sample size (n) is odd:  j = 1.96 * sqrt(n) / 2",
+      "   b. If the sample size (n) is even: j = 1.96 * sqrt(n) / 2 + 0.5",
+      "3. If the result from step 2 is not an integer, round up to the next integer.",
+      "4. Return to the array and locate the median.",
+      "5. Using the result from step 3, count up and down the array from the median to find the ratios which correspond as the upper and lower confidence limits for the desired confidence interval."
+    ],
+    "z_constants": {
+      "0.90": 1.645,
+      "0.95": 1.96
+    },
+    "z_used": 1.645
+  },
+  "appendix_E_vei": {
+    "pages": "78-81",
+    "percentile_rank_methodology_E3": {
+      "implemented": "The frozen executed code (utils/motivation_utils.vei) assigns groups by numpy.array_split over the proxy-sorted index, i.e. contiguous near-equal-count groups (stable mergesort order).",
+      "status": "documented deviation: array_split is neither R6 nor R7. It is required for the P1 Step-5 value to reconcile with the frozen VEI__* artifacts. For n divisible by 10 (e.g. heldout n=38,290 -> 10 groups of 3,829) all three coincide; where n is not divisible by 10 (e.g. forward_2025 n=26,641 -> one group of 2,665 and nine of 2,664) group boundaries may shift by at most one observation.",
+      "verbatim_options": "ED2 E.3 documents NIST/Hyndman-Fan methods R6 (h = (P/100)*(N+1)) and R7 (h = (P/100)*(N-1)+1), both floored, and notes R6 and R7 agree when groups have equal counts and may differ slightly otherwise."
+    },
+    "premise_verbatim": "This test is based on the concept found elsewhere in this standard that there should not be a provable difference in valuation level between property groups of greater than 10%.",
+    "step_1": "Compute a ratio for each observation by dividing the valuation estimate by its sale price (or time adjusted sale price).",
+    "step_2": {
+      "DISCREPANCY": "ED2's printed Step-2 formula omits the 0.50 multiplier on the AV/Median term, which contradicts its own prose ('gives equal weight'). Taken literally the printed formula roughly doubles the AV contribution.",
+      "implemented": "proxy = 0.50*SP + 0.50*(AV/median_ratio)",
+      "justification": "The equal-weight form is (a) the 2013 Standard App. D p.56 formula, (b) what ED2's own Step-2 prose specifies, and (c) what the frozen executed code utils/motivation_utils.vei implements, so it is required for the P1 Step-5 value to reconcile with the frozen VEI__* artifacts. The manuscript already discloses this exact draft inconsistency at paper_v17_option1.tex:565. Corresponds to audit item P0-11.",
+      "status": "documented deviation from ED2's PRINTED formula; conforms to ED2's prose and the 2013 Standard",
+      "verbatim_printed_formula": "Proxy = (0.50*SP) + (AV/Median Ratio)",
+      "verbatim_prose": "Compute a market value proxy for each observation that gives equal weight to sale price (SP) or time adjusted sale price (TASP) and the estimated assessed value (AV)."
+    },
+    "step_3_percentile_groups": {
+      "implemented": "k = 10 for every evaluation in the P1 display set (all n >= 501); >=10 observations per group enforced",
+      "verbatim_table": {
+        "20-50": 2,
+        "51-500": 4,
+        "<20": "N/A. At least 10 sales per group are required for comparison.",
+        ">=501": 10
+      }
+    },
+    "step_4": {
+      "implemented": "median ratio per PG + 90% CI by Appendix D.2 above",
+      "note_verbatim": "The formulas for calculating median confidence intervals can be found in Appendix D Section D.2 or (Gloudemans & Almy, 2011 p.365)",
+      "verbatim": "For each percentile group as determined in Step 3, compute the median ratio and the 90% confidence interval."
+    },
+    "step_5": {
+      "formula_verbatim": "VEI = 100 * ((MEDIAN Last PG - MEDIAN First PG) / Sample MEDIAN)",
+      "gate_verbatim_outside": "If the VEI point estimate is outside the acceptable range of +/-10%, then a statistical test must be conducted to determine if there is significant statistical evidence to conclude that the VEI is outside the acceptable range for the population. Proceed to Step 6.",
+      "gate_verbatim_within": "If the VEI point estimate is within the acceptable range of +/- 10%, then we immediately fail to reject the null hypothesis that the degree of vertical inequity is acceptable.",
+      "sign_verbatim": "A negative VEI point estimate indicates a regressive tendency, whereas a positive VEI point estimate indicates a progressive tendency."
+    },
+    "step_6": {
+      "implemented": "overlap := not (first_ci_hi < last_ci_lo or last_ci_hi < first_ci_lo); groups compared are the FIRST and LAST percentile groups, as stated",
+      "verbatim": "If the VEI point estimate lies outside the acceptable range, one recommended method for testing for statistical significance is to compare the confidence interval boundaries for each median. Under this method, first evaluate the upper and lower limits of median confidence intervals for the first and last percentile groups. If the intervals overlap, the null hypothesis immediately fails to reject, and the degree of vertical inequity is within acceptable limits. In other words, the degree of vertical inequity is acceptable. If the confidence intervals do not overlap, proceed to Step 7."
+    },
+    "step_7": {
+      "fail_verbatim": "If the result is less than 10%, then we fail to reject the null hypothesis that the level of vertical inequity present is within acceptable limits. In other words, the level vertical inequity present is acceptable.",
+      "formula_verbatim": "VEI Significance = 100 * (Lower CI Limit for PG with the Highest Median - Upper CI Limit for PG with the Lowest Median) / Sample MEDIAN",
+      "interpretation_ED2_I_2": {
+        "issue": "Step 7 says 'PG with the Highest/Lowest Median' without restating which groups are in scope.",
+        "resolution": "The two groups carried forward from Step 6, i.e. the FIRST and LAST percentile groups, ordered by which has the higher/lower median. Appendix E.2 confirms the primary test is first-vs-last: it offers running VEI on 'the highest and lowest groups or any other combinations' only as optional Further Analysis, warning about multiple comparisons and noting 'it may not always be the first and last percentile groups which are the highest and lowest medians'.",
+        "status": "resolved from the document text"
+      },
+      "interpretation_ED2_I_3": {
+        "issue": "ED2 specifies '>10%' for reject and '<10%' for fail to reject; exactly 10% is unspecified.",
+        "resolution": "Implemented as reject iff VEI_significance > 10.0 strictly; VEI_significance == 10.0 yields fail_to_reject and sets ed2_boundary_exact = true so the edge case is visible rather than silent.",
+        "status": "documented edge-case rule"
+      },
+      "reject_verbatim": "If the result is greater than 10%, then the test indicates that the difference between the two medians is statistically significantly greater than 10% and thus one can then reject the null hypothesis and conclude there is statistical evidence that the level of vertical inequity present is outside of acceptable limits. In other words, the level of vertical inequity present is not acceptable.",
+      "sign_note": "Step 6 guarantees non-overlap, so VEI Significance is positive by construction; a sign assertion enforces this."
+    }
+  },
+  "band_pct": 10.0,
+  "decision_mapping": {
+    "_comment": "Verdict strings are ED2's own wording. Artifact enumerations are generated from this mapping.",
+    "step5_gate": {
+      "outside_band": {
+        "code": "step5_outside_pm10_escalate",
+        "ed2_verdict": "a statistical test must be conducted; proceed to Step 6",
+        "escalates": true
+      },
+      "within_band": {
+        "code": "step5_within_pm10_stop",
+        "ed2_verdict": "fail to reject the null hypothesis that the degree of vertical inequity is acceptable",
+        "escalates": false
+      }
+    },
+    "step6_result": {
+      "no_overlap": {
+        "code": "ci_no_overlap_escalate",
+        "ed2_verdict": "proceed to Step 7",
+        "escalates": true
+      },
+      "not_run": {
+        "code": "not_run",
+        "ed2_verdict": "not applicable - Step 5 did not escalate"
+      },
+      "overlap": {
+        "code": "ci_overlap_stop",
+        "ed2_verdict": "the null hypothesis immediately fails to reject, and the degree of vertical inequity is within acceptable limits",
+        "escalates": false
+      }
+    },
+    "step7_outcome": {
+      "gt_10": {
+        "code": "reject_null",
+        "ed2_verdict": "reject the null hypothesis and conclude there is statistical evidence that the level of vertical inequity present is outside of acceptable limits"
+      },
+      "le_10": {
+        "code": "fail_to_reject_null",
+        "ed2_verdict": "fail to reject the null hypothesis that the level of vertical inequity present is within acceptable limits"
+      },
+      "not_run": {
+        "code": "not_run",
+        "ed2_verdict": "not applicable - Step 6 did not escalate"
+      }
+    }
+  },
+  "guidance_status": "May-2026 Exposure Draft / proposed guidance; not adopted IAAO guidance.",
+  "not_a_compliance_determination": true,
+  "schema_version": 1,
+  "source": {
+    "see": "provenance/ed2_source_manifest.json",
+    "sha256": "e950e00d0c3684dd067734d401e5278dcf659f471fcfb0d6db65c7584f7c56b8"
+  }
+}
