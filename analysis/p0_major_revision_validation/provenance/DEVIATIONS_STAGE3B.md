@@ -101,3 +101,36 @@ precision (worst |Δ| = 0.00e+00 on both `beta_log` and `R2_price`). Only then w
 **No rows were mixed across executions.** The accepted shard is one complete lineage — all
 11 rows from the race. The candidate, its per-ρ files and the manifest are preserved.
 The preregistered G5a/G5b interpretation, τ, and every threshold are unchanged.
+
+### D-5 — task-12 promotion is a byte copy, not a re-serialization
+Found during the post-promotion audit of the M-5 lineage.
+
+`mode_promote` originally did `pd.read_csv(CAND)` → `c.write_table(CANON)`. Re-serializing a
+float through pandas is not bit-preserving in general, and here it was not: it shifted the last
+digit of **two `COD` values by 1 ULP** —
+`22.457473944902212` → `22.45747394490221` and
+`22.450495419360134` → `22.45049541936013`
+(different float64 under exact parsing; `pd.read_csv`'s fast parser maps both to the same double,
+which is why a naive DataFrame comparison called the two files equal). Every other column,
+including `beta_log` and `pred_sha256`, was byte-identical, and `COD` enters no gate — but a
+promoted artifact must be bit-identical to the candidate its manifest hashed, or the provenance
+chain does not close.
+
+The canonical shard was replaced with an exact byte copy of the validated candidate, so
+
+    sha256(tables/dsnap_refine_shard__A__fold_7__direct__c0.csv)
+      == race_manifest.json:candidate_sha256
+      == 3df0940193192c6776f89be3e43fdd1748c6de5388671023a4850664135ccec1
+
+`mode_promote` now uses `shutil.copyfile` for both the csv and the parquet twin and asserts the
+promoted file hashes to `candidate_sha256`. `--mode provenance`, `--mode g5b` and the temporal
+report were then regenerated from the byte-exact shard; **Gate G5b returned `NOT_CONFIRMED`
+before and after**, and no reported digit changed. Covered by
+`tests/test_g5b_assertions.py::test_race_shard_is_byte_identical_to_the_validated_candidate`.
+*No scientific change.*
+
+### Note on the Stage-1 record
+`provenance/DEVIATIONS.md` is hash-pinned in both `stage1_frozen_hashes.json` and
+`output_artifact_hashes.json` (`sha256 026a0454…`, 3551 bytes). During this recovery it was
+briefly appended to and then restored byte-exactly from `HEAD`; the pin verifies again. All
+Stage-3B records live in this file instead.
