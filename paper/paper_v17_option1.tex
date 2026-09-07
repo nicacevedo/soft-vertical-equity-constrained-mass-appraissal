@@ -17,7 +17,7 @@
 \usepackage{color,soul}
 % TODOs remain in the source for the empirical freeze but are hidden by default.
 % Remove `disable' only when preparing an internal audit copy.
-\usepackage[textsize=tiny]{todonotes}
+\usepackage[textsize=tiny,disable]{todonotes}
 \usepackage[normalem]{ulem} % provides \sout
 \usepackage[most]{tcolorbox} % compile-safe crossed blocks for structural table moves
 
@@ -76,6 +76,28 @@
     overlay last={\draw[blue,line width=.45pt] (frame.north west)--(frame.south east);}
   ]
 }{\end{tcolorbox}\endgroup}
+
+% ---------------------------------------------------------------------------
+% TIER-A DOCUMENT-INTEGRITY OVERRIDE (P0.1; audit P0-8 / P0-13).
+% Neutralises the revision-tracking macros defined above for the reader-facing
+% build: accepted text renders as ordinary prose, and text this manuscript had
+% ALREADY marked as deleted stops printing. No call site is edited, so the whole
+% change is reverted by deleting this block. Every suppressed passage is archived
+% verbatim in paper_analysis/paper_v17/superseded_text_archive.md.
+% Re-run paper_analysis/paper_v17/markup_preflight.py before altering this block.
+\renewcommand{\newtext}[1]{#1}
+\renewcommand{\latesttext}[1]{#1}
+\renewcommand{\advisorchange}[1]{#1}
+\renewcommand{\oldtext}[1]{}
+\renewenvironment{oldrevisionblock}{\setbox0\vbox\bgroup}{\egroup}
+% Some passages apply the revision colours directly via \textcolor{impGreen}{..}
+% or {\color{latestPurple} ..} rather than through the macros above. Redefining
+% the two colours to black neutralises every such site without editing any of
+% them. To restore the tracked-changes view, put back the RGB values above
+% (impGreen 0,128,0 and latestPurple 128,0,128) and delete this block.
+\definecolor{impGreen}{RGB}{0,0,0}
+\definecolor{latestPurple}{RGB}{0,0,0}
+% ---------------------------------------------------------------------------
 
 
 % PURPLE PIPELINE NOTE (not manuscript text):
@@ -180,7 +202,7 @@ This paper arises from a collaboration between the Cook County Assessor's Office
 
 {In the primary CCAO application, model development and the complete penalty paths are evaluated chronologically within the development sample, followed by a primary held-out evaluation and a separate 2025 forward evaluation after refitting\todo{This part sounds redundant still}. The controlled baseline comparison reported in Section~\ref{subsec:baseline_tension} establishes the application-specific motivation: LightGBM improves prediction and ratio dispersion relative to the linear benchmark while exhibiting a stronger regressive vertical-equity pattern among observed sales.
 % \oldtext{This draft reports the complete Direct and Surrogate regularization paths}
-{We report the complete direct and surrogate regularization paths} without choosing a penalty strength. Exploratory experiments across six counties are used separately to examine transferability, heterogeneity, and failure modes rather than to make confirmatory claims about those jurisdictions.}
+{We report the complete direct and surrogate regularization paths} without choosing a penalty strength.}
 
 % \textcolor{blue}{\sout{The method was developed in collaboration with CCAO data scientists and has been incorporated into the office's residential model-development codebase. The CCAO has also used and tested the correction during model development. This implementation provides direct evidence that the proposed approach can be integrated into an existing public-sector mass-appraisal workflow without requiring a fundamental redesign of the underlying valuation pipeline.}}
 
@@ -1855,7 +1877,7 @@ The corresponding direct-objective implementation is given in Appendix~\ref{app:
 \section{Application and Evaluation Design}
 \label{sec:empirical_design}
 
-{This section specifies the empirical design used to evaluate the proposed correction. We first describe the CCAO application, data, and implementation; then define the chronological validation and regularization-path protocol; next summarize the model comparators; and finally describe the exploratory six-county benchmark. All model comparisons reported in the next section use the evaluation criteria defined in Section~\ref{subsec:metrics}.}
+{This section specifies the empirical design used to evaluate the proposed correction. We first describe the CCAO application, data, and implementation; then define the chronological validation and regularization-path protocol; and finally summarize the model comparators. All model comparisons reported in the next section use the evaluation criteria defined in Section~\ref{subsec:metrics}.}
 
 
 \subsection{{The CCAO Residential Pipeline: Application, Data, and Implementation}}
