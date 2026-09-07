@@ -191,19 +191,32 @@ def _rendered_value_is_printed(tex, anchor: str, rendered: str) -> bool:
 
     Anchors, not line numbers: every baseline line number is stale the moment
     B1.1 deletes a table, which SELECTOR_GRAMMAR.md section 4 makes explicit.
+
+    The search is over the SOURCE, not over the coverage audit's token
+    population, and that difference matters. The frozen audit masks math
+    environments -- deliberately, so that exponents and indices are not counted
+    as results -- so a value written as ``$40.04$`` is invisible to it. It is
+    still printed, so the ledger must see it: this is the check that a value the
+    audit cannot reach is nevertheless tied to a frozen artifact.
     """
-    needle = rendered.replace("$", "").replace(",", "").lstrip("-")
-    for t in tex.numeric_tokens(active_only=True):
-        if t["source_anchor"] != anchor:
+    variants = {rendered}
+    plain = rendered.replace("$", "").replace("\\", "").strip()
+    variants |= {plain, plain.replace(",", ""), plain.lstrip("-"),
+                 plain.replace(",", "").lstrip("-")}
+    for v in sorted(variants, key=len, reverse=True):
+        if not v:
             continue
-        tok = t["token"].replace(",", "").lstrip("-")
-        if tok == needle:
-            return True
-    # status strings such as NOT_ATTAINED are not numeric tokens
-    if not re.search(r"\d", rendered):
-        for m in re.finditer(re.escape(rendered), tex.src):
-            if tex.bucket_at(m.start()) == "ACTIVE" and \
-                    tex.nearest_label(m.start()) == anchor:
+        # a numeric value must match as a whole token, not inside a longer one
+        # A trailing '.' is a sentence period, not part of the number, so it must
+        # NOT block a match -- otherwise a value at the end of a sentence reads
+        # as absent. A trailing digit still does block one, which is what stops
+        # "0.01" from matching inside "0.0118".
+        pat = (re.escape(v) if re.search(r"[A-Za-z_]", v)
+               else r"(?<![0-9A-Za-z.,])" + re.escape(v) + r"(?![0-9A-Za-z,])")
+        for m in re.finditer(pat, tex.src):
+            if tex.bucket_at(m.start()) != "ACTIVE":
+                continue
+            if tex.nearest_label(m.start()) == anchor:
                 return True
     return False
 

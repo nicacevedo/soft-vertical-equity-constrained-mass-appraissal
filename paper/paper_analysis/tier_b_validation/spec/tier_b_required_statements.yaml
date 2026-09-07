@@ -1,0 +1,43 @@
+# =============================================================================
+# Statements the manuscript must KEEP printing.
+#
+# The frozen forbidden-wording spec pairs the prohibition
+# "zero covariance implies fairness" with a factual note: "the active manuscript
+# already denies this four times". A prohibition list alone cannot protect that
+# -- deleting a denial breaks nothing that a forbidden-phrase scan would notice.
+# So the four denials are pinned here positively, and C07 fails if one stops
+# printing.
+#
+# Zero residual--outcome covariance is never equated with fairness, conditional
+# unbiasedness, independence, or a flat conditional ratio profile. These four
+# sentences are what carry that in the paper. If a later stage rewrites one,
+# replace the fragment here with the new wording -- never delete the entry.
+# =============================================================================
+schema_version: 1
+
+required_statements:
+
+- id: betalog_is_a_diagnostic_not_a_definition
+  fragment: "mechanism diagnostic rather than"
+  also_requires: "standalone definition of vertical equity"
+  why: >-
+    beta_log is the targeted first-order slope, not a definition of vertical
+    equity. Section 2.3, at the definition of the log-ratio/log-price slope.
+
+- id: zero_covariance_does_not_imply_independence
+  fragment: "zero training covariance imply the absence of nonlinear"
+  why: >-
+    Denies that a zero first-order component implies independence or a flat
+    conditional ratio profile. Section 3.4.
+
+- id: covariance_is_not_a_sufficient_measure
+  fragment: "mechanism target rather than as a sufficient measure of vertical equity"
+  why: >-
+    Denies that controlling the covariance is itself a measure of vertical
+    equity. Section 3.4.
+
+- id: neither_objective_optimizes_the_standards_metrics
+  fragment: "Neither formulation directly optimizes PRD, PRB, VEI"
+  why: >-
+    Denies conditional unbiasedness and standards compliance as consequences of
+    the penalty. Section 3.4.

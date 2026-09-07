@@ -37,6 +37,7 @@ import sys
 sys.dont_write_bytecode = True
 
 import tb_common as tb
+import tb_ledger
 
 
 def _sourced_index(rows):
@@ -68,6 +69,26 @@ def audit(tex=None) -> dict:
 
     sourced = _sourced_index(rows)
 
+    # The frozen numeric map indexes only the BASELINE manuscript's tokens, so a
+    # number this pass adds has no map row. Section H.2 of the plan gives it a
+    # second resolution path: a Tier-B provenance ledger entry. That cannot
+    # launder an unsupported value -- C01 re-derives every entry from a frozen
+    # artifact under analysis/ through all seven steps, so an entry can only
+    # resolve a number that genuinely comes from the frozen evidence. (The
+    # no-wildcard anchors restrict ALLOWLISTING, which asserts a number is a
+    # constant; sourcing DERIVES it, so the restriction does not apply here.)
+    ledger_index = {}
+    for e in tb_ledger.load():
+        anchor = e.get("manuscript_anchor")
+        rendered = str(e.get("rendered_value", ""))
+        if not anchor or not rendered:
+            continue
+        key = rendered.replace("$", "").replace(",", "")
+        for tok in {rendered, key, rendered.lstrip("-"), key.lstrip("-")}:
+            if tok:
+                ledger_index.setdefault((tok, anchor), []).append(
+                    e.get("entry_id", "(unnamed)"))
+
     tokens, tally, by_anchor = [], {}, {}
     for t in tex.numeric_tokens():
         bucket = t["render_bucket"]
@@ -78,6 +99,12 @@ def audit(tex=None) -> dict:
         elif (tok, anchor) in sourced or (plain, anchor) in sourced:
             hit = sourced.get((tok, anchor)) or sourced.get((plain, anchor))
             res, reason, ids = "SOURCED", "", ";".join(sorted(set(hit)))
+        elif (tok, anchor) in ledger_index or (plain, anchor) in ledger_index:
+            hit = (ledger_index.get((tok, anchor))
+                   or ledger_index.get((plain, anchor)))
+            res = "SOURCED_LEDGER"
+            reason = "Tier-B provenance ledger (recomputed by C01)"
+            ids = ";".join(sorted(set(hit)))
         elif (tok, anchor) in exact:
             res, reason, ids = "ALLOWLISTED", exact[(tok, anchor)]["reason"], ""
         elif (plain, anchor) in exact:
@@ -116,6 +143,8 @@ def audit(tex=None) -> dict:
         "active_resolution": _tally(active, "resolution"),
         "flagged_unsupported": sum(1 for t in active
                                    if t["resolution"] == "FLAGGED_UNSUPPORTED"),
+        "sourced_via_ledger": sum(1 for t in active
+                                  if t["resolution"] == "SOURCED_LEDGER"),
         "flagged_unsupported_by_anchor": dict(sorted(by_anchor.items(),
                                                      key=lambda kv: -kv[1])),
         "tokens": tokens,

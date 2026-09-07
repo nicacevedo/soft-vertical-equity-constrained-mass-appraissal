@@ -67,7 +67,8 @@ count at its baseline **356**.
 | `spec/expected_failures.yaml` | the stage-aware expected-failure registry |
 | `spec/tier_b_citations.yaml` | required citation keys, the two-`\addbibresource` rule, bib fields that may not be invented |
 | `spec/ledger_selftest.yaml` | entries that prove the ledger verifier works |
-| `ledger/tier_b_numeric_ledger.yaml` | the ledger itself -- empty at B1.0 by design |
+| `spec/tier_b_required_statements.yaml` | statements the manuscript must keep printing |
+| `ledger/tier_b_numeric_ledger.yaml` | the ledger itself -- empty at B1.0 by design; 12 entries from B1.3 |
 | `baseline/` | the pre-edit record: frozen-suite transcripts, compile diagnostics |
 | `runs/` | one JSON per stage validation |
 
@@ -81,7 +82,7 @@ count at its baseline **356**.
 | C04 | D1 / D2 / D3 semantics | D1 primary, D3 the one-sale-one-vote sensitivity, D2 not elevated; the fold-6/fold-7 overlap qualification present; "unaffected" never attached to D1; no fold SD read as a standard error. |
 | C05 | `NOT_ATTAINED` preservation | the four frozen states verbatim, with blank metric cells. Never interpolated. |
 | C06 | ED2 status and counting units | every VEI/MKI band or standard attribution marked Exposure Draft or proposed; no statement mixing the two ED2 count families; every count naming its unit. |
-| C07 | forbidden wording | data-driven from `spec/forbidden_wording.yaml`, whitespace-squashed so re-spacing does not evade it; legal only inside a sentence carrying a frozen prohibition marker. |
+| C07 | wording: forbidden and required | prohibitions are data-driven from `spec/forbidden_wording.yaml`, whitespace-squashed so re-spacing does not evade them, and legal only inside a sentence carrying a frozen prohibition marker. The positive counterpart is `spec/tier_b_required_statements.yaml`: the four denials the frozen spec relies on must keep printing, since deleting a denial breaks no pattern scan. |
 | C08 | candidate-region provenance | no `_candidate_region` asset, no overlay caption, and prose keyed by sentence content hash so the identity survives deletion. Visual provenance obeys the same rule as numeric provenance. |
 | C09 | figure existence | every included graphic exists and is tracked in git. |
 | C10 | label / reference integrity | no duplicate compiled label, no reference to an undefined one. A `\ref` inside an `oldrevisionblock` DOES resolve (the body is typeset into a discarded box); inside `\oldtext` it does not (the argument is gobbled). Getting that wrong makes the check blind or noisy. |

@@ -1426,6 +1426,20 @@ h_i=1+\rho c_i^2.
 \]
 The corresponding direct-objective implementation is given in Appendix~\ref{app:implementation}.}
 
+\newtext{The Jensen step is what makes the objective observation-additive, and it is not
+free. Because the Surrogate multiplies each observation's squared error by
+$1+\rho c_i^{2}$, the implied weights concentrate on sales far from the centre of the
+log-price distribution as $\rho$ grows, and the frozen weight audit quantifies how far
+that goes. At $\rho=100$ the effective sample size
+$\bigl(\sum_i w_i\bigr)^{2}/\sum_i w_i^{2}$ on the development block falls to 86,609 of
+its 344,607 rows, or 25.1\% of $n$; across the nine fitting blocks it ranges from 25.0\%
+to 28.6\% of $n$, the median weight on the development block is 19.1 rather than near
+one, and the most extreme one percent of rows carry 10.7\% of the total weight. Weight
+concentration of this magnitude is an implementation-side diagnostic, and a plausible
+explanation for the Surrogate's behaviour at strong penalties. It is an association, not
+an established mechanism: nothing here demonstrates that the concentration causes the
+observed path behaviour, and no such claim is made.}
+
 % \textcolor{blue}{\sout{The direct and surrogate penalties consequently serve different methodological roles. The direct penalty is the clearest representation of the statistical quantity being controlled, but its curvature couples observations. The surrogate sacrifices exact covariance control in exchange for sample additivity, standard-software compatibility, and reduced sensitivity to cancellation across different parts of the value distribution. Moreover, the numerical values of $\rho$ under the two formulations are not directly comparable because the penalties have different scales. In the CCAO application, the surrogate provides the strongest combined validation performance and is therefore the principal practical specification.}}
 
 {Unlike the direct covariance penalty, the surrogate is not invariant to a common shift in all log predictions because it penalizes the magnitude of $e_i(f)$ itself. It can therefore affect 
@@ -1438,6 +1452,30 @@ The corresponding direct-objective implementation is given in Appendix~\ref{app:
 \label{subsec:correction_scope}
 
 % \textcolor{blue}{\sout{The two formulations serve complementary roles. The direct penalty targets the chosen global first-order association between log valuation ratios and log sale prices. The surrogate replaces direct covariance minimization with a sample-additive upper-bound objective that is directly compatible with standard boosting software. Because the two penalties have different scales, the numerical values of $\rho$ are not directly comparable across formulations. Their appropriate scale can also vary across training samples and jurisdictions, so the two regularization paths are traced separately through chronological validation.}}
+
+\newtext{The Direct objective's curvature was audited directly, and the audit does not
+license the convenient reading. Gate E.4 of the frozen validation returns the verdict
+INDETERMINATE, and neither of its two acceptance criteria is met: the maximum curvature
+ratio at the display anchors is 40.04 against an acceptance threshold of 1.2 for
+$\rho\ge1$, and the maximum penalty contribution $M$ over all fitting blocks and anchors
+is 0.0118 against an acceptance threshold of 0.01. We therefore do not claim that the
+Direct objective behaves as though it were gradient-only, and we do not claim the
+opposite either. The frozen evidence supports neither reading, and reporting it as
+indeterminate is the accurate statement.}
+
+\newtext{What can be stated exactly is the structure. The Hessian of the Direct
+objective is $\frac{2}{n}I+\frac{\rho}{n^{2}}cc^{\top}$, from
+\eqref{eq:direct_gradient_hessian}: a diagonal part plus a \emph{dense rank-one} term
+that couples every pair of observations. LightGBM's custom-objective interface accepts
+one gradient and one scalar Hessian per observation, so the cross-observation rank-one
+term is not representable through it and is omitted rather than approximated. What the
+implementation supplies in its place is the diagonal of the exactly scaled Hessian, which
+the frozen objective-scaling audit records identically for all nine fitting blocks:
+$1+\frac{\rho}{2n}c_i^{2}$ for Direct and $1+\rho c_i^{2}$ for the Surrogate, with the
+common factor $n/2$ applied analytically so that the supplied derivatives reduce to
+$g_i=e_i$ and $h_i=1$ at $\rho=0$. The Direct optimizer therefore combines the exact
+penalty gradient with an approximate, diagonal curvature. How much that approximation
+matters is precisely what E.4 was designed to settle, and it did not settle it.}
 
 {
 % \oldtext{The two formulations intervene differently. The direct penalty responds to the aggregate signed first-order association between log valuation ratios and log sale prices. The surrogate instead reallocates squared-error importance across observations according to their distance from the center of the log-price distribution. Although this weighted objective upper-bounds squared covariance, it generally controls more than the targeted first-order trend, as shown in~\eqref{eq:surrogate_decomposition}.}
@@ -2490,6 +2528,26 @@ The remaining statements follow from $C_\rho=C_0/(1+\rho A/2)$.
 \newtext{This equivalence is specific to the exact fixed-prediction-space benchmark. It reveals that, within that benchmark, Direct covariance regularization is no richer than a one-parameter centered spread correction. This is both a mechanism result and a limitation: whether an explicit post-hoc correction can reproduce the accuracy--equity path of a fully retrained nonlinear learner is a separate empirical question left for follow-up work.} It does not imply that the empirical Direct-LightGBM path is one-dimensional: retraining can change tree splits and leaf structure, and the standard-library Direct implementation uses only the diagonal of the covariance Hessian.
 \todo{Future research: use the centered-spread equivalence as the starting point for a separate matched-frontier study of post-hoc versus in-processing correction; this comparison is intentionally not part of the present empirical results.}
 }
+
+\newtext{The rescaling coefficient that this benchmark implies should be stated in its
+general form, because the special case is easy to mistake for the rule. On a fitting block
+$T$, the coefficient that drives the first-order association of a centered rescaling of a
+fixed predictor $f_0$ to zero is
+\[
+b^{\star}_{T}
+=
+\frac{\widehat{\Var}_{T}(y)}{\widehat{\Cov}_{T}(f_0,y)},
+\]
+which is the form the frozen post-hoc comparator convention records. The familiar
+$1/R^{2}$ expression is the special case in which $f_0$ is the orthogonal projection of
+$y$ onto the prediction space, so that $\widehat{\Cov}_{T}(f_0,y)=\widehat{\Var}_{T}(f_0)$
+and the ratio collapses. It is a theoretical diagnostic confined to that
+linear/projection benchmark, and it is not the general root for a boosted predictor.
+Moreover $b^{\star}_{T}$ is itself an in-sample theory diagnostic rather than an empirical
+endpoint: the boosted learner used here is substantially less regressive on its own
+fitting block than out of sample, so the in-sample root understates the rescaling that an
+out-of-sample first-order correction requires. The frozen convention records it as a
+diagnostic and does not use it to set any empirical endpoint.}
 
 \begin{proposition}[Accuracy cost]
 \label{prop:path_cost}

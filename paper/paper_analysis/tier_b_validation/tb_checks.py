@@ -511,6 +511,17 @@ def c07_forbidden_wording(ctx) -> list:
     phrases = [(p["phrase"], p["why"]) for p in ctx.fw["forbidden_phrases"]]
     literals = [(l, ctx.fw["forbidden_literals_why"])
                 for l in ctx.fw["forbidden_literals"]]
+    # The positive counterpart: four denials the frozen spec relies on must keep
+    # printing. A prohibition list cannot protect them -- deleting a denial
+    # breaks no pattern scan.
+    req = tb.read_yaml(tb.TB_SPEC / "tier_b_required_statements.yaml")
+    for st in req["required_statements"]:
+        need = [st["fragment"]] + ([st["also_requires"]]
+                                   if st.get("also_requires") else [])
+        if not all(tb_text.normalize(f) in ctx.at.plain for f in need):
+            out.append(Finding("C07", f"C07:missing_required_denial:{st['id']}",
+                               f"a required denial no longer prints: "
+                               f"{st['why'].strip()}"))
     for phrase, why in phrases + literals:
         needle = _squash(tb_text.normalize(phrase))
         if not needle:

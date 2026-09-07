@@ -36,4 +36,254 @@
 # built before the work it gates. Entries arrive with B2.
 # =============================================================================
 schema_version: 1
-entries: []
+entries:
+
+# --------------------------------------------------------------------------
+# B1.3 -- Methods and theory repair.
+#
+# Gate E.4 and the Surrogate weight audit. These are the first manuscript-facing
+# numbers this pass prints that the frozen numeric map does not index at the
+# anchor where they now appear: the map rows for the E.4 quantities are anchored
+# at eq:surrogate_derivatives (the section 3.4 HEADING in the Tier-A baseline),
+# while the repaired prose sits after \label{subsec:correction_scope}. Rather
+# than contort the prose to match a stale anchor, the values resolve here and
+# C01 re-derives every one of them from the frozen artifact.
+# --------------------------------------------------------------------------
+
+  - entry_id: TB-e4-verdict
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/e4_verdict.json
+    artifact_sha256: c373a129cdd313513b8eab2c8aa20c3cb308153e4fa4951a2032433b70b3af99
+    artifact_kind: json
+    selector: $.e4_verdict
+    metric: e4_verdict
+    raw_value: "INDETERMINATE"
+    value_transform: identity
+    rounding_rule: verbatim
+    rendered_value: "INDETERMINATE"
+    manuscript_anchor: subsec:correction_scope
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: >-
+      The verdict itself. Note that e4_verdict.json ALSO carries a `statement`
+      field reading "Direct is effectively gradient-only, retaining essentially
+      native curvature" -- that string is a forbidden phrase precisely because
+      the verdict beside it is INDETERMINATE. It is never quoted.
+
+  - entry_id: TB-e4-max-curvature-ratio
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/e4_verdict.json
+    artifact_sha256: c373a129cdd313513b8eab2c8aa20c3cb308153e4fa4951a2032433b70b3af99
+    artifact_kind: json
+    selector: $.evidence_at_display_anchors.max_curvature_ratio
+    metric: max_curvature_ratio
+    raw_value: "40.04019493320774"
+    value_transform: identity
+    rounding_rule: half_up:2
+    rendered_value: "40.04"
+    manuscript_anchor: subsec:correction_scope
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: Measured against the acceptance threshold below, which it fails.
+
+  - entry_id: TB-e4-curvature-accept-threshold
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/e4_verdict.json
+    artifact_sha256: c373a129cdd313513b8eab2c8aa20c3cb308153e4fa4951a2032433b70b3af99
+    artifact_kind: json
+    selector: $.rule.R_accept_min_at_rho_ge_1
+    metric: R_accept_min_at_rho_ge_1
+    raw_value: "1.2"
+    value_transform: identity
+    rounding_rule: half_up:1
+    rendered_value: "1.2"
+    manuscript_anchor: subsec:correction_scope
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: >-
+      The curvature-ratio acceptance threshold for rho >= 1. It is NOT in the
+      frozen numeric map -- only the M threshold is -- so without a ledger entry
+      the paper could state one side of the comparison and not the other.
+
+  - entry_id: TB-e4-max-M
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/e4_verdict.json
+    artifact_sha256: c373a129cdd313513b8eab2c8aa20c3cb308153e4fa4951a2032433b70b3af99
+    artifact_kind: json
+    selector: $.evidence_at_display_anchors.max_penalty_contribution_M_over_all_blocks_and_anchors
+    metric: max_penalty_contribution_M
+    raw_value: "0.011803871804554139"
+    value_transform: identity
+    rounding_rule: half_up:4
+    rendered_value: "0.0118"
+    manuscript_anchor: subsec:correction_scope
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+
+  - entry_id: TB-e4-M-accept-threshold
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/e4_verdict.json
+    artifact_sha256: c373a129cdd313513b8eab2c8aa20c3cb308153e4fa4951a2032433b70b3af99
+    artifact_kind: json
+    selector: $.rule.M_accept_max
+    metric: M_accept_max
+    raw_value: "0.01"
+    value_transform: identity
+    rounding_rule: half_up:2
+    rendered_value: "0.01"
+    manuscript_anchor: subsec:correction_scope
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+
+  - entry_id: TB-surrogate-ess-development-rho100
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv
+    artifact_sha256: aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e
+    artifact_kind: csv
+    selector: block_id=development_pool;rho=100.0
+    column: effective_sample_size
+    metric: effective_sample_size
+    raw_value: "86608.59858931531"
+    value_transform: identity
+    rounding_rule: usd_comma:0
+    rendered_value: "86,609"
+    manuscript_anchor: eq:surrogate_derivatives
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: evaluation_cell
+    attained_status: ATTAINED
+    note: >-
+      The Jensen bound's implementation-side cost, stated associationally. Never
+      presented as the established cause of the Surrogate's path behaviour.
+
+  - entry_id: TB-surrogate-nT-development
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv
+    artifact_sha256: aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e
+    artifact_kind: csv
+    selector: block_id=development_pool;rho=100.0
+    column: n_T
+    metric: n_train
+    raw_value: "344607"
+    value_transform: identity
+    rounding_rule: usd_comma:0
+    rendered_value: "344,607"
+    manuscript_anchor: eq:surrogate_derivatives
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: evaluation_cell
+    attained_status: ATTAINED
+    note: >-
+      The denominator of the effective-sample-size fraction, taken from the SAME
+      row as the numerator so the two cannot come from different blocks. The
+      frozen map carries this count as well, but anchored elsewhere.
+
+  - entry_id: TB-surrogate-ess-fraction-development-rho100
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv
+    artifact_sha256: aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e
+    artifact_kind: csv
+    selector: block_id=development_pool;rho=100.0
+    column: ess_fraction_of_n
+    metric: ess_fraction_of_n
+    raw_value: "0.25132570896503936"
+    value_transform: times_100
+    rounding_rule: half_up:1
+    rendered_value: "25.1"
+    manuscript_anchor: eq:surrogate_derivatives
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: A FRACTION in the artifact, printed as a percent -- hence times_100.
+
+  - entry_id: TB-surrogate-ess-fraction-min-rho100
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv
+    artifact_sha256: aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e
+    artifact_kind: csv
+    selector: block_id=production_2016_2024;rho=100.0
+    column: ess_fraction_of_n
+    metric: ess_fraction_of_n
+    raw_value: "0.24998732425226766"
+    value_transform: times_100
+    rounding_rule: half_up:1
+    rendered_value: "25.0"
+    manuscript_anchor: eq:surrogate_derivatives
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: >-
+      The lower end of the range across the nine fitting blocks. A selector must
+      resolve to exactly one row, so a min/max over blocks is expressed by
+      naming the two extreme blocks rather than by an aggregate the grammar
+      cannot address.
+
+  - entry_id: TB-surrogate-ess-fraction-max-rho100
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv
+    artifact_sha256: aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e
+    artifact_kind: csv
+    selector: block_id=fold_1_train;rho=100.0
+    column: ess_fraction_of_n
+    metric: ess_fraction_of_n
+    raw_value: "0.28575188207678975"
+    value_transform: times_100
+    rounding_rule: half_up:1
+    rendered_value: "28.6"
+    manuscript_anchor: eq:surrogate_derivatives
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: The upper end of the range across the nine fitting blocks.
+
+  - entry_id: TB-surrogate-wmedian-development-rho100
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv
+    artifact_sha256: aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e
+    artifact_kind: csv
+    selector: block_id=development_pool;rho=100.0
+    column: w_median
+    metric: w_median
+    raw_value: "19.086706435016414"
+    value_transform: identity
+    rounding_rule: half_up:1
+    rendered_value: "19.1"
+    manuscript_anchor: eq:surrogate_derivatives
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: >-
+      At rho=0 every weight is exactly 1; at rho=100 the median weight is about
+      19, which is what makes the effective-sample-size loss concrete.
+
+  - entry_id: TB-surrogate-top1pct-share-development-rho100
+    added_by_stage: B1.3
+    artifact_path: analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv
+    artifact_sha256: aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e
+    artifact_kind: csv
+    selector: block_id=development_pool;rho=100.0
+    column: top1pct_weight_share
+    metric: top1pct_weight_share
+    raw_value: "0.10680699816349656"
+    value_transform: times_100
+    rounding_rule: half_up:1
+    rendered_value: "10.7"
+    manuscript_anchor: eq:surrogate_derivatives
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
