@@ -105,3 +105,160 @@ claims:
     work, and the plan assigns it there. What B1.5 owes is that B2 cannot leave
     it behind by accident, and that no future FLAGGED_UNSUPPORTED = 0 is read as
     having validated it.
+
+# ---------------------------------------------------------------------------
+# Discovered at B2.2 and registered in the same commit, exactly as the header
+# above requires: "Absence from this file is therefore NOT evidence that a
+# math-mode number is supported. If a later stage finds another one, add it here
+# in the same commit."
+#
+# How they were found. B2.1 had to establish, cell by cell, that
+# frozen_artifact_reproduction.csv carries NO Delta_NL and NO dCor column at any
+# positive rho -- which is why both were dropped as columns from
+# tab:path_anchor_complementary. That made a second question unavoidable: where
+# else does the manuscript print a positive-rho Delta_NL or dCor value? A scan
+# of ACTIVE math-mode decimal literals against the frozen numeric map, the
+# Tier-B ledger and the frozen allowlist found three sites. All three are in
+# math mode, so C02 never saw them and the contractual
+# UNSUPPORTED_TOKENS = 0 at B2.2 says nothing whatever about them.
+#
+# All three are the SAME frozen fact as MATH-001, in the out-of-time paths
+# rather than the CV paths, and the approved plan names each of them:
+# section E.6 for the Delta_NL/ratio-shape prose and the dCor non-monotonicity
+# (C-results-011, REWRITE), and section G twice -- "Delta_NL or dCor at ANY
+# positive rho: absent from frozen_artifact_reproduction.csv" and "The Surrogate
+# dCor non-monotonicity (0.382 -> 0.250 -> 0.267): positive-rho endpoints
+# unresolvable".
+#
+# Not deleted at B2.2, for the same reason MATH-001 was not deleted at B1.5:
+# B2.2's authorization is the two baseline tables and the Linear decision, and
+# the plan assigns these passages to the section 5.4 rewrite that lands with the
+# mechanism figure work. They are scheduled to B2.6, the last Tier-B2 commit, so
+# the mandatory B2 stop cannot be reached with any of them still printing.
+#
+# One value in each of these sentences IS supported and must survive a rewrite:
+# the rho=0 endpoints. Cell C Delta_NL is 0.116 held-out and 0.121 in 2025, and
+# Cell C dCor is 0.382 held-out and 0.417 in 2025, all from
+# zero_control_full.csv. It is only the positive-rho values that resolve from
+# nothing.
+# ---------------------------------------------------------------------------
+
+- claim_id: MATH-002-direct-positive-rho-delta-nl-band
+  status: ACTIVE_UNSUPPORTED
+  disposition: DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE
+  resolved_by_stage: B2.6
+  manuscript_anchor: fig:ratio_shape_path_placeholder
+  manuscript_section: "Section 5, subsection: How the Valuation-Ratio Shape Changes Along the Path"
+  identify_by_literals: ["0.132", "0.115"]
+  drift_cue: "similarly stable, ending at"
+  normalized_excerpt_sha256: 96549f75b0c3f634e39d326cb554b7d2f10e8923e04c6ad8730de77ecbb8759c
+  normalized_excerpt: >-
+    along the direct path, held-out delta_ nl remains near 0.116 - 0.132 over
+    the previously reported representative configurations and is 0.115 at
+    rho=100 ; the 2025 direct path is similarly stable, ending at 0.119 .
+  what_it_claims: >-
+    That held-out Delta_NL along the Direct path stays in the band 0.116-0.132
+    and is 0.115 at rho=100, with the 2025 path ending at 0.119.
+  why_unsupported: >-
+    Every positive-rho value in the sentence is a Delta_NL value, and
+    frozen_artifact_reproduction.csv -- the only artifact that reproduces the
+    two frozen positive-rho anchors -- carries no Delta_NL column at all. The
+    lower band endpoint 0.116 is the rho=0 Cell-C value and does resolve; the
+    upper endpoint 0.132, the 0.115 at rho=100, and the 2025 endpoint 0.119 do
+    not. The phrase "over the previously reported representative
+    configurations" is itself a residue of the three legacy display anchors
+    whose fitted artifacts are hash-pinned but in no checkout.
+  plan_authority:
+  - "tier-b-merry-cloud.md, section E.6 (C-results-011 REWRITE; old 5.3 merged into new 5.4)"
+  - "tier-b-merry-cloud.md, section G (Delta_NL or dCor at ANY positive rho)"
+  why_this_stage: >-
+    B2.6 owns the mechanism and ratio-shape figures and their surrounding prose,
+    and is the last Tier-B2 commit before the mandatory stop.
+  b2_2_note: >-
+    Discovered and registered at B2.2 while establishing that Delta_NL and dCor
+    have no positive-rho column in the frozen reproduction artifact. Registering
+    it is what stops UNSUPPORTED_TOKENS = 0 from being read as "every printed
+    number resolves".
+
+- claim_id: MATH-003-surrogate-positive-rho-delta-nl-trajectory
+  status: ACTIVE_UNSUPPORTED
+  disposition: DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE
+  resolved_by_stage: B2.6
+  manuscript_anchor: fig:ratio_shape_path_placeholder
+  manuscript_section: "Section 5, subsections: ratio shape (first site) and first-order mechanism (second site)"
+  identify_by_literals: ["0.099", "0.124"]
+  drift_cue: "falls through moderate regularization"
+  normalized_excerpt_sha256: bd5b7d96d474cf5c79795eb5330bae3f71648358650587eef284b84f893b6f19
+  normalized_excerpt: >-
+    the surrogate path instead falls through moderate regularization, from 0.116
+    at rho=0 to 0.099 near the nominal rho=1 display anchor (tested rho=0.954095
+    ) on the held-out sample and from 0.121 to 0.092 near the nominal rho=10
+    display anchor (tested rho=10.4811 ) in 2025, then rises at rho=100 to 0.124
+    and 0.111 , respectively.
+  n_sites: 2
+  second_site_normalized_excerpt_sha256: bf39615047a5b440dd8d9bd8e32fe91705af41d7391542c0d057b2eaf8e1c65a
+  second_site_normalized_excerpt: >-
+    on surrogate, _ log continues to fall as delta_ nl first declines and then
+    rises at high rho , including the held-out movement from 0.099 near rho=0.954
+    to 0.124 at rho=100 .
+  what_it_claims: >-
+    The Surrogate Delta_NL trajectory at positive rho: a fall to 0.099 near the
+    nominal rho=1 anchor held-out and to 0.092 near the nominal rho=10 anchor in
+    2025, then a rise at rho=100 to 0.124 and 0.111. The same 0.099 -> 0.124
+    movement is printed a second time in the first-order mechanism subsection,
+    which is why this claim carries two sites and expected_count 2.
+  why_unsupported: >-
+    Same frozen fact as MATH-002: no Delta_NL column exists at any positive rho.
+    The rho=0 endpoints 0.116 and 0.121 are Cell-C values and do resolve; every
+    positive-rho value in either sentence does not. The Surrogate "falls then
+    rebounds" shape is exactly the claim the plan flags, and it cannot be
+    asserted from values that reproduce nowhere.
+  plan_authority:
+  - "tier-b-merry-cloud.md, section E.6 (C-results-011 REWRITE)"
+  - "tier-b-merry-cloud.md, section G (Delta_NL or dCor at ANY positive rho)"
+  why_this_stage: >-
+    Both sites sit in the Results prose B2.6 rewrites alongside the mechanism
+    figure asset swap, and B2.6 is the last Tier-B2 commit.
+  b2_2_note: >-
+    Registered as ONE claim with two printing sites rather than as two claims,
+    because it is one unsupported trajectory. A partial resolution changes the
+    match count and therefore surfaces as an UNEXPECTED failure.
+
+- claim_id: MATH-004-surrogate-positive-rho-dcor-nonmonotonicity
+  status: ACTIVE_UNSUPPORTED
+  disposition: DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE
+  resolved_by_stage: B2.6
+  manuscript_anchor: fig:mechanism_path_placeholder
+  manuscript_section: "Section 5, subsection: First-Order Correction and Residual Structure Along the Path"
+  identify_by_literals: ["0.267", "0.258", "0.266"]
+  drift_cue: "the same rebound from"
+  normalized_excerpt_sha256: 00dae7bbf862b7d0ec752d742d3644c00cb89196380209e2daccc11b2e876f35
+  normalized_excerpt: >-
+    for the surrogate, held-out dcor falls from 0.382 at rho=0 to 0.250 near
+    rho=10.481 and then rises to 0.267 at rho=100 ; the 2025 path shows the same
+    rebound from 0.258 to 0.266 .
+  what_it_claims: >-
+    The Surrogate distance-correlation non-monotonicity: held-out dCor falling
+    from 0.382 at rho=0 to 0.250 near rho=10.481 and rising to 0.267 at rho=100,
+    with the 2025 path rebounding from 0.258 to 0.266.
+  why_unsupported: >-
+    frozen_artifact_reproduction.csv carries no dCor column at any positive rho,
+    so 0.250, 0.267, 0.258 and 0.266 resolve from nothing. Only the rho=0
+    endpoint 0.382 resolves, from zero_control_full.csv cell C. The approved
+    plan names this exact chain in section G -- "The Surrogate dCor
+    non-monotonicity (0.382 -> 0.250 -> 0.267): positive-rho endpoints
+    unresolvable" -- and in section E.6, which adds that the same values must
+    not be kept in tab:path_anchor_complementary while being deleted from the
+    prose. B2.1 removed the table side; this is the prose side.
+    0.250 is deliberately NOT one of the identifying literals: it also occurs as
+    a commented-out Linear dCor cell, and including it would make this entry
+    collide with the coverage token population.
+  plan_authority:
+  - "tier-b-merry-cloud.md, section E.6 (C-results-011 REWRITE)"
+  - "tier-b-merry-cloud.md, section G (Surrogate dCor non-monotonicity)"
+  why_this_stage: >-
+    The sentence sits in the mechanism subsection whose figure asset and caption
+    B2.6 replaces, and B2.6 is the last Tier-B2 commit before the stop.
+  b2_2_note: >-
+    Registered at B2.2 rather than rewritten: B2.2's authorization is the two
+    baseline tables and the Linear decision. Reported at the B2.2 checkpoint.

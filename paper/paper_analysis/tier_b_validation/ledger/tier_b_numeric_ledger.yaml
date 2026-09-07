@@ -4873,3 +4873,255 @@ entries:
       level is checked rather than allowlisted as a bare design constant: the
       wildcard allowlist row for 95 describes the CCAO predictor count, which
       is a different fact entirely.
+
+# --------------------------------------------------------------------------
+# B2.2 -- the re-sourced baseline tables and the level statement.
+#
+# The Linear columns of tab:ccao_baseline_results and
+# tab:ccao_baseline_complementary are deleted, so the empirical motivation is
+# now a LEVEL statement about cell A alone. Three anchors print cell-A values
+# that the frozen map already carries but at a DIFFERENT anchor, so they resolve
+# here instead: the Introduction, the level statement after the primary baseline
+# table, and the two COV cells whose stored unit the frozen map mislabels.
+#
+# No Linear value is recovered, re-derived, or hedged. There is no frozen
+# artifact that resolves one, and none was read from output/ or data/.
+# --------------------------------------------------------------------------
+
+  - entry_id: "TB-intro-R2P-A-heldout"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=A;evaluation=heldout"
+    column: "R2_price"
+    metric: "R2P"
+    raw_value: "0.8942286902942419"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "0.894"
+    manuscript_anchor: "sec:introduction"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The Introduction's level statement. Same cell-A value the baseline table
+      prints; it needs its own entry because the frozen numeric map is keyed
+      on (display_value, source_anchor) and the Introduction is a different
+      anchor.
+
+  - entry_id: "TB-intro-VEI-A-heldout"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=A;evaluation=heldout"
+    column: "VEI"
+    metric: "VEI"
+    raw_value: "-26.459634217874914"
+    value_transform: "identity"
+    rounding_rule: "half_up:1"
+    rendered_value: "-26.5"
+    manuscript_anchor: "sec:introduction"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2026_ED2_PROPOSED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Exposure-Draft diagnostic. The Introduction names it as such rather than
+      as adopted guidance.
+
+  - entry_id: "TB-intro-COD-A-heldout"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=A;evaluation=heldout"
+    column: "COD"
+    metric: "COD"
+    raw_value: "21.6265818314926"
+    value_transform: "identity"
+    rounding_rule: "half_up:1"
+    rendered_value: "21.6"
+    manuscript_anchor: "sec:introduction"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2013_ADOPTED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Already a percent in the artifact, unlike COV. The accompanying range
+      statement is interpretation on a value that resolves, not a frozen
+      finding.
+
+  - entry_id: "TB-baseline-betalog-A-heldout"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=A;evaluation=heldout"
+    column: "beta_log"
+    metric: "betalog"
+    raw_value: "-0.14959933383304838"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "-0.150"
+    manuscript_anchor: "tab:ccao_baseline_results"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The log-ratio/log-price slope in the level statement that follows the
+      primary baseline table. The frozen map carries this value anchored at
+      the COMPLEMENTARY table, so it does not resolve here without this entry.
+
+  - entry_id: "TB-baseline-COD-A-heldout"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=A;evaluation=heldout"
+    column: "COD"
+    metric: "COD"
+    raw_value: "21.6265818314926"
+    value_transform: "identity"
+    rounding_rule: "half_up:1"
+    rendered_value: "21.6"
+    manuscript_anchor: "tab:ccao_baseline_results"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2013_ADOPTED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Same value as TB-intro-COD-A-heldout at a third anchor, for the same
+      anchor-keying reason.
+
+  - entry_id: "TB-baseline-PRB-ci-lo-A-forward_2025"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p1_inferential_reporting/tables/prb_inference.csv"
+    artifact_sha256: "fb7e8f117c7916d0a22f14f4c2e7f00d1e84eceaff63c12a4edd5833f7ef926a"
+    artifact_kind: "csv"
+    selector: "display_kind=reference_cell;family=A-native;j=;ext_target=;rho=;role_label=REFERENCE;evaluation=forward_2025"
+    column: "PRB_ci_lo"
+    metric: "PRB_ci_lo"
+    raw_value: "-0.11092599784762935"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "-0.111"
+    manuscript_anchor: "tab:ccao_baseline_results"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2013_ADOPTED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Lower end of the frozen interval for cell A on the 2025 forward sample.
+      Both ends lie below -0.10, which is what licenses the phrasing 'the
+      entire interval lies below -0.10' -- stated as the frozen
+      classification, never as an 'unacceptable band'.
+
+  - entry_id: "TB-baseline-PRB-ci-hi-A-forward_2025"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p1_inferential_reporting/tables/prb_inference.csv"
+    artifact_sha256: "fb7e8f117c7916d0a22f14f4c2e7f00d1e84eceaff63c12a4edd5833f7ef926a"
+    artifact_kind: "csv"
+    selector: "display_kind=reference_cell;family=A-native;j=;ext_target=;rho=;role_label=REFERENCE;evaluation=forward_2025"
+    column: "PRB_ci_hi"
+    metric: "PRB_ci_hi"
+    raw_value: "-0.1011620690024877"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "-0.101"
+    manuscript_anchor: "tab:ccao_baseline_results"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2013_ADOPTED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Upper end of the same interval, and the end that carries the claim: at
+      -0.101 it is still below -0.10.
+
+  - entry_id: "TB-baseline-prb-ci-level"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p1_inferential_reporting/tables/prb_inference_summary.json"
+    artifact_sha256: "1458c8466af0a3ec7f1e961d9ecb039ff2cb1a38d77cf35acb39748a011ed0b9"
+    artifact_kind: "json"
+    selector: "$.ci_level"
+    column: "ci_level"
+    metric: "ci_level"
+    raw_value: "0.95"
+    value_transform: "times_100"
+    rounding_rule: "int"
+    rendered_value: "95"
+    manuscript_anchor: "tab:ccao_baseline_results"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2013_ADOPTED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      A fraction in the artifact, a percent in the manuscript, hence
+      times_100.
+
+  - entry_id: "TB-baselinecomp-COV-A-heldout"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=A;evaluation=heldout"
+    column: "COV"
+    metric: "COV"
+    raw_value: "0.39727575972644413"
+    value_transform: "times_100"
+    rounding_rule: "half_up:1"
+    rendered_value: "39.7"
+    manuscript_anchor: "tab:ccao_baseline_complementary"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2013_ADOPTED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      COV is stored as a FRACTION (0.397...) beside a COD that is already a
+      percent (21.6...). The frozen map's COV rows carry raw_unit=percent with
+      an identity transform and therefore display 0.4, which is why every
+      printed COV token was FLAGGED at every anchor in the Tier-B0 audit.
+      times_100 + half_up:1 reproduces the printed value from the stored one.
+
+  - entry_id: "TB-baselinecomp-COV-A-forward_2025"
+    added_by_stage: "B2.2"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=A;evaluation=forward_2025"
+    column: "COV"
+    metric: "COV"
+    raw_value: "0.37187622627167494"
+    value_transform: "times_100"
+    rounding_rule: "half_up:1"
+    rendered_value: "37.2"
+    manuscript_anchor: "tab:ccao_baseline_complementary"
+    reference_cell: "A"
+    comparison_purpose: "WORKFLOW_BENCHMARK"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "IAAO_2013_ADOPTED"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The 2025 forward counterpart, same unit correction.

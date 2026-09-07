@@ -187,7 +187,7 @@ This paper arises from a collaboration between the Cook County Assessor's Office
 
 % \textcolor{blue}{\sout{Within the valuation stage, the central problem addressed in this paper is the interaction between predictive performance and regressivity. In the CCAO workflow considered, the gradient boosting model substantially improves predictive accuracy and ratio dispersion relative to the linear-regression baseline, but its vertical-equity diagnostics move in a more regressive direction. This creates a model-design problem: rather than choose between the linear and gradient-boosting baselines, we seek to retain the predictive advantage of gradient boosting while explicitly reducing regressivity. From an operational perspective, the correction should also fit within CCAO's existing modeling and validation workflow without requiring a fundamental change to CCAO's existing modeling and validation workflow.}}
 
-{Within the valuation stage, the central problem addressed in this paper is the interaction between predictive performance and regressivity. In our controlled comparison within the translated CCAO workflow, unpenalized LightGBM substantially improves predictive accuracy and lowers aggregate ratio dispersion relative to the linear-regression baseline, but its vertical-equity diagnostics move in a more regressive direction. This creates a model-design problem: rather than choose between the two baselines, we seek to retain the predictive advantages of LightGBM while reducing the regressive value-related pattern. From an operational perspective, the correction should fit within CCAO's existing modeling and validation workflow without requiring a fundamental redesign of the surrounding valuation pipeline \cite{CCAOModelResAVM2026}.}
+{Within the valuation stage, the central problem addressed in this paper is the interaction between predictive performance and regressivity. In the translated CCAO workflow the current model class is highly accurate and still price-regressive: on the held-out evaluation it attains an $R^2_P$ of 0.894 on the price scale while its exposure-draft vertical-equity index is -26.5\% and its coefficient of dispersion is 21.6\%, above the range the adopted ratio-study guidance gives for single-family residential property (Section~\ref{subsec:baseline_tension}). Predictive accuracy alone therefore does not remove the ratio trend. This makes the design problem a within-model one: we seek to retain the predictive behaviour of the current model class while reducing the regressive value-related pattern, rather than to choose between model classes. From an operational perspective, the correction should fit within CCAO's existing modeling and validation workflow without requiring a fundamental redesign of the surrounding valuation pipeline \cite{CCAOModelResAVM2026}.}
 
 % \textcolor{blue}{\st{Within the valuation stage, the central problem addressed in this paper is the interaction between predictive performance and vertical equity. In the CCAO workflow considered, the gradient boosting model substantially improves predictive accuracy and ratio dispersion relative to linear regression-based models, but its vertical equity diagnostics move in a more regressive direction. This tradeoff between a simpler linear model and a more complex nonlinear model moves the discussion from a model-selection problem to a model-design problem: the goal is to preserve the predictive advantage of the nonlinear model while explicitly controlling its regressive behavior. From an operational perspective, we aim to achieve this goal without requiring a fundamental change to CCAO's existing modeling and validation workflow.}}
 % \textcolor{blue}{\cite{CCAOModelResAVM2026}}
@@ -200,7 +200,7 @@ This paper arises from a collaboration between the Cook County Assessor's Office
 
 % \textcolor{blue}{\sout{Applied to CCAO's residential property-valuation workflow, the proposed methodology substantially reduces measured regressivity while preserving nearly all of the predictive performance of the unpenalized LightGBM. We use the oldest 90\% of eligible 2016--2024 sales (344,607 sales) for model development, evaluate the selected models on the newest 10\% (38,290 sales) as a held-out test set, and use 2025 (26,641 sales) as a secondary forward evaluation aligned with the assessment-year workflow after refitting on all 382,897 eligible 2016--2024 sales. Relative to unpenalized LightGBM, the validation-selected model reduces the deviations of three complementary vertical-equity diagnostics from their neutral values by approximately 54\% to 88\%. At the same time, $R^2$ decreases only from 0.885 to 0.881, while mean absolute error increases by approximately 3.5\%. Thus, the proposed methodology produces a substantial reduction in measured regressivity at a small cost in predictive accuracy. Exploratory experiments across six counties further suggest that the correction can improve value-related assessment patterns in different markets, although the appropriate penalty strength and attainable improvement vary across jurisdictions.}}
 
-{In the primary CCAO application, model development and the complete penalty paths are evaluated chronologically within the development sample, followed by a primary held-out evaluation and a separate 2025 forward evaluation after refitting\todo{This part sounds redundant still}. The controlled baseline comparison reported in Section~\ref{subsec:baseline_tension} establishes the application-specific motivation: LightGBM improves prediction and ratio dispersion relative to the linear benchmark while exhibiting a stronger regressive vertical-equity pattern among observed sales.
+{In the primary CCAO application, model development and the complete penalty paths are evaluated chronologically within the development sample, followed by a primary held-out evaluation and a separate 2025 forward evaluation after refitting\todo{This part sounds redundant still}. \latesttext{The baseline level reported in Section~\ref{subsec:baseline_tension} establishes the application-specific motivation on its own: the current model class attains high predictive accuracy on the price scale and still exhibits a substantial regressive vertical-equity pattern among observed sales. No comparison with another model class is needed for that, and none is reported.}
 % \oldtext{This draft reports the complete Direct and Surrogate regularization paths}
 {We report the complete direct and surrogate regularization paths} without choosing a penalty strength.}
 
@@ -373,7 +373,7 @@ The CCAO's current published residential automated valuation model (AVM) uses ve
 
 % \textcolor{blue}{\sout{For the empirical analysis, we compare a linear-regression benchmark motivated by CCAO's earlier models with standard LightGBM, representing its current model class, while holding fixed the prediction target, underlying feature information, development sample, temporal design, and evaluation procedures.}}
 
-{For the empirical analysis, we compare a linear-regression benchmark motivated by CCAO's earlier models with unpenalized LightGBM, representing its current model class, while holding fixed the prediction target, underlying feature information, development sample, temporal design, and evaluation procedures.}
+\latesttext{The empirical analysis in this paper is a within-model one. The earlier township-level linear-regression workflow is historical context for the diagnostics used here and is not re-estimated: the reported baseline is unpenalized LightGBM, representing the current model class. The prediction target, underlying feature information, development sample, temporal design, and evaluation procedures are held fixed across every configuration compared.}
 The comparison is therefore a controlled comparison of model classes rather than a reconstruction of official historical assessments. The exact sample construction, transaction filters, and temporal validation procedures are described in Section~\ref{subsec:ccao_design}.
 
 
@@ -1003,16 +1003,19 @@ not as an assessor-facing measure of vertical equity.
 \label{subsec:baseline_tension}
 
 % \textcolor{blue}{\sout{In this subsection we compare the historically motivated linear regression benchmark with the current model class used by the CCAO: unpenalized LightGBM.}}
-{We compare the historically motivated linear-regression benchmark with unpenalized LightGBM, representing CCAO's current model class.} Both models are estimated and evaluated under the same prediction target,
+\latesttext{This subsection establishes the \emph{level} of the assessor-facing diagnostics attained by unpenalized LightGBM, CCAO's current model class. Township-level linear regression historically preceded that workflow \cite{CCAOModelResAVM2026}, and the classical vertical-equity testing literature \cite{PaglinFogarty1972,Cheng1974,Edelstein1979,SundermanEtAl1990} developed on models of that kind, which is why the diagnostics below are the ones an assessor would recognize. The earlier model class is not re-estimated in this paper, and no quantitative linear-versus-nonlinear comparison is reported.} Every configuration reported below is estimated and evaluated under the same prediction target,
 underlying feature information, sample-construction rules, temporal-validation
-framework, and evaluation procedure. The comparison is therefore a controlled
-comparison of model classes rather than a reconstruction of official
+framework, and evaluation procedure. What the baseline table reports is therefore a
+level for the current model class rather than a reconstruction of official
 assessments produced under different historical workflows.
 Section~\ref{subsec:ccao_design} provides the complete empirical design.
 
 {The primary comparison below uses the held-out evaluation sample defined in Section~\ref{subsec:ccao_design}. We also report a separate 2025 forward evaluation after each baseline specification is refit using all eligible 2016--2024 sales; the 2025 sample is not used for model selection.}
 
-% Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} regenerated from output/paper_v6_preselection baseline-report predictions under the corrected metric code and the frozen Section-2 LightGBM vector.
+% Tier B2.2: tab:ccao_baseline_results is re-sourced from the frozen full zero-penalty
+% control, analysis/p0_major_revision_validation/tables/zero_control_full.csv, cell_id=A.
+% The former provenance line pointed at output/paper_v6_preselection, which is not frozen
+% evidence and is not read by this pass.
 
 % \oldtext{The previous baseline presentation combined prediction, valuation level, horizontal uniformity, vertical equity, and mechanism/residual-structure diagnostics in a single table.}
 % \oldtext{For readability and to keep the empirical hierarchy explicit, the baseline comparison is split into a primary table for prediction and assessor-facing vertical equity and a complementary table for valuation level, horizontal uniformity, and mechanism/residual structure.}
@@ -1025,42 +1028,50 @@ Section~\ref{subsec:ccao_design} provides the complete empirical design.
 \setlength{\tabcolsep}{2.4pt}
 \renewcommand{\arraystretch}{1.06}
 \newcommand{\baselineprimarymetric}[1]{\hspace*{0.6em}#1}
-\caption{Primary baseline comparison: prediction and vertical equity on the held-out and 2025 forward evaluations.}
+\caption{\latesttext{Primary baseline level: prediction and vertical equity for \emph{Ordinary LightGBM (standard raw-label native)}, the assessor-facing workflow benchmark, on the held-out and 2025 forward evaluations. This is a level statement about one model class, not a comparison between model classes and not a penalty effect.}}
 \label{tab:ccao_baseline_results}
-\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{2.80cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{6.4cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
 \toprule
-\textbf{Measure} & \multicolumn{2}{c}{\textbf{Held-out evaluation}} & \multicolumn{2}{c}{\textbf{2025 forward evaluation}} \\
-\cmidrule(lr){2-3}\cmidrule(l){4-5}
-& \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} & \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} \\
+\textbf{Measure} & \textbf{Held-out evaluation} & \textbf{2025 forward evaluation} \\
 \midrule
-\multicolumn{5}{@{}l}{\textbf{Prediction}} \\
+\multicolumn{3}{@{}l}{\textbf{Prediction}} \\
 \cmidrule(r){1-1}
-\baselineprimarymetric{$R^2_P$} & 0.799 & \textbf{0.894} & 0.799 & \textbf{0.904} \\
-\baselineprimarymetric{$\operatorname{MAE}_P$} & \$90,092 & \textbf{\$75,655} & \$99,371 & \textbf{\$78,484} \\
-\baselineprimarymetric{$\operatorname{MAPE}_P$} & 24.1\% & \textbf{21.2\%} & 24.9\% & \textbf{20.8\%} \\
-\baselineprimarymetric{$\operatorname{RMSE}_{\log P}$} & 0.322 & \textbf{0.289} & 0.313 & \textbf{0.278} \\
+\baselineprimarymetric{$R^2_P$} & 0.894 & 0.904 \\
+\baselineprimarymetric{$\operatorname{MAE}_P$} & \$75,655 & \$78,484 \\
+\baselineprimarymetric{$\operatorname{MAPE}_P$} & 21.2\% & 20.8\% \\
+\baselineprimarymetric{$\operatorname{RMSE}_{\log P}$} & 0.289 & 0.278 \\
 \addlinespace[5pt]
-\multicolumn{5}{@{}l}{\textbf{Vertical equity}} \\
+\multicolumn{3}{@{}l}{\textbf{Vertical equity}} \\
 \cmidrule(r){1-1}
-\baselineprimarymetric{PRD} & \textbf{1.042} & 1.069 & \textbf{1.052} & 1.079 \\
-\baselineprimarymetric{PRB} & \textbf{-0.016} & -0.091 & \textbf{-0.029} & -0.106 \\
-\baselineprimarymetric{MKI} & \textbf{0.975} & 0.923 & \textbf{0.954} & 0.907 \\
-\baselineprimarymetric{VEI} & \textbf{-11.6\%} & -26.5\% & \textbf{-17.3\%} & -28.6\% \\
+\baselineprimarymetric{PRD} & 1.069 & 1.079 \\
+\baselineprimarymetric{PRB} & -0.091 & -0.106 \\
+\baselineprimarymetric{MKI} & 0.923 & 0.907 \\
+\baselineprimarymetric{VEI} & -26.5\% & -28.6\% \\
 \bottomrule
 \end{tabularx}
 \vspace{1mm}
 \begin{minipage}{\textwidth}
 \scriptsize
 \emph{Notes.}
-Preferred values and applicable reference ranges are defined in Table~\ref{tab:assessment_metrics_summary}.
+\latesttext{Every entry is cell A of the frozen full zero-penalty control, the assessor-facing workflow benchmark named \emph{Ordinary LightGBM (standard raw-label native)} in Section~\ref{subsec:comparators}. The linear-regression columns this table previously carried have been removed rather than requalified: no frozen artifact reproduces any of those values, and one of them printed the same $R^2_P$ to three decimals on two different evaluation samples. A qualitative historical note on the earlier township-level workflow survives in the text above; no linear-regression number is reported anywhere in this paper.
+There is no second column to compare against, so no entry is boldfaced and no entry denotes statistical significance, standards compliance, model selection, or a preferred penalty strength.
+Preferred values and applicable reference ranges, and the guidance status of each measure, are defined in Table~\ref{tab:assessment_metrics_summary}: PRD and PRB belong to the adopted Standard on Ratio Studies, whereas MKI and VEI are Exposure-Draft diagnostics and therefore proposed rather than adopted.
 MAPE and VEI are reported in percent; MAE is reported in dollars.
-For the held-out evaluation, both models are fit on the 344,607-sale development pool.
-For the 2025 forward evaluation, each baseline specification is refit on all 382,897 eligible 2016--2024 sales.
-Boldface follows the preferred direction of each measure and does not denote statistical significance or formal compliance.
+For the held-out evaluation the model is fit on the 344,607-sale development pool; for the 2025 forward evaluation it is refit on all 382,897 eligible 2016--2024 sales.}
 \end{minipage}
 \end{table}
 
 }
+
+\latesttext{The level is itself the empirical motivation. On the primary held-out evaluation the
+workflow benchmark attains an $R^2_P$ of 0.894 on the price scale while its price-related bias is
+-0.091, its exposure-draft vertical-equity index is -26.5\%, and its log-ratio/log-price slope is
+-0.150. Its coefficient of dispersion is 21.6\% --- above the $[5,15]$ range the adopted Standard on
+Ratio Studies gives for single-family residential property (Table~\ref{tab:assessment_metrics_summary}). On the 2025 forward sample the entire 95\% confidence
+interval for the price-related bias runs from -0.111 to -0.101 and therefore lies below $-0.10$. High predictive
+accuracy and a substantial price-related ratio trend therefore coexist in the current model class,
+which is all the motivation the rest of the paper needs; it does not depend on a comparison with any
+other model class.}
 
 % \begin{oldrevisionblock}
 % \noindent\textbf{Previous main-text complementary baseline table.}\par\smallskip
@@ -1112,7 +1123,7 @@ Boldface follows the preferred direction of each measure and does not denote sta
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/baseline_models_motivation_2024_2025.pdf}
-\caption{Descriptive valuation-ratio patterns against sale price for the two baseline models in the primary held-out evaluation and the 2025 forward evaluation. Curves show median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding interquartile ranges.}
+\caption{\latesttext{Descriptive valuation-ratio profiles against sale price in the primary held-out evaluation and the 2025 forward evaluation. Curves show median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding interquartile ranges. The panel retains the historical township-level linear-regression trace as visual context only: no linear-regression quantitative result is reported in this paper, none should be read off this figure, and the assessor-facing level for the workflow benchmark is the statement accompanying Table~\ref{tab:ccao_baseline_results}.}}
 \label{fig:baseline_motivation}
 \end{figure}
 
@@ -1120,13 +1131,11 @@ Boldface follows the preferred direction of each measure and does not denote sta
 The corresponding VEI percentile-group profile, with deterministic 90\% bootstrap intervals, is reported in Appendix~\ref{app:ccao_path_details} (Figure~\ref{fig:vei_group_profile_placeholder}).
 % \textcolor{blue}{\sout{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_value_groups} apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. Assessment level and vertical equity are interpreted separately: the former concerns aggregate calibration of the ratios, whereas the latter concerns how those ratios vary across property-value levels.}}
 % \oldtext{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. Valuation level and vertical equity are interpreted separately: the former concerns aggregate calibration of the ratios, whereas the latter concerns how ratios vary across property-value levels.}\oldtext{Tables~\ref{tab:ccao_baseline_results} and~\ref{tab:ccao_baseline_complementary}, together with Figure~\ref{fig:baseline_motivation}, apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. The primary table isolates prediction and vertical equity, while the complementary table separates valuation level, horizontal uniformity, and mechanism/residual structure.}
-\latesttext{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} present the primary baseline comparison in the main text. Appendix Table~\ref{tab:ccao_baseline_complementary} reports the complementary valuation-level, horizontal-uniformity, and mechanism/residual-structure diagnostics.} 
-
-{On the primary held-out evaluation, LightGBM improves all four predictive measures relative to linear regression: $R^2_P$ rises from $0.799$ to $0.894$, while MAE, MAPE, and log-scale RMSE decrease. PRD moves from $1.042$ to $1.069$, and VEI from $-11.6\%$ to $-26.5\%$. The 2025 forward evaluation shows the same qualitative ordering.}
+\latesttext{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} present the primary baseline level in the main text. Appendix Table~\ref{tab:ccao_baseline_complementary} reports the complementary valuation-level, horizontal-uniformity, and mechanism/residual-structure diagnostics for the same cell.}
 
 % \textcolor{blue}{\sout{The comparison is application-specific and should not be interpreted as evidence that machine-learning or nonlinear valuation models are intrinsically more regressive than linear models. Its purpose is to determine whether the predictive advantages of the more flexible baseline are accompanied by stronger departures from vertical neutrality under the common evaluation framework. If the more flexible baseline provides meaningful predictive or ratio-dispersion gains while exhibiting a stronger value-related vertical-equity pattern, the model-design question is not simply whether to return to the linear benchmark. It is whether those predictive advantages can be retained while reducing the value-related pattern through the training objective.}}
 
-{The comparison is application-specific and should not be interpreted as evidence that machine-learning or nonlinear valuation models are intrinsically more regressive than linear models. In this controlled comparison, however, the more flexible baseline provides substantial predictive gains and lower aggregate ratio dispersion while exhibiting a stronger regressive vertical-equity pattern. The model-design question is therefore not simply whether to return to the linear benchmark, but whether the predictive advantages of LightGBM can be retained while reducing that pattern through the training objective.}
+\latesttext{Nothing in this level statement should be read as evidence that machine-learning or nonlinear valuation models are intrinsically more regressive than linear ones. No linear-regression result is reported here, the frozen evidence for this application reproduces none, and the finding is application-specific in any case. What the level does establish is that high predictive accuracy and a substantial price-related ratio trend coexist in the current model class. The design question is therefore a within-model one --- whether that predictive behaviour can be retained while the value-related pattern is reduced through the training objective --- rather than a choice between model classes.}
 
 % \textcolor{blue}{\sout{The assessor-facing diagnostics above define how the resulting valuations are evaluated; they need not be optimized directly during training. A first-order value-related pattern can therefore be represented on the training scale through covariance, which is used as a tractable training proxy rather than as a replacement for the assessor-facing vertical-equity measures.}}
 
@@ -1979,10 +1988,10 @@ the distinction necessary rather than merely cautious.}
 \subsection{Accuracy Alone Does Not Remove the CCAO Ratio Trend}
 \label{subsec:ccao_baseline_results}
 
-Section~\ref{subsec:baseline_tension} reports the Linear versus ordinary LightGBM
-comparison on the held-out and 2025 forward samples. Those baseline artifacts are
-regenerated under the corrected metric code and the frozen Section-2 LightGBM
-configuration; they do not involve a penalized-model choice. The remainder of the
+\latesttext{Section~\ref{subsec:baseline_tension} reports the level of the assessor-facing
+diagnostics for \emph{Ordinary LightGBM (standard raw-label native)}, the workflow benchmark, on the
+held-out and 2025 forward samples, re-sourced from the frozen full zero-penalty control; that level
+involves no penalized-model choice and no comparison with another model class.} The remainder of the
 primary CCAO Results treats the \emph{regularization path itself} as the empirical
 object of interest. No $\rho$, penalty family, or operating point is selected in the
 present analysis.
@@ -2272,7 +2281,7 @@ performance and vertical-equity diagnostics.
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.98\textwidth]{img/generated_v12_994/accuracy_equity_trajectories_inprocessing_only.pdf}
-\caption{\oldtext{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Arrows indicate increasing $\rho$ and do not mark a selected point.}\latesttext{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims. Arrows indicate increasing $\rho$ and do not mark a selected point.}}
+\caption{\oldtext{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Linear and ordinary LightGBM are context anchors. Arrows indicate increasing $\rho$ and do not mark a selected point.}\latesttext{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Ordinary LightGBM is the workflow-benchmark context anchor; the historical linear-regression point is drawn for visual context only and supports no reported quantitative comparison. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims. Arrows indicate increasing $\rho$ and do not mark a selected point.}}
 \label{fig:accuracy_equity_placeholder}
 \end{figure}
 \newtext{The trajectories are not simple monotone accuracy--equity frontiers. At moderate regularization, parts of both paths move toward more neutral PRD and VEI while preserving or improving price-scale fit relative to the corresponding custom-objective $\rho=0$ control.} 
@@ -3122,7 +3131,7 @@ artifacts \path{combined_path_table.csv} and
 configuration together with the seven fold values, equal-weight CV mean and
 standard deviation, held-out results, and 2025 forward results for the
 Section~\ref{subsec:metrics} evaluation metrics. \oldtext{The compact main-text table uses only the prespecified positive display anchors together with the ordinary-LightGBM baseline; zero-penalty custom-objective diagnostics are kept in the implementation appendix. No path row is omitted from the machine-readable results because of its observed performance.}
-\latesttext{The compact main-text table uses only the nominal decade-spaced positive display anchors $\{0.01,0.1,1,10,100\}$, mapped to the nearest frozen-grid points, together with the ordinary-LightGBM baseline; zero-penalty custom-objective diagnostics are kept in the implementation appendix. No path row is omitted from the machine-readable results because of its observed performance.}
+\latesttext{The compact main-text presentation is split in two. Table~\ref{tab:path_anchor_frozen} carries prediction, PRD and MKI at the two positive anchors the frozen reproduction audit re-derives, and Table~\ref{tab:path_anchor_standards} carries PRB, from the adopted Standard on Ratio Studies, and VEI, an Exposure-Draft diagnostic and therefore proposed rather than adopted, at all five nominal decade-spaced anchors $\{0.01,0.1,1,10,100\}$ mapped to the nearest frozen-grid points. Both show the ordinary-LightGBM workflow benchmark and the custom-objective zero-penalty origin as explicit rows; the wider zero-penalty implementation audit stays in the implementation appendix. No path row is omitted from the machine-readable results because of its observed performance.}
 \latesttext{For completeness, the complementary baseline diagnostics and the complementary representative-$\rho$ diagnostics are reported here rather than in the main empirical narrative.}
 
 {\color{latestPurple}
@@ -3132,37 +3141,38 @@ Section~\ref{subsec:metrics} evaluation metrics. \oldtext{The compact main-text 
 \setlength{\tabcolsep}{2.4pt}
 \renewcommand{\arraystretch}{1.06}
 \newcommand{\baselinecompmetric}[1]{\hspace*{0.6em}#1}
-\caption{Complementary baseline comparison: valuation level, horizontal uniformity, and mechanism/residual structure.}
+\caption{\latesttext{Complementary baseline level for \emph{Ordinary LightGBM (standard raw-label native)}, the assessor-facing workflow benchmark: valuation level, horizontal uniformity, and mechanism/residual structure. A level statement about one model class, not a comparison between model classes.}}
 \label{tab:ccao_baseline_complementary}
-\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{2.80cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{6.4cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
 \toprule
-\textbf{Measure} & \multicolumn{2}{c}{\textbf{Held-out evaluation}} & \multicolumn{2}{c}{\textbf{2025 forward evaluation}} \\
-\cmidrule(lr){2-3}\cmidrule(l){4-5}
-& \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} & \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} \\
+\textbf{Measure} & \textbf{Held-out evaluation} & \textbf{2025 forward evaluation} \\
 \midrule
-\multicolumn{5}{@{}l}{\textbf{Valuation level}} \\
+\multicolumn{3}{@{}l}{\textbf{Valuation level}} \\
 \cmidrule(r){1-1}
-\baselinecompmetric{Median ratio $m_S$} & \textbf{0.969} & 0.929 & \textbf{1.020} & 0.950 \\
-\baselinecompmetric{Mean ratio $\bar r_S$} & 1.020 & \textbf{0.989} & 1.081 & \textbf{1.015} \\
-\baselinecompmetric{Weighted mean $\bar r_{W,S}$} & \textbf{0.979} & 0.924 & \textbf{1.027} & 0.941 \\
+\baselinecompmetric{Median ratio $m_S$} & 0.929 & 0.950 \\
+\baselinecompmetric{Mean ratio $\bar r_S$} & 0.989 & 1.015 \\
+\baselinecompmetric{Weighted mean $\bar r_{W,S}$} & 0.924 & 0.941 \\
 \addlinespace[5pt]
-\multicolumn{5}{@{}l}{\textbf{Horizontal uniformity}} \\
+\multicolumn{3}{@{}l}{\textbf{Horizontal uniformity}} \\
 \cmidrule(r){1-1}
-\baselinecompmetric{COD} & 24.7\% & \textbf{21.6\%} & 24.3\% & \textbf{21.3\%} \\
-\baselinecompmetric{COV} & 45.2\% & \textbf{39.7\%} & 42.1\% & \textbf{37.2\%} \\
+\baselinecompmetric{COD} & 21.6\% & 21.3\% \\
+\baselinecompmetric{COV} & 39.7\% & 37.2\% \\
 \addlinespace[5pt]
-\multicolumn{5}{@{}l}{\textbf{Mechanism and residual structure}} \\
+\multicolumn{3}{@{}l}{\textbf{Mechanism and residual structure}} \\
 \cmidrule(r){1-1}
-\baselinecompmetric{$\beta_{\log}$} & \textbf{-0.092} & -0.150 & \textbf{-0.109} & -0.164 \\
-\baselinecompmetric{$\Delta_{\mathrm{NL}}$} & 0.131 & \textbf{0.119} & 0.122 & \textbf{0.121} \\
-\baselinecompmetric{$\operatorname{dCor}(e,y)$} & \textbf{0.250} & 0.387 & \textbf{0.269} & 0.422 \\
+\baselinecompmetric{$\beta_{\log}$} & -0.150 & -0.164 \\
+\baselinecompmetric{$\Delta_{\mathrm{NL}}$} & 0.119 & 0.121 \\
+\baselinecompmetric{$\operatorname{dCor}(e,y)$} & 0.387 & 0.422 \\
 \bottomrule
 \end{tabularx}
 \vspace{1mm}
 \begin{minipage}{\textwidth}
 \scriptsize
 \emph{Notes.}
-Median, mean, weighted-mean ratio, COD, and COV are assessor-facing valuation-level or horizontal-uniformity diagnostics defined in Section~\ref{subsec:metrics}. The first-order mechanism slope $\beta_{\log}$, correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$, and distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope}, \eqref{eq:nonlinearity_gap}, and~\eqref{eq:dcor_diagnostic}. For the three mechanism/residual-structure diagnostics, boldface follows the direction toward less first-order, non-affine conditional-mean, and broader residual--price structure, respectively; it should not be read as an assessor-standard equity ranking. Boldface does not denote statistical significance or formal compliance.
+\latesttext{Every entry is cell A of the frozen full zero-penalty control, which carries all eight complementary measures on both evaluations. The linear-regression columns this table previously carried have been removed rather than requalified, because no frozen artifact reproduces any of those values. There is no second column to compare against, so no entry is boldfaced.
+Median, mean, weighted-mean ratio, COD, and COV are assessor-facing valuation-level or horizontal-uniformity diagnostics defined in Section~\ref{subsec:metrics}. The first-order mechanism slope $\beta_{\log}$, correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$, and distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope}, \eqref{eq:nonlinearity_gap}, and~\eqref{eq:dcor_diagnostic}; the last two carry no assessor-standard reference range and are residual-structure diagnostics rather than equity measures.
+One reading matters for the motivation and is stated rather than left out: the workflow benchmark's COD is 21.6\% held-out and 21.3\% in 2025, both above the $[5,15]$ range the adopted Standard on Ratio Studies gives for single-family residential property (Table~\ref{tab:assessment_metrics_summary}), and COD rises further along the penalty paths (Appendix Table~\ref{tab:path_anchor_complementary}). No compliance claim is implied anywhere in this paper. This range comparison is interpretation offered here on values that do resolve from the frozen control; it is not itself a finding of the frozen inferential stage.
+COD and COV are reported in percent; COV is stored as a fraction in the frozen artifact and converted for display.
 \end{minipage}
 \end{table}
 }
