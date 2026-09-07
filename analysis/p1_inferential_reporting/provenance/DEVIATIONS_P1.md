@@ -186,3 +186,33 @@ Also purely a reporting-layer correction: no value in `prb_inference.csv` change
   (`pip install --no-deps --target=...`) purely to read the ED2 PDF. `fairness_env` is
   unmodified: numpy 1.26.4, pandas 2.3.1, scipy 1.13.1, scikit-learn 1.6.1, pyarrow
   14.0.1, lightgbm 4.6.0, dcor 0.6 all unchanged, and `pypdf` is not importable from it.
+
+---
+
+## C-P1-1 — correction: the P0 suite is 153/153 AT THE TAG, not on the P1 branch
+
+The plan justifying D-P1-1 claimed a sibling P1 area would keep the P0 suite at
+"153/153 verbatim, forever". That was **wrong**. Two P0 guards react to work
+outside the P0 area regardless of which directory it lives in:
+
+1. `test_p0_assertions.py:222::test_all_stage1_writes_are_inside_approved_locations`
+   fails on any **dirty working-tree** entry outside the two P0 roots — including an
+   untracked `analysis/p1_inferential_reporting/`. Committing resolves this one.
+2. `test_g2_assertions.py:325::test_only_gitignore_modified_outside_p0` is
+   **HEAD-relative** (`git diff --name-only 2732e653~1 HEAD`) and asserts the only
+   file changed outside the P0 area is `.gitignore`. **Any** additive commit
+   anywhere breaks it. A sibling directory does not help; committing makes it fail.
+
+Measured: at the tag, files outside P0 since `2732e653~1` = `['.gitignore']`
+→ **153 passed, 0 failed**. On `p1-inferential-reporting` @ `ccff55f0` → 25 files
+→ **152 passed, 1 failed**.
+
+**This is not a P0 regression.** P0 content is provably unchanged: `git diff`
+against the tag over `analysis/p0_major_revision_validation/` is empty, the
+Stage-3B index is 86/86 byte-exact, and every protected path is clean. The
+certification the tag carries is *the suite at the tag*, and that is unaffected.
+
+D-P1-1 still stands on its remaining grounds: a sibling area avoids editing any
+frozen, hash-pinned P0 file (`p0_common.py`, `protocol_p0_validation.yaml`, the
+four test modules) in order to make room for P1. Only the "153/153 forever on any
+branch" claim is withdrawn.

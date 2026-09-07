@@ -134,14 +134,40 @@ frozen: Direct at −0.06 / −0.03 / 0.00, Surrogate at 0.00.
 - Stage-3B hash index: **86/86 byte-exact**
 - HEAD == tag commit `805c426e…`
 
-### One real finding about the P0 suite
+### The P0 suite is 153/153 AT THE TAG, and 152/153 on the P1 branch
 
-`tests/test_p0_assertions.py:222::test_all_stage1_writes_are_inside_approved_locations`
-fails on **any** dirty working-tree entry outside the two P0 roots — including an
-*untracked* `analysis/p1_inferential_reporting/`. So the P0 suite is 153/153 only
-when the working tree is **clean**; this is a working-tree-cleanliness condition,
-not a directory-location one, and the earlier plan wording ("stays 153/153
-verbatim, forever") was imprecise. Committing this checkpoint restores it.
+The plan's premise — that putting P1 in a sibling directory would keep the P0
+suite at 153/153 — was **wrong**, in two ways. Both are properties of the P0
+guards, not P0 regressions. P0's *content* is provably unchanged.
+
+1. `test_p0_assertions.py:222::test_all_stage1_writes_are_inside_approved_locations`
+   fails on **any dirty working-tree entry** outside the two P0 roots, including an
+   *untracked* `analysis/p1_inferential_reporting/`. Committing fixes this one.
+2. `test_g2_assertions.py:325::test_only_gitignore_modified_outside_p0` is
+   **HEAD-relative**: it runs `git diff --name-only 2732e653~1 HEAD` and asserts
+   that the only file changed outside `analysis/p0_major_revision_validation/` is
+   `.gitignore`. **Any** additive commit anywhere in the repository breaks it — a
+   sibling directory does not help, and committing makes it fail rather than pass.
+
+Measured:
+
+| ref | files outside P0 since `2732e653~1` | P0 suite |
+|---|---|---|
+| tag `p0-major-revision-final-20260907` | `['.gitignore']` | **153 passed, 0 failed** |
+| branch `p1-inferential-reporting` @ `ccff55f0` | 25 (`.gitignore` + the 24 P1 files) | **152 passed, 1 failed** |
+
+**Correct framing.** The P0 freeze is certified **at the tag**, where the suite is
+153/153. That is what the tag means and it does not change. On the P1 branch the
+suite is 152/153 and the single failure is that scope guard correctly registering
+that P1 exists — which is its designed behaviour, since its purpose was to stop
+Stage-1/2/3 writing outside the P0 area. It is **not** evidence of a P0 change:
+
+- `git diff p0-major-revision-final-20260907 -- analysis/p0_major_revision_validation/` → **empty**
+- Stage-3B hash index → **86/86 byte-exact**
+- all protected paths → **clean**
+
+**To reproduce the 153/153 certification**, run the suite at the tag (e.g. in a
+detached worktree), not on the P1 branch.
 **Re-run the suite after checkout to confirm 153/153** (command below).
 
 ### `.gitignore`
