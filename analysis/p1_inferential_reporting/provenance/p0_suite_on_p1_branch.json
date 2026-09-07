@@ -1,0 +1,28 @@
+{
+  "RESULT": "152 passed, 1 failed, 0 skipped",
+  "branch": "p1-inferential-reporting",
+  "commit": "1e8008ed11e2d16726c1c4f45d01815703d62207",
+  "expected_sole_failure": "test_only_gitignore_modified_outside_p0",
+  "failed": 1,
+  "failed_tests": [
+    "test_only_gitignore_modified_outside_p0"
+  ],
+  "n_tests_total": 153,
+  "p0_tag": "p0-major-revision-final-20260907",
+  "p0_was_not_modified_to_reach_153": true,
+  "passed": 152,
+  "schema_version": 1,
+  "skipped": 0,
+  "sole_failure_is_the_expected_head_relative_guard": true,
+  "suites": {
+    "Stage-1 assertions": 28,
+    "Stage-1.5 / Gate-G2 assertions": 36,
+    "Stage-2 / Gate-G3 assertions": 36,
+    "Stage-3 matched-beta + temporal assertions": 29,
+    "Stage-3B / Gate-G5b temporal-completion assertions": 24
+  },
+  "the_153_of_153_certification": "see provenance/p0_suite_at_tag.json (verified at the tag)",
+  "this_is_not_a_p0_regression": "P0 content is provably unchanged on this branch: git diff against the tag over the P0 tree is empty; the FINAL gate index (Stage-3B / G5b) is 28/28 byte-exact; no hash index acquired a mismatch the tag did not already have; all protected paths are clean; and the only files changed since the tag are the P1 directory and .gitignore.",
+  "what": "P0 assertion suite executed ON THE P1 BRANCH, in the main working tree",
+  "why_this_failure_is_expected": "test_g2_assertions.py::test_only_gitignore_modified_outside_p0 runs `git diff --name-only 2732e653~1 HEAD` and asserts the only file changed outside analysis/p0_major_revision_validation/ is .gitignore. It is HEAD-RELATIVE, so ANY additive commit anywhere in the repository breaks it; a sibling directory does not help. Its purpose was to stop Stage-1/2/3 from writing outside the P0 area, and it is doing exactly that: registering that the additive P1 area exists."
+}

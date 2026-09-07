@@ -72,6 +72,10 @@
       "bytes": 4078,
       "sha256": "37f6e58b3680d1bba2c724e2b85dec9beb89c84b4a33a6563c28a72e00a73e4f"
     },
+    "provenance/p0_suite_on_p1_branch.json": {
+      "bytes": 1831,
+      "sha256": "eeac249650760a7ba22c586d1c7203982987197e70732794ec78493cc2376372"
+    },
     "provenance/p1_headline_numbers.json": {
       "bytes": 8155,
       "sha256": "45116898f7de32e69ff471c42ee3de0813bc28ac0066584882ea9c5f9acbc748"
@@ -164,14 +168,14 @@
     "verified_on_run_host": true
   },
   "generated_by": "code/p1_9_freeze_evidence.py",
-  "n_artifacts": 38,
+  "n_artifacts": 39,
   "note": "SHA-256 index of every TRACKED P1 artifact at the final evidence freeze. Parquet twins and logs are gitignored by design (mirroring P0). The IAAO ED2 PDF is cached at a gitignored path and is NOT redistributed; its hash is recorded separately below.",
   "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
   "p0_immutability": {
     "P0_UNCHANGED": true,
     "commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
     "files_changed_outside_p1_and_gitignore": [],
-    "files_changed_since_tag": 26,
+    "files_changed_since_tag": 40,
     "final_gate_index_byte_exact": true,
     "frozen_hash_indexes": {
       "output_artifact_hashes.json": {
@@ -336,9 +340,9 @@
     "cwd": "/orcd/home/002/nacevedo/RA/soft-vertical-equity-constrained-mass-appraissal",
     "git": {
       "branch": "p1-inferential-reporting",
-      "commit": "3bef64626b23bb46b43b34e70ee5028de4a5365d",
+      "commit": "1e8008ed11e2d16726c1c4f45d01815703d62207",
       "dirty": true,
-      "status_porcelain": "M  analysis/p1_inferential_reporting/P1_CHECKPOINT.md\nM  analysis/p1_inferential_reporting/code/p1_4_smearing_sensitivity.py\nA  analysis/p1_inferential_reporting/code/p1_9_freeze_evidence.py\nA  analysis/p1_inferential_reporting/code/p1_9_headline_numbers.py\nM  analysis/p1_inferential_reporting/provenance/DEVIATIONS_P1.md\nA  analysis/p1_inferential_reporting/provenance/p0_suite_at_tag.json\nM  analysis/p1_inferential_reporting/provenance/p1_artifact_hashes.json\nA  analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json\nA  analysis/p1_inferential_reporting/reports/MANUSCRIPT_EVIDENCE_PACKAGE.md\nA  analysis/p1_inferential_reporting/reports/MANUSCRIPT_IMPACT_MEMO.md\nA  analysis/p1_inferential_reporting/tables/smearing_apply_delta_nl_subset.csv\nA  analysis/p1_inferential_reporting/tables/smearing_apply_ed2_stability.csv\nA  analysis/p1_inferential_reporting/tables/smearing_apply_fastpath_reconciliation.csv\nA  analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv\nA  analysis/p1_inferential_reporting/tables/smearing_apply_summary.json\nA  analysis/p1_inferential_reporting/tests/test_p1_headline_numbers.py\nA  analysis/p1_inferential_reporting/tests/test_p1_smearing_apply_assertions.py\nA  analysis/p1_inferential_reporting/tests/test_p1_vei_assertions.py"
+      "status_porcelain": "A  analysis/p1_inferential_reporting/provenance/p0_suite_on_p1_branch.json"
     },
     "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
     "p0_tag": "p0-major-revision-final-20260907",
