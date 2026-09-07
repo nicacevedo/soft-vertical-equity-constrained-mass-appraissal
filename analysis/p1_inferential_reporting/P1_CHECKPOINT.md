@@ -1,6 +1,14 @@
 # P1 CHECKPOINT — inferential reporting
 
+> **SUPERSEDED — P1 IS COMPLETE.** This file is retained as the historical mid-stage
+> record. The authoritative final documents are
+> `reports/MANUSCRIPT_EVIDENCE_PACKAGE.md`, `reports/MANUSCRIPT_IMPACT_MEMO.md`,
+> `provenance/p1_artifact_hashes.json` (regenerated at the freeze) and
+> `provenance/p1_headline_numbers.json`. Where this file disagrees with those, they govern.
+> The hash table in §3 below is the *checkpoint-time* extract and is now stale by design.
+
 **Written:** 2026-09-07 (session stop point, by instruction)
+**Finalized:** 2026-09-07 (all four tasks complete and asserted)
 **Branch:** `p1-inferential-reporting`
 **Base:** tag `p0-major-revision-final-20260907` = `805c426e1587972a2a07dcaf60220603397c0d3e`
 
@@ -17,12 +25,16 @@ or any protected path was modified. Verified below.
 | Display-set freeze | **COMPLETE** |
 | Task 1 — dCor estimator documentation | **COMPLETE** |
 | Task 2 — PRB inferential reporting | **COMPLETE AND VERIFIED** |
-| Task 3 — VEI ED2 inferential reporting | **COMPUTED, NOT YET INDEPENDENTLY ASSERTED** |
+| Task 3 — VEI ED2 inferential reporting | **COMPLETE AND VERIFIED** (28/28) |
 | Task 4 — Duan smearing: freeze + estimate | **COMPLETE** |
-| Task 4 — Duan smearing: apply + invariance audit | **NOT RUN** |
-| Final evidence freeze | **NOT STARTED — gated** |
-| `MANUSCRIPT_IMPACT_MEMO.md` | **NOT STARTED — gated** |
+| Task 4 — Duan smearing: apply + invariance audit | **COMPLETE AND VERIFIED** (19/19, 0 flags) |
+| Final evidence freeze | **COMPLETE** |
+| `MANUSCRIPT_IMPACT_MEMO.md` | **COMPLETE** |
 | Manuscript edits | **NONE. Not permitted.** |
+
+**Final:** 72/72 P1 assertions pass (64 scientific + 8 report-consistency).
+P0 is **153/153 at the tag**, verified in an isolated detached worktree; the P1 branch
+reports the single expected HEAD-relative guard failure. See the evidence package.
 
 > **Disclosure.** Task 3 (VEI) and the Task 4 freeze+estimate steps completed
 > *before* the instruction to stop arrived. Their artifacts exist on disk and are
@@ -227,9 +239,14 @@ pin ordering.
 
 ---
 
-## 7. Gate on the final evidence freeze
+## 7. Gate on the final evidence freeze — SATISFIED
 
-`MANUSCRIPT_EVIDENCE_PACKAGE.md` and `MANUSCRIPT_IMPACT_MEMO.md` may be produced
-**only after Task 3 is complete and asserted from the authoritative ED2 source**.
-Neither exists. The evidence freeze is **not** complete. No manuscript file has
-been touched.
+The gate required Task 3 to be complete and asserted from the authoritative ED2
+source before the evidence package and impact memo could be produced. It is:
+`tests/test_p1_vei_assertions.py` passes 28/28, re-deriving the App. D.2 rule
+independently and verifying the source PDF hash; the pooled-OOF non-applicability was
+adjudicated against the literal document (see `provenance/DEVIATIONS_P1.md` D-P1-9).
+
+Both documents now exist under `reports/`. **No manuscript file has been touched** —
+`git diff` over `paper/` against the tag is empty, and that is asserted by
+`tests/test_p1_headline_numbers.py`.

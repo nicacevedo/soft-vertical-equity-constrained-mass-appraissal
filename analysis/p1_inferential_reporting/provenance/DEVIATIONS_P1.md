@@ -216,3 +216,200 @@ D-P1-1 still stands on its remaining grounds: a sibling area avoids editing any
 frozen, hash-pinned P0 file (`p0_common.py`, `protocol_p0_validation.yaml`, the
 four test modules) in order to make room for P1. Only the "153/153 forever on any
 branch" claim is withdrawn.
+
+---
+
+## D-P1-9 — ED2 §D.3 strengthens D-P1-7: the draft weights the MEAN, never the median
+
+D-P1-7 recorded that App. D.2 has no row-balanced analogue. Reading the literal document
+at finalization makes the argument stronger than "no analogue is stated":
+
+- **§D.3, immediately after D.2, is "Weighted Mean Confidence Interval"** and constructs an
+  **effective sample size** from the weights. The draft is therefore demonstrably capable of
+  specifying weighted inference — and does so **only for the mean**.
+- The string **"weighted median" appears nowhere** in the 103-page document, and
+  **"effective sample size" appears only inside that weighted-mean section**.
+- Every App. E step is defined on a count of **distinct** sales. §E.3 states "*N is the
+  number of sales ratios in the sample*" for both R6 and R7; Step 3's group table is keyed on
+  "Number of Observations". No weight appears anywhere in App. E.
+- The draft never addresses duplicate observations, repeat sales, or pooled samples.
+
+Applying D.2 to the D3 pooled-OOF sample would require choosing an `n` (151,153 appearances
+double-counts 20,988 rows and is not IID; the weight total 130,165 does not index the
+151,153-element array) and then inverting a weighted quantile to integer ranks. Every
+resolution invents a procedure the draft declines to define. **pooled_oof therefore stays
+`NOT_APPLICABLE_FOR_ED2_INFERENCE`. No weighted variant was invented**, and
+`tests/test_p1_vei_assertions.py` scans the P1 code for `weighted_median`, `weighted_rank`,
+`weighted_quantile`, `effective_n` and similar and asserts none exists.
+
+> **Naming caution.** This project's **D3** row-balanced construction and the draft's
+> **§D.3** weighted-mean CI are unrelated. They must never be conflated in prose.
+
+The same refusal is enforced in the smearing apply stage: its ED2 verdict-stability table
+carries the 43 `pooled_oof` cells as `NOT_APPLICABLE_FOR_ED2_INFERENCE`, importing the reason
+string from `p1_3_vei_ed2_inference.POOLED_OOF_REASON` so there is exactly one source of
+truth (asserted). The VEI **point estimate** is still audited there, being a descriptive
+statistic rather than the CI-based test.
+
+---
+
+## D-P1-10 — smearing apply: two-tier coverage, with `Delta_NL` on a pre-declared subset
+
+`Delta_NL` costs ~34 s per call (five cross-fitted OOF spline fits). Auditing it on all
+430 cells in both arms would have cost ~8 h of wall clock for a quantity that is exactly
+invariant by construction.
+
+**Resolution.** Two tiers, both declared in the artifact:
+
+- **Tier 1, full coverage** — all 43 realizations × 10 evaluation blocks = **430 cells**,
+  both arms, for the 15 remaining canonical metrics (level, uniformity, vertical-equity,
+  mechanism and price-scale accuracy). 6,450 comparisons, 5,160 carrying an assertion.
+- **Tier 2, `Delta_NL`** — a **pre-declared** subset: the two included reference cells (C, A)
+  plus the realization with the **largest** `s` (the strongest stress on invariance), across
+  all ten blocks. 30 cells, max relative deviation `1.81e-15`.
+
+`Delta_NL`'s invariance is also exact analytically: `e → e + log s`, both the affine and the
+cubic-spline head carry an intercept, and `Var(e)` is translation invariant, so the
+cross-fitted OOF residuals are unchanged.
+
+The Tier-1 fast path is **not a re-implementation**: every value is produced by the same
+canonical function `utils.motivation_utils.compute_taxation_metrics` calls. On the Tier-2
+subset it was compared against the frozen P0 suite
+`p0_4_centered_spread.metrics_from`: **450 comparisons, max relative difference `0.0`**.
+
+`code/p1_4_smearing_sensitivity.py` changed (its `--mode apply` branch was a `SystemExit(0)`
+stub and is now implemented), so its sha256 differs from the checkpoint index. The **frozen
+scientific artifact** `configs/smearing_estimator_frozen.json` is byte-identical and its hash
+pin still validates; `--mode freeze` was **not** rerun.
+
+---
+
+## D-P1-11 — the committed CSVs lose 1 ULP; the parquet twins are bit-exact
+
+Discovered while asserting that the ED2 CI limits are true order statistics. `pandas.to_csv`
+does not always emit a fully round-trippable float64.
+
+Measured over `vei_significance.csv` vs its parquet twin: **worst 16 ULP, worst absolute
+deviation `3.553e-15`** (on `VEI_step5`, where a scaled difference amplifies the relative
+rounding); most columns are within 1 ULP. Integer-valued and string columns round-trip
+exactly.
+
+**Consequence, now asserted rather than assumed:** bitwise claims must reference the parquet
+twin, not the committed CSV. `tests/test_p1_vei_assertions.py` performs the order-statistic
+exactness check bitwise on the parquet, compares the CSV to within 2 ULP, and
+`test_csv_is_a_faithful_serialisation_of_the_parquet_twin` pins the whole-table bound.
+Nothing scientific is affected — `3.55e-15` on a VEI expressed in percent is ~1e-16
+relative — but no downstream document should claim CSV bit-exactness.
+
+Note that summary values recorded as exactly `0.0` (for instance
+`max_abs_step5_minus_canonical_vei`) are properties of the **in-memory** computation, written
+to JSON, and are unaffected. Table-internal differences are also unaffected, because both
+operands are serialised from the same in-memory float and round identically.
+
+---
+
+## D-P1-12 — reproducing 153/153 at the tag requires state git does not carry
+
+The P0 suite was verified **at the immutable tag in a separate detached worktree**. A fresh
+`git worktree add` carries only tracked git *content*, so three classes of state the suite
+legitimately asserts had to be re-attached from the main working tree, where P0 actually ran.
+**No P0 test was modified, skipped or weakened, and no file content was altered.**
+
+1. **Gitignored derived artifacts** — `output/paper_v6_preselection_994`,
+   `output/paper_v12_lower_rho_extension_994_v2`, `output/p0_major_revision_validation`.
+2. **Gitignored source data** — `data/{ATTOM,berry_cmf,CCAO,CensusData,dewey-downloads}`,
+   attached as *real directories with symlinked children*. A bare symlink is not a directory,
+   so the existing `data/<X>/` gitignore patterns would not match it, and the resulting
+   untracked path tripped `test_all_stage1_writes_are_inside_approved_locations` on the first
+   attempt.
+3. **File mode and mtimes, which git does not record.**
+   `APPROVED_EXECUTION_PLAN.md` is `0444` in the main tree and `0664` after checkout, and
+   three tests assert it is read-only.
+   More substantively,
+   `test_p0_assertions.py::test_source_equivalence_precedes_reproduction_interpretation`
+   asserts a **relative mtime ordering** (`source_equivalence_verdict.json` no newer than
+   `frozen_artifact_reproduction.csv` + 1 s). `git worktree add` stamps every file with the
+   checkout time, so **this assertion is not reproducible from committed content by any
+   checkout.** mtimes were reconstituted for the 309 tracked P0 files from the main working
+   tree, the authoritative record of the P0 execution order.
+
+Both measurements are reported in `provenance/p0_suite_at_tag.json`:
+
+| checkout | result |
+|---|---|
+| content only | **152 passed, 1 failed** — the mtime-ordering test, sole failure |
+| + mode and mtimes reconstituted | **153 passed, 0 failed, 0 skipped** |
+
+This is a genuine reproducibility limit of the P0 suite and is disclosed as such: one of its
+153 assertions is a property of the original run's filesystem metadata rather than of the
+committed content.
+
+---
+
+## C-P1-2 — correction: the checkpoint's hash index was stale against the checkpoint
+
+At the previous checkpoint, `provenance/p1_artifact_hashes.json` recorded
+`P1_CHECKPOINT.md` at 12,207 bytes / `3153355a…`, while the committed file was 12,427 bytes
+/ `b27ef763…`. Cause: the index hashed the checkpoint, and the checkpoint was then edited to
+add the pointer *to* the index. 23 of 24 entries were byte-exact; only the self-referential
+one was stale.
+
+**Resolution.** The authoritative manifest is now generated by
+`code/p1_9_freeze_evidence.py` as the **last** step before commit, after every file it
+covers is final. It excludes exactly one path — **itself**, since a hash index cannot contain
+its own hash — and records that exclusion and its reason explicitly in
+`self_excluded` / `self_exclusion_reason`.
+
+---
+
+## P-4 — `pypdf` reinstalled into an isolated scratch target
+
+The isolated `pypdf` install from the earlier session was gone (node-local `/tmp`), and the
+leftover trees found there were incomplete 6.x copies with no importable package. `pypdf
+5.9.0` — the version recorded in P-3 — was reinstalled with
+`pip install --target <scratch>` purely to re-read the ED2 PDF and verify App. D.2 and
+App. E verbatim at finalization.
+
+`fairness_env` is unmodified and `pypdf` is still not importable from it: numpy 1.26.4,
+pandas 2.3.1, scipy 1.13.1, scikit-learn 1.6.1, pyarrow 14.0.1, lightgbm 4.6.0, dcor 0.6,
+Python 3.9.19, all unchanged. The cached PDF re-hashed to
+`e950e00d0c3684dd067734d401e5278dcf659f471fcfb0d6db65c7584f7c56b8` (2,013,844 bytes), and
+the extracted document confirms 103 pages, D.2 on printed page 67, App. E on 78–81, and the
+title "EXPOSURE DRAFT – STANDARD ON RATIO STUDIES - MAY 2026".
+
+---
+
+## C-P1-3 — correction: two P0 hash indexes are NOT byte-exact, and never were
+
+The first run of `code/p1_9_freeze_evidence.py` refused to freeze, reporting 8 mismatches:
+`stage1_frozen_hashes.json` 48/49 and `output_artifact_hashes.json` 118/125. Earlier P1
+documents (including this file's D-P1-1 and the checkpoint) claimed the frozen P0 hash
+indexes were byte-exact. **That claim was too strong.**
+
+**Investigated, not assumed.** The identical check was run inside the detached tag worktree:
+
+- the mismatch set at the tag is **exactly the same 8 paths** as on the P1 branch;
+- all 8 files are **byte-identical between the two trees**;
+- `git diff` against the tag over the P0 tree is **empty**.
+
+**Cause.** The two indexes are **early-stage snapshots that P0's own later gates legitimately
+superseded**. `tests/run_all_tests.py`, `test_g2_assertions.py` and `test_g3_assertions.py`
+were edited in later P0 stages; `POSTFLIGHT.json`, `slurm_graph.json` and
+`large_local_artifacts.json` are end-of-run summaries written after the index; and
+`output_artifact_hashes.json` **lists itself**, a self-reference that can never match — the
+same failure class as C-P1-2. `tables/regeneration_triggers.csv` is the single Stage-1 entry.
+
+**Resolution.** The gate criterion was wrong, not the evidence. Requiring zero mismatches in
+those two indexes would demand a property that was never true. The freeze script now
+enforces: (1) empty `git diff` vs the tag over the P0 tree; (2) the **final** gate index
+(Stage-3B / G5b) fully byte-exact — it is, 28/28; (3) **no index acquired a mismatch the tag
+did not already have**, checked by re-hashing the tag's own blobs via `git show`, so no extra
+checkout is needed; (4) no index entry missing; (5) protected paths clean; (6) only the P1
+directory and `.gitignore` changed since the tag. All six hold, and `P0_UNCHANGED` is
+recorded as `true` with the full evidence in
+`provenance/p1_artifact_hashes.json → p0_immutability`.
+
+This strengthens rather than weakens the immutability claim: it now detects any P1-induced
+change to a P0 file while being honest about P0's documented internal staleness. The
+withdrawn wording is "every frozen P0 hash index is byte-exact"; what holds is "the final
+gate index is byte-exact and no index acquired a new mismatch".

@@ -1,0 +1,84 @@
+{
+  "RESULT": "153 passed, 0 failed, 0 skipped",
+  "environment_reconstitution": {
+    "steps": [
+      {
+        "paths": [
+          "output/paper_v6_preselection_994",
+          "output/paper_v12_lower_rho_extension_994_v2",
+          "output/p0_major_revision_validation"
+        ],
+        "reason": "large derived artifacts are gitignored by design and are not in any checkout",
+        "step": "symlink the gitignored prediction trees"
+      },
+      {
+        "paths": [
+          "data/ATTOM",
+          "data/berry_cmf",
+          "data/CCAO",
+          "data/CensusData",
+          "data/dewey-downloads"
+        ],
+        "reason": "gitignored raw datasets. Created as real directories with symlinked children so the existing `data/<X>/` gitignore patterns still match \u2014 a bare symlink is not a directory and would have shown as an untracked path, tripping the Stage-1 write-location guard",
+        "step": "symlink the gitignored source-data trees"
+      },
+      {
+        "detail": "0444 in the main tree; git checkout creates 0664. chmod 444 restored it.",
+        "paths": [
+          "analysis/p0_major_revision_validation/APPROVED_EXECUTION_PLAN.md"
+        ],
+        "reason": "three P0 tests assert the approved plan is read-only; git records only the exec bit",
+        "step": "restore the read-only file mode git does not track"
+      },
+      {
+        "reason": "test_source_equivalence_precedes_reproduction_interpretation asserts a RELATIVE mtime ordering (source_equivalence_verdict.json older than frozen_artifact_reproduction.csv). git does not record mtimes, so `git worktree add` stamps every file with the checkout time and the assertion is unreproducible from git content alone. The authoritative record of the P0 execution order is the main working tree.",
+        "step": "reconstitute mtimes for the 309 tracked P0 files from the main working tree"
+      }
+    ],
+    "why": "a fresh `git worktree add` contains only tracked git CONTENT. Three classes of state that the P0 suite legitimately asserts are not carried by git and had to be re-attached from the authoritative main working tree, where P0 actually ran. No P0 test was modified, skipped or weakened, and no file CONTENT was altered."
+  },
+  "n_tests_total": 153,
+  "note": "This is the authoritative reproduction of the tag's 153/153 certification. It was NOT run on the P1 branch; see p0_suite_on_p1_branch.json for that separate measurement.",
+  "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+  "p0_not_modified": true,
+  "p0_suite_not_modified": true,
+  "p0_tag": "p0-major-revision-final-20260907",
+  "result_structured": {
+    "failed": 0,
+    "failed_tests": [],
+    "passed": 153,
+    "skipped": 0,
+    "suites": {
+      "Stage-1 assertions": 28,
+      "Stage-1.5 / Gate-G2 assertions": 36,
+      "Stage-2 / Gate-G3 assertions": 36,
+      "Stage-3 matched-beta + temporal assertions": 29,
+      "Stage-3B / Gate-G5b temporal-completion assertions": 24
+    }
+  },
+  "runner": "analysis/p0_major_revision_validation/tests/run_all_tests.py",
+  "schema_version": 1,
+  "suites": {
+    "Stage-1 assertions": 28,
+    "Stage-1.5 / Gate-G2 assertions": 36,
+    "Stage-2 / Gate-G3 assertions": 36,
+    "Stage-3 matched-beta + temporal assertions": 29,
+    "Stage-3B / Gate-G5b temporal-completion assertions": 24
+  },
+  "two_measurements": {
+    "content_only_checkout": {
+      "RESULT": "152 passed, 1 failed",
+      "interpretation": "the single failure is the mtime-ordering assertion, which NO checkout can reproduce because git does not store mtimes. It is not a P0 content defect.",
+      "sole_failure": [
+        "test_source_equivalence_precedes_reproduction_interpretation"
+      ]
+    },
+    "with_mtimes_reconstituted": {
+      "RESULT": "153 passed, 0 failed",
+      "failures": [],
+      "interpretation": "the certification the tag carries: 153/153."
+    }
+  },
+  "what": "P0 assertion suite executed at the IMMUTABLE TAG in an isolated detached git worktree",
+  "worktree": "detached git worktree, separate checkout, outside the P1 working tree"
+}
