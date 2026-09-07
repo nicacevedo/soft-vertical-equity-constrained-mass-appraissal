@@ -1,0 +1,34 @@
+{
+  "compile": {
+    "biber_warnings": [],
+    "exit_code": 0,
+    "latex_errors": [],
+    "latex_warnings": [],
+    "missing_bib_entries": [],
+    "n_latex_errors": 0,
+    "n_overfull_hbox": 2,
+    "n_overfull_vbox": 0,
+    "n_underfull": 7,
+    "ok": true,
+    "outdir": "/tmp/tierb_latexmk_vqex9hnu",
+    "overfull_hbox": [
+      {
+        "from": 3000,
+        "pt": 1.9402,
+        "to": 3001
+      },
+      {
+        "from": 3099,
+        "pt": 11.817,
+        "to": 3099
+      }
+    ],
+    "pages": 53,
+    "pdf_written": true,
+    "undefined_citations": [],
+    "undefined_references": []
+  },
+  "label": "pre_edit_B1.0",
+  "manuscript_sha256": "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a",
+  "why": "The pre-edit compile record. Later stages compare against it so the useful quantity is the DELTA in overfull boxes introduced by this pass, not the raw count: the Tier-A baseline already carries 2 overfull hboxes and 7 underfull boxes, and neither is a defect this revision created."
+}

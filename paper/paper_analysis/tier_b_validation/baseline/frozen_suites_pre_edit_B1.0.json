@@ -1,0 +1,58 @@
+{
+  "head": "904976451bdd01aa3e6c8b59d4eee77d6f10ba74",
+  "informational_only": true,
+  "label": "pre_edit_B1.0",
+  "manuscript_sha256": "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a",
+  "results": {
+    "p0": {
+      "exit_code": 1,
+      "failed": 18,
+      "failing_tests": [
+        "test_all_stage1_writes_are_inside_approved_locations",
+        "test_approved_plan_is_frozen_readonly",
+        "test_approved_plan_still_frozen_readonly",
+        "test_approved_plan_still_readonly",
+        "test_dpurge_evaluation_sets_bitwise_identical_to_primary",
+        "test_fold_index_hashes_match_archive",
+        "test_fold_index_hashes_verified_live",
+        "test_frozen_analysis_directories_unmodified",
+        "test_frozen_lgbm_params_hash",
+        "test_frozen_rho_grid_is_83_points",
+        "test_input_prediction_hashes_verified",
+        "test_no_manuscript_file_changed",
+        "test_no_manuscript_or_frozen_output_modified",
+        "test_no_manuscript_or_regeneration_work_from_the_g2_era",
+        "test_only_gitignore_modified_outside_p0",
+        "test_race_used_the_frozen_configuration_and_dsnap_protocol",
+        "test_refinement_used_the_frozen_lgbm_config_and_historical_settings"
+      ],
+      "passed": 135,
+      "skipped": 0
+    },
+    "p1": {
+      "exit_code": 1,
+      "failed": 7,
+      "failing_tests": [
+        "test_ci_limits_are_true_order_statistics_on_a_bounded_subset",
+        "test_csv_is_a_faithful_serialisation_of_the_parquet_twin",
+        "test_headline_numbers_are_reproducible_from_the_artifacts",
+        "test_no_protected_path_written",
+        "test_reports_state_that_no_manuscript_file_was_edited"
+      ],
+      "passed": 65,
+      "skipped": 0
+    },
+    "tier_b0": {
+      "exit_code": 1,
+      "failed": 3,
+      "failing_tests": [
+        "test_frozen_stages_and_paper_are_untouched",
+        "test_git_status_shows_nothing_outside_the_tier_b0_area",
+        "test_only_the_gitignore_is_modified_outside_the_tier_b0_area"
+      ],
+      "passed": 107,
+      "skipped": 0
+    }
+  },
+  "why_not_the_gate": "These suites carry paper-immutability and HEAD-relative guards that fail by design once the manuscript is intentionally edited. They are never a writing-stage pass/fail criterion, never modified, and never cited as certification of this pass."
+}

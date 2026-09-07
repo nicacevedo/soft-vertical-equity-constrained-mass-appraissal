@@ -1,0 +1,383 @@
+
+===== Stage-1 assertions (28 tests) =====
+  PASS  test_all_eight_chronological_boundaries_cross_same_date
+  FAIL  test_all_stage1_writes_are_inside_approved_locations: AssertionError: writes outside the approved P0 locations: ['?? paper/paper_analysis/tier_b_validation/']
+  FAIL  test_approved_plan_is_frozen_readonly: AssertionError: APPROVED_EXECUTION_PLAN.md must be read-only
+  PASS  test_boundary_exposure_is_small
+  PASS  test_canonical_counts_constants
+  PASS  test_cell_b_never_printed_as_ordinary_lightgbm
+  PASS  test_e4_verdict_is_one_of_three_values
+  PASS  test_every_p0_module_imports_canonical_loader
+  PASS  test_failure_classes_come_from_the_approved_taxonomy
+  PASS  test_fixed_cell_names_verbatim
+  FAIL  test_fold_index_hashes_verified_live: ModuleNotFoundError: No module named 'sklearn'
+  FAIL  test_frozen_analysis_directories_unmodified: AssertionError: protected paths modified: ['?? paper/paper_analysis/tier_b_validation/']
+  FAIL  test_frozen_lgbm_params_hash: FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/lgbm_config.json'
+  FAIL  test_frozen_rho_grid_is_83_points: FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v12_lower_rho_extension_994_v2/protocol/lower_rho_grid_v2.json'
+  PASS  test_leaf_shrinkage_rows_are_labelled_stylized
+  PASS  test_min_sum_hessian_reported_non_binding
+  PASS  test_no_rg_trigger_can_be_set_by_A_B_or_A_C
+  PASS  test_non_r1_reproduction_rows_carry_a_failure_class
+  PASS  test_objective_audit_reproduces_canonical_block_sizes
+  PASS  test_p0_code_never_reimplements_the_parquet_filter
+  PASS  test_parity_and_reproduction_tiers_live_in_separate_fields
+  PASS  test_parity_ladder_uses_only_fixed_cell_names
+  PASS  test_repeat_pin_exposure_monotone_and_material
+  PASS  test_source_equivalence_precedes_reproduction_interpretation
+  PASS  test_stage1_submitted_no_regeneration_job
+  PASS  test_tier_values_are_in_range
+  PASS  test_track_h_and_track_p_are_separate_rows_with_explicit_track_field
+  PASS  test_write_guard_rejects_paths_outside_p0
+
+===== Stage-1.5 / Gate-G2 assertions (36 tests) =====
+  PASS  test_A_and_C_reproduce_frozen_counterparts
+  PASS  test_A_is_the_assessor_facing_benchmark
+  PASS  test_B_cannot_be_selected_as_primary_penalty_reference
+  PASS  test_C_is_the_only_primary_penalty_isolating_reference
+  PASS  test_all_fits_used_historical_settings
+  FAIL  test_approved_plan_still_frozen_readonly: AssertionError: 
+  PASS  test_bc_discrepancy_wording_is_not_innocuous
+  PASS  test_block_sizes_match_canonical_protocol
+  PASS  test_bstar_identity_holds
+  PASS  test_cell_B_is_not_required_to_equal_cell_C
+  PASS  test_cell_b_legacy_label_is_metadata_only
+  PASS  test_cell_c_implementation_recorded_and_single
+  PASS  test_comparator_convention_frozen_C_primary_A_secondary_no_B
+  PASS  test_conservative_wording_available_when_rng_not_identified
+  PASS  test_cov_positive_and_bstar_finite_for_A_and_C
+  PASS  test_each_cell_has_exactly_nine_canonical_blocks
+  PASS  test_evaluation_pairing_is_correct
+  PASS  test_every_rg_row_cites_evidence_artifacts
+  FAIL  test_fold_index_hashes_match_archive: FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/protocol/data_id=d4929d43ec19badf/split_id=3d464d4a611b131b/folds.json'
+  PASS  test_forward_display_names_and_roles
+  PASS  test_frozen_lgbm_config_hash_on_every_fit
+  PASS  test_frozen_stage1_artifacts_not_rewritten
+  PASS  test_new_outputs_never_call_cell_b_parity_aligned
+  PASS  test_no_forbidden_jobs_ever_submitted
+  FAIL  test_no_manuscript_or_frozen_output_modified: AssertionError: ['?? paper/paper_analysis/tier_b_validation/']
+  FAIL  test_no_manuscript_or_regeneration_work_from_the_g2_era: AssertionError: manuscript modified:
+?? paper/paper_analysis/tier_b_validation/
+  PASS  test_no_p1_extras_produced
+  PASS  test_no_rg_trigger_fires_under_post_g1_adjudication
+  PASS  test_one_over_r2_is_diagnostic_only
+  FAIL  test_only_gitignore_modified_outside_p0: AssertionError: ['.gitignore', 'analysis/final_manuscript_evidence/FINAL_EVIDENCE_INDEX.md', 'analysis/final_manuscript_evidence/FINAL_EVIDENCE_MANIFEST.json', 'analysis/final_manuscript_evidence/MANUSCRIPT_REVISION_SPEC.md', 'analysis/final_manuscript_evidence/README.md', 'analysis/final_manuscript_evidence/SELECTOR_GRAMMAR.md', 'analysis/final_manuscript_evidence/TABLE_FIGURE_DISPOSITION.md', 'analysis/final_manuscript_evidence/bib/STAGED_BIB_PROVENANCE.md', 'analysis/final_manuscript_evidence/bib/fetch_metadata.py', 'analysis/final_manuscript_evidence/bib/metadata_cache/Cheng1974.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/Edelstein1979.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/PaglinFogarty1972.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/RETRIEVAL_INDEX.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/SundermanEtAl1990.json', 'analysis/final_manuscript_evidence/bib/staged_historical_entries.bib', 'analysis/final_manuscript_evidence/certification/CERTIFICATION.md', 'analysis/final_manuscript_evidence/certification/certification.json', 'analysis/final_manuscript_evidence/code/b0_1_build_manifest.py', 'analysis/final_manuscript_evidence/code/b0_1b_build_certification.py', 'analysis/final_manuscript_evidence/code/b0_2_build_numeric_map.py', 'analysis/final_manuscript_evidence/code/b0_3_build_claim_map.py', 'analysis/final_manuscript_evidence/code/b0_4_build_bib.py', 'analysis/final_manuscript_evidence/code/b0_5_build_tf_disposition.py', 'analysis/final_manuscript_evidence/code/b0_6_build_documents.py', 'analysis/final_manuscript_evidence/code/b0_common.py', 'analysis/final_manuscript_evidence/code/b0_tex.py', 'analysis/final_manuscript_evidence/coverage/active_tex_numeric_tokens.csv', 'analysis/final_manuscript_evidence/coverage/coverage_summary.json', 'analysis/final_manuscript_evidence/manuscript_claim_map.csv', 'analysis/final_manuscript_evidence/manuscript_numeric_map.csv', 'analysis/final_manuscript_evidence/spec/claims.yaml', 'analysis/final_manuscript_evidence/spec/coverage_policy.yaml', 'analysis/final_manuscript_evidence/spec/forbidden_wording.yaml', 'analysis/final_manuscript_evidence/spec/mandatory_coverage.yaml', 'analysis/final_manuscript_evidence/spec/numeric_claims.yaml', 'analysis/final_manuscript_evidence/spec/table_figure_disposition.yaml', 'analysis/final_manuscript_evidence/spec/todo_closure.yaml', 'analysis/final_manuscript_evidence/spec/unsupported_numbers_allowlist.csv', 'analysis/final_manuscript_evidence/tests/run_all_tests.py', 'analysis/final_manuscript_evidence/tests/test_b0_certification.py', 'analysis/final_manuscript_evidence/tests/test_b0_claim_map.py', 'analysis/final_manuscript_evidence/tests/test_b0_isolation.py', 'analysis/final_manuscript_evidence/tests/test_b0_manifest.py', 'analysis/final_manuscript_evidence/tests/test_b0_numeric_map.py', 'analysis/final_manuscript_evidence/tests/test_b0_role_guards.py', 'analysis/p1_inferential_reporting/P1_CHECKPOINT.md', 'analysis/p1_inferential_reporting/code/p1_0_freeze_display_set.py', 'analysis/p1_inferential_reporting/code/p1_1_dcor_documentation.py', 'analysis/p1_inferential_reporting/code/p1_2_prb_inference.py', 'analysis/p1_inferential_reporting/code/p1_3_vei_ed2_inference.py', 'analysis/p1_inferential_reporting/code/p1_4_smearing_sensitivity.py', 'analysis/p1_inferential_reporting/code/p1_9_freeze_evidence.py', 'analysis/p1_inferential_reporting/code/p1_9_headline_numbers.py', 'analysis/p1_inferential_reporting/code/p1_common.py', 'analysis/p1_inferential_reporting/configs/display_set_frozen.json', 'analysis/p1_inferential_reporting/configs/display_set_frozen_hash.json', 'analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json', 'analysis/p1_inferential_reporting/configs/smearing_estimator_frozen.json', 'analysis/p1_inferential_reporting/configs/smearing_estimator_frozen_hash.json', 'analysis/p1_inferential_reporting/provenance/DEVIATIONS_P1.md', 'analysis/p1_inferential_reporting/provenance/ed2_source_cache/.gitignore', 'analysis/p1_inferential_reporting/provenance/ed2_source_manifest.json', 'analysis/p1_inferential_reporting/provenance/p0_suite_at_tag.json', 'analysis/p1_inferential_reporting/provenance/p0_suite_on_p1_branch.json', 'analysis/p1_inferential_reporting/provenance/p1_artifact_hashes.json', 'analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json', 'analysis/p1_inferential_reporting/reports/MANUSCRIPT_EVIDENCE_PACKAGE.md', 'analysis/p1_inferential_reporting/reports/MANUSCRIPT_IMPACT_MEMO.md', 'analysis/p1_inferential_reporting/tables/dcor_estimator_audit.csv', 'analysis/p1_inferential_reporting/tables/dcor_estimator_facts.json', 'analysis/p1_inferential_reporting/tables/prb_inference.csv', 'analysis/p1_inferential_reporting/tables/prb_inference_summary.json', 'analysis/p1_inferential_reporting/tables/smearing_apply_delta_nl_subset.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_ed2_stability.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_fastpath_reconciliation.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_summary.json', 'analysis/p1_inferential_reporting/tables/smearing_factor_provenance.csv', 'analysis/p1_inferential_reporting/tables/vei_significance.csv', 'analysis/p1_inferential_reporting/tables/vei_significance_summary.json', 'analysis/p1_inferential_reporting/tests/test_p1_headline_numbers.py', 'analysis/p1_inferential_reporting/tests/test_p1_prb_assertions.py', 'analysis/p1_inferential_reporting/tests/test_p1_smearing_apply_assertions.py', 'analysis/p1_inferential_reporting/tests/test_p1_vei_assertions.py', 'analysis/p1_inferential_reporting/tests/test_smearing_sign.py', 'paper/paper_analysis/paper_v17/markup_preflight.py', 'paper/paper_analysis/paper_v17/superseded_text_archive.md', 'paper/paper_v17_option1.tex', 'paper/references.bib', 'paper/references_additions.bib']
+  PASS  test_qc_tiers_in_range_and_classified
+  PASS  test_rg_not_set_merely_because_AC_or_BC_differ
+  PASS  test_stage1_ladder_crosschecks_match
+  PASS  test_zero_control_complete_for_ABC
+  PASS  test_zero_control_delta_nl_present_for_all_ABC_evaluations
+  PASS  test_zero_control_has_required_columns
+
+===== Stage-2 / Gate-G3 assertions (36 tests) =====
+  PASS  test_C_primary_A_secondary_B_decomposition
+  FAIL  test_approved_plan_still_readonly: AssertionError: 
+  PASS  test_b1_bitwise_and_fast_path
+  PASS  test_b1_path_metrics_equal_zero_control
+  PASS  test_b_star_train_is_diagnostic_only
+  PASS  test_beta_log_is_linear_in_b
+  PASS  test_centered_map_b1_returns_same_object
+  PASS  test_centering_sensitivity_immaterial
+  PASS  test_cvmean_root_formula
+  PASS  test_fold_overlap_finding_recorded
+  PASS  test_future_matched_beta_primary_triple_exact
+  PASS  test_grid_construction_is_development_only
+  PASS  test_grid_contains_all_special_anchors
+  PASS  test_grid_frozen_before_oos_and_hash_matches
+  PASS  test_grid_is_linear_base_plus_anchors
+  PASS  test_historical_endpoint_not_adopted_as_grid_endpoint
+  PASS  test_historical_recalibration_reproduces
+  FAIL  test_input_prediction_hashes_verified: ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+  PASS  test_no_b_full_path_exists
+  PASS  test_no_full_f0bar_path_generated
+  PASS  test_no_full_regeneration_output_exists
+  FAIL  test_no_manuscript_file_changed: AssertionError: ['?? paper/paper_analysis/tier_b_validation/']
+  PASS  test_no_new_fit_jobs_submitted_in_stage2
+  PASS  test_no_p1_output_from_this_stage
+  PASS  test_no_refit_performed
+  PASS  test_no_regeneration_or_p1_jobs_submitted
+  PASS  test_no_regeneration_trigger_fired
+  PASS  test_overshoot_formula_is_25pct_of_b_minus_1
+  PASS  test_path_row_counts_complete
+  PASS  test_path_spans_common_support_and_reaches_beta_zero
+  PASS  test_pooled_oof_root_formula
+  PASS  test_primary_map_label_on_every_row
+  PASS  test_ratio_profiles_only_at_anchors_with_cis
+  PASS  test_roots_computed_separately_per_reference
+  PASS  test_roots_zero_their_own_coordinate
+  PASS  test_stage1_and_g2_reports_untouched
+
+===== Stage-3 matched-beta + temporal assertions (29 tests) =====
+  PASS  test_A_never_determines_primary_support_or_targets
+  PASS  test_B_cannot_enter_matched_beta
+  PASS  test_crossings_exclude_the_structural_origin
+  PASS  test_d1_remains_primary
+  PASS  test_d2_labelled_duplicate_weighted_historical_sensitivity
+  PASS  test_d3_appearance_weights_sum_to_exactly_one_per_unique_row
+  PASS  test_d3_sensitivity_present_because_material
+  PASS  test_d3_uses_development_data_only
+  PASS  test_direct_core_rows_are_actual_frozen_fits
+  FAIL  test_dpurge_evaluation_sets_bitwise_identical_to_primary: ModuleNotFoundError: No module named 'sklearn'
+  PASS  test_dpurge_labelled_oracle_everywhere
+  PASS  test_dpurge_removes_every_paired_evaluation_pin_from_training
+  PASS  test_dsnap_strict_date_boundaries
+  PASS  test_dunseen_performs_no_fits
+  PASS  test_ext_non_attainment_is_reported_not_dropped
+  PASS  test_g5a_refinement_required_before_a_minor_alert_can_promote
+  PASS  test_matched_config_hash_precedes_all_oos_reads
+  PASS  test_no_full_dsnap_regeneration_submitted_in_this_run
+  FAIL  test_no_manuscript_file_changed: AssertionError: protected paths modified:
+?? paper/paper_analysis/tier_b_validation/
+  PASS  test_no_oos_metric_interpolation_anywhere
+  PASS  test_no_p1_outputs_exist
+  PASS  test_origin_identity_holds_at_j0
+  PASS  test_post_g3_adjudication_does_not_call_d1_simply_unaffected
+  PASS  test_posthoc_rows_are_actual_evaluated_transformations
+  PASS  test_required_stage3_artifacts_present
+  PASS  test_six_core_targets_are_deterministic_direct_achieved_values
+  PASS  test_surrogate_core_rows_are_actual_fitted_configs
+  PASS  test_tau_is_frozen_and_respected
+  PASS  test_temporal_overlap_audit_exists_and_asserts_dpurge_equality
+
+===== Stage-3B / Gate-G5b temporal-completion assertions (24 tests) =====
+  PASS  test_dsnap_refinement_table_written
+  PASS  test_every_required_refinement_shard_exists
+  PASS  test_g5b_materiality_tolerance_is_the_frozen_matched_beta_tau
+  PASS  test_g5b_outcome_exists_and_is_well_formed
+  PASS  test_g5b_sign_test_actually_covers_the_region_b_support
+  PASS  test_matched_beta_artifacts_unchanged
+  PASS  test_matched_beta_report_still_declares_its_primary_triple
+  PASS  test_no_dpurge_refinement_was_run
+  PASS  test_no_full_regeneration_hidden_in_the_race
+  PASS  test_no_original_shard_was_overwritten
+  PASS  test_no_unplanned_rho_was_fit
+  PASS  test_original_screening_is_54_of_54
+  PASS  test_original_screening_shards_carry_only_frozen_screening_rhos
+  PASS  test_race_agreed_with_the_independent_slow_execution
+  PASS  test_race_lineage_is_pure_and_singular
+  PASS  test_race_manifest_exists_and_every_check_passed
+  PASS  test_race_shard_is_byte_identical_to_the_validated_candidate
+  FAIL  test_race_used_the_frozen_configuration_and_dsnap_protocol: FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/lgbm_config.json'
+  PASS  test_refinement_provenance_table_is_complete
+  PASS  test_refinement_rhos_equal_the_frozen_refinement_config
+  FAIL  test_refinement_used_the_frozen_lgbm_config_and_historical_settings: FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/lgbm_config.json'
+  PASS  test_report_does_not_claim_d1_simply_unaffected
+  PASS  test_temporal_report_distinguishes_all_four_designs
+  PASS  test_temporal_status_consistent_with_g5b
+
+TOTAL: 135 passed, 18 failed, 0 skipped
+
+--- test_all_stage1_writes_are_inside_approved_locations ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_p0_assertions.py", line 228, in test_all_stage1_writes_are_inside_approved_locations
+    assert not bad, f"writes outside the approved P0 locations: {bad}"
+AssertionError: writes outside the approved P0 locations: ['?? paper/paper_analysis/tier_b_validation/']
+
+
+--- test_approved_plan_is_frozen_readonly ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_p0_assertions.py", line 239, in test_approved_plan_is_frozen_readonly
+    assert (p.stat().st_mode & 0o222) == 0, "APPROVED_EXECUTION_PLAN.md must be read-only"
+AssertionError: APPROVED_EXECUTION_PLAN.md must be read-only
+
+
+--- test_fold_index_hashes_verified_live ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_p0_assertions.py", line 43, in test_fold_index_hashes_verified_live
+    df_tv, _te, _as, _p, _c = c.load_canonical_splits(verbose=False)
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/code/p0_common.py", line 200, in load_canonical_splits
+    from run_temporal_cv import _load_and_split_data
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/run_temporal_cv.py", line 27, in <module>
+    from sklearn.linear_model import LinearRegression
+ModuleNotFoundError: No module named 'sklearn'
+
+
+--- test_frozen_analysis_directories_unmodified ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_p0_assertions.py", line 219, in test_frozen_analysis_directories_unmodified
+    assert not bad, f"protected paths modified: {bad}"
+AssertionError: protected paths modified: ['?? paper/paper_analysis/tier_b_validation/']
+
+
+--- test_frozen_lgbm_params_hash ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_p0_assertions.py", line 52, in test_frozen_lgbm_params_hash
+    cfg = c.frozen_lgbm_config()          # raises on mismatch
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/code/p0_common.py", line 325, in frozen_lgbm_config
+    cfg = json.loads(FROZEN_LGBM_CONFIG.read_text())
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/lgbm_config.json'
+
+
+--- test_frozen_rho_grid_is_83_points ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_p0_assertions.py", line 59, in test_frozen_rho_grid_is_83_points
+    g = c.frozen_rho_grid()
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/code/p0_common.py", line 346, in frozen_rho_grid
+    gj = json.loads((V12 / "protocol" / "lower_rho_grid_v2.json").read_text())
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v12_lower_rho_extension_994_v2/protocol/lower_rho_grid_v2.json'
+
+
+--- test_approved_plan_still_frozen_readonly ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g2_assertions.py", line 359, in test_approved_plan_still_frozen_readonly
+    assert (p.stat().st_mode & 0o222) == 0
+AssertionError
+
+
+--- test_fold_index_hashes_match_archive ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g2_assertions.py", line 107, in test_fold_index_hashes_match_archive
+    arch = {int(f["fold_id"]) + 1: f for f in c.load_archived_folds()["folds"]}
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/code/p0_common.py", line 228, in load_archived_folds
+    return json.loads(ARCHIVED_FOLDS.read_text())
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/protocol/data_id=d4929d43ec19badf/split_id=3d464d4a611b131b/folds.json'
+
+
+--- test_no_manuscript_or_frozen_output_modified ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g2_assertions.py", line 316, in test_no_manuscript_or_frozen_output_modified
+    assert not bad, bad
+AssertionError: ['?? paper/paper_analysis/tier_b_validation/']
+
+
+--- test_no_manuscript_or_regeneration_work_from_the_g2_era ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g2_assertions.py", line 287, in test_no_manuscript_or_regeneration_work_from_the_g2_era
+    assert out == "", f"manuscript modified:\n{out}"
+AssertionError: manuscript modified:
+?? paper/paper_analysis/tier_b_validation/
+
+
+--- test_only_gitignore_modified_outside_p0 ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g2_assertions.py", line 328, in test_only_gitignore_modified_outside_p0
+    assert outside == [".gitignore"] or outside == [], outside
+AssertionError: ['.gitignore', 'analysis/final_manuscript_evidence/FINAL_EVIDENCE_INDEX.md', 'analysis/final_manuscript_evidence/FINAL_EVIDENCE_MANIFEST.json', 'analysis/final_manuscript_evidence/MANUSCRIPT_REVISION_SPEC.md', 'analysis/final_manuscript_evidence/README.md', 'analysis/final_manuscript_evidence/SELECTOR_GRAMMAR.md', 'analysis/final_manuscript_evidence/TABLE_FIGURE_DISPOSITION.md', 'analysis/final_manuscript_evidence/bib/STAGED_BIB_PROVENANCE.md', 'analysis/final_manuscript_evidence/bib/fetch_metadata.py', 'analysis/final_manuscript_evidence/bib/metadata_cache/Cheng1974.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/Edelstein1979.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/PaglinFogarty1972.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/RETRIEVAL_INDEX.json', 'analysis/final_manuscript_evidence/bib/metadata_cache/SundermanEtAl1990.json', 'analysis/final_manuscript_evidence/bib/staged_historical_entries.bib', 'analysis/final_manuscript_evidence/certification/CERTIFICATION.md', 'analysis/final_manuscript_evidence/certification/certification.json', 'analysis/final_manuscript_evidence/code/b0_1_build_manifest.py', 'analysis/final_manuscript_evidence/code/b0_1b_build_certification.py', 'analysis/final_manuscript_evidence/code/b0_2_build_numeric_map.py', 'analysis/final_manuscript_evidence/code/b0_3_build_claim_map.py', 'analysis/final_manuscript_evidence/code/b0_4_build_bib.py', 'analysis/final_manuscript_evidence/code/b0_5_build_tf_disposition.py', 'analysis/final_manuscript_evidence/code/b0_6_build_documents.py', 'analysis/final_manuscript_evidence/code/b0_common.py', 'analysis/final_manuscript_evidence/code/b0_tex.py', 'analysis/final_manuscript_evidence/coverage/active_tex_numeric_tokens.csv', 'analysis/final_manuscript_evidence/coverage/coverage_summary.json', 'analysis/final_manuscript_evidence/manuscript_claim_map.csv', 'analysis/final_manuscript_evidence/manuscript_numeric_map.csv', 'analysis/final_manuscript_evidence/spec/claims.yaml', 'analysis/final_manuscript_evidence/spec/coverage_policy.yaml', 'analysis/final_manuscript_evidence/spec/forbidden_wording.yaml', 'analysis/final_manuscript_evidence/spec/mandatory_coverage.yaml', 'analysis/final_manuscript_evidence/spec/numeric_claims.yaml', 'analysis/final_manuscript_evidence/spec/table_figure_disposition.yaml', 'analysis/final_manuscript_evidence/spec/todo_closure.yaml', 'analysis/final_manuscript_evidence/spec/unsupported_numbers_allowlist.csv', 'analysis/final_manuscript_evidence/tests/run_all_tests.py', 'analysis/final_manuscript_evidence/tests/test_b0_certification.py', 'analysis/final_manuscript_evidence/tests/test_b0_claim_map.py', 'analysis/final_manuscript_evidence/tests/test_b0_isolation.py', 'analysis/final_manuscript_evidence/tests/test_b0_manifest.py', 'analysis/final_manuscript_evidence/tests/test_b0_numeric_map.py', 'analysis/final_manuscript_evidence/tests/test_b0_role_guards.py', 'analysis/p1_inferential_reporting/P1_CHECKPOINT.md', 'analysis/p1_inferential_reporting/code/p1_0_freeze_display_set.py', 'analysis/p1_inferential_reporting/code/p1_1_dcor_documentation.py', 'analysis/p1_inferential_reporting/code/p1_2_prb_inference.py', 'analysis/p1_inferential_reporting/code/p1_3_vei_ed2_inference.py', 'analysis/p1_inferential_reporting/code/p1_4_smearing_sensitivity.py', 'analysis/p1_inferential_reporting/code/p1_9_freeze_evidence.py', 'analysis/p1_inferential_reporting/code/p1_9_headline_numbers.py', 'analysis/p1_inferential_reporting/code/p1_common.py', 'analysis/p1_inferential_reporting/configs/display_set_frozen.json', 'analysis/p1_inferential_reporting/configs/display_set_frozen_hash.json', 'analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json', 'analysis/p1_inferential_reporting/configs/smearing_estimator_frozen.json', 'analysis/p1_inferential_reporting/configs/smearing_estimator_frozen_hash.json', 'analysis/p1_inferential_reporting/provenance/DEVIATIONS_P1.md', 'analysis/p1_inferential_reporting/provenance/ed2_source_cache/.gitignore', 'analysis/p1_inferential_reporting/provenance/ed2_source_manifest.json', 'analysis/p1_inferential_reporting/provenance/p0_suite_at_tag.json', 'analysis/p1_inferential_reporting/provenance/p0_suite_on_p1_branch.json', 'analysis/p1_inferential_reporting/provenance/p1_artifact_hashes.json', 'analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json', 'analysis/p1_inferential_reporting/reports/MANUSCRIPT_EVIDENCE_PACKAGE.md', 'analysis/p1_inferential_reporting/reports/MANUSCRIPT_IMPACT_MEMO.md', 'analysis/p1_inferential_reporting/tables/dcor_estimator_audit.csv', 'analysis/p1_inferential_reporting/tables/dcor_estimator_facts.json', 'analysis/p1_inferential_reporting/tables/prb_inference.csv', 'analysis/p1_inferential_reporting/tables/prb_inference_summary.json', 'analysis/p1_inferential_reporting/tables/smearing_apply_delta_nl_subset.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_ed2_stability.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_fastpath_reconciliation.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv', 'analysis/p1_inferential_reporting/tables/smearing_apply_summary.json', 'analysis/p1_inferential_reporting/tables/smearing_factor_provenance.csv', 'analysis/p1_inferential_reporting/tables/vei_significance.csv', 'analysis/p1_inferential_reporting/tables/vei_significance_summary.json', 'analysis/p1_inferential_reporting/tests/test_p1_headline_numbers.py', 'analysis/p1_inferential_reporting/tests/test_p1_prb_assertions.py', 'analysis/p1_inferential_reporting/tests/test_p1_smearing_apply_assertions.py', 'analysis/p1_inferential_reporting/tests/test_p1_vei_assertions.py', 'analysis/p1_inferential_reporting/tests/test_smearing_sign.py', 'paper/paper_analysis/paper_v17/markup_preflight.py', 'paper/paper_analysis/paper_v17/superseded_text_archive.md', 'paper/paper_v17_option1.tex', 'paper/references.bib', 'paper/references_additions.bib']
+
+
+--- test_approved_plan_still_readonly ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g3_assertions.py", line 361, in test_approved_plan_still_readonly
+    assert (p.stat().st_mode & 0o222) == 0
+AssertionError
+
+
+--- test_input_prediction_hashes_verified ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g3_assertions.py", line 89, in test_input_prediction_hashes_verified
+    d = pd.read_parquet(c.REPO / r.eval_predictions)
+  File "/home/nacevedo/.local/lib/python3.10/site-packages/pandas/io/parquet.py", line 653, in read_parquet
+    impl = get_engine(engine)
+  File "/home/nacevedo/.local/lib/python3.10/site-packages/pandas/io/parquet.py", line 68, in get_engine
+    raise ImportError(
+ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+
+
+--- test_no_manuscript_file_changed ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g3_assertions.py", line 341, in test_no_manuscript_file_changed
+    assert not bad, bad
+AssertionError: ['?? paper/paper_analysis/tier_b_validation/']
+
+
+--- test_dpurge_evaluation_sets_bitwise_identical_to_primary ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_stage3_assertions.py", line 229, in test_dpurge_evaluation_sets_bitwise_identical_to_primary
+    df_tv, _, _, _, _ = c.load_canonical_splits(verbose=False)
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/code/p0_common.py", line 200, in load_canonical_splits
+    from run_temporal_cv import _load_and_split_data
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/run_temporal_cv.py", line 27, in <module>
+    from sklearn.linear_model import LinearRegression
+ModuleNotFoundError: No module named 'sklearn'
+
+
+--- test_no_manuscript_file_changed ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_stage3_assertions.py", line 332, in test_no_manuscript_file_changed
+    assert out == "", f"protected paths modified:\n{out}"
+AssertionError: protected paths modified:
+?? paper/paper_analysis/tier_b_validation/
+
+
+--- test_race_used_the_frozen_configuration_and_dsnap_protocol ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g5b_assertions.py", line 262, in test_race_used_the_frozen_configuration_and_dsnap_protocol
+    cfg = c.frozen_lgbm_config()
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/code/p0_common.py", line 325, in frozen_lgbm_config
+    cfg = json.loads(FROZEN_LGBM_CONFIG.read_text())
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/lgbm_config.json'
+
+
+--- test_refinement_used_the_frozen_lgbm_config_and_historical_settings ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/run_all_tests.py", line 38, in run
+    getattr(mod, n)(); print(f"  PASS  {n}"); npass += 1
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_g5b_assertions.py", line 128, in test_refinement_used_the_frozen_lgbm_config_and_historical_settings
+    assert hashes == {c.frozen_lgbm_config()["lgbm_params_sha256"]}
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/code/p0_common.py", line 325, in frozen_lgbm_config
+    cfg = json.loads(FROZEN_LGBM_CONFIG.read_text())
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1134, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+  File "/orcd/software/core/001/centos7/pkg/miniforge/24.3.0-0/lib/python3.10/pathlib.py", line 1119, in open
+    return self._accessor.open(self, mode, buffering, encoding, errors,
+FileNotFoundError: [Errno 2] No such file or directory: '/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/output/paper_v6_preselection_994/lgbm_config.json'
+
+/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/p0_major_revision_validation/tests/test_stage3_assertions.py:96: UserWarning: This pattern is interpreted as a regular expression, and has match groups. To actually get the groups, use str.extract.
+  assert not pw.pair.astype(str).str.contains(r"(^|_)B(_|$)", regex=True).any()

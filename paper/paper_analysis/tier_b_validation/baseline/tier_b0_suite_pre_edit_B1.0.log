@@ -1,0 +1,153 @@
+
+===== Manifest and artifact hashes (11 tests) =====
+  PASS  test_absent_artifacts_are_quoted_transitively
+  PASS  test_frozen_subtrees_are_byte_identical_to_their_tags
+  PASS  test_manifest_counts_are_consistent
+  PASS  test_manifest_is_deterministic
+  PASS  test_manuscript_sha256_is_pinned
+  PASS  test_no_external_benchmark_artifact_is_indexed
+  PASS  test_no_output_or_data_path_is_marked_present
+  PASS  test_paper_is_byte_identical_to_the_tier_a_checkpoint
+  PASS  test_present_artifacts_exist_and_hashes_recompute
+  PASS  test_scientific_stage_and_role_vocabularies_are_closed
+  PASS  test_tags_dereference_to_recorded_commits
+
+===== Frozen-stage certification (13 tests) =====
+  PASS  test_all_primary_checks_pass
+  PASS  test_authorization_scope_caveat_is_recorded
+  PASS  test_gate_g4_impact_memo_precondition_is_met
+  PASS  test_known_index_mismatches_are_recorded_rather_than_claimed_away
+  PASS  test_local_reruns_are_labelled_diagnostics_not_certification
+  PASS  test_manuscript_is_untouched
+  PASS  test_p0_final_tag_certification_is_153_of_153
+  PASS  test_p0_subtree_is_byte_identical_at_integration_head
+  PASS  test_p1_final_certification_is_72_of_72
+  PASS  test_p1_provenance_limitation_is_recorded
+  PASS  test_p1_subtree_is_byte_identical_at_integration_head
+  PASS  test_the_diagnostic_failure_classes_are_all_environmental
+  PASS  test_the_recorded_head_is_a_pin_and_the_live_head_descends_from_it
+
+===== Numeric map, value pipeline and coverage (20 tests) =====
+  PASS  test_allowlist_reasons_are_closed_and_carry_a_frozen_source_field
+  PASS  test_b0_tex_reproduces_the_committed_archive_census
+  PASS  test_claim_ids_are_reused_for_the_same_scientific_value
+  PASS  test_closed_vocabularies
+  PASS  test_coverage_regenerates_byte_identically
+  PASS  test_display_value_recomputes_from_raw_value
+  PASS  test_every_active_token_is_accounted_for
+  PASS  test_every_artifact_is_in_the_manifest_and_present
+  PASS  test_every_cited_line_is_in_the_bucket_the_row_declares
+  PASS  test_every_row_has_an_anchor_that_re_identifies_the_passage
+  PASS  test_every_selector_resolves_uniquely_and_raw_value_is_byte_identical
+  PASS  test_flagged_tokens_are_cross_listed_in_the_claim_map
+  PASS  test_iffalse_regions_and_todo_count_are_as_recorded
+  PASS  test_no_row_lacks_a_resolvable_source
+  PASS  test_not_attained_states_are_still_not_attained_at_source
+  PASS  test_primary_key_is_unique
+  PASS  test_rounding_is_half_up_not_bankers
+  PASS  test_rounding_never_carries_a_unit_conversion
+  PASS  test_the_mixed_unit_trap_is_handled_correctly
+  PASS  test_the_wildcard_allowlist_never_reaches_a_block_under_review
+
+===== Claim map, dispositions and coverage topics (18 tests) =====
+  PASS  test_all_nineteen_todo_sites_are_covered_exactly_once
+  PASS  test_anchors_still_identify_their_passages
+  PASS  test_claim_ids_are_unique
+  PASS  test_claim_map_regenerates_byte_identically
+  PASS  test_counting_unit_is_present_for_every_aggregate_count_claim
+  PASS  test_declared_latex_labels_exist_in_the_tex
+  PASS  test_disposition_vocabulary_is_closed_and_has_no_bare_qualify
+  PASS  test_every_active_float_has_a_disposition
+  PASS  test_every_claim_has_reason_message_and_confidence
+  PASS  test_every_mandatory_coverage_topic_maps_and_appears_in_the_index
+  PASS  test_exploratory_is_gated_on_a_resolvable_frozen_number
+  PASS  test_numeric_claim_ids_resolve
+  PASS  test_supporting_artifacts_are_in_the_manifest_or_explicitly_none
+  PASS  test_the_parity_todo_is_closed_with_a_contrary_finding
+  PASS  test_the_table_highlighting_convention_is_specified
+  PASS  test_the_two_ed2_count_families_are_never_mixed_in_one_claim
+  PASS  test_the_unresolvable_blocks_are_delete_or_replace
+  PASS  test_todo_closure_statuses_are_closed_and_buckets_match_the_tex
+
+===== Scientific-integrity role guards (33 tests) =====
+  PASS  test_a_and_c_are_never_swapped_in_either_map
+  PASS  test_a_referenced_claims_are_never_described_as_penalty_effects
+  PASS  test_an_unsupported_overlay_figure_can_never_be_kept
+  PASS  test_c_posthoc_is_primary_and_a_posthoc_secondary
+  PASS  test_d1_is_primary_and_d3_is_sensitivity
+  PASS  test_dcor_facts_match_the_frozen_artifact_field_by_field
+  PASS  test_declaration_sites_are_actually_excluded_from_scanning
+  PASS  test_e4_is_indeterminate_and_gradient_only_is_only_prohibited
+  PASS  test_ed2_is_never_described_as_adopted
+  PASS  test_every_candidate_region_asset_has_a_verified_plain_replacement
+  PASS  test_every_staged_bib_field_is_traceable_or_flagged
+  PASS  test_forbidden_register_states_its_own_prohibitions
+  PASS  test_forward_display_names_are_used_and_legacy_names_are_confined
+  PASS  test_no_deployment_or_penalty_selection_framing_survives
+  PASS  test_no_external_benchmark_path_backs_any_row
+  PASS  test_no_fold_sd_is_labelled_a_standard_error
+  PASS  test_no_forbidden_phrase_appears_outside_a_prohibition
+  PASS  test_no_tier_b0_output_claims_csv_bit_exactness
+  PASS  test_option2_precedent_carries_no_number_or_conclusion
+  PASS  test_pooled_oof_carries_no_ed2_inference
+  PASS  test_prb_uses_the_entire_ci_rule
+  PASS  test_reference_roles_match_the_frozen_convention
+  PASS  test_surrogate_wording_is_associational_not_causal
+  PASS  test_the_d3_and_appearances_cautions_are_recorded
+  PASS  test_the_duan_sign_and_smearing_invariance_set_are_correct
+  PASS  test_the_novelty_boundary_claims_are_all_present
+  PASS  test_the_post_hoc_root_is_b_star_train_not_one_over_r2
+  PASS  test_the_unrendered_fstring_literals_are_never_quoted
+  PASS  test_the_vei_bootstrap_intervals_are_not_confused_with_ed2_inference
+  PASS  test_the_writing_pass_is_told_to_swap_assets_and_strip_overlay_wording
+  PASS  test_tier_b0_did_not_swap_any_asset_in_the_manuscript
+  PASS  test_visual_provenance_is_required_on_figures_and_absent_on_tables
+  PASS  test_zero_covariance_is_never_equated_with_fairness
+
+===== Isolation, guards and write discipline (15 tests) =====
+  PASS  test_every_builder_regenerates_byte_identically
+  PASS  test_every_emitted_file_is_tracked_or_trackable_and_none_is_gitignored
+  FAIL  test_frozen_stages_and_paper_are_untouched: AssertionError: paper
+  FAIL  test_git_status_shows_nothing_outside_the_tier_b0_area: AssertionError: changes outside the Tier-B0 area:
+?? paper/paper_analysis/tier_b_validation/
+  PASS  test_no_module_calls_a_data_loader_or_a_fit
+  PASS  test_no_module_imports_a_model_or_network_library
+  PASS  test_no_tier_b0_module_writes_outside_the_area
+  FAIL  test_only_the_gitignore_is_modified_outside_the_tier_b0_area: AssertionError: unexpected changes: {'paper/paper_analysis/tier_b_validation/'}
+  PASS  test_parquet_and_bytecode_stay_ignored
+  PASS  test_read_guard_refuses_the_unavailable_legacy_roots
+  PASS  test_the_guarded_writers_are_the_ones_actually_used
+  PASS  test_the_legacy_artifacts_are_genuinely_absent
+  PASS  test_the_network_fetcher_lives_outside_code_and_is_never_imported
+  PASS  test_v6_and_v12_may_be_named_but_never_read
+  PASS  test_write_guard_refuses_every_protected_path
+
+TOTAL: 107 passed, 3 failed, 0 skipped
+
+--- test_frozen_stages_and_paper_are_untouched ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/final_manuscript_evidence/tests/run_all_tests.py", line 69, in run
+    getattr(mod, n)()
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/final_manuscript_evidence/tests/test_b0_isolation.py", line 57, in test_frozen_stages_and_paper_are_untouched
+    assert git("status", "--porcelain", "--", p).strip() == "", p
+AssertionError: paper
+
+
+--- test_git_status_shows_nothing_outside_the_tier_b0_area ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/final_manuscript_evidence/tests/run_all_tests.py", line 69, in run
+    getattr(mod, n)()
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/final_manuscript_evidence/tests/test_b0_isolation.py", line 45, in test_git_status_shows_nothing_outside_the_tier_b0_area
+    assert not bad, "changes outside the Tier-B0 area:\n" + "\n".join(bad)
+AssertionError: changes outside the Tier-B0 area:
+?? paper/paper_analysis/tier_b_validation/
+
+
+--- test_only_the_gitignore_is_modified_outside_the_tier_b0_area ---
+Traceback (most recent call last):
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/final_manuscript_evidence/tests/run_all_tests.py", line 69, in run
+    getattr(mod, n)()
+  File "/orcd/home/002/nacevedo/RA/soft-vertical-equity-paper-write/analysis/final_manuscript_evidence/tests/test_b0_isolation.py", line 246, in test_only_the_gitignore_is_modified_outside_the_tier_b0_area
+    assert outside <= {".gitignore"}, f"unexpected changes: {outside}"
+AssertionError: unexpected changes: {'paper/paper_analysis/tier_b_validation/'}
+

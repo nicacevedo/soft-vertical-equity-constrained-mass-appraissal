@@ -1,0 +1,100 @@
+# =============================================================================
+# Citation integrity for the Tier-B pass: which keys must be cited, how the
+# bibliography must be loaded, and which fields may NOT be invented.
+#
+# Two pre-existing defects made real content invisible in the baseline, and both
+# are integrity problems rather than style ones:
+#
+#   1. Six entries that ARE in the loaded references_additions.bib are cited
+#      ZERO times, so they do not print. They are the closest prior art to this
+#      paper's mechanism -- and they are not in mass appraisal at all. They are
+#      the brain-age prediction literature, which independently developed
+#      residual-outcome decorrelation as a training constraint, a tunable path,
+#      a post-hoc affine adjustment, a target-dependent loss and a nonlinear
+#      in-processing correction. Leaving them uncited is what let the novelty
+#      claim drift.
+#
+#   2. Four historical vertical-equity entries live in
+#      paper/references_major_revision_additions.txt, which NO \addbibresource
+#      loads, so \cite of any of them prints nothing.
+#
+# The fix for (2) is to COPY the validated entries into
+# paper/references_additions.bib, which the manuscript already loads.
+# NOT a third \addbibresource, and NOT a dependency on a bibliography file under
+# analysis/: the compiled manuscript must never depend on the frozen evidence
+# layer. analysis/final_manuscript_evidence/bib/staged_historical_entries.bib is
+# provenance and INPUT ONLY. (The frozen Tier-B0 spec section 3 proposes a third
+# \addbibresource; the final execution plan supersedes it on exactly this point,
+# and the plan plus frozen evidence govern.)
+#
+# addbibresource_count is therefore 2, and the validator fails a third one.
+# =============================================================================
+schema_version: 1
+
+addbibresource_count: 2
+
+required_citations:
+
+# --- the residual-outcome decorrelation prior art (in the bib, never cited) ---
+- key: SmithEtAl2019
+  why: >-
+    brain-age delta estimation; the residual-outcome dependence problem and its
+    regression-based correction. Forecloses novelty of residual-outcome
+    decorrelation itself.
+- key: BeheshtiEtAl2019
+  why: >-
+    post-hoc bias-adjustment scheme. Forecloses novelty of affine residual
+    orthogonalization.
+- key: TrederEtAl2021
+  why: >-
+    "Correlation Constraints for Regression Models: Controlling Bias in Brain
+    Age Prediction". Forecloses novelty of covariance/correlation control and of
+    generic tunable decorrelation paths.
+- key: WangEtAl2023
+  why: >-
+    skewed loss function correcting predictive bias. Forecloses novelty of
+    target-dependent corrective losses generally.
+- key: RenEtAl2026
+  why: >-
+    age-delta correlation loss inside a nonlinear learner. Forecloses novelty of
+    generic nonlinear in-processing correction.
+- key: LeeChen2026
+  why: >-
+    outcome-calibrated regression and predicted-outcome-based inference: the
+    statistical framing of decorrelation.
+- key: KomiyamaEtAl2018
+  why: >-
+    coefficient-of-determination fairness constraint. Forecloses novelty of
+    dependence-constrained regression generally.
+
+# --- the historical vertical-equity testing literature (uncitable at baseline) -
+- key: PaglinFogarty1972
+  why: classical vertical-equity testing literature; verifies field-by-field.
+- key: Cheng1974
+  why: >-
+    classical vertical-equity testing literature; minimal citable core only, see
+    bib_field_rules.
+- key: Edelstein1979
+  why: >-
+    classical vertical-equity testing literature; only the confirmed start page
+    may be carried.
+- key: SundermanEtAl1990
+  why: classical vertical-equity testing literature; verifies field-by-field.
+
+# --- fields that must not be invented ----------------------------------------
+bib_field_rules:
+  Cheng1974:
+    why: >-
+      A Crossref bibliographic query returned NO matching record, so every field
+      rests on the in-repo transcription alone and no DOI exists. The minimal
+      citable core (author, title, journal, year) is what a citation needs in
+      order to exist; volume, number, pages and doi are unverified detail and
+      are omitted rather than carried. None may be invented.
+    must_be_absent: [doi, volume, number, pages]
+  Edelstein1979:
+    why: >-
+      Crossref confirms the start page 753. The end page 768 in the in-repo
+      transcription is confirmed by no authoritative source, so the range is not
+      carried; the entry shows the confirmed start page alone.
+    must_equal:
+      pages: "753"

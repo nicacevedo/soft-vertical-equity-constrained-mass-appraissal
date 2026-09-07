@@ -1,0 +1,1158 @@
+{
+  "active_resolution": {
+    "ALLOWLISTED": 190,
+    "FLAGGED_UNSUPPORTED": 356,
+    "SOURCED": 300
+  },
+  "compile": {
+    "biber_warnings": [],
+    "exit_code": 0,
+    "latex_errors": [],
+    "latex_warnings": [],
+    "missing_bib_entries": [],
+    "n_latex_errors": 0,
+    "n_overfull_hbox": 2,
+    "n_overfull_vbox": 0,
+    "n_underfull": 7,
+    "ok": true,
+    "outdir": "/tmp/tierb_latexmk_mdg1pmq4",
+    "overfull_hbox": [
+      {
+        "from": 3000,
+        "pt": 1.9402,
+        "to": 3001
+      },
+      {
+        "from": 3099,
+        "pt": 11.817,
+        "to": 3099
+      }
+    ],
+    "pages": 53,
+    "pdf_written": true,
+    "undefined_citations": [],
+    "undefined_references": []
+  },
+  "expected_failures": [
+    {
+      "finding": {
+        "anchor": "subsec:path_stability_results",
+        "check": "C02",
+        "count": 4,
+        "key": "C02:flagged:subsec:path_stability_results",
+        "line": null,
+        "message": "4 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:ccao_baseline_complementary",
+        "check": "C02",
+        "count": 18,
+        "key": "C02:flagged:tab:ccao_baseline_complementary",
+        "line": null,
+        "message": "18 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.2"
+    },
+    {
+      "finding": {
+        "anchor": "tab:ccao_baseline_results",
+        "check": "C02",
+        "count": 16,
+        "key": "C02:flagged:tab:ccao_baseline_results",
+        "line": null,
+        "message": "16 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.2"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_complementary",
+        "check": "C02",
+        "count": 119,
+        "key": "C02:flagged:tab:path_anchor_complementary",
+        "line": null,
+        "message": "119 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_summary",
+        "check": "C02",
+        "count": 65,
+        "key": "C02:flagged:tab:path_anchor_summary",
+        "line": null,
+        "message": "65 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:rho_candidate_regions",
+        "check": "C02",
+        "count": 12,
+        "key": "C02:flagged:tab:rho_candidate_regions",
+        "line": null,
+        "message": "12 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:transition_regret",
+        "check": "C02",
+        "count": 100,
+        "key": "C02:flagged:tab:transition_regret",
+        "line": null,
+        "message": "100 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:transition_summary",
+        "check": "C02",
+        "count": 22,
+        "key": "C02:flagged:tab:transition_summary",
+        "line": null,
+        "message": "22 unsupported numeric token(s) at this anchor",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C03",
+        "count": null,
+        "key": "C03:forward_name_missing:A",
+        "line": null,
+        "message": "cell A forward display name is never used: 'Ordinary LightGBM (standard raw-label native)'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C03",
+        "count": null,
+        "key": "C03:forward_name_missing:B",
+        "line": null,
+        "message": "cell B forward display name is never used: 'Centered-label native L2 (initialization-aligned)'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C03",
+        "count": null,
+        "key": "C03:forward_name_missing:C",
+        "line": null,
+        "message": "cell C forward display name is never used: 'Custom-objective rho=0 origin'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C03",
+        "count": null,
+        "key": "C03:penalty_isolating_missing",
+        "line": null,
+        "message": "the penalty-isolating role of the custom-objective rho=0 origin is never named",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C03",
+        "count": null,
+        "key": "C03:missing_table:tab:path_anchor_frozen",
+        "line": null,
+        "message": "required rebuilt table tab:path_anchor_frozen does not exist",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C03",
+        "count": null,
+        "key": "C03:missing_table:tab:path_anchor_standards",
+        "line": null,
+        "message": "required rebuilt table tab:path_anchor_standards does not exist",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_complementary",
+        "check": "C03",
+        "count": null,
+        "key": "C03:reference_rows:tab:path_anchor_complementary:A",
+        "line": 3912,
+        "message": "tab:path_anchor_complementary does not carry an explicit cell-A reference row ('Ordinary LightGBM (standard raw-label native)')",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_complementary",
+        "check": "C03",
+        "count": null,
+        "key": "C03:reference_rows:tab:path_anchor_complementary:C",
+        "line": 3912,
+        "message": "tab:path_anchor_complementary does not carry an explicit cell-C reference row ('Custom-objective rho=0 origin')",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C04",
+        "count": null,
+        "key": "C04:missing_token:D1",
+        "line": null,
+        "message": "the primary development coordinate D1 is never named",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C04",
+        "count": null,
+        "key": "C04:missing_token:D3",
+        "line": null,
+        "message": "the D3 sensitivity coordinate is never named",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C04",
+        "count": null,
+        "key": "C04:missing:one_sale_one_vote",
+        "line": null,
+        "message": "D3 is not described as the one-sale-one-vote sensitivity",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C04",
+        "count": null,
+        "key": "C04:missing:d1_primary",
+        "line": null,
+        "message": "D1 is not stated to be the primary coordinate",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C04",
+        "count": null,
+        "key": "C04:missing:overlap_qualification",
+        "line": null,
+        "message": "the fold-6 / fold-7 validation-overlap qualification is absent",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C04",
+        "count": null,
+        "key": "C04:missing:not_independent_aggregate",
+        "line": null,
+        "message": "D1 is not qualified as NOT an independent-observation aggregate",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C05",
+        "count": null,
+        "key": "C05:matched_beta_absent",
+        "line": null,
+        "message": "the matched-beta table does not exist, so the four frozen NOT_ATTAINED states cannot be checked",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.4"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:mechanism_vs_rho_candidate_region.pdf",
+        "line": 2847,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/mechanism_vs_rho_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:predictive_metric_paths_candidate_region.pdf",
+        "line": 4208,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/predictive_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:level_uniformity_paths_candidate_region.pdf",
+        "line": 4209,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/level_uniformity_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:vertical_equity_metric_paths_candidate_region.pdf",
+        "line": 4214,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/vertical_equity_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_predictive_metric_paths_candidate_region.pdf",
+        "line": 4249,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_predictive_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_level_uniformity_paths_candidate_region.pdf",
+        "line": 4254,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_level_uniformity_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_vertical_equity_metric_paths_candidate_region.pdf",
+        "line": 4259,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_vertical_equity_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_mechanism_metric_paths_candidate_region.pdf",
+        "line": 4264,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_mechanism_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:mechanism_path_placeholder",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:mechanism_path_placeholder",
+        "line": 2845,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "tab:transition_summary",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:tab:transition_summary",
+        "line": 4026,
+        "message": "caption states the unsupported screen result ['transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "fig:transition_event_locations",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:transition_event_locations",
+        "line": 4081,
+        "message": "caption states the unsupported screen result ['transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "fig:vertical_equity_event_locations",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:vertical_equity_event_locations",
+        "line": 4088,
+        "message": "caption states the unsupported screen result ['transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "fig:mechanism_event_locations",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:mechanism_event_locations",
+        "line": 4095,
+        "message": "caption states the unsupported screen result ['transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:transition_regret",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:tab:transition_regret",
+        "line": 4141,
+        "message": "caption states the unsupported screen result ['transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "fig:other_metric_paths_placeholder",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:other_metric_paths_placeholder",
+        "line": 4206,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:vertical_equity_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:vertical_equity_metric_paths",
+        "line": 4212,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_predictive_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_predictive_metric_paths",
+        "line": 4247,
+        "message": "caption states the unsupported screen result ['activity-onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_level_uniformity_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_level_uniformity_paths",
+        "line": 4252,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_vertical_equity_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_vertical_equity_metric_paths",
+        "line": 4257,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_mechanism_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_mechanism_metric_paths",
+        "line": 4262,
+        "message": "caption states the unsupported screen result ['candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:ratio_shape_cv_transition_span_only",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:ratio_shape_cv_transition_span_only",
+        "line": 4271,
+        "message": "caption states the unsupported screen result ['transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:path_design",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:94c45d573af5",
+        "line": 1998,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at subsec:path_design: 'for operational interpretability, we additionally report (i) a cv-only candidate-region screen with a soft activity mark'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.4"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_summary",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:85d37a5ecd20",
+        "line": 2778,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity onset', 'guardrail', 'upper guardrail'] at tab:path_anchor_summary: 'for downstream use, the separate cv-derived screen identifies a soft activity onset and a conservative upper guardrail w'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_summary",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:b607b36627f3",
+        "line": 2778,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail', 'upper guardrail'] at tab:path_anchor_summary: 'the surrogate screen runs from rho=0.202359 to 2.222996 : the first predictive bend occurs earlier but remains nonbindin'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:rho_candidate_regions",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:6c1304e675b3",
+        "line": 2790,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity onset'] at tab:rho_candidate_regions: 'activity onset'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:rho_candidate_regions",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:e4bf6032fc22",
+        "line": 2790,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail', 'upper guardrail'] at tab:rho_candidate_regions: 'upper guardrail'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:rho_candidate_regions",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:00797b67ee64",
+        "line": 2793,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at tab:rho_candidate_regions: '7/7 stable; guardrail indices 53-56'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:rho_candidate_regions",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:5d4292fc1aab",
+        "line": 2796,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at tab:rho_candidate_regions: '7/7 rebound; guardrail indices 53-55'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:rho_candidate_regions",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:9b928aa686b3",
+        "line": 2804,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity onset'] at tab:rho_candidate_regions: 'the activity onset is a soft marker for the beginning of broad equity/mechanism response; smaller positive penalties are'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:rho_candidate_regions",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:604b94cf3c0b",
+        "line": 2804,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail', 'upper guardrail'] at tab:rho_candidate_regions: 'the upper guardrail is a first-stage screening boundary, not a selected, safe, optimal, or deployment penalty.'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "fig:ratio_shape_path_placeholder",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:abf625d34315",
+        "line": 2832,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at fig:ratio_shape_path_placeholder: 'for surrogate, delta_ nl reaches its cv valley before entering a leave-one-fold-out-stable rebound at the upper candidat'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "fig:ratio_shape_path_placeholder",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:cfad37550451",
+        "line": 2832,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at fig:ratio_shape_path_placeholder: 'we therefore interpret the guardrail as a nonlinear-structure caution that precedes the visibly severe high- rho shape d'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:path_stability_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:76a4488b89d5",
+        "line": 2913,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity onset', 'guardrail', 'upper guardrail'] at subsec:path_stability_results: 'direct has activity onset rho=0.355648 and upper guardrail 2.559548 .'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:path_stability_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:63578d6d2506",
+        "line": 2913,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity onset', 'guardrail'] at subsec:path_stability_results: 'the activity onset is nearly identical across leave-one-fold-out aggregates (six of seven at the same grid index and one'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:path_stability_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:baf6e255a0c0",
+        "line": 2915,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity onset', 'guardrail', 'upper guardrail'] at subsec:path_stability_results: 'surrogate has activity onset rho=0.202359 and upper guardrail 2.222996 .'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:path_stability_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:0293dbdd0a2f",
+        "line": 2915,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail', 'upper guardrail'] at subsec:path_stability_results: 'the binding upper guardrail is instead the post-valley delta_ nl rebound: all seven leave-one-fold-out aggregates detect'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:path_stability_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:89169a7a6280",
+        "line": 2917,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['transition span'] at subsec:path_stability_results: 'the older five-metric prediction/cod transition spans remain a separate descriptive diagnostic: direct rho in [0.0494,1.'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:path_stability_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:78d6141adc84",
+        "line": 2917,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['candidate region'] at subsec:path_stability_results: 'the candidate regions therefore reduce the positive- rho search space while intentionally leaving the final within-regio'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "sec:discussion",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:5095ebb531c2",
+        "line": 3013,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['candidate region'] at sec:discussion: 'the cv-derived candidate regions summarize where activity becomes visible and where a family-specific deterioration or c'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B3.1"
+    },
+    {
+      "finding": {
+        "anchor": "sec:implementation_workflow",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:3b488871faed",
+        "line": 3043,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at sec:implementation_workflow: 'if a later operating point is required, choose it using an explicit predictive/equity loss and prespecified guardrails, '",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B3.1"
+    },
+    {
+      "finding": {
+        "anchor": "eq:nonlinearity_gap_estimator",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:a2fbe0836f1f",
+        "line": 3218,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['transition span'] at eq:nonlinearity_gap_estimator: 'the same frozen cross-fitted estimator was later applied, fold by fold, to the already-stored chronological validation p'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_complementary",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:64b99a214d48",
+        "line": 4000,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['transition span'] at tab:path_anchor_complementary: 'chronological-cv delta_ nl was later reconstructed, fold by fold, from the already-frozen validation predictions using t'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:candidate_screen_appendix",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:9d0e608bb9dd",
+        "line": 4010,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at subsec:candidate_screen_appendix: 'synthetic direct-like, surrogate-like, and no-pathology paths verify that the screen detects the intended qualitative re'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:candidate_screen_appendix",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:9151f9dd6289",
+        "line": 4012,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity onset'] at subsec:candidate_screen_appendix: 'for the benefit-side activity onset, the screen uses neutral-distance versions of prd, prb, mki, vei, and beta_ log and '",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:candidate_screen_appendix",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:9e238b52be1b",
+        "line": 4012,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail', 'upper guardrail'] at subsec:candidate_screen_appendix: 'for direct, the upper guardrail is the earliest qualifying cluster of sustained predictive-deterioration events among r2'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:candidate_screen_appendix",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:22ceddf58d6d",
+        "line": 4012,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at subsec:candidate_screen_appendix: 'predictive harm additionally requires exhaustion of the corresponding within-family rho=0 advantage, and the final surro'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "subsec:candidate_screen_appendix",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:289a4978dd5c",
+        "line": 4014,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['candidate region'] at subsec:candidate_screen_appendix: 'the final ccao positive- rho candidate regions are approximately 0.36 - 2.56 for direct and 0.20 - 2.22 for surrogate; t'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:transition_regret",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:b137e2ad9eed",
+        "line": 4184,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['transition span'] at tab:transition_regret: 'each family is restricted to its own frozen cv-derived descriptive transition span.'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.1"
+    },
+    {
+      "finding": {
+        "anchor": "tab:transition_regret",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:47dc81fdc141",
+        "line": 4204,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['transition span'] at tab:transition_regret: 'throughout the rho -evolution figures below, gray fill and dashed vertical boundaries mark the frozen family-specific cv'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "app:ccao_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:dae7fbbad332",
+        "line": 4312,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity-onset', 'guardrail'] at app:ccao_results: 'the final screening package should additionally archive the frozen generic v2.1 method specification, activity-onset and'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B4.3"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:SmithEtAl2019",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: brain-age delta estimation; the residual-outcome dependence problem and its regression-based correction. Forecloses novelty of residual-outcome decorrelation itself.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:BeheshtiEtAl2019",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: post-hoc bias-adjustment scheme. Forecloses novelty of affine residual orthogonalization.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:TrederEtAl2021",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: \"Correlation Constraints for Regression Models: Controlling Bias in Brain Age Prediction\". Forecloses novelty of covariance/correlation control and of generic tunable decorrelation paths.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:WangEtAl2023",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: skewed loss function correcting predictive bias. Forecloses novelty of target-dependent corrective losses generally.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:RenEtAl2026",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: age-delta correlation loss inside a nonlinear learner. Forecloses novelty of generic nonlinear in-processing correction.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:LeeChen2026",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: outcome-calibrated regression and predicted-outcome-based inference: the statistical framing of decorrelation.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_not_loaded:PaglinFogarty1972",
+        "line": null,
+        "message": "required prior-art entry is in no loaded .bib: classical vertical-equity testing literature; verifies field-by-field.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:PaglinFogarty1972",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: classical vertical-equity testing literature; verifies field-by-field.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_not_loaded:Cheng1974",
+        "line": null,
+        "message": "required prior-art entry is in no loaded .bib: classical vertical-equity testing literature; minimal citable core only, see bib_field_rules.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:Cheng1974",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: classical vertical-equity testing literature; minimal citable core only, see bib_field_rules.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_not_loaded:Edelstein1979",
+        "line": null,
+        "message": "required prior-art entry is in no loaded .bib: classical vertical-equity testing literature; only the confirmed start page may be carried.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:Edelstein1979",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: classical vertical-equity testing literature; only the confirmed start page may be carried.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_not_loaded:SundermanEtAl1990",
+        "line": null,
+        "message": "required prior-art entry is in no loaded .bib: classical vertical-equity testing literature; verifies field-by-field.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C11",
+        "count": null,
+        "key": "C11:required_key_uncited:SundermanEtAl1990",
+        "line": null,
+        "message": "required prior-art entry is never cited in the ACTIVE build: classical vertical-equity testing literature; verifies field-by-field.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B1.2"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C12",
+        "count": 19,
+        "key": "C12:todos_present",
+        "line": null,
+        "message": "19 \\todo sites remain in the source (14 in the ACTIVE build)",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B4.2"
+    }
+  ],
+  "manuscript": "paper/paper_v17_option1.tex",
+  "manuscript_sha256": "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a",
+  "n_expected_failures": 88,
+  "n_unexpected_failures": 0,
+  "ok": true,
+  "scope": {
+    "cumulative": {
+      "command": "git diff --name-only tier-b0-final-20260907..HEAD",
+      "n_paths": 0,
+      "ok": true,
+      "outside_paper": [],
+      "paths": []
+    },
+    "frozen_subtrees": {
+      "ok": true,
+      "subtrees": [
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/p0_major_revision_validation",
+          "tag": "p0-major-revision-final-20260907"
+        },
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/p1_inferential_reporting",
+          "tag": "p1-inferential-reporting-final-20260907"
+        },
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/final_manuscript_evidence",
+          "tag": "tier-b0-final-20260907"
+        }
+      ]
+    },
+    "ok": true,
+    "uncommitted": {
+      "n_paths": 1,
+      "ok": true,
+      "outside_paper": [],
+      "paths": [
+        "paper/paper_analysis/tier_b_validation/"
+      ],
+      "untracked": [
+        "paper/paper_analysis/tier_b_validation/"
+      ]
+    }
+  },
+  "stage": "B1.0",
+  "stale_expectations": [],
+  "unexpected_failures": [],
+  "unsupported_tokens": 356,
+  "unsupported_tokens_by_anchor": {
+    "subsec:path_stability_results": 4,
+    "tab:ccao_baseline_complementary": 18,
+    "tab:ccao_baseline_results": 16,
+    "tab:path_anchor_complementary": 119,
+    "tab:path_anchor_summary": 65,
+    "tab:rho_candidate_regions": 12,
+    "tab:transition_regret": 100,
+    "tab:transition_summary": 22
+  },
+  "unsupported_tokens_expected": 356
+}

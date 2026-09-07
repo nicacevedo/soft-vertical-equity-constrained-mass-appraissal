@@ -1,0 +1,92 @@
+
+===== test_p1_headline_numbers (8 tests) =====
+  PASS  test_cell_count_identities_hold
+  PASS  test_critical_figures_appear_verbatim_in_both_reports
+  PASS  test_dcor_answer_distinguishes_the_two_estimators
+  FAIL  test_headline_numbers_are_reproducible_from_the_artifacts: ModuleNotFoundError: No module named 'lightgbm'
+  PASS  test_no_flags_and_tolerances_are_as_reported
+  PASS  test_pooled_oof_is_not_applicable_everywhere_it_is_mentioned
+  PASS  test_reports_do_not_claim_a_compliance_determination
+  FAIL  test_reports_state_that_no_manuscript_file_was_edited: AssertionError: ?? paper/paper_analysis/tier_b_validation/
+
+===== test_p1_prb_assertions (12 tests) =====
+  PASS  test_all_ten_evaluation_blocks_present
+  PASS  test_attainability_matches_the_frozen_matched_beta_config_exactly
+  PASS  test_ci_is_consistent_with_classical_se
+  PASS  test_classification_states_and_no_threshold_crossing_mislabel
+  PASS  test_d3_effect_reported_as_sensitivity_not_error
+  PASS  test_frozen_reconciliation_is_exact
+  PASS  test_no_fold_as_iid_aggregation_anywhere
+  FAIL  test_no_protected_path_written: AssertionError: ?? paper/paper_analysis/tier_b_validation/
+  PASS  test_not_attained_preserved_with_null_metrics
+  PASS  test_roles_preserved_for_deduplicated_realizations
+  PASS  test_row_and_attainability_counts
+  PASS  test_unweighted_ols_reproduces_canonical_prb
+
+===== test_p1_vei_assertions (28 tests) =====
+  PASS  test_bootstrap_columns_are_sensitivity_only_and_bounded_in_scope
+  PASS  test_boundary_case_flag_is_consistent
+  PASS  test_cell_counts_reconcile_exactly
+  PASS  test_ci_brackets_its_own_group_median
+  FAIL  test_ci_limits_are_true_order_statistics_on_a_bounded_subset: ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+  PASS  test_ci_method_is_the_rank_based_order_statistic_not_the_bootstrap
+  FAIL  test_csv_is_a_faithful_serialisation_of_the_parquet_twin: ImportError: Unable to find a usable engine; tried using: 'pyarrow', 'fastparquet'.
+A suitable version of pyarrow or fastparquet is required for parquet support.
+Trying to import the above resulted in these errors:
+ - Missing optional dependency 'pyarrow'. pyarrow is required for parquet support. Use pip or conda to install pyarrow.
+ - Missing optional dependency 'fastparquet'. fastparquet is required for parquet support. Use pip or conda to install fastparquet.
+  PASS  test_d2_is_applied_only_where_the_draft_says_it_applies
+  PASS  test_d2_j_and_ranks_match_an_independent_rederivation
+  PASS  test_documented_deviations_are_recorded_not_silent
+  PASS  test_draft_status_is_disclosed_on_every_row
+  PASS  test_ed2_source_hash_on_every_row_matches_the_verified_manifest
+  PASS  test_evaluated_cells_are_exactly_the_nine_ed2_applicable_blocks
+  PASS  test_every_verdict_string_comes_from_the_frozen_decision_mapping
+  PASS  test_frozen_reconciliation_is_exact
+  PASS  test_no_fold_as_iid_aggregation_anywhere
+  FAIL  test_no_protected_path_written: AssertionError: ?? paper/paper_analysis/tier_b_validation/
+  PASS  test_no_weighted_rank_ed2_variant_exists_anywhere_in_the_code
+  PASS  test_not_attained_rows_preserved_with_null_metrics
+  PASS  test_pooled_oof_is_explicitly_not_applicable_with_a_recorded_reason
+  PASS  test_step3_groups_are_deciles_with_array_split_counts
+  PASS  test_step5_formula_recomputed_from_recorded_medians
+  PASS  test_step5_gate_is_the_band_rule_and_the_observed_split_is_preserved
+  PASS  test_step5_reproduces_the_canonical_vei_function_exactly
+  PASS  test_step6_overlap_recomputed_from_recorded_ci_bounds
+  PASS  test_step7_formula_sign_and_outcome_mapping
+  PASS  test_summary_counts_match_the_table
+  PASS  test_the_same_realization_yields_one_ed2_result
+
+===== test_p1_smearing_apply_assertions (19 tests) =====
+  PASS  test_applied_factor_is_the_frozen_factor_unchanged
+  PASS  test_apply_covered_every_realization_and_every_evaluation_block
+  PASS  test_d3_multiplicity_identities_and_row_balance
+  PASS  test_delta_nl_subset_is_invariant_and_the_rule_is_declared
+  PASS  test_duan_sign_is_the_opposite_of_the_repo_residual_convention
+  PASS  test_ed2_inference_is_refused_on_pooled_oof_consistently_with_task_3
+  PASS  test_ed2_verdicts_are_unchanged_where_ed2_applies
+  PASS  test_equity_and_mechanism_metrics_are_invariant
+  PASS  test_estimation_used_development_out_of_fold_data_only
+  PASS  test_fast_path_reproduces_the_frozen_p0_canonical_suite
+  PASS  test_freeze_preceded_the_estimate_and_the_application
+  PASS  test_frozen_estimator_hash_is_intact
+  PASS  test_level_metrics_scale_by_exactly_s
+  PASS  test_naive_duplicate_weighted_factor_is_reported_but_never_applied
+  PASS  test_no_cell_is_flagged
+  FAIL  test_no_protected_path_written: AssertionError: ?? paper/paper_analysis/tier_b_validation/
+  PASS  test_price_scale_accuracy_metrics_move_and_are_labelled_as_such
+  PASS  test_role_is_sensitivity_only
+  PASS  test_sign_direction_is_consistent_with_the_estimated_factors
+
+===== test_smearing_sign (5 tests) =====
+  PASS  test_asymmetric_two_point_is_sign_discriminating
+  PASS  test_d3_multiplicity_identities_hold
+  PASS  test_d3_row_balancing_differs_from_naive_duplicate_weighting
+  PASS  test_lognormal_benchmark_fixes_the_magnitude
+  PASS  test_sign_convention_against_the_repo_residual_definition
+
+TOTAL: 65 passed, 7 failed, 0 skipped

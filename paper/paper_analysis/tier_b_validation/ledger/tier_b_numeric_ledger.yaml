@@ -1,0 +1,39 @@
+# =============================================================================
+# Tier-B provenance ledger -- the SECOND resolution path for manuscript numbers.
+#
+# The frozen manuscript_numeric_map.csv indexes only the numbers the TIER-A
+# BASELINE manuscript printed. Numbers this writing pass ADDS -- matched-beta,
+# the centered-spread comparator, temporal robustness, the ED2 counts, the
+# Cell-C reference rows -- have no map row, so they resolve here instead.
+#
+# THIS FILE IS NOT AN AUTHORITY. A value written here proves nothing. For every
+# entry tb_ledger.verify_entry reopens the frozen artifact, verifies its sha256
+# against the file AND against FINAL_EVIDENCE_MANIFEST.json, executes the
+# selector, re-extracts raw_value byte-exactly, recomputes the transform and the
+# rounding in decimal.Decimal, and compares the result with what the .tex
+# actually prints at the declared anchor. Any step that disagrees is a hard
+# failure. That is what makes this a checked derivation rather than a second
+# place a wrong number can live.
+#
+# Seven required fields per entry:
+#   artifact_path artifact_sha256 selector raw_value value_transform
+#   rounding_rule rendered_value
+# Addressing and semantics alongside them (optional but expected):
+#   entry_id artifact_kind column metric manuscript_anchor latex_label
+#   counting_unit reference_cell comparison_purpose primary_or_sensitivity
+#   guidance_status attained_status added_by_stage role note
+#
+# Guards that apply here exactly as they apply to the frozen maps:
+#   * reference_cell A may never carry comparison_purpose PENALTY_ISOLATING;
+#   * reference_cell C may never carry comparison_purpose WORKFLOW_BENCHMARK;
+#   * every aggregate/count entry must name its counting_unit;
+#   * NOT_ATTAINED entries carry an empty raw_value, rounding_rule `none`, and
+#     the frozen token as rendered_value -- never an interpolated number.
+#
+# EMPTY AT B1.0 BY DESIGN. B1.0 edits no manuscript prose, and B1.1 through B1.4
+# delete material, position the literature, repair the theory and introduce the
+# reference convention -- none of them prints a new empirical number. The gate is
+# built before the work it gates. Entries arrive with B2.
+# =============================================================================
+schema_version: 1
+entries: []

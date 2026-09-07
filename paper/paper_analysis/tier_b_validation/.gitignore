@@ -1,0 +1,16 @@
+# Bytecode caches are never committed. validate.py sets sys.dont_write_bytecode
+# before importing anything, precisely so that running the gate cannot leave a
+# stray file the cumulative write-scope check would then have to explain.
+__pycache__/
+*.pyc
+
+# The repository .gitignore excludes `runs/`, `*.log` and `*.json` globally, for
+# the analysis roots where those are large regenerable outputs. Here they are
+# the RECORD: the informational pre-edit frozen-suite transcripts and the
+# per-stage validator results are the evidence that each Tier-B stage was gated,
+# so they are re-included at this level. A deeper .gitignore overrides a
+# shallower one, and re-including them here keeps `git status` honest -- which
+# matters, because the uncommitted-write-scope check reads it.
+!runs/
+!*.log
+!*.json

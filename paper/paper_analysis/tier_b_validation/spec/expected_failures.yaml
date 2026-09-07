@@ -1,0 +1,646 @@
+# =============================================================================
+# Expected baseline failures, stage by stage.
+#
+# The canonical manuscript is intentionally NOT compliant with the FINAL-STATE
+# Tier-B checks. Every check therefore fires on the unedited baseline, and the
+# validator's criterion is
+#
+#     UNEXPECTED_VALIDATOR_FAILURES == 0
+#
+# not "the unrevised manuscript passes every final-state check". A validator
+# that passes on the baseline is not validating anything, so no check is
+# weakened to make the baseline green.
+#
+# WHAT THIS FILE IS NOT: a blanket exemption. Each expected failure is declared
+# individually, with the stage that resolves it and the reason it exists. That
+# is what makes resolution ENFORCEABLE in both directions:
+#
+#   * once a stage has run, any finding whose entry named that stage is
+#     reported UNEXPECTED -- a stage cannot quietly fail to do its job;
+#   * an entry that stops matching while its stage is still pending is
+#     reported as a STALE expectation -- a failure vanishing early is a change
+#     worth seeing, not a silent win;
+#   * `expected_count` pins the C02 token counts exactly, so the contractual
+#     trajectory 356 -> 218 (B1.1) -> 34 (B2.1) -> 0 (B2.2) is verified rather
+#     than merely hoped for. A count that moves is a finding.
+#
+# The C08 prose keys are the sha256 (first 12 hex) of the NORMALIZED sentence,
+# not a line number or an anchor. Both of those are unstable by construction:
+# B1.1 deletes labels, so a surviving sentence's nearest-label anchor changes,
+# and every line number shifts. A content hash is the edit-stable identity
+# SELECTOR_GRAMMAR.md section 4 requires -- a deleted sentence's key disappears,
+# and a NEW candidate-region sentence gets a key nothing declares.
+#
+# Stage assignments are taken from the approved execution plan's own section,
+# float and claim assignments. Where the plan does not name a stage for a
+# particular passage, the entry is assigned to the stage that rewrites the
+# section it lives in, and the residue is reported at the mandatory B1 stop
+# rather than acted on early.
+#
+# Generated once at B1.0 from the measured baseline; the `why` text is authored,
+# not derived. Do not regenerate it to make a later stage pass.
+# =============================================================================
+schema_version: 1
+manuscript_baseline_sha256: 13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a
+baseline_unsupported_tokens: 356
+expected_token_trajectory:
+  B1.0: 356
+  B1.1: 218
+  B1.2: 218
+  B1.3: 218
+  B1.4: 218
+  B2.1: 34
+  B2.2: 0
+
+expected_failures:
+- key: 'C02:flagged:subsec:path_stability_results'
+  resolved_by_stage: B1.1
+  expected_count: 4
+  why: >-
+    The four leave-one-fold-out guardrail indices (53, 56, 53, 55) in the
+    ACTIVE candidate-region block. The rho endpoints in the same sentences are
+    NOT individually flagged because they exist in the frozen grid maps as
+    grid COORDINATES; the claim that those coordinates ARE the activity onset
+    and the upper guardrail is what no artifact reproduces, and token-level
+    allowlisting of a coordinate is not support for the claim built on it. The
+    block goes with the tables.
+- key: 'C02:flagged:tab:ccao_baseline_complementary'
+  resolved_by_stage: B2.2
+  expected_count: 18
+  why: >-
+    The 18 flagged tokens are the Linear columns. Cell A is re-sourced for all
+    eight complementary metrics including Delta_NL and dCor.
+- key: 'C02:flagged:tab:ccao_baseline_results'
+  resolved_by_stage: B2.2
+  expected_count: 16
+  why: >-
+    All 16 flagged tokens are exactly the Linear-regression column, which
+    resolves from nothing and prints R^2_P = 0.799 in BOTH panels -- an
+    identical value to three decimals on two different samples. The Linear
+    columns are removed; the Cell-A half resolves exactly from
+    zero_control_full.csv.
+- key: 'C02:flagged:tab:path_anchor_complementary'
+  resolved_by_stage: B2.1
+  expected_count: 119
+  why: >-
+    REBUILD. Worse than the summary table in one respect:
+    frozen_artifact_reproduction.csv carries no Delta_NL and no dCor column at
+    all, so those two are unsupported at EVERY positive rho, not only at the
+    three legacy anchors.
+- key: 'C02:flagged:tab:path_anchor_summary'
+  resolved_by_stage: B2.1
+  expected_count: 65
+  why: >-
+    REBUILD -> SPLIT into tab:path_anchor_frozen (the two frozen anchors at
+    reproduction tier R1) and tab:path_anchor_standards (PRB and VEI at all
+    five anchors). The unsupported cells are every Linear column and the
+    accuracy metrics at the three legacy anchors, whose V6/V12 prediction
+    trees are gitignored and hash-pinned only.
+- key: 'C02:flagged:tab:rho_candidate_regions'
+  resolved_by_stage: B1.1
+  expected_count: 12
+  why: >-
+    tab:rho_candidate_regions is DELETE: 12/12 of its tokens are unsupported.
+    P0 holds screening-grid proxies that are explicitly NOT a reproduction of
+    the published 82-point smoothed changepoint estimator, so neither the
+    endpoints nor the 7/7 counts nor the guardrail indices resolve.
+- key: 'C02:flagged:tab:transition_regret'
+  resolved_by_stage: B1.1
+  expected_count: 100
+  why: >-
+    tab:transition_regret is DELETE: the single largest concentration of
+    unsupported numbers in the manuscript. No frozen artifact carries the
+    span-regret quantities.
+- key: 'C02:flagged:tab:transition_summary'
+  resolved_by_stage: B1.1
+  expected_count: 22
+  why: >-
+    tab:transition_summary is DELETE: no frozen artifact carries the five-
+    metric event locations, spans, log10 widths, LOFO endpoints or concordance
+    ratios.
+- key: 'C03:forward_name_missing:A'
+  resolved_by_stage: B1.4
+  why: >-
+    The manuscript uses no A/B/C token anywhere. The frozen forward display
+    name for cell A (Ordinary LightGBM (standard raw-label native)) is
+    introduced with the reference convention in section 4.3.
+- key: 'C03:forward_name_missing:B'
+  resolved_by_stage: B1.4
+  why: >-
+    The manuscript uses no A/B/C token anywhere. The frozen forward display
+    name for cell B (Centered-label native L2 (initialization-aligned)) is
+    introduced with the reference convention in section 4.3.
+- key: 'C03:forward_name_missing:C'
+  resolved_by_stage: B1.4
+  why: >-
+    The manuscript uses no A/B/C token anywhere. The frozen forward display
+    name for cell C (Custom-objective rho=0 origin) is introduced with the
+    reference convention in section 4.3.
+- key: 'C03:missing_table:tab:path_anchor_frozen'
+  resolved_by_stage: B2.1
+  why: >-
+    Created by the split of tab:path_anchor_summary: prediction plus PRD and
+    MKI at the two frozen anchors only, so the provenance boundary is
+    structural rather than a footnote.
+- key: 'C03:missing_table:tab:path_anchor_standards'
+  resolved_by_stage: B2.1
+  why: >-
+    Created by the same split: PRB attributed to the ADOPTED 2013 Standard and
+    VEI to the May-2026 Exposure Draft, at all five anchors, labelled
+    differently because their standing differs.
+- key: 'C03:penalty_isolating_missing'
+  resolved_by_stage: B1.4
+  why: >-
+    The penalty-isolating role of the custom-objective rho=0 origin is the
+    coordinate system the rest of the revision depends on, and section 4.3
+    introduces it.
+- key: 'C03:reference_rows:tab:path_anchor_complementary:A'
+  resolved_by_stage: B2.1
+  why: >-
+    Both reference roles become explicit rows when the table is rebuilt. Cell
+    A may not be left inferable from prose or a footnote.
+- key: 'C03:reference_rows:tab:path_anchor_complementary:C'
+  resolved_by_stage: B2.1
+  why: >-
+    Both reference roles become explicit rows when the table is rebuilt. Cell
+    C may not be left inferable from prose or a footnote.
+- key: 'C04:missing:d1_primary'
+  resolved_by_stage: B1.4
+  why: >-
+    D1 is primary and D3 is the sensitivity; the two may never be swapped.
+- key: 'C04:missing:not_independent_aggregate'
+  resolved_by_stage: B1.4
+  why: >-
+    POST_G3_ADJUDICATION section 2 supersedes both the Tier-B0 spec's own
+    phrasing and CENTERED_SPREAD_COMPARATOR_REPORT section 4: D1 must NOT be
+    described simply as 'unaffected'. It remains primary and its definition is
+    unchanged, but it is not an independent-observation aggregate and supports
+    no IID fold-level inference.
+- key: 'C04:missing:one_sale_one_vote'
+  resolved_by_stage: B1.4
+  why: >-
+    D3 must be described as the one-sale-one-vote sensitivity, distinct from
+    D2, the duplicate-weighted pooled coordinate that double-counts by
+    construction.
+- key: 'C04:missing:overlap_qualification'
+  resolved_by_stage: B1.4
+  why: >-
+    The fold-6 / fold-7 validation blocks overlap -- origins about four months
+    apart while 10% of the development pool spans about a year -- so 20,988
+    unique rows appear twice. The qualification must be clear before the
+    reader reaches Results.
+- key: 'C04:missing_token:D1'
+  resolved_by_stage: B1.4
+  why: >-
+    D1, the equal-weight mean of the seven chronological fold metrics, is the
+    PRIMARY development coordinate and is introduced in section 4.2.
+- key: 'C04:missing_token:D3'
+  resolved_by_stage: B1.4
+  why: >-
+    D3 is the one-sale-one-vote sensitivity coordinate (130,165 distinct
+    sales, w_ik = 1/m_i, development-only).
+- key: 'C05:matched_beta_absent'
+  resolved_by_stage: B2.4
+  why: >-
+    The matched-beta result set is absent from the manuscript entirely. It
+    arrives with new section 5.7, carrying the four frozen NOT_ATTAINED
+    display states verbatim with blank metric cells.
+- key: 'C08:asset:cv_level_uniformity_paths_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:asset:cv_mechanism_metric_paths_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:asset:cv_predictive_metric_paths_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:asset:cv_vertical_equity_metric_paths_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:asset:level_uniformity_paths_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:asset:mechanism_vs_rho_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:asset:predictive_metric_paths_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:asset:vertical_equity_metric_paths_candidate_region.pdf'
+  resolved_by_stage: B2.6
+  why: >-
+    Visual provenance obeys the same rule as numeric provenance: the graphic
+    itself draws the candidate-region fill, the activity-onset boundary and
+    the upper guardrail, which no frozen artifact reproduces. A plain
+    replacement asset already exists in the repository and is git-tracked; the
+    swap is B2.6.
+- key: 'C08:caption:fig:cv_level_uniformity_paths'
+  resolved_by_stage: B2.6
+  why: >-
+    fig:cv_level_uniformity_paths is UPDATE: the path curves and the genuine
+    metric-definition reference lines (PRD=1, PRB=0, MKI=1, VEI=0, beta_log=0,
+    ratio=1) are supported and stay; the candidate-region, activity-onset,
+    upper-guardrail and transition-span sentences are stripped from the
+    caption at B2.6.
+- key: 'C08:caption:fig:cv_mechanism_metric_paths'
+  resolved_by_stage: B2.6
+  why: >-
+    fig:cv_mechanism_metric_paths is UPDATE: the path curves and the genuine
+    metric-definition reference lines (PRD=1, PRB=0, MKI=1, VEI=0, beta_log=0,
+    ratio=1) are supported and stay; the candidate-region, activity-onset,
+    upper-guardrail and transition-span sentences are stripped from the
+    caption at B2.6.
+- key: 'C08:caption:fig:cv_predictive_metric_paths'
+  resolved_by_stage: B2.6
+  why: >-
+    fig:cv_predictive_metric_paths is UPDATE: the path curves and the genuine
+    metric-definition reference lines (PRD=1, PRB=0, MKI=1, VEI=0, beta_log=0,
+    ratio=1) are supported and stay; the candidate-region, activity-onset,
+    upper-guardrail and transition-span sentences are stripped from the
+    caption at B2.6.
+- key: 'C08:caption:fig:cv_vertical_equity_metric_paths'
+  resolved_by_stage: B2.6
+  why: >-
+    fig:cv_vertical_equity_metric_paths is UPDATE: the path curves and the
+    genuine metric-definition reference lines (PRD=1, PRB=0, MKI=1, VEI=0,
+    beta_log=0, ratio=1) are supported and stay; the candidate-region,
+    activity-onset, upper-guardrail and transition-span sentences are stripped
+    from the caption at B2.6.
+- key: 'C08:caption:fig:mechanism_event_locations'
+  resolved_by_stage: B1.1
+  why: >-
+    fig:mechanism_event_locations is DELETE -- the float is defined by the
+    unsupported construction and has no plain counterpart, so its caption goes
+    with it.
+- key: 'C08:caption:fig:mechanism_path_placeholder'
+  resolved_by_stage: B2.6
+  why: >-
+    fig:mechanism_path_placeholder is UPDATE: the path curves and the genuine
+    metric-definition reference lines (PRD=1, PRB=0, MKI=1, VEI=0, beta_log=0,
+    ratio=1) are supported and stay; the candidate-region, activity-onset,
+    upper-guardrail and transition-span sentences are stripped from the
+    caption at B2.6.
+- key: 'C08:caption:fig:other_metric_paths_placeholder'
+  resolved_by_stage: B2.6
+  why: >-
+    fig:other_metric_paths_placeholder is UPDATE: the path curves and the
+    genuine metric-definition reference lines (PRD=1, PRB=0, MKI=1, VEI=0,
+    beta_log=0, ratio=1) are supported and stay; the candidate-region,
+    activity-onset, upper-guardrail and transition-span sentences are stripped
+    from the caption at B2.6.
+- key: 'C08:caption:fig:ratio_shape_cv_transition_span_only'
+  resolved_by_stage: B1.1
+  why: >-
+    fig:ratio_shape_cv_transition_span_only is DELETE -- the float is defined
+    by the unsupported construction and has no plain counterpart, so its
+    caption goes with it.
+- key: 'C08:caption:fig:transition_event_locations'
+  resolved_by_stage: B1.1
+  why: >-
+    fig:transition_event_locations is DELETE -- the float is defined by the
+    unsupported construction and has no plain counterpart, so its caption goes
+    with it.
+- key: 'C08:caption:fig:vertical_equity_event_locations'
+  resolved_by_stage: B1.1
+  why: >-
+    fig:vertical_equity_event_locations is DELETE -- the float is defined by
+    the unsupported construction and has no plain counterpart, so its caption
+    goes with it.
+- key: 'C08:caption:fig:vertical_equity_metric_paths'
+  resolved_by_stage: B2.6
+  why: >-
+    fig:vertical_equity_metric_paths is UPDATE: the path curves and the
+    genuine metric-definition reference lines (PRD=1, PRB=0, MKI=1, VEI=0,
+    beta_log=0, ratio=1) are supported and stay; the candidate-region,
+    activity-onset, upper-guardrail and transition-span sentences are stripped
+    from the caption at B2.6.
+- key: 'C08:caption:tab:transition_regret'
+  resolved_by_stage: B1.1
+  why: >-
+    tab:transition_regret is DELETE -- the float is defined by the unsupported
+    construction and has no plain counterpart, so its caption goes with it.
+- key: 'C08:caption:tab:transition_summary'
+  resolved_by_stage: B1.1
+  why: >-
+    tab:transition_summary is DELETE -- the float is defined by the
+    unsupported construction and has no plain counterpart, so its caption goes
+    with it.
+- key: 'C08:prose:00797b67ee64'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted table. [baseline site L2793, anchor
+    tab:rho_candidate_regions]
+- key: 'C08:prose:0293dbdd0a2f'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted ACTIVE candidate-region block. [baseline site L2915,
+    anchor subsec:path_stability_results]
+- key: 'C08:prose:22ceddf58d6d'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted appendix subsection. [baseline site L4012, anchor
+    subsec:candidate_screen_appendix]
+- key: 'C08:prose:289a4978dd5c'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted appendix subsection. [baseline site L4014, anchor
+    subsec:candidate_screen_appendix]
+- key: 'C08:prose:3b488871faed'
+  resolved_by_stage: B3.1
+  why: >-
+    The workflow step list mentions prespecified guardrails. Section 6.1 is
+    updated at B3.1. [baseline site L3043, anchor sec:implementation_workflow]
+- key: 'C08:prose:47dc81fdc141'
+  resolved_by_stage: B2.6
+  why: >-
+    Prose in the surviving appendix path-figure subsection announcing the gray
+    transition-span fill and dashed boundaries drawn in those figures. It goes
+    with the asset swap at B2.6. [baseline site L4204, anchor
+    tab:transition_regret]
+- key: 'C08:prose:5095ebb531c2'
+  resolved_by_stage: B3.1
+  why: >-
+    Discussion prose summarising the candidate regions. Section 6 is rewritten
+    at B3.1. [baseline site L3013, anchor sec:discussion]
+- key: 'C08:prose:5d4292fc1aab'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted table. [baseline site L2796, anchor
+    tab:rho_candidate_regions]
+- key: 'C08:prose:604b94cf3c0b'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted table's notes. [baseline site L2804, anchor
+    tab:rho_candidate_regions]
+- key: 'C08:prose:63578d6d2506'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted ACTIVE candidate-region block. [baseline site L2913,
+    anchor subsec:path_stability_results]
+- key: 'C08:prose:64b99a214d48'
+  resolved_by_stage: B2.1
+  why: >-
+    Appendix F note on the machine-readable combined path table, referring to
+    the transition span and to Linear. It is rewritten with
+    tab:path_anchor_complementary at B2.1. [baseline site L4000, anchor
+    tab:path_anchor_complementary]
+- key: 'C08:prose:6c1304e675b3'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted table. [baseline site L2790, anchor
+    tab:rho_candidate_regions]
+- key: 'C08:prose:76a4488b89d5'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted ACTIVE candidate-region block. [baseline site L2913,
+    anchor subsec:path_stability_results]
+- key: 'C08:prose:78d6141adc84'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted ACTIVE candidate-region block. [baseline site L2917,
+    anchor subsec:path_stability_results]
+- key: 'C08:prose:85d37a5ecd20'
+  resolved_by_stage: B1.1
+  why: >-
+    C-results-012 requires deleting the table AND the endpoint numbers. These
+    two sentences carry the endpoints (Direct 0.355648-2.559548, Surrogate
+    0.202359-2.222996, the later cluster at 6.866488) and state the screen
+    result as fact. They are not separately flagged by the coverage audit only
+    because those rho values exist in the frozen grid maps as grid
+    coordinates. [baseline site L2778, anchor tab:path_anchor_summary]
+- key: 'C08:prose:89169a7a6280'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted ACTIVE candidate-region block. [baseline site L2917,
+    anchor subsec:path_stability_results]
+- key: 'C08:prose:9151f9dd6289'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted appendix subsection. [baseline site L4012, anchor
+    subsec:candidate_screen_appendix]
+- key: 'C08:prose:94c45d573af5'
+  resolved_by_stage: B1.4
+  why: >-
+    Section 4.2 announces the candidate-region screen and the five-event
+    envelope as additionally reported empirical objects. Both are deleted at
+    B1.1, so the announcement is repaired with the section 4.1-4.2 update that
+    carries the extract hash and the D1/D2/D3 statement. [baseline site L1998,
+    anchor subsec:path_design]
+- key: 'C08:prose:9b928aa686b3'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted table's notes. [baseline site L2804, anchor
+    tab:rho_candidate_regions]
+- key: 'C08:prose:9d0e608bb9dd'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted appendix subsection. [baseline site L4010, anchor
+    subsec:candidate_screen_appendix]
+- key: 'C08:prose:9e238b52be1b'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted appendix subsection. [baseline site L4012, anchor
+    subsec:candidate_screen_appendix]
+- key: 'C08:prose:a2fbe0836f1f'
+  resolved_by_stage: B2.6
+  why: >-
+    Appendix A prose referring to the frozen prediction/COD transition span.
+    Appendix A is revised at B2.6, where the dCor estimator promise becomes
+    the frozen answer. [baseline site L3218, anchor
+    eq:nonlinearity_gap_estimator]
+- key: 'C08:prose:abf625d34315'
+  resolved_by_stage: B2.1
+  why: >-
+    The Delta_NL-rebound-at-the-guardrail interpretation and the event-
+    relative 1/7-versus-6/7 ratio-profile QA sentence are both the deleted
+    screen. They go when old section 5.3 merges into new section 5.4.
+    [baseline site L2832, anchor fig:ratio_shape_path_placeholder]
+- key: 'C08:prose:b137e2ad9eed'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted table's notes. [baseline site L4184, anchor
+    tab:transition_regret]
+- key: 'C08:prose:b607b36627f3'
+  resolved_by_stage: B1.1
+  why: >-
+    C-results-012 requires deleting the table AND the endpoint numbers. These
+    two sentences carry the endpoints (Direct 0.355648-2.559548, Surrogate
+    0.202359-2.222996, the later cluster at 6.866488) and state the screen
+    result as fact. They are not separately flagged by the coverage audit only
+    because those rho values exist in the frozen grid maps as grid
+    coordinates. [baseline site L2778, anchor tab:path_anchor_summary]
+- key: 'C08:prose:baf6e255a0c0'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted ACTIVE candidate-region block. [baseline site L2915,
+    anchor subsec:path_stability_results]
+- key: 'C08:prose:cfad37550451'
+  resolved_by_stage: B2.1
+  why: >-
+    The Delta_NL-rebound-at-the-guardrail interpretation and the event-
+    relative 1/7-versus-6/7 ratio-profile QA sentence are both the deleted
+    screen. They go when old section 5.3 merges into new section 5.4.
+    [baseline site L2832, anchor fig:ratio_shape_path_placeholder]
+- key: 'C08:prose:dae7fbbad332'
+  resolved_by_stage: B4.3
+  why: >-
+    The replication-package list still promises activity-onset and upper-
+    guardrail tables. C-appendix-005 replaces 'should contain' with an
+    assertive description of what is actually released, at B4.3. [baseline
+    site L4312, anchor app:ccao_results]
+- key: 'C08:prose:e4bf6032fc22'
+  resolved_by_stage: B1.1
+  why: >-
+    Inside the deleted table. [baseline site L2790, anchor
+    tab:rho_candidate_regions]
+- key: 'C11:required_key_not_loaded:Cheng1974'
+  resolved_by_stage: B1.2
+  why: >-
+    Cheng1974 lives in paper/references_major_revision_additions.txt, which no
+    \addbibresource loads, so \cite of it prints nothing. B1.2 copies the
+    validated entry into paper/references_additions.bib -- not a third
+    \addbibresource, and never a dependency on a bibliography file under
+    analysis/.
+- key: 'C11:required_key_not_loaded:Edelstein1979'
+  resolved_by_stage: B1.2
+  why: >-
+    Edelstein1979 lives in paper/references_major_revision_additions.txt,
+    which no \addbibresource loads, so \cite of it prints nothing. B1.2 copies
+    the validated entry into paper/references_additions.bib -- not a third
+    \addbibresource, and never a dependency on a bibliography file under
+    analysis/.
+- key: 'C11:required_key_not_loaded:PaglinFogarty1972'
+  resolved_by_stage: B1.2
+  why: >-
+    PaglinFogarty1972 lives in paper/references_major_revision_additions.txt,
+    which no \addbibresource loads, so \cite of it prints nothing. B1.2 copies
+    the validated entry into paper/references_additions.bib -- not a third
+    \addbibresource, and never a dependency on a bibliography file under
+    analysis/.
+- key: 'C11:required_key_not_loaded:SundermanEtAl1990'
+  resolved_by_stage: B1.2
+  why: >-
+    SundermanEtAl1990 lives in paper/references_major_revision_additions.txt,
+    which no \addbibresource loads, so \cite of it prints nothing. B1.2 copies
+    the validated entry into paper/references_additions.bib -- not a third
+    \addbibresource, and never a dependency on a bibliography file under
+    analysis/.
+- key: 'C11:required_key_uncited:BeheshtiEtAl2019'
+  resolved_by_stage: B1.2
+  why: >-
+    BeheshtiEtAl2019 sits in the loaded references_additions.bib and is cited
+    ZERO times, so it does not print. These six entries are the closest prior
+    art to this paper's mechanism -- the brain-age literature, which
+    independently developed residual-outcome decorrelation. B1.2 cites them
+    and states the novelty boundary.
+- key: 'C11:required_key_uncited:Cheng1974'
+  resolved_by_stage: B1.2
+  why: >-
+    Cheng1974 is part of the classical vertical-equity testing literature and
+    is cited where that literature is discussed, once B1.2 has made it
+    loadable.
+- key: 'C11:required_key_uncited:Edelstein1979'
+  resolved_by_stage: B1.2
+  why: >-
+    Edelstein1979 is part of the classical vertical-equity testing literature
+    and is cited where that literature is discussed, once B1.2 has made it
+    loadable.
+- key: 'C11:required_key_uncited:LeeChen2026'
+  resolved_by_stage: B1.2
+  why: >-
+    LeeChen2026 sits in the loaded references_additions.bib and is cited ZERO
+    times, so it does not print. These six entries are the closest prior art
+    to this paper's mechanism -- the brain-age literature, which independently
+    developed residual-outcome decorrelation. B1.2 cites them and states the
+    novelty boundary.
+- key: 'C11:required_key_uncited:PaglinFogarty1972'
+  resolved_by_stage: B1.2
+  why: >-
+    PaglinFogarty1972 is part of the classical vertical-equity testing
+    literature and is cited where that literature is discussed, once B1.2 has
+    made it loadable.
+- key: 'C11:required_key_uncited:RenEtAl2026'
+  resolved_by_stage: B1.2
+  why: >-
+    RenEtAl2026 sits in the loaded references_additions.bib and is cited ZERO
+    times, so it does not print. These six entries are the closest prior art
+    to this paper's mechanism -- the brain-age literature, which independently
+    developed residual-outcome decorrelation. B1.2 cites them and states the
+    novelty boundary.
+- key: 'C11:required_key_uncited:SmithEtAl2019'
+  resolved_by_stage: B1.2
+  why: >-
+    SmithEtAl2019 sits in the loaded references_additions.bib and is cited
+    ZERO times, so it does not print. These six entries are the closest prior
+    art to this paper's mechanism -- the brain-age literature, which
+    independently developed residual-outcome decorrelation. B1.2 cites them
+    and states the novelty boundary.
+- key: 'C11:required_key_uncited:SundermanEtAl1990'
+  resolved_by_stage: B1.2
+  why: >-
+    SundermanEtAl1990 is part of the classical vertical-equity testing
+    literature and is cited where that literature is discussed, once B1.2 has
+    made it loadable.
+- key: 'C11:required_key_uncited:TrederEtAl2021'
+  resolved_by_stage: B1.2
+  why: >-
+    TrederEtAl2021 sits in the loaded references_additions.bib and is cited
+    ZERO times, so it does not print. These six entries are the closest prior
+    art to this paper's mechanism -- the brain-age literature, which
+    independently developed residual-outcome decorrelation. B1.2 cites them
+    and states the novelty boundary.
+- key: 'C11:required_key_uncited:WangEtAl2023'
+  resolved_by_stage: B1.2
+  why: >-
+    WangEtAl2023 sits in the loaded references_additions.bib and is cited ZERO
+    times, so it does not print. These six entries are the closest prior art
+    to this paper's mechanism -- the brain-age literature, which independently
+    developed residual-outcome decorrelation. B1.2 cites them and states the
+    novelty boundary.
+- key: 'C12:todos_present'
+  resolved_by_stage: B4.2
+  why: >-
+    The 19 \todo sites are source-only promises: todonotes is loaded with
+    [disable], so none of them prints. spec/todo_closure.yaml is the
+    authoritative crosswalk and P0/P1 have closed most of them -- in one case
+    (#16) with a finding that CONTRADICTS the surrounding prose. The sites
+    themselves are removed with the revision scaffolding at B4.2, after the
+    prose is stable. No expected_count is pinned because B1.1 legitimately
+    deletes three of them (two inside \iffalse regions, one inside the deleted
+    candidate-region appendix subsection); C12 separately fails if the count
+    ever INCREASES.

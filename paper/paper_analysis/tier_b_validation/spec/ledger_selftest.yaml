@@ -1,0 +1,168 @@
+# =============================================================================
+# Ledger self-test entries -- they prove the VERIFIER works, they are not claims.
+#
+# The real ledger is empty at B1.0, so without these the seven-step verifier
+# would pass trivially and prove nothing. Each entry below is a number the
+# baseline manuscript already prints and the frozen Tier-B0 numeric map already
+# resolves, chosen to exercise the whole value pipeline:
+#
+#   csv  + identity  + half_up:3    a negative coefficient (-0.147)
+#   csv  + identity  + half_up:1    a value already in percent (-26.5)
+#   csv  + times_100 + half_up:1    a FRACTION shown as a percent (21.2)
+#   csv  + identity  + usd_comma:0  a thousands-separated count (46,888)
+#   csv  + identity  + sci:3        exponential display (3.24e-02)
+#   json + identity  + int          a scalar through a JSON path (994)
+#
+# The two units cases are the point: MAPE is a fraction in the artifact and a
+# percent in the manuscript, while VEI is already a percent. Both display with
+# half_up:1, and only value_transform separates them. A pipeline that folded the
+# unit conversion into the rounding rule would multiply one of them twice.
+#
+# tb_ledger.selftest() also MUTATES the first entry seven ways -- wrong sha256,
+# a selector that matches nothing, an edited raw_value, a transform and a
+# rounding outside the closed vocabularies, a rendered_value that is not the
+# pipeline output, and a value not printed at the declared anchor -- and requires
+# every one to be REJECTED. That is what shows each step is load-bearing.
+#
+# These entries sit at anchors this revision keeps, so they stay valid across
+# the pass. If a later stage legitimately stops printing one of them, replace
+# the entry rather than relaxing the check.
+# =============================================================================
+schema_version: 1
+entries:
+
+- entry_id: SELFTEST-zero-betalog-C-heldout
+  role: SELFTEST
+  artifact_path: analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  artifact_sha256: 331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec
+  artifact_kind: csv
+  selector: cell_id=C;evaluation=heldout
+  column: beta_log
+  metric: beta_log
+  raw_value: "-0.14738109602580063"
+  value_transform: identity
+  rounding_rule: half_up:3
+  rendered_value: "-0.147"
+  manuscript_anchor: tab:rho_zero_control
+  latex_label: tab:rho_zero_control
+  reference_cell: C
+  comparison_purpose: WITHIN_MODEL
+  counting_unit: NOT_APPLICABLE
+  attained_status: ATTAINED
+  added_by_stage: B1.0
+  note: >-
+    Cell C is the custom-objective rho=0 origin and the PRIMARY penalty-isolating
+    reference. Exercises a negative coefficient at three decimals.
+
+- entry_id: SELFTEST-baseline-VEI-A-heldout
+  role: SELFTEST
+  artifact_path: analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  artifact_sha256: 331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec
+  artifact_kind: csv
+  selector: cell_id=A;evaluation=heldout
+  column: VEI
+  metric: VEI
+  raw_value: "-26.459634217874914"
+  value_transform: identity
+  rounding_rule: half_up:1
+  rendered_value: "-26.5"
+  manuscript_anchor: tab:ccao_baseline_results
+  latex_label: tab:ccao_baseline_results
+  reference_cell: A
+  comparison_purpose: WORKFLOW_BENCHMARK
+  counting_unit: NOT_APPLICABLE
+  guidance_status: IAAO_2026_ED2_PROPOSED
+  attained_status: ATTAINED
+  added_by_stage: B1.0
+  note: >-
+    VEI is stored ALREADY IN PERCENT, so value_transform is identity. Paired
+    deliberately with the MAPE entry, which is stored as a fraction.
+
+- entry_id: SELFTEST-baseline-MAPEP-A-heldout
+  role: SELFTEST
+  artifact_path: analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  artifact_sha256: 331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec
+  artifact_kind: csv
+  selector: cell_id=A;evaluation=heldout
+  column: MAPE
+  metric: MAPEP
+  raw_value: "0.2120088150100442"
+  value_transform: times_100
+  rounding_rule: half_up:1
+  rendered_value: "21.2"
+  manuscript_anchor: tab:ccao_baseline_results
+  latex_label: tab:ccao_baseline_results
+  reference_cell: A
+  comparison_purpose: WORKFLOW_BENCHMARK
+  counting_unit: NOT_APPLICABLE
+  attained_status: ATTAINED
+  added_by_stage: B1.0
+  note: >-
+    MAPE is stored as a FRACTION and printed as a percent. times_100 is an exact
+    decimal scaleb, never a float multiplication.
+
+- entry_id: SELFTEST-fold-ntrain-1
+  role: SELFTEST
+  artifact_path: analysis/p0_major_revision_validation/tables/objective_scaling_audit.csv
+  artifact_sha256: 0153eff1144d393463418383f114cc3de0adc71dc3d7b22308b54c49e9e0413f
+  artifact_kind: csv
+  selector: block_id=fold_1_train
+  column: n_T
+  metric: n_train
+  raw_value: "46888"
+  value_transform: identity
+  rounding_rule: usd_comma:0
+  rendered_value: "46,888"
+  manuscript_anchor: tab:fold_structure
+  latex_label: tab:fold_structure
+  reference_cell: NONE
+  comparison_purpose: NOT_APPLICABLE
+  counting_unit: evaluation_cell
+  attained_status: ATTAINED
+  added_by_stage: B1.0
+  note: >-
+    The artifact column is n_T, not n_train -- which is exactly why the ledger
+    carries an explicit `column` instead of guessing from `metric`.
+
+- entry_id: SELFTEST-zero-meandelta-heldout
+  role: SELFTEST
+  artifact_path: analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv
+  artifact_sha256: 7857e46b4fb7a94a808b699919175dc3199730adc565ca794a5586454c845157
+  artifact_kind: csv
+  selector: cell_id=A<->C;eval_name=heldout
+  column: mean_abs_delta_log
+  metric: mean_abs_delta_log
+  raw_value: "0.03238952393862062"
+  value_transform: identity
+  rounding_rule: sci:3
+  rendered_value: "3.24e-02"
+  manuscript_anchor: tab:rho_zero_control
+  latex_label: tab:rho_zero_control
+  reference_cell: NONE
+  comparison_purpose: WITHIN_MODEL
+  counting_unit: NOT_APPLICABLE
+  attained_status: ATTAINED
+  added_by_stage: B1.0
+  note: >-
+    The A-to-C prediction gap at rho=0. This is the number that makes an
+    A-referenced contrast a workflow-benchmark comparison rather than a penalty
+    effect. sci:3 is a DISPLAY format, not a unit conversion.
+
+- entry_id: SELFTEST-design-n_estimators
+  role: SELFTEST
+  artifact_path: analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+  artifact_sha256: ce4a46f06f42c07e32e065f7984a48963a87750582b60e309a09fa998dbe7cb2
+  artifact_kind: json
+  selector: $.frozen_lgbm.lgbm_params.n_estimators
+  metric: n_estimators
+  raw_value: "994"
+  value_transform: identity
+  rounding_rule: int
+  rendered_value: "994"
+  manuscript_anchor: tab:ccao_design
+  reference_cell: NONE
+  comparison_purpose: NOT_APPLICABLE
+  counting_unit: NOT_APPLICABLE
+  attained_status: ATTAINED
+  added_by_stage: B1.0
+  note: The fixed learner capacity, resolved through a JSON path selector.
