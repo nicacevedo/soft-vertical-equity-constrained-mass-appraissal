@@ -227,3 +227,81 @@ def test_report_does_not_claim_d1_simply_unaffected():
     r = (REP / "TEMPORAL_ROBUSTNESS_REPORT.md").read_text().replace("*", "")
     assert "fold-level results are not independent" in r
     assert "D1 is unaffected" not in r
+
+
+# ------------------------------------------- refinement task 12 parallel re-execution
+RACE = c.P0_DIR / "race" / "task12_parallel"
+RACE_CAND = RACE / "dsnap_refine_shard__A__fold_7__direct__c0.RACE.csv"
+RACE_CANON = T / "dsnap_refine_shard__A__fold_7__direct__c0.csv"
+
+
+def _sha(p):
+    import hashlib
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def test_race_manifest_exists_and_every_check_passed():
+    m = json.loads((RACE / "race_manifest.json").read_text())
+    assert m["all_checks_passed"] is True
+    bad = [x["check"] for x in m["checks"] if not x["passed"]]
+    assert not bad, f"race validation checks failed: {bad}"
+    assert m["scientific_settings_changed"] == "none"
+
+
+def test_race_shard_is_byte_identical_to_the_validated_candidate():
+    """The canonical shard must be a byte copy of the candidate the manifest hashed --
+    not a re-serialization, which shifts trailing ULPs."""
+    m = json.loads((RACE / "race_manifest.json").read_text())
+    assert _sha(RACE_CANON) == m["candidate_sha256"], (
+        "canonical task-12 shard does not hash to the validated race candidate")
+    assert _sha(RACE_CAND) == m["candidate_sha256"]
+
+
+def test_race_used_the_frozen_configuration_and_dsnap_protocol():
+    d = pd.read_csv(RACE_CANON)
+    cfg = c.frozen_lgbm_config()
+    assert set(d.lgbm_params_sha256) == {cfg["lgbm_params_sha256"]}
+    assert set(d.execution_settings) == {"HISTORICAL (no determinism pins)"}
+    assert set(d.design) == {"dsnap"} and set(d.block) == {"fold_7"}
+    assert set(d.family) == {"direct"} and set(d.grid) == {"refinement"}
+    ba = pd.read_csv(T / "dsnap_boundary_audit.csv")
+    row = ba[ba.boundary == "fold_7"].iloc[0]
+    assert int(d.n_train.iloc[0]) == int(row.snap_train)
+    assert int(d.n_eval.iloc[0]) == int(row.snap_val)
+
+
+def test_race_agreed_with_the_independent_slow_execution():
+    """The cancelled canonical job logged 6 of the 11 rho before it was stopped; the race
+    must reproduce them at the logged precision, on a different node."""
+    m = json.loads((RACE / "race_manifest.json").read_text())
+    cross = m["cross_execution_check"]
+    assert len(cross) >= 6, f"only {len(cross)} cross-execution rows available"
+    for x in cross:
+        assert x["abs_diff_beta_at_log_precision"] <= 1e-5, x
+        assert x["abs_diff_R2_at_log_precision"] <= 1e-5, x
+
+
+def test_race_lineage_is_pure_and_singular():
+    """Exactly one execution lineage supplies the canonical shard, and the 11 per-rho
+    source files are the ones the manifest hashed."""
+    m = json.loads((RACE / "race_manifest.json").read_text())
+    per = m["per_rho_files"]
+    assert len(per) == 11
+    for name, sha in per.items():
+        p = RACE / name
+        assert p.exists(), f"{name} missing"
+        assert _sha(p) == sha, f"{name} changed since validation"
+    d = pd.read_csv(RACE_CANON)
+    assert len(d) == 11 and d.rho.nunique() == 11
+    assert d.pred_sha256.nunique() == 11, "each rho must have its own prediction hash"
+
+
+def test_no_full_regeneration_hidden_in_the_race():
+    """The race re-executed ONE refinement shard, not a path regeneration."""
+    m = json.loads((RACE / "race_manifest.json").read_text())
+    assert m["cell"]["n_rho"] == 11
+    assert m["canonical_array_task"] == 12
+    d = pd.read_csv(RACE_CANON)
+    g = _refine_grid()
+    A = [float(x) for x in [r for r in g["regions"] if r["id"] == "A"][0]["refinement_rhos"]]
+    assert _eq_sets(d.rho, A[0::2]), "race rho set is not frozen task 12's chunk"
