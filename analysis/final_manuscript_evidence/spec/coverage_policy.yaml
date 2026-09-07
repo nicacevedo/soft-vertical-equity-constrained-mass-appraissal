@@ -1,0 +1,41 @@
+# =============================================================================
+# Coverage-audit policy.
+#
+# The allowlist in spec/unsupported_numbers_allowlist.csv may carry `*` in its
+# source_anchor column, meaning "this constant is the same fact wherever it
+# appears" -- the year 2013, the adopted PRD range, the percent multiplier.
+#
+# That wildcard must NOT reach the manuscript blocks whose numbers are under
+# DELETE_OR_REPLACE / REWRITE_WITH_SUPPORTED_EVIDENCE review. Inside those
+# blocks a bare `7` is far more likely to be "7/7 LOFO events" -- an unsupported
+# RESULT -- than the seven-fold design constant, and a wildcard match would
+# quietly launder it into ALLOWLISTED. Every number inside these anchors must
+# therefore be accounted for individually: sourced, or allowlisted by an
+# anchor-specific row, or flagged.
+#
+# This is the mechanical half of the binding rule: an unsupported numerical
+# result is not publishable merely because it can be relabelled "exploratory".
+# =============================================================================
+schema_version: 1
+
+no_wildcard_anchors:
+- tab:transition_summary
+- tab:transition_regret
+- tab:rho_candidate_regions
+- subsec:path_stability_results
+- tab:path_anchor_summary
+- tab:path_anchor_complementary
+- tab:ccao_baseline_results
+- tab:ccao_baseline_complementary
+
+reason: >-
+  These are the blocks the Tier-B0 audit finds unsupported or partially
+  unsupported. tab:transition_summary, tab:transition_regret,
+  tab:rho_candidate_regions and the candidate-region prose in
+  subsec:path_stability_results have no frozen source at all: P0 holds
+  screening-grid proxies that are explicitly NOT a reproduction of the published
+  82-point smoothed changepoint estimator. The four headline tables are
+  partially supported -- the Cell-A columns, the two frozen anchors, and PRB/VEI
+  at all five anchors resolve; the Linear-regression columns, the three legacy
+  anchors' accuracy metrics, and Delta_NL/dCor at every positive-rho anchor do
+  not.

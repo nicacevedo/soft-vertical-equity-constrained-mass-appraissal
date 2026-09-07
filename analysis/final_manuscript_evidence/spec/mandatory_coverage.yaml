@@ -1,0 +1,132 @@
+# =============================================================================
+# The evidence domains Tier B0 was required to cover, as TESTABLE topics.
+#
+# Every topic here must map to at least one claim in manuscript_claim_map.csv
+# AND appear in FINAL_EVIDENCE_INDEX.md. tests/test_b0_claim_map.py fails if any
+# topic is unmapped, so the mandated coverage cannot quietly shrink.
+# =============================================================================
+schema_version: 1
+
+topics:
+- topic_id: T-zero-control-abc
+  title: Zero-penalty control and the A / B / C reference cells
+  requirement: >-
+    State that A, B and C differ at rho=0, that A and B versus positive-rho
+    custom models is NOT a pure penalty-effect contrast, and that C is the
+    primary within-path penalty-isolating reference.
+
+- topic_id: T-direct-objective-curvature-e4
+  title: Direct objective, curvature, and the E.4 verdict
+  requirement: >-
+    Report e4_verdict = INDETERMINATE with its evidence, and do not write
+    "Direct is effectively gradient-only".
+
+- topic_id: T-surrogate-jensen-ess
+  title: Surrogate Jensen form and effective sample size
+  requirement: >-
+    Describe the Surrogate as a sample-additive covariance upper bound via a
+    Jensen step, and report the ESS consequence at rho=100.
+
+- topic_id: T-theory-zero-covariance-scope
+  title: Theory scope, and what zero covariance does NOT imply
+  requirement: >-
+    Zero covariance is never equated with fairness, conditional unbiasedness or
+    independence. The general post-hoc root is b_star_train =
+    Var_T(y)/Cov_T(f0,y); 1/R^2 is confined to the linear/projection case.
+
+- topic_id: T-centered-spread-comparator
+  title: Centered-spread post-hoc comparator
+  requirement: >-
+    C-based post-hoc is PRIMARY, A-based post-hoc SECONDARY_PRACTICAL, and B has
+    no full post-hoc path. Retrained Direct is never called equivalent to
+    post-hoc rescaling.
+
+- topic_id: T-matched-beta-core-ext
+  title: Matched-beta CORE and EXT targets, including non-attainment
+  requirement: >-
+    D1 is PRIMARY and D3 is SENSITIVITY; the four frozen NOT_ATTAINED states are
+    preserved verbatim and never interpolated.
+
+- topic_id: T-candidate-region-demotion
+  title: Candidate-region and transition material
+  requirement: >-
+    The numbers are not resolvable from the frozen evidence, so the tables and
+    cells must be deleted or replaced. The qualitative exploratory idea may
+    survive; the numbers may not, and calling them "exploratory" is not enough.
+
+- topic_id: T-temporal-robustness
+  title: Temporal robustness -- D-SNAP, D-PURGE, D-UNSEEN, G5a, G5b
+  requirement: >-
+    Report the frozen gate outcomes as recorded, including G5a = ALERT and
+    G5b = NOT_CONFIRMED with PASS_PRIMARY_STANDS.
+
+- topic_id: T-main-empirical-conclusions
+  title: The main empirical conclusions of the CCAO application
+  requirement: >-
+    The paths are not a simple monotone accuracy-for-equity exchange; no penalty
+    strength is selected; no deployment recommendation is made.
+
+- topic_id: T-dcor-estimator
+  title: Distance-correlation estimator identity
+  requirement: >-
+    Name the biased/V-statistic estimator, dcor 0.6, exponent 1, and the
+    residual convention e = y_pred_log - y_true_log.
+
+- topic_id: T-prb-four-state
+  title: PRB inference and the IAAO 2013 four-state classification rule
+  requirement: >-
+    The ENTIRE 95% CI must lie outside a band before that band is deemed
+    exceeded; a CI that merely crosses a threshold does not qualify.
+
+- topic_id: T-vei-ed2-steps
+  title: VEI inference under the May-2026 Exposure Draft, Steps 4-7
+  requirement: >-
+    ED2 is always described as a proposed exposure draft, never as adopted
+    guidance; pooled-OOF carries NO ED2 inference; entry-level and
+    unique-realization counts are never mixed in one statement.
+
+- topic_id: T-smearing
+  title: Duan smearing sensitivity
+  requirement: >-
+    s = mean(exp(y_true_log - y_pred_log)); smearing rows are SENSITIVITY only;
+    RMSE_log is NOT among the smearing-invariant metrics.
+
+- topic_id: T-reference-cell-table-convention
+  title: How the final tables must label the two reference roles
+  requirement: >-
+    Table highlighting must visibly separate the workflow-benchmark comparison
+    (against A) from the penalty-isolating comparison (against C), rather than
+    bolding and starring every penalized row against A alone.
+
+- topic_id: T-bibliography-gaps
+  title: The two bibliography gaps
+  requirement: >-
+    The residual-correction literature the central claim rests on is in the
+    bibliography but uncited, and four historical entries are uncitable because
+    no \addbibresource loads their file.
+
+- topic_id: T-novelty-boundary
+  title: Novelty boundary and the defensible contributions
+  requirement: >-
+    Preserve the non-novelty statements and the defensible-contribution items;
+    do not import any number, threshold or conclusion from Option 2.
+
+- topic_id: T-document-integrity
+  title: Document-integrity items
+  requirement: >-
+    The over-suppressed section-5.6 oldrevisionblock, the inert duplicate
+    app:attom label, the concatenated appendix floats, and the numeric
+    consistency flags.
+
+- topic_id: T-external-benchmark-boundary
+  title: External-benchmark boundary statement
+  requirement: >-
+    The external / ATTOM stream is OUT_OF_SCOPE_FOR_B0. No external-benchmark
+    artifact backs any claim, and every ATTOM number sits in an \iffalse region
+    that is not compiled.
+
+- topic_id: T-certification
+  title: Frozen-stage certification
+  requirement: >-
+    P0 153/153 at the tag and P1 72/72, with subtree byte-identity; local reruns
+    in this worktree are environment-dependent diagnostics, not certification.

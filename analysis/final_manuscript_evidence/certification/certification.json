@@ -1,0 +1,179 @@
+{
+  "all_primary_checks_pass": true,
+  "diagnostic_reruns": {
+    "measured_in_this_worktree": {
+      "p0_local_rerun": {
+        "correction": "An earlier draft of this record pre-declared '152 passed, 1 failed'. That figure is real but belongs to a DIFFERENT location: it was measured in the main working tree (provenance/p0_suite_on_p1_branch.json), where the gitignored prediction trees and the CCAO parquet are present. This is a content-only git worktree, so eight further assertions cannot run at all. The record was corrected to the measured outcome rather than the outcome re-explained.",
+        "failure_classes": {
+          "FILE_MODE_NOT_STORED_BY_GIT": {
+            "n": 3,
+            "tests": [
+              "test_approved_plan_is_frozen_readonly",
+              "test_approved_plan_still_frozen_readonly",
+              "test_approved_plan_still_readonly"
+            ],
+            "why": "three tests assert APPROVED_EXECUTION_PLAN.md is mode 0444. Git records only the exec bit (100644), so a checkout creates it 0664 and no checkout can reproduce 0444."
+          },
+          "MISSING_GITIGNORED_ARTIFACT": {
+            "n": 8,
+            "tests": [
+              "test_fold_index_hashes_verified_live",
+              "test_frozen_lgbm_params_hash",
+              "test_frozen_rho_grid_is_83_points",
+              "test_fold_index_hashes_match_archive",
+              "test_input_prediction_hashes_verified",
+              "test_dpurge_evaluation_sets_bitwise_identical_to_primary",
+              "test_race_used_the_frozen_configuration_and_dsnap_protocol",
+              "test_refinement_used_the_frozen_lgbm_config_and_historical_settings"
+            ],
+            "why": "they read output/paper_v6_preselection_994, output/paper_v12_lower_rho_extension_994_v2, output/p0_major_revision_validation or data/CCAO/2025/training_data.parquet -- all gitignored by design and in no checkout. Tier B0 quotes their hashes from the frozen index rather than reading them."
+          },
+          "WORKTREE_OR_HEAD_RELATIVE_GUARD": {
+            "n": 2,
+            "tests": [
+              "test_only_gitignore_modified_outside_p0",
+              "test_all_stage1_writes_are_inside_approved_locations"
+            ],
+            "why": "both compare the repository against a P0-era baseline and assert nothing changed outside the P0 tree. They are doing exactly their job: registering that additive areas exist -- P1, and now Tier B0. Neither indicates a P0 change."
+          }
+        },
+        "n_tests_total": 153,
+        "p0_content_defects": 0,
+        "recorded_precedent": "analysis/p1_inferential_reporting/provenance/p0_suite_on_p1_branch.json",
+        "result": "140 passed, 13 failed, 0 skipped",
+        "why_this_is_not_a_p0_regression": "The P0 subtree at this HEAD is byte-identical to the P0 tag (git diff over the tree is empty), so no failure here can be a content defect. All 13 fall into the three environment classes above -- the same classes provenance/p0_suite_at_tag.json documents having had to reconstitute in order to reach 153/153."
+      },
+      "p1_local_rerun": {
+        "failure_classes": {
+          "MISSING_GITIGNORED_PARQUET_TWIN": {
+            "n": 2,
+            "tests": [
+              "test_ci_limits_are_true_order_statistics_on_a_bounded_subset",
+              "test_csv_is_a_faithful_serialisation_of_the_parquet_twin"
+            ],
+            "why": "both read P1's gitignored parquet twins, which no checkout contains. This was pre-declared."
+          },
+          "WORKTREE_OR_HEAD_RELATIVE_GUARD": {
+            "n": 1,
+            "tests": [
+              "test_reports_state_that_no_manuscript_file_was_edited"
+            ],
+            "why": "the guard compares paper/ against P1's baseline and fires on the TIER-A manuscript commit, which is the approved baseline of this branch. Tier B0 edited no manuscript file: paper/ at this HEAD is byte-identical to the Tier-A checkpoint."
+          }
+        },
+        "n_tests_total": 72,
+        "p1_content_defects": 0,
+        "result": "69 passed, 3 failed"
+      }
+    },
+    "rule": "A DIFFERENT outcome than the one recorded here is a real finding and must be investigated, not re-explained. That rule was exercised: the first measured P0 outcome disagreed with the pre-declaration, and the pre-declaration was the thing that was wrong.",
+    "status": "NOT_THE_SCIENTIFIC_CERTIFICATION",
+    "why": "environment-dependent. Reported separately; never quoted as certification."
+  },
+  "gate_g4": {
+    "finding": "Gate G4 has no artifacts inside P0.",
+    "impact_memo_precondition_met_by": "analysis/p1_inferential_reporting/reports/MANUSCRIPT_IMPACT_MEMO.md",
+    "impact_memo_sha256": "94316684d102bc833079285796468d9d53ce211faf72ba916dd5f3a71364792f",
+    "note": "the Tier-B gate was conditioned on that memo existing; it does."
+  },
+  "generated_by": "analysis/final_manuscript_evidence/code/b0_1b_build_certification.py",
+  "integration": {
+    "branch": "paper-major-revision-integration",
+    "head": "cd5bfce35e446d4ff2950cb2e077c0c33b5aaefd",
+    "head_is_a_pin_not_the_live_head": true
+  },
+  "known_preexisting_index_mismatches": {
+    "final_gate_index_stage3b": "28/28 byte-exact",
+    "identical_at_tag_and_on_branch": true,
+    "output_artifact_hashes_json": "118/125",
+    "reason": "early-stage snapshots superseded by P0's own later gates: the G2/G3 test modules were edited in later stages; POSTFLIGHT, slurm_graph and large_local_artifacts are end-of-run summaries; and output_artifact_hashes.json lists itself, a self-reference that can never match.",
+    "source": "analysis/p1_inferential_reporting/reports/MANUSCRIPT_EVIDENCE_PACKAGE.md",
+    "stage1_frozen_hashes_json": "48/49",
+    "what": "Two early-stage P0 hash indexes do not match byte-for-byte, and did not at the tag either. Recorded so no Tier-B0 output claims otherwise."
+  },
+  "primary_certification": {
+    "manuscript": {
+      "canonical_tex": "paper/paper_v17_option1.tex",
+      "canonical_tex_sha256": "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a",
+      "canonical_tex_sha256_matches_pin": true,
+      "paper_identity": {
+        "byte_identical": true,
+        "git_diff_stat": "",
+        "path": "paper",
+        "tag": "097544fff8c98bc864035674d038d9602ea667cb"
+      },
+      "tier_a_commit": "097544fff8c98bc864035674d038d9602ea667cb",
+      "tier_b0_edits_to_manuscript": 0
+    },
+    "p0": {
+      "certified": true,
+      "failed": 0,
+      "final_tag_certification": "153/153",
+      "measured_at": "P0 assertion suite executed at the IMMUTABLE TAG in an isolated detached git worktree",
+      "n_tests_total": 153,
+      "p0_not_modified": true,
+      "p0_suite_not_modified": true,
+      "passed": 153,
+      "selector": "$.result_structured",
+      "skipped": 0,
+      "source": "analysis/p1_inferential_reporting/provenance/p0_suite_at_tag.json",
+      "source_sha256": "37f6e58b3680d1bba2c724e2b85dec9beb89c84b4a33a6563c28a72e00a73e4f",
+      "subtree_identity": {
+        "byte_identical": true,
+        "git_diff_stat": "",
+        "path": "analysis/p0_major_revision_validation",
+        "tag": "p0-major-revision-final-20260907"
+      },
+      "suites": {
+        "Stage-1 assertions": 28,
+        "Stage-1.5 / Gate-G2 assertions": 36,
+        "Stage-2 / Gate-G3 assertions": 36,
+        "Stage-3 matched-beta + temporal assertions": 29,
+        "Stage-3B / Gate-G5b temporal-completion assertions": 24
+      }
+    },
+    "p1": {
+      "breakdown": {
+        "prb": 12,
+        "report_consistency": 8,
+        "scientific": 64,
+        "smearing_apply": 19,
+        "smearing_sign": 5,
+        "vei": 28
+      },
+      "certified": true,
+      "final_certification": "72/72",
+      "provenance_limitation": "P1 committed no machine-readable p1_suite_at_tag.json, the analogue of P0's. The 72/72 figure is therefore certified from the prose table in reports/MANUSCRIPT_EVIDENCE_PACKAGE.md section '0. Verification status', resolved by an exact-quote selector. P1_CHECKPOINT.md repeats 72/72 but is explicitly SUPERSEDED (its Stage-3B '86/86' is wrong; the freeze records 28/28), so it is not used as a source here.",
+      "selector": "heading=\"0. Verification status\"; quote=\"**72 passed, 0 failed** — 64 scientific (12 PRB + 5 smearing-sign + 28 VEI + 19 smearing-apply) + 8 report-consistency\"",
+      "source": "analysis/p1_inferential_reporting/reports/MANUSCRIPT_EVIDENCE_PACKAGE.md",
+      "source_sha256": "6f28490d21e76e12ba5469f96c2f702889a6390b088f85aa239cc74ff6a52df0",
+      "subtree_identity": {
+        "byte_identical": true,
+        "git_diff_stat": "",
+        "path": "analysis/p1_inferential_reporting",
+        "tag": "p1-inferential-reporting-final-20260907"
+      }
+    },
+    "tier_b0": {
+      "requirement": "the complete Tier-B0 suite must pass 100%",
+      "runner": "analysis/final_manuscript_evidence/tests/run_all_tests.py"
+    }
+  },
+  "schema_version": 1,
+  "scope_caveat": "protocol_p0_validation.yaml still declares scope STAGE_1_THROUGH_GATE_G1 and was never refreshed. Cite the stage-specific gate JSONs for authorization state, not it.",
+  "tags": {
+    "p0-major-revision-final-20260907": {
+      "annotated_object": "61ddcab0267cc7fb608f4ec692429ac13dde153f",
+      "commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+      "expected_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+      "matches": true
+    },
+    "p1-inferential-reporting-final-20260907": {
+      "annotated_object": "99a56bf8273fa3257317505e48c59a5e68a74d9b",
+      "commit": "6caf66774f2979f80d3cc74fa09c4d63b4e9f909",
+      "expected_commit": "6caf66774f2979f80d3cc74fa09c4d63b4e9f909",
+      "matches": true
+    }
+  },
+  "what": "Tier-B0 certification record. Primary certification comes from the frozen tags plus subtree identity, NOT from reruns in this integration worktree."
+}

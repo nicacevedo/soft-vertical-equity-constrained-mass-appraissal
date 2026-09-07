@@ -1,0 +1,49 @@
+{
+  "discipline": "Authoritative sources only. Nothing transcribed by hand, nothing inferred, no DOI invented. Fields the responses do not confirm stay UNVERIFIED_FLAGGED.",
+  "entries": {
+    "Cheng1974": {
+      "doi_from_repo_txt": null,
+      "lookup_kind": "CROSSREF_BIBLIOGRAPHIC_QUERY",
+      "request_url": "https://api.crossref.org/works?rows=5&query.bibliographic=Property%20Taxation%2C%20Assessment%20Performance%20and%20Its%20Measurement",
+      "response_bytes": 16927,
+      "response_file": "Cheng1974.json",
+      "response_sha256": "bebaef973d47359f9134c48e53c4048b25e230f1bbfda774d2631b96b8025d01",
+      "retrieved_utc": "2026-09-07T08:12:25+00:00",
+      "status": "OK"
+    },
+    "Edelstein1979": {
+      "doi_from_repo_txt": "10.2307/2330450",
+      "lookup_kind": "CROSSREF_DOI",
+      "request_url": "https://api.crossref.org/works/10.2307/2330450",
+      "response_bytes": 1536,
+      "response_file": "Edelstein1979.json",
+      "response_sha256": "32b597c92e9c5a9cf9bcb8a41258b7361eb516347db1cd26ccb9145333ba08a3",
+      "retrieved_utc": "2026-09-07T08:12:25+00:00",
+      "status": "OK"
+    },
+    "PaglinFogarty1972": {
+      "doi_from_repo_txt": "10.1086/NTJ41791839",
+      "lookup_kind": "CROSSREF_DOI",
+      "request_url": "https://api.crossref.org/works/10.1086/NTJ41791839",
+      "response_bytes": 2088,
+      "response_file": "PaglinFogarty1972.json",
+      "response_sha256": "425fa63614f5e020705459c92bbdbcc0231021badcba43ba8f28fcf1b030a3eb",
+      "retrieved_utc": "2026-09-07T08:12:24+00:00",
+      "status": "OK"
+    },
+    "SundermanEtAl1990": {
+      "doi_from_repo_txt": "10.1080/10835547.1990.12090625",
+      "lookup_kind": "CROSSREF_DOI",
+      "request_url": "https://api.crossref.org/works/10.1080/10835547.1990.12090625",
+      "response_bytes": 5423,
+      "response_file": "SundermanEtAl1990.json",
+      "response_sha256": "fe5ea3a8dcb4863b95ed3a73d6f462c08540f9903fa406de78ef3d85d11c3b50",
+      "retrieved_utc": "2026-09-07T08:12:25+00:00",
+      "status": "OK"
+    }
+  },
+  "generated_by": "analysis/final_manuscript_evidence/bib/fetch_metadata.py",
+  "note": "Run manually. No build script or test performs network I/O.",
+  "schema_version": 1,
+  "what": "Verbatim authoritative metadata responses for the four historical entries that paper_v17_option1.tex cannot cite."
+}

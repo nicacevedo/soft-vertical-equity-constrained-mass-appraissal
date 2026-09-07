@@ -1,0 +1,70 @@
+% Staged BibTeX for the four historical references that
+% paper/paper_v17_option1.tex currently CANNOT cite.
+%
+% Why they are uncitable: lines 30-31 of the manuscript load only
+% references.bib and references_additions.bib. The entries transcribed in
+% paper/references_major_revision_additions.txt
+% are in no loaded file, so \cite of any of them prints nothing.
+%
+% The fix, specified in MANUSCRIPT_REVISION_SPEC.md and NOT applied here (no
+% file under paper/ is edited by Tier B0):
+%   1. add a third \addbibresource for the file these entries live in, and
+%   2. actually \cite them where the historical vertical-equity literature is
+%      discussed.
+%
+% Provenance: every field below is either confirmed against a cached
+% authoritative Crossref response or carries an explicit % UNVERIFIED_FLAGGED
+% marker. Per-field detail is in bib/STAGED_BIB_PROVENANCE.md. Nothing is
+% inferred and no DOI is invented.
+
+@article{PaglinFogarty1972,
+  author   = {Paglin, Morton and Fogarty, Michael P.},
+  title    = {Equity and the Property Tax: A New Conceptual Focus},
+  journal  = {National Tax Journal},
+  year     = {1972},
+  volume   = {25},
+  number   = {4},
+  pages    = {557--565},
+  doi      = {10.1086/NTJ41791839}
+}
+
+@article{Cheng1974,
+  author   = {Cheng, Pao Lun},
+  % UNVERIFIED_FLAGGED: author -- the cached authoritative response does not carry this field; verify before pasting
+  title    = {Property Taxation, Assessment Performance and Its Measurement},
+  % UNVERIFIED_FLAGGED: title -- the cached authoritative response does not carry this field; verify before pasting
+  journal  = {Public Finance},
+  % UNVERIFIED_FLAGGED: journal -- the cached authoritative response does not carry this field; verify before pasting
+  year     = {1974},
+  % UNVERIFIED_FLAGGED: year -- the cached authoritative response does not carry this field; verify before pasting
+  volume   = {29},
+  % UNVERIFIED_FLAGGED: volume -- the cached authoritative response does not carry this field; verify before pasting
+  number   = {3},
+  % UNVERIFIED_FLAGGED: number -- the cached authoritative response does not carry this field; verify before pasting
+  pages    = {268--284},
+  % UNVERIFIED_FLAGGED: pages -- the cached authoritative response does not carry this field; verify before pasting
+  % UNVERIFIED_FLAGGED: doi -- no value in paper/references_major_revision_additions.txt and none in the cached response
+}
+
+@article{Edelstein1979,
+  author   = {Edelstein, Robert H.},
+  title    = {An Appraisal of Residential Property Tax Regressivity},
+  journal  = {Journal of Financial and Quantitative Analysis},
+  year     = {1979},
+  volume   = {14},
+  number   = {4},
+  pages    = {753--768},
+  % UNVERIFIED_FLAGGED: pages -- start page 753 confirmed; the end page in the staged range 753--768 is NOT confirmed by any authoritative source; verify before pasting
+  doi      = {10.2307/2330450}
+}
+
+@article{SundermanEtAl1990,
+  author   = {Sunderman, Mark A. and Birch, John W. and Cannaday, Roger E. and Hamilton, Thomas W.},
+  title    = {Testing for Vertical Inequity in Property Tax Systems},
+  journal  = {Journal of Real Estate Research},
+  year     = {1990},
+  volume   = {5},
+  number   = {3},
+  pages    = {319--334},
+  doi      = {10.1080/10835547.1990.12090625}
+}

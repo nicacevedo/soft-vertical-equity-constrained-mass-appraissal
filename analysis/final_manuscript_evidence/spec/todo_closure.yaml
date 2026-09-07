@@ -1,0 +1,243 @@
+# =============================================================================
+# The 19 \todo sites in paper_v17_option1.tex -> frozen closure or remaining gap.
+#
+# Tier A added [disable] to todonotes, so none of these print any more. They are
+# source-only promises, and P0/P1 have now closed most of them -- in one case
+# with a finding that CONTRADICTS the surrounding prose (#16). This file is the
+# authoritative crosswalk; tests/test_b0_claim_map.py asserts all 19 ids are
+# covered exactly once and that the recorded lines match the tex.
+#
+# closure_status vocabulary:
+#   CLOSED_BY_FROZEN_EVIDENCE     the promise is fulfilled by a frozen artifact
+#   CLOSED_WITH_CONTRARY_FINDING  fulfilled, but the answer contradicts the prose
+#   PARTIALLY_CLOSED              part is frozen, part still needs work
+#   REMAINING_GAP_EDITORIAL       an editorial task; no empirical dependency
+#   REMAINING_GAP_RELEASE         depends on the release package, not on evidence
+#   KEEP_AS_CONSTRAINT            a binding wording constraint that still applies
+#   NOT_RENDERED                  the site is COMMENTED or IFFALSE
+# =============================================================================
+schema_version: 1
+
+todos:
+- todo_id: 1
+  baseline_line: 203
+  render_bucket: ACTIVE
+  summary: "\"This part sounds redundant still\" -- introduction redundancy."
+  closure_status: REMAINING_GAP_EDITORIAL
+  detail: >-
+    No empirical dependency. Tier A already removed the six-county sentence from
+    this paragraph, which reduces but does not remove the redundancy.
+
+- todo_id: 2
+  baseline_line: 211
+  render_bucket: COMMENTED
+  summary: Do not strengthen the CCAO implementation/adoption claim without a public record.
+  closure_status: NOT_RENDERED
+  detail: >-
+    Commented out, so it never printed. The constraint it states is still
+    correct and is carried into the novelty-boundary claims.
+
+- todo_id: 3
+  baseline_line: 226
+  render_bucket: ACTIVE
+  summary: "\"also redundant with previous story\"."
+  closure_status: REMAINING_GAP_EDITORIAL
+  detail: No empirical dependency.
+
+- todo_id: 4
+  baseline_line: 228
+  render_bucket: ACTIVE
+  summary: "\"This is also unclear or redundant\"."
+  closure_status: REMAINING_GAP_EDITORIAL
+  detail: No empirical dependency.
+
+- todo_id: 5
+  baseline_line: 524
+  render_bucket: COMMENTED
+  summary: "\"we erased the model selection section. Update this reference\"."
+  closure_status: NOT_RENDERED
+  detail: >-
+    Commented. The underlying risk -- a cross-reference to a deleted
+    model-selection section -- is a document-integrity item, and it matters more
+    now that no penalty strength is selected anywhere in the paper.
+
+- todo_id: 6
+  baseline_line: 1201
+  render_bucket: COMMENTED
+  summary: "Advisor note: IAAO metrics alone do not capture nonlinear distributional dependence."
+  closure_status: PARTIALLY_CLOSED
+  detail: >-
+    Commented, so never printed. Substantively it is now partly answered: the
+    manuscript already carries the Delta_NL nonlinearity gap and dCor(e,y), and
+    P1 Task 1 documents the exact dCor estimator. Extending to location or other
+    sensitive attributes remains out of scope.
+  frozen_evidence:
+  - analysis/p1_inferential_reporting/tables/dcor_estimator_facts.json
+
+- todo_id: 7
+  baseline_line: 1902
+  render_bucket: ACTIVE
+  summary: Insert the exact CCAO extract/version, build date and citable source.
+  closure_status: PARTIALLY_CLOSED
+  detail: >-
+    The exact extract is hash-pinned: PREFLIGHT.json records
+    data/CCAO/2025/training_data.parquet at sha256 b1fc00b5..., 215,400,916
+    bytes. That fixes WHICH extract. A citable public source and a build or
+    retrieval date are still missing, and the file itself is not in any
+    checkout.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+
+- todo_id: 8
+  baseline_line: 1988
+  render_bucket: ACTIVE
+  summary: Archive the frozen 994-tree parameter vector and configuration hash.
+  closure_status: CLOSED_BY_FROZEN_EVIDENCE
+  detail: >-
+    PREFLIGHT.json carries the complete lgbm_params vector (994 estimators, 573
+    leaves, colsample_bytree 0.5410105713520937, ...), its sha256
+    8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b, and
+    lgbm_params_sha256_reverified = true.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+
+- todo_id: 9
+  baseline_line: 2047
+  render_bucket: ACTIVE
+  summary: Keep the two-stage grid history explicit; do not rewrite 82 points as prespecified.
+  closure_status: CLOSED_BY_FROZEN_EVIDENCE
+  detail: >-
+    robustness_rho_grid.json records the construction verbatim, and the
+    manuscript already states the 50-point original plus 32-point lower-tail
+    extension. The frozen record makes the two-stage history non-erasable.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/configs/robustness_rho_grid.json
+
+- todo_id: 10
+  baseline_line: 2068
+  render_bucket: ACTIVE
+  summary: Follow-up research framing for in-processing versus post-hoc calibration.
+  closure_status: KEEP_AS_CONSTRAINT
+  detail: >-
+    Not a gap. It states the constraint that superiority of either family must
+    not be inferred from this paper, which the frozen evidence supports: post-hoc
+    rescaling matches much of the Direct path, so no superiority claim is
+    available.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/reports/CENTERED_SPREAD_COMPARATOR_REPORT.md
+
+- todo_id: 11
+  baseline_line: 2952
+  render_bucket: IFFALSE
+  summary: Verify the ATTOM baseline table against the frozen county-report artifact.
+  closure_status: NOT_RENDERED
+  detail: >-
+    Inside the \iffalse region 2925-2993, so not compiled. The external
+    benchmark is OUT_OF_SCOPE_FOR_B0 and the ATTOM tables are DELETE.
+
+- todo_id: 12
+  baseline_line: 2991
+  render_bucket: IFFALSE
+  summary: Follow-up paper on the complete post-hoc calibration frontier.
+  closure_status: NOT_RENDERED
+  detail: Inside the same \iffalse region; not compiled.
+
+- todo_id: 13
+  baseline_line: 3226
+  render_bucket: ACTIVE
+  summary: Confirm and archive the exact finite-sample distance-correlation implementation.
+  closure_status: CLOSED_BY_FROZEN_EVIDENCE
+  detail: >-
+    P1 Task 1 answers it exactly: dcor 0.6, dcor.distance_correlation(e, y,
+    method="auto"), exponent 1, BIASED / V-statistic (double-centered),
+    bias_corrected_passed = false, residual convention
+    e = y_pred_log - y_true_log, no subsampling. The artifact itself names
+    paper_v17_option1.tex:3204-3206 as the manuscript site.
+  frozen_evidence:
+  - analysis/p1_inferential_reporting/tables/dcor_estimator_facts.json
+
+- todo_id: 14
+  baseline_line: 3404
+  render_bucket: ACTIVE
+  summary: Use the centered-spread equivalence as the basis of a future matched-frontier study.
+  closure_status: PARTIALLY_CLOSED
+  detail: >-
+    P0 Stage 2 / Gate G3 executed the centered-spread comparator, so the
+    starting point is no longer hypothetical. The matched-frontier STUDY remains
+    future work. Note the wording constraint: retrained Direct is not
+    "equivalent" to post-hoc rescaling.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/reports/CENTERED_SPREAD_COMPARATOR_REPORT.md
+  - analysis/p0_major_revision_validation/tables/gate_g3_checks.json
+
+- todo_id: 15
+  baseline_line: 3600
+  render_bucket: ACTIVE
+  summary: Treat the surrogate spectral path as mechanism interpretation only.
+  closure_status: KEEP_AS_CONSTRAINT
+  detail: >-
+    No eigenmode-projection diagnostic exists in P0 or P1, so the constraint
+    still binds: the empirical high-rho S-shape must not be attributed to
+    particular eigenmodes.
+
+- todo_id: 16
+  baseline_line: 3701
+  render_bucket: ACTIVE
+  summary: Rerun the initialization-aligned parity audit; regenerate tab:rho_zero_control if parity holds.
+  closure_status: CLOSED_WITH_CONTRARY_FINDING
+  detail: >-
+    The audit was run and the conditional resolves in the NEGATIVE. On the
+    pinned track A<->B agrees to about 7.7e-09 -- native-versus-native parity
+    essentially holds -- but B<->C does not: mean |delta log| about 0.0176 and
+    max about 0.140, and pinning does not remove it
+    (p4_pinning_does_not_remove_BC = true). The gap is the built-in-versus-
+    custom execution path, not label initialization. So the table is NOT
+    regenerated, and the surrounding prose must not promise that parity holds.
+    B<->C becomes identical only when colsample_bytree is set to 1.0, which
+    specifies a different learner rather than reproducing the frozen experiment.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/parity_ladder_pinned.csv
+  - analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv
+  - analysis/p0_major_revision_validation/tables/bc_discriminate.csv
+  - analysis/p0_major_revision_validation/tables/gate_g2_checks.json
+  - analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml
+
+- todo_id: 17
+  baseline_line: 3703
+  render_bucket: ACTIVE
+  summary: Audit the executed code against the stated normalization and the n/2 LightGBM scaling.
+  closure_status: CLOSED_BY_FROZEN_EVIDENCE
+  detail: >-
+    objective_scaling_audit.csv records, for all nine blocks, that n/2 is
+    applied analytically (grad = e, hess = 1 at rho=0), with the exact supplied
+    Direct Hessian 1 + (rho/(2n)) c_i^2 and Surrogate 1 + rho c_i^2. The
+    executed configuration hash is in PREFLIGHT.json and the working-tree diff
+    is archived in provenance/worktree_diff.patch.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/objective_scaling_audit.csv
+  - analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+  - analysis/p0_major_revision_validation/provenance/worktree_diff.patch
+
+- todo_id: 18
+  baseline_line: 4017
+  render_bucket: ACTIVE
+  summary: Reference the final v2.1 screening specification, not the historical v2 Surrogate rule.
+  closure_status: REMAINING_GAP_RELEASE
+  detail: >-
+    Not closed, and now largely moot: the candidate-region screen's numbers are
+    not resolvable from the frozen evidence, so the screening tables and cells
+    are DELETE_OR_REPLACE rather than re-versioned. If any qualitative statement
+    survives, it must still be versioned.
+
+- todo_id: 19
+  baseline_line: 4313
+  render_bucket: ACTIVE
+  summary: Verify which listed artifacts are actually in the released replication package.
+  closure_status: REMAINING_GAP_RELEASE
+  detail: >-
+    Not closed by P0 or P1. Tier B0 does supply the hash-pinned inventory the
+    verification needs -- FINAL_EVIDENCE_MANIFEST.json, with 11 legacy inputs
+    recorded present_in_worktree = false -- so the "should contain" wording can
+    now be checked artifact by artifact.
+  frozen_evidence:
+  - analysis/final_manuscript_evidence/FINAL_EVIDENCE_MANIFEST.json

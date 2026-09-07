@@ -175,3 +175,15 @@ analysis/p1_inferential_reporting/**/*.out
 analysis/p1_inferential_reporting/**/*.err
 analysis/p1_inferential_reporting/**/*.log
 analysis/p1_inferential_reporting/**/__pycache__/
+
+# ---------------------------------------------------------------------------
+# Tier-B0 final manuscript evidence integration (mirrors the P0/P1 blocks above).
+# Applies ONLY under analysis/final_manuscript_evidence/. Only *.csv and *.json
+# are globally ignored among the formats this area uses (.md/.py/.yaml/.bib are
+# not), so the exception is deliberately narrow.
+# ---------------------------------------------------------------------------
+!analysis/final_manuscript_evidence/**/*.csv
+!analysis/final_manuscript_evidence/**/*.json
+
+analysis/final_manuscript_evidence/**/*.parquet
+analysis/final_manuscript_evidence/**/__pycache__/

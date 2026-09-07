@@ -1,0 +1,58 @@
+{
+  "active_by_kind": {
+    "date": 32,
+    "decimal": 537,
+    "int_ge_1000": 65,
+    "int_mid": 17,
+    "int_small": 100,
+    "scientific": 8,
+    "year_like": 87
+  },
+  "active_distinct_tokens": 404,
+  "active_resolution": {
+    "ALLOWLISTED": 190,
+    "FLAGGED_UNSUPPORTED": 356,
+    "SOURCED": 300
+  },
+  "active_tokens": 846,
+  "build_failures": [],
+  "distinct_claim_ids": 235,
+  "flagged_unsupported_by_anchor": {
+    "subsec:path_stability_results": 4,
+    "tab:ccao_baseline_complementary": 18,
+    "tab:ccao_baseline_results": 16,
+    "tab:path_anchor_complementary": 119,
+    "tab:path_anchor_summary": 65,
+    "tab:rho_candidate_regions": 12,
+    "tab:transition_regret": 100,
+    "tab:transition_summary": 22
+  },
+  "generated_by": "analysis/final_manuscript_evidence/code/b0_2_build_numeric_map.py",
+  "manuscript": "paper/paper_v17_option1.tex",
+  "manuscript_sha256": "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a",
+  "no_wildcard_anchors": [
+    "subsec:path_stability_results",
+    "tab:ccao_baseline_complementary",
+    "tab:ccao_baseline_results",
+    "tab:path_anchor_complementary",
+    "tab:path_anchor_summary",
+    "tab:rho_candidate_regions",
+    "tab:transition_regret",
+    "tab:transition_summary"
+  ],
+  "numeric_map_rows": 291,
+  "resolution_all_buckets": {
+    "ALLOWLISTED": 190,
+    "FLAGGED_UNSUPPORTED": 356,
+    "NOT_RENDERED": 1544,
+    "SOURCED": 300
+  },
+  "schema_version": 1,
+  "tokens_by_bucket": {
+    "ACTIVE": 846,
+    "COMMENTED": 1304,
+    "IFFALSE": 126,
+    "SUPPRESSED": 114
+  },
+  "tokens_total": 2390
+}

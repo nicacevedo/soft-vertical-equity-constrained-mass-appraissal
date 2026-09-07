@@ -1,0 +1,3486 @@
+{
+  "artifacts": {
+    "analysis/p0_major_revision_validation/APPROVED_EXECUTION_PLAN.md": {
+      "bytes": 138473,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "protocol",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/README.md": {
+      "bytes": 3228,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "protocol",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "d934e1fadf5aa274854d85d9687237bd5de3f7675f1fadd686f3d2c9e8515a31",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_1_objective_audit.py": {
+      "bytes": 11596,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "524e5331b58db11e7c603c8af144b499e8c865d1713142910d8be9259a6bb012",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_2_bc_discriminate.py": {
+      "bytes": 5361,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "08fab85d6abf74256890f32dc5b40b31ea571b58c7f830df2d340cdb6391a77e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_2_bc_rootcause.py": {
+      "bytes": 5591,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "60056fa3d9d05fa826a9ea0c4519507dae894319a3d2675a2ca767678037eada",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_2_parity_tracks.py": {
+      "bytes": 17303,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "84e29445d48b833a6034449acdd87ec341f2a762d61c6ac7f833c1425372965f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_2_source_equivalence.py": {
+      "bytes": 13602,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "52c54c5967337abe5b300d1b306bfb0fc5b2fe9d8a105aa02495686880b4966d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_2_source_equivalence_addendum.py": {
+      "bytes": 9410,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "381cb6d72615ff5ad9048f9bade1a9f49dd02f2f88a8a9f29aa04029c05065ac",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_4_assemble.py": {
+      "bytes": 19799,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "81e17f7579d79aadb41cad25d270c8efe68707fe97af122a74544dd074ccea9b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_4_centered_spread.py": {
+      "bytes": 19341,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "c678fce86e5d0d1c110ebf0bdccde3ae545bfa4abdd35a35445e558c04f162c2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_5_beta_coordinates.py": {
+      "bytes": 10729,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "6e53a6600fe909e4ca6bf6bc39cf19b00976c20e124aaf04c575b139dd376f5c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_5_d3_sensitivity.py": {
+      "bytes": 7738,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "2713f3a090f62b2f4d5542792fba1fa5f0774b1ca3e9cfc6eadded5b9898f560",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_5_figures.py": {
+      "bytes": 5748,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "34ed82b5ccc1568b9ec5507684261d504221fc7fa293123feafce6546a550681",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_5_matched_beta.py": {
+      "bytes": 24054,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "a4cd14d10f52d9317989ec988e903981497b3ff468a5d143f3bdb17993c14ccd",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_5_ratio_profiles.py": {
+      "bytes": 5166,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "cf2bfcd1c1cd985e55d93d031e20abe338c67288ae94a5b161620e3eebcd3f0d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_6_assemble.py": {
+      "bytes": 38486,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "08cd916418b3d9c3ad877da0d24540048cb8324da5581d7ccd49a9984f04bc66",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_6_race_assemble_task12.py": {
+      "bytes": 12457,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "44923a0256e9364e01ff7fef1eef4a676aaaba3e989a7cfb21c283b6d078cb25",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_6_race_task12.py": {
+      "bytes": 3602,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "2b67e00e204717e11713787a5ab43d80dd6767c873b329636111e75fac9652a7",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_6_temporal.py": {
+      "bytes": 10134,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "d24a1b0d1764b15e4fc5a038d16ab682aecff7af394cf1ada70a00686ddd4a6e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_6_temporal_designs.py": {
+      "bytes": 25450,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "7490e1c433a6ae8378db52a204564e10e546581c028e5faef4277403c2108f84",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_6_write_temporal_report.py": {
+      "bytes": 36510,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "a02eec17b710f1e747bb1c00a40a9366e8ee58eabae2037dfee15d1b7057947e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_common.py": {
+      "bytes": 13960,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "385f4662dc861d2a657c9abef811736212d76fa5aac8ef4c6215d3941ad7fa51",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_merge_zref_blocks.py": {
+      "bytes": 1545,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "678f4489fe819f3c11579c66a21b58c2720e76da32af26bd81cf9ba2434061cc",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_post_g1_adjudication.py": {
+      "bytes": 17810,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "5254636ac118761571d8e5c4bd30485f9134bac4f4a45677ed555a2a63eb86fc",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_stage1_assemble.py": {
+      "bytes": 7505,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "67abe4f09956b1c48f39e155a539b5fe54a3c39725f9fcea672534d246c236df",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_write_cs_report.py": {
+      "bytes": 22658,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "01e7f15fba5b70627ed0d0443ffeb09f33796ebf448d4c168ac5e7f517debefc",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_write_parity_report.py": {
+      "bytes": 12774,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "d47662cc27ff349e20f9267e508b37ea36ec3b471f054698166c87bcb59dd689",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_write_zero_control_report.py": {
+      "bytes": 12127,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "4ae1d9811414a8f8c2356a050acba987cc79c37ce94461428dd963e955e63674",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_zero_control_assemble.py": {
+      "bytes": 16072,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "eb1f04f1aed6fbea31e5cc93677336353c55baf5005faaaf4e1cceecb8d471c3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/code/p0_zero_reference_fits.py": {
+      "bytes": 11045,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "74222cc6114b9e8ec3ce3cf7e57ab8da5a90c387ec58f26b12c1d0ca4ce7e2fd",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/b_grid_frozen.json": {
+      "bytes": 15276,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "0a680e7ff8182b3ec59ddd40ea2254cc926d0944918f72ad4311cbc2e037a0be",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/b_grid_frozen_hash.json": {
+      "bytes": 439,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "ba50b34ea1fe1e0bb4260c397187b6eb8c416e68f950d10da22c64db35daf8b6",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/dsnap_refinement_grid.json": {
+      "bytes": 3856,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "efb2fbc97ed97d5fa71d28302d2f98071c0a8265d0661b933ca7285813358e0f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/frozen_config_map.csv": {
+      "bytes": 103748,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "b57928a20b8ee8b496a3615b594dbbe279e2b9d69b0929c31f21fdf190365da9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/frozen_cv_run_map.csv": {
+      "bytes": 285357,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "bb7e94e4015a44f60e32f502d796ac4d5907b742a04a6d527e81102da5d56a17",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/matched_beta_d3_frozen.json": {
+      "bytes": 18701,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "3a3b6d29135bd4e7cf549712fad29c4aa8294bec9270471de99355680d7d8826",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/matched_beta_d3_frozen_hash.json": {
+      "bytes": 360,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "61b12bebb046ec4ef09b0540e903737cb8e89bd0dcd4a047bec4e8a770477f98",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/matched_beta_frozen.json": {
+      "bytes": 16692,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "ace12b09e79b92511b01979620b48a49e0765f990de4b93ad6025174a069a7a1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/matched_beta_frozen_hash.json": {
+      "bytes": 360,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "5f9b822a21a6b97c90592b9a3831af300dc52f481afcabf0377b20e9c7099158",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml": {
+      "bytes": 7039,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "fc63f054f8aff6ff0748e95f6cc3b0b6c6b1636f7d3d9ee06b24f8c9ef54b26c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/posthoc_comparator_convention.yaml": {
+      "bytes": 4945,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_CONVENTION",
+      "sha256": "ffc6b944f041a000276aa33bf9504c9127fa41cdb5ad543891022bae82647e15",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/robustness_rho_grid.json": {
+      "bytes": 2507,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "695b52cd4b9696952b037e8ced41568802fa6b847ec2c809bdaa6320bde116f0",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/split_protocol_dpurge.json": {
+      "bytes": 10058,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "a2b372728ce7f6a3348c657b7963870e78c08e9face76e83413c59e14213051b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/split_protocol_dsnap.json": {
+      "bytes": 10340,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "289c6024fe488c0aa7f44bd72aff614b7b3ae1da836cd80ebddb3465909e33d9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/configs/unseen_subset_definition.json": {
+      "bytes": 2124,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "36d0238cfdd2cea058497128e4b57cb30c8972cb8354fc0860e685e21fb779f9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/figures/matched_beta_accuracy_equity.pdf": {
+      "bytes": 37273,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "figure",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "84932f6e64a001bd4c2ad14245d83d6a2064e1502839b2a1d7874bf043ef43ed",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/figures/matched_beta_mechanism.pdf": {
+      "bytes": 34332,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "figure",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "7e6df229f187a976bbb2b531388e6c9a900886b8a5a32ef939217f8f88840434",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/figures/matched_beta_ratio_profiles.pdf": {
+      "bytes": 35928,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "figure",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "8003fa3509a3b54a00ef605697860443b980c533a231945099f9c9bbda196ea9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/logs/submitted_jobs.txt": {
+      "bytes": 736,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "e1b40930f8ebf2faf6b82ceae8ef19f01d908b66deca1af259029627a1db8f02",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/protocol_p0_validation.yaml": {
+      "bytes": 6628,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "protocol",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "b6a0bf30f6913dd7fc552e462215a82c95a2738ae2f924a6fc55d79b7a0b2fc4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/DEVIATIONS.md": {
+      "bytes": 3551,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "026a04542797bf87b511a9e70757e2e844f19a3d75d52d650cee81b1d3f2a74a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/DEVIATIONS_STAGE3B.md": {
+      "bytes": 8773,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "c95ababb91d33ce782b8068a607ddb16fdad69a61708b42e2a904b58b2ed009f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/DIRTY_STATE_LIMITATION.md": {
+      "bytes": 1776,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "4d48dcd4d8e97283e4f6ded6047371daae8373d743519a820e72002d4741ee13",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/POSTFLIGHT.json": {
+      "bytes": 8082,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "c8046b4f3bc6c4ff9c8926db6c67ccaaad21be174253d9c40b1b6df87cd3e752",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/POST_G1_ADJUDICATION.md": {
+      "bytes": 8295,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "ab27de4307705f764b91c2cf95a38dd6618e16b95f5e42ab1ac4b6cd7841d978",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/POST_G3_ADJUDICATION.md": {
+      "bytes": 9735,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "02b55b03669d8c85246a80da6cac535ecb263c77ef1ec1534e6868e221c5a76f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/POST_G5_ADJUDICATION.md": {
+      "bytes": 7314,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "ca8a16261a251657f9383ae9d5fa0c103edca2e6308dc8d6c1d35bd826db61ef",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json": {
+      "bytes": 7039,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "ce4a46f06f42c07e32e065f7984a48963a87750582b60e309a09fa998dbe7cb2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/git_status_at_start.txt": {
+      "bytes": 42,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "c269be9fc590c4ab7b3e361c10e786b44ceee5e157adbdf64de92595e1869d4d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/large_local_artifacts.json": {
+      "bytes": 30896,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "aa19d7d7e77b831620860d1367c3549908c2facfd716fbfa92de82bfd5337763",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/output_artifact_hashes.json": {
+      "bytes": 23294,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "dcad559388050cefdc6bdd7e97892a385222d7b8882e1128a1c5c5ca51f89fa9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/provenance_commit_diffs/2aa0346a__run_temporal_cv.py.patch": {
+      "bytes": 2861,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "fa45001c231a63d86b538c38a18c25a9ba330895094250312bc5f047a83f4002",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/provenance_commit_diffs/508dc1c2__run_temporal_cv.py.patch": {
+      "bytes": 2861,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "fa45001c231a63d86b538c38a18c25a9ba330895094250312bc5f047a83f4002",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/provenance_commit_diffs/508dc1c2__utils_delta_nl.py.patch": {
+      "bytes": 7736,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "61fa216e8bd40661f86a21afa3c5fe9121d305dc60e8641e18d4245b0d94635e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/provenance_commit_diffs/d3ef45f2__run_temporal_cv.py.patch": {
+      "bytes": 2861,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "fa45001c231a63d86b538c38a18c25a9ba330895094250312bc5f047a83f4002",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/provenance_commit_diffs/d3ef45f2__utils_delta_nl.py.patch": {
+      "bytes": 7736,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "61fa216e8bd40661f86a21afa3c5fe9121d305dc60e8641e18d4245b0d94635e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/slurm_graph.json": {
+      "bytes": 8391,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "5eae9564312da1738c6855ed0f76132258de967782c0c28eb52c06f4c2978669",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/stage1_frozen_hashes.json": {
+      "bytes": 8999,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "82d0bdec4cf811094107af653c95e1102ae26976e14915c6a44eef2633262311",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/stage3b_artifact_hashes.json": {
+      "bytes": 14352,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "a03ca072322255cb5c05eeb55efeb033d34eab49ad6f56e8baf34711994356cc",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/provenance/worktree_diff.patch": {
+      "bytes": 4551,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "75205f17229763f287e1628b8d34550e3f4de4f1091e28277a82ec9fc9b0f909",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/dsnap_refine_shard__A__fold_7__direct__c0.RACE.csv": {
+      "bytes": 6991,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "3df0940193192c6776f89be3e43fdd1748c6de5388671023a4850664135ccec1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/race_manifest.json": {
+      "bytes": 7129,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "7b33919ca60a31c0b31182d7f53e6ba2c7b80c32566361fc5b96baf75ad2d3c3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_00.csv": {
+      "bytes": 903,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "c33e184563b78cc8af29c1c5d517b8b34cef4886ae2962a653a12eba09e9f42f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_01.csv": {
+      "bytes": 907,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "3aaf99db942400d30219b936a1b31b7c0206447ff6edc4845b115b6df341212c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_02.csv": {
+      "bytes": 902,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "890e1e0c90c82dbaecce06dae180a3a2f130f21a4b9ca572e706aa20f710f969",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_03.csv": {
+      "bytes": 905,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "a9303d9a8b144ed2f4b7646ace93c149450840a33217c6d436eb384a6691c5c3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_04.csv": {
+      "bytes": 906,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "21bb61ade9b2ee15c0034ad0048dfe64da0cd62bdb5fba14f36ba80cc98e29d2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_05.csv": {
+      "bytes": 906,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "797eae8896d40c14de74938deb1c34fc04025866328befae0968e43cbabc4cef",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_06.csv": {
+      "bytes": 903,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "18cc512a4144c601c1b981b919fa8b422a37932d73fdef89a414c768ba229796",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_07.csv": {
+      "bytes": 902,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "88467c766aaa855720289b707576bde8fe59a582d6d2c87095dba54639e23524",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_08.csv": {
+      "bytes": 905,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "e3d822ec80d4c3f97c9e05b841d29c6ce05dd14be016211db48bebf5ca8a95f9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_09.csv": {
+      "bytes": 903,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "110f511c751f89df843bae401e7dbf9c49d771f9fe294a94f75939fab0876982",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/race/task12_parallel/rho_10.csv": {
+      "bytes": 905,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "522507d30456bba80f36def8afd7b329cbc35cb8db276ec447e229a7b475844d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/reports/CENTERED_SPREAD_COMPARATOR_REPORT.md": {
+      "bytes": 19838,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "847add43bb8f5abd341bead464fad20f5dd18ab5ea17a17c9e66747337c44d3b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/reports/MATCHED_BETA_REPORT.md": {
+      "bytes": 16822,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "77426013e4e3bcf6f4503d14287adef1bf0d5eb7818ac8e9c306049aee53d67e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/reports/P0_IMPLEMENTATION_AUDIT.md": {
+      "bytes": 7434,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "31720e6d258f651927925b5c84e419d89b4002eef55168b2dc2c86941d1078c4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/reports/RHO_ZERO_PARITY_REPORT.md": {
+      "bytes": 14082,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "f7f345c1e6a560cd2abaf134614c0750a4c70c60a1ae8b990335c205c0f66fd2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/reports/TEMPORAL_ROBUSTNESS_REPORT.md": {
+      "bytes": 23458,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "9e68246c5a4724347c88305114814ad5b2fa748dc865ea06c31fbfdccff5362b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/reports/ZERO_CONTROL_REPORT.md": {
+      "bytes": 14202,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "3dbf2f62108f88877e2cd2d98761ded1bbd1d1afcc2446bb809f9cd17fdb7423",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/01_parity_track_h_ladder.sbatch": {
+      "bytes": 1105,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "89588975ce0255d7355e64eee4eada8c0264b91f33f94ba6e80619d8e2390458",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/02_parity_track_h_reproduce.sbatch": {
+      "bytes": 1079,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "e9d5d3d27a5943d32b80629a9e101afd4082b0a7df12586164d6d83a8ffef648",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/03_parity_track_h_replicate.sbatch": {
+      "bytes": 1049,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "607501e3a89e51b6e2a7ff33f1e1100d37ff9a7116798cf56f474886083865e2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/03b_parity_track_h_replicate_retry.sbatch": {
+      "bytes": 1091,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "988b101ba768de12f7d014988718e330f61e9257b783f949fa5a9066cda592f3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/04_parity_track_p_ladder.sbatch": {
+      "bytes": 1101,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "5489c3146add83a514b3adb3c964ad91cdb59cd128f9ae31990b1d78dd869b87",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/05_zero_reference_fits.sbatch": {
+      "bytes": 1094,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "074bc93f838f2189768a2b8b1716ea52f915086558b63ad2ad3f9ad0a67f467d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/06_centered_spread_path.sbatch": {
+      "bytes": 1005,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "fcf31b7a03e46508daa6ef8c6c81d573e6dfe5207eeae029aa7843ea98f45896",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/07_temporal_robustness.sbatch": {
+      "bytes": 1013,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "c4db5cfca475db8616f64a64f09878f5f611b32341abff5b973c193d4b5d338d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/09_dsnap_refinement.sbatch": {
+      "bytes": 1170,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "d61838c644a2a1135e33c1bd28eacfe7d0b5187d05d3e0c78ded527be7e482e1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/slurm/10_race_task12.sbatch": {
+      "bytes": 2101,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "slurm_script",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "79706970ed70ef45a98cbca90e47b32c22581bb54ba7f77ca3ec99b0665638ea",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/b_star_diagnostics.csv": {
+      "bytes": 10210,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "7fd9ce42d5e8ce60c7d8f6bde685252f60a3e348f3754795bba596577bca1959",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/bc_discriminate.csv": {
+      "bytes": 653,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "926d38596df0c0a6b2f19f3e6880fc95d1a7b91cc008627f87957a9ac71e1f36",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/bc_discriminate_verdict.json": {
+      "bytes": 1940,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "d20d8c16b378690dad87d262d0ec25863accd2316af4b7efed18fe07b6bdf517",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/bc_rootcause_trace.csv": {
+      "bytes": 668,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "f3904979ed46a8658c0d4ead224b679d83c60d8a620a5a7b0b548d3bf504ede0",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/bc_rootcause_verdict.json": {
+      "bytes": 2430,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "f5dce096911342acc731be13f435a2562e5c57ec869333304e62f56cd3922fa3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/boundary_exposure_audit.csv": {
+      "bytes": 1123,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "2f3418c934c7fe8fa8a3faafe85da82291e95f39ca1566541aec3d4f77c73e97",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_b1_qc.csv": {
+      "bytes": 2021,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "ae53f01335379338a7ae0e357fd0d79bf03093915c8cec7b23167ad5c02d4f8e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_centering_sensitivity.csv": {
+      "bytes": 27436,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "0d60824903ac03c852bf3e3d886b8b9c6a2c4a3773c657cf8e81bcf9a7c18880",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_cv_summary.csv": {
+      "bytes": 202762,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "f49d56c490f8103e0d55331578e9d4de8b60881e65d045b6987053437a3e28a9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_existing_qc.csv": {
+      "bytes": 106892,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "18b0dd237ca68d6a886c7219bfe898b4614b73486f23992d27ab2855249908ce",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_linearity.csv": {
+      "bytes": 2987,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "c2c8da164dd4418bcdba0c6bf4fd768f7776dfbf93c69fb417b2274826f91e71",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path.csv": {
+      "bytes": 1611987,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "8ff4885660b90a75a1fc5070c1a29c13b19aa2859f8b7a920a22a854a342b516",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_1.csv": {
+      "bytes": 83172,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "06d0a6bfdffeed8f83a13799cdbede3495cfc539be20b2198aa1c1f837da2caf",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_2.csv": {
+      "bytes": 83348,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "a647708558688f0148d357b8a8b26a41da9c5c5eafceab2a7d5e2f5e5fe556f6",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_3.csv": {
+      "bytes": 83450,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "10e8d1749cbd5fc4cc13a21d1b5295226ce3aecab513148d8efc5bc30e70e956",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_4.csv": {
+      "bytes": 83361,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "aadba6806b3cca4678837b8fd774a17a865c95836bae1a67f24b3ec6bb80dc63",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_5.csv": {
+      "bytes": 83271,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "6d9a9e1a97eaa1dc3d134bd35b4af09061f23dd70c39ecfcc6b6a9450eaffe69",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_6.csv": {
+      "bytes": 83399,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "d82e26769f55e91fabf41661dcdf34636f13e54b4243a96d423abd96a0bd3a7b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__fold_7.csv": {
+      "bytes": 83295,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "9a90e83c89e3e168b0433912f30742ce16fce815284eda8b68f9a9f15162de8c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__forward_2025.csv": {
+      "bytes": 84127,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "2528b04eed8d2ff890d33df192fec55934d09befa13acd8f501e7a70f7b58a46",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__heldout.csv": {
+      "bytes": 83635,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "e39ad6684561a1b93a5289b02dbfb66bcd4b4d97782be4c973a93a11345d6a69",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__A__pooled_oof.csv": {
+      "bytes": 79090,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "609cd6724572f829a9d162316c6e5529d5a19a8bf074d3741ec4419504ae70a5",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_1.csv": {
+      "bytes": 82197,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "acaa246e6d7f7c554736ef880caae487c10649a8c98093dc8701b4247d36d6a8",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_2.csv": {
+      "bytes": 82373,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "8819bd1b05eba7f0552640d5db118941e25bd7297dc2c369b9b7a6a359b87a91",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_3.csv": {
+      "bytes": 82403,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "e5f9a37e4f12b7fb3c069449d30387e57f7e454a42219baa6eff85536f5a9c14",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_4.csv": {
+      "bytes": 82366,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "aea807f38c064207f84bfdeba60b69f3a2d9f64c9ce9daa7d6a6bf10e1031565",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_5.csv": {
+      "bytes": 82349,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "cc078075c6abb9679df5a8e3d6fd5838f2b328c217f11f8d2cc7f16a35abedb6",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_6.csv": {
+      "bytes": 82244,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "d1cd2b6bfd404e82112e4e5df79b9be2ab9e50435af193e1cb876911f2fadb78",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__fold_7.csv": {
+      "bytes": 82584,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "52cbfb5492261507e47a3f59976728a1141c237bf21302af95e2dd6c0ed361cf",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__forward_2025.csv": {
+      "bytes": 83301,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "27426b3f34f1cabb94dfc1a625b7c29d261ffcd023d72357484a771de595cf7d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__heldout.csv": {
+      "bytes": 82791,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "7b431e8d92be83c6fa283c5988dc0f780f1e6f883ee18dd3dbd2306acdc6c637",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_path__C__pooled_oof.csv": {
+      "bytes": 78024,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "99f22236990cc34be8a69e246149d45d7019fad0a08c901fe86e73b125071c9d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_pooled_oof.csv": {
+      "bytes": 153958,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "acf10b880e41334cab0643262d8df4e28d312f4d2a210b99226a4ace9da402c7",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_ratio_profiles.csv": {
+      "bytes": 143405,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "45d5c3151843adfbe5942ab1b156f61367c3a88fc554c5ac292a816f5ab7eac1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/centered_spread_root_verification.csv": {
+      "bytes": 448,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "d42c4199f89b27cc5f11efbb3ec59acde9a75c36a2fce9e5438871d06810e59d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_audit.csv": {
+      "bytes": 628,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "3746befa08ab2e8c659cc325a02cd642ba47a1f0621a5d0623d07441790aa343",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_summary.json": {
+      "bytes": 1142,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "e4eb13ed874b3d685b3aef2fffd4860d3127e65ce7bbe6469d4a6c96b5f9ae33",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/development_beta_coordinate_audit.csv": {
+      "bytes": 79855,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "01c347457f05d917ed586b2d73df7e06d22190aeb7f49d2c03cb82bf5139f8c4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/development_beta_coordinate_summary.json": {
+      "bytes": 4047,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "161ec76c51fbd559d97661e1c2933b423186dcd97bb7dadb7517deb8376659cb",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/direct_hessian_magnitudes.csv": {
+      "bytes": 267353,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "fb68c300ba4d19c0a8f03fe4ce3c6faf6eeaace226f057706da9ee135a463a71",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dpurge_purge_audit.csv": {
+      "bytes": 694,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "bcb2d6a82ddf595c0746c47dec73cd8cb3132c870aa13bf7d2cd3b84c1e2c0cd",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_boundary_audit.csv": {
+      "bytes": 872,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "37fbf39c08f5e11c14957b0bbaa09300ff25619660bcb1d8e809cda9c790df95",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_1__direct__c0.csv": {
+      "bytes": 7062,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "48c369bae7419ee4e51958c47d9daa38147f77049237baaabf664dd3c9083d65",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_1__direct__c1.csv": {
+      "bytes": 6449,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "ea775e78703333257b93b08d2dfc917d06cde96aca1d9a2546aa4b01c082b88d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_1__surrogate__c0.csv": {
+      "bytes": 7095,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "d21aa58801165b457afdd353060dfad7c25b8faf6cf6a7ebfe05792e7f2e36f2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_1__surrogate__c1.csv": {
+      "bytes": 6498,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "14bc68462785ac43c58d03e94354947f29110c2febe75f303aa03106cbe91539",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_2__direct__c0.csv": {
+      "bytes": 7076,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "c507230b486ae3976a8d332194861a9c5d9abdbfc43637929e2035ef984b03a2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_2__direct__c1.csv": {
+      "bytes": 6468,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "bd6bb5fe675d5e8cdb5fc685dfbb349cc48bfb059a3e904796f1cf5b2b544b0e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_2__surrogate__c0.csv": {
+      "bytes": 7130,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "bc0a2398c6d9c6424b73efd9466e01c047f34fa363ba3b841e466b696452ad4e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_2__surrogate__c1.csv": {
+      "bytes": 6502,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "4cf403079a3bedb8c511fd80936904d7f632c188b3a0c075f5de99df868a91f2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_3__direct__c0.csv": {
+      "bytes": 7092,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "d49540dd36155d1385a8bd23370a4d7a1db9ba02eb11b666c95546fd2a326a63",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_3__direct__c1.csv": {
+      "bytes": 6465,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "6772333e5e7ba70753c1bd8bc5477982730721ea1c8d2f0948a39e25e00bbd37",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_3__surrogate__c0.csv": {
+      "bytes": 7115,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "04771e5daaaded991588864a837db2d93ab3f61c8c803ad625b81be7a837eb50",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_3__surrogate__c1.csv": {
+      "bytes": 6501,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "557698edcfbfffd63dd24364339672b63fba6fbf11e1dde06442017ea97eab17",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_4__direct__c0.csv": {
+      "bytes": 7094,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "8e3997df01ff981a281384960cec2bf356a4826e2625ca51f8dd08e191a29e5c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_4__direct__c1.csv": {
+      "bytes": 6476,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "8471958d06d4f2651623b6ef86f08fcdb88328bdbe642c53ff8db4b5e9b89f04",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_4__surrogate__c0.csv": {
+      "bytes": 7138,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "c7617f94e4bf5c910106fc07de8fe048b504ac858effcebd4b04ea8169075605",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_4__surrogate__c1.csv": {
+      "bytes": 6515,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "a79a2a9e4d4bbbf0c7ffbaed1b8016f75ba56b68e05969634d5e0299026ef6f4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_5__direct__c0.csv": {
+      "bytes": 7083,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "de8769e31a7b89515edd1972eda7f2f0c4fc6ed6564970ba26352f7e24ac424a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_5__direct__c1.csv": {
+      "bytes": 6482,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "e10d46bd4c4c87aeaa8d94165219adf57aeb1e941d1985776c4cad258f22204d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_5__surrogate__c0.csv": {
+      "bytes": 7116,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "86d3daf6930c0ffb633297c32af29f00b0ab2c247ae2bc88aeb41e08f65dc731",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_5__surrogate__c1.csv": {
+      "bytes": 6505,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "0730b9e7474182cddb001776d99ba331424ebedce18649e77013c9ab93d98094",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_6__direct__c0.csv": {
+      "bytes": 7073,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "01102a2332fc89443b3c9e79263ba6dfa3e8f699bf1c6aeac58ab5559ab1c685",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_6__direct__c1.csv": {
+      "bytes": 6482,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "2f0727145c102cea97698f26ce70d306fe26a70b55610e22d0d06d114df56d3b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_6__surrogate__c0.csv": {
+      "bytes": 7111,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "5c74b3195573406edc3d79220dd0fecb8d06f3bff245a141ae4a52486bf3cd49",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_6__surrogate__c1.csv": {
+      "bytes": 6499,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "26a4c7a0a83101e897cf3bee3caac7f85abab4ca9cf0321ea7394f7730e45d33",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_7__direct__c0.csv": {
+      "bytes": 6991,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "3df0940193192c6776f89be3e43fdd1748c6de5388671023a4850664135ccec1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_7__direct__c1.csv": {
+      "bytes": 6476,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "9f30c79258413e199f7c17c2deb4cd8dcccc669362fdeac118243c89da579c6a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_7__surrogate__c0.csv": {
+      "bytes": 7128,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "96d2f3b1360c46644d1b76263d4978034ca0c73f6a1a412e114c1dacd8ce60d6",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__fold_7__surrogate__c1.csv": {
+      "bytes": 6501,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "1eb3868d3a5d5abfbddaaa259da65e0d0ce51cbb19d07be9c802d402536a7401",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__forward_2025__direct__c0.csv": {
+      "bytes": 7156,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "eb2465a43810399378f64cb76413bc36d651baa756ce26e0de9e666a9651afcd",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__forward_2025__direct__c1.csv": {
+      "bytes": 6526,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "e6ee999d6a8c95133ba6a5608b17befe49b9792ce9f3d956b1c45ec570325107",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__forward_2025__surrogate__c0.csv": {
+      "bytes": 7180,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "345595469582d135614cba06353183a7167fa5b9fe80efc8c568dca43b3cff1b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__forward_2025__surrogate__c1.csv": {
+      "bytes": 6560,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "1994e2d5d04d335e062ea8d9973d45a3257b659fa6b3efdf9914b826293d8826",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__heldout__direct__c0.csv": {
+      "bytes": 7105,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "e40bef2ecbde60958a5c46ed78101bb5b1e06c6b3c0dfd2d8028edf9c279c3b3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__heldout__direct__c1.csv": {
+      "bytes": 6488,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "4f86035958ae237eb9b7705a803e570e6c3a1a5b84eefa5c594ba46de3189151",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__heldout__surrogate__c0.csv": {
+      "bytes": 7137,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "e5406b4cc3d6dc5a607f16da103c31aeb49e33aec56665a1dac2011673f79ba9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__A__heldout__surrogate__c1.csv": {
+      "bytes": 6515,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "2ef784735fabaeed3f152636bf3609a69ec5594887b0c344424f7e0eb0e06c55",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__fold_1__surrogate__c0.csv": {
+      "bytes": 5856,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "6523f36424c58ed304cc9b117e74647a1a0f06b79713ad0ac0d5a43cc3544d7a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__fold_2__surrogate__c0.csv": {
+      "bytes": 5877,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "6de2bd18fcc33dbaf86b813a13a14c141c660250ea3af8033c4fe0f8eb4410f4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__fold_3__surrogate__c0.csv": {
+      "bytes": 5865,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "7e0012c730319c5d99b6b1932c785a9bf9a83d6246f68fe9fdd863a05c9471c9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__fold_4__surrogate__c0.csv": {
+      "bytes": 5850,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "360a6bc4f323752d9ed9767677c6063a88f32c7ac253e830bc64583d296c7db3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__fold_5__surrogate__c0.csv": {
+      "bytes": 5872,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "ed78b26d85b489fa97c503954c098bb50c71ac8d13ba0623493509144ad5af08",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__fold_6__surrogate__c0.csv": {
+      "bytes": 5871,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "7b50329fe9dd8417e39f86782d5a112912ce4603da1eb3db01a38a41d4184311",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__fold_7__surrogate__c0.csv": {
+      "bytes": 5856,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "ff52422b48e7b100b2b32c23a718a6080163bb7e237b2ae8eb20f35b4adf63d1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__forward_2025__surrogate__c0.csv": {
+      "bytes": 5930,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "d17e60feef93a4fb61db3a60ecc46e54971b62a709d04d49b8d026aaff4d98ff",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refine_shard__B__heldout__surrogate__c0.csv": {
+      "bytes": 5870,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "5bb787cb8307668f97fd288420af20e313f60b47ccf1af69c7a239eb150bf411",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refinement.csv": {
+      "bytes": 55,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "90ea312e7fd9be77a629fb62419f482ea0c942bea48f5e6d93dbbb5c22072d15",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/dsnap_refinement_provenance.csv": {
+      "bytes": 20231,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "ad28cc5005f8bd68b55887e087b1a9dce4fd92fe16e186c4e0862b0b025323b0",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/e4_verdict.json": {
+      "bytes": 1583,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "c373a129cdd313513b8eab2c8aa20c3cb308153e4fa4951a2032433b70b3af99",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/effective_leaf_shrinkage.csv": {
+      "bytes": 460578,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "fdfd260bcb130738a17fbd0784e2051f939ef9e4e4a402c6697932a50d86c1f1",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/fnum_same_host_replicate.csv": {
+      "bytes": 603,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "1f636535bd71716e8ee33377042768573a87364955f56c13ed3a0ec0a9eea60f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.csv": {
+      "bytes": 13610,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "827253e9b1a229931b47dea285f3b1822b970caebac02ad2c956339b21d44ddf",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/gate_g2_checks.json": {
+      "bytes": 403,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "f68e876f63374f431ca2040e655f83ff53e829ac51912559c47ca3ead6ecb9ee",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/gate_g3_checks.json": {
+      "bytes": 2886,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_2_G3",
+      "sha256": "98133f96019d01a0dbe90cc9df405d362e89f69025e0e9c4f41dbffa8d84146d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/gate_g5a_outcome.json": {
+      "bytes": 749,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "94618b63fa3322523561e12fd8d1f5ad93712e2c92bc73ebef5ddd28d2ef9a7f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/gate_g5b_outcome.json": {
+      "bytes": 3646,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "64bc5d426538e9e3a0cf3faf31e6fa6a59c2cd847cf0c2e6b8d976806b0d4767",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/label_quantization.csv": {
+      "bytes": 2650,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "5a6e6c394f3111696178c188620f867b83c5f9b2b285ecfdc1d5b7f0bc22f9cc",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_comparison.csv": {
+      "bytes": 47864,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "2e510d30dc73072308dff7b0902f765d02c429f68dcfb6327182958f2acfb1a8",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_comparison_d3.csv": {
+      "bytes": 48011,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "87e79fe0121b72aff5c5eb8636714ad5dd61366d069123d4cfc3d692237885ee",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_crossings.csv": {
+      "bytes": 3409,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "d38c969e201dad896d07b05dd317f44a3fd0bacee17c4b068ae99666c11ff8e4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_crossings_d3.csv": {
+      "bytes": 3276,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "cd3893795ae997c5142575a0e11fff65f02d82da88b1e95deb5faa7cb003cc50",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_d3_sensitivity.csv": {
+      "bytes": 48852,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "f7bf896e1cfce07647eda73bccfa653605fae8b406735a7972013b32d0d38d14",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_d3_sensitivity_summary.json": {
+      "bytes": 3500,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "9e2c73e6de16f3e37904a168c727f06b84a8eaa485de14fc617ddc1374724a65",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_d3_sign_agreement.csv": {
+      "bytes": 40449,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "ae53f82de2d61907f1368cfef97d360a2252667cf09c5d9f03b4860e950d2455",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_ext_targets.csv": {
+      "bytes": 18349,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "ae8139b3265933ab8a0fb6a0903245fa8044010b0e8a38304793ee9504111488",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_ext_targets_d3.csv": {
+      "bytes": 18209,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "79ab270c3277e490c52dbe1f14f824a873b91f6ed4881e402e8e5a2629af70c9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_origin_identity.csv": {
+      "bytes": 4294,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "47868f31b0b9f17508fe62df186f10c67f216dfa096ec3ef6539c182b68e1a94",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_origin_identity_d3.csv": {
+      "bytes": 4294,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "47868f31b0b9f17508fe62df186f10c67f216dfa096ec3ef6539c182b68e1a94",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_pairwise_deltas.csv": {
+      "bytes": 28529,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "431c504e8000322657e802da20baae26329b2862458d90d4017a6ca71ecb9b59",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_pairwise_deltas_d3.csv": {
+      "bytes": 28454,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "9b3ef618cb989d4e854254c3b2787282850617ba200906e9ac8a735cea27fcaf",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_ratio_profiles.csv": {
+      "bytes": 150097,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "e406424eead2105a3101664dbeb93a529ea31401de30792397737458f15e4c9b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/matched_beta_ratio_profiles_price_bins.csv": {
+      "bytes": 366367,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3_MATCHED_BETA",
+      "sha256": "56f6aac3509545a70544408068529c4c123606b06fefd7cd8d295f827a1f401b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/objective_scaling_audit.csv": {
+      "bytes": 3069,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "0153eff1144d393463418383f114cc3de0adc71dc3d7b22308b54c49e9e0413f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv": {
+      "bytes": 16590,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "c8ebb41288a27e01699f03a11297957caa0ebe320effd500c811bf1490def4f7",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/parity_ladder_pinned.csv": {
+      "bytes": 16422,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "30689b6c6c2e48b5a0db670e33c1c46842ece41d874265ba82d37c8c86482991",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/post_g1_adjudication_evidence.json": {
+      "bytes": 8289,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "f05049f89114232f5f831bcecf972266159e808231f63de40542423386ec1344",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/posthoc_development_roots.csv": {
+      "bytes": 4732,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "10ad6b5fb35c7b5f7f5f8e4b0409b29c15a05558f7a396e72bb763a627354166",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/regeneration_triggers.csv": {
+      "bytes": 2639,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "f9871735194e266db83573aed68d7c6bde30501fed2fde8b132744a68f61fd27",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/repeat_pin_exposure.csv": {
+      "bytes": 1102,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "94fb223b077d37e6ede5907d0dee347d5cd856eb09d961e29524eb668973a45f",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_path_dpurge.csv": {
+      "bytes": 314200,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "49da79781e64fa05a9d990b7416ebb44a2153a8145375c6d55aaea6b6bb37a30",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_path_dsnap.csv": {
+      "bytes": 316364,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "69ac0db7e097d0a78e0fe0980e432af6fa40a309813801251c1e694322f8b888",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_1__direct.csv": {
+      "bytes": 17336,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "fe8b92938539e47380c8ddd8ca9faf58c936cb7a4cc46eba5fe4b73a5a69f550",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_1__native.csv": {
+      "bytes": 879,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "f83db5223c6b867e222879bef01f7f10dd21c344e2bcfae5f28699902b6f8f6a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_1__surrogate.csv": {
+      "bytes": 17436,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "d8db8e19b5f424c9e9609aa31af0cbc2f37b3f985a37a97908ac477966e7ab4e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_2__direct.csv": {
+      "bytes": 17346,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "cbfbef2bb1e8aaaa52a09e6e3e34758dca87d89e1ef0276585af15154c6e4bf4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_2__native.csv": {
+      "bytes": 881,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "40b37950e9213baab4cbb8f28898813c2e4f8eaea3f2b46f97b73424bb1c8e69",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_2__surrogate.csv": {
+      "bytes": 17473,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "db908ecfd23607b0cef0706ae989e31acfd9b7c3e972e8b71e78ef5422a665a8",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_3__direct.csv": {
+      "bytes": 17391,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "1764fc335593aa5b26dc92ac1acadbd998e9165eaf6e75a12c6604c28ba2541e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_3__native.csv": {
+      "bytes": 878,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "92b664365b6276af627f9f489ad6d6addcd9ed051bcfa79d1f65287ad8f17d9d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_3__surrogate.csv": {
+      "bytes": 17446,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "8af2a5426339bbdb4f26af9cc09e41e21af57c058605c59f6797a506fb424999",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_4__direct.csv": {
+      "bytes": 17383,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "65780ade51bfa409d6146cf4ec34cf0e319eac76b5966336d4479bbd1b7b8f3b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_4__native.csv": {
+      "bytes": 879,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "4d558934bde1cebbdccfa1e48fcbfaa2f94778f5a38460cbcd1f05c270edb962",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_4__surrogate.csv": {
+      "bytes": 17461,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "58247dafb2b0e8384b29a0af03195b372cb37542ed1b558882cd089890a265d4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_5__direct.csv": {
+      "bytes": 17403,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "f7db0a31c77ebec157f27892f36a863a9a9b792e7a1d0582aa86d3014571981e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_5__native.csv": {
+      "bytes": 879,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "ddb138a45f877398103671000608b070b8e3f0b230120aa17e3c92440559fcc4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_5__surrogate.csv": {
+      "bytes": 17502,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "48810bfc17b9b2e690f59ef16919435142291456d5583d0c392a7b001bd9e148",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_6__direct.csv": {
+      "bytes": 17387,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "80f622a1085289bc0c3e2dce01e70fc6ac23ac680219edf05cc13f0ee0dcea73",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_6__native.csv": {
+      "bytes": 882,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "3d0159fe9c456fb21c7f93facbf493851f18023b351b9ac12514a7cfabd02f54",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_6__surrogate.csv": {
+      "bytes": 17462,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "66c2a58734b685360f0834f5895d291eac62c6afb2961dcdc9df43a39a5388d8",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_7__direct.csv": {
+      "bytes": 17366,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "8a0c499e16fda13274cda12f0ef94caac34f3c4a2ee700ff9cb11ade1327a7db",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_7__native.csv": {
+      "bytes": 880,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "59d6e36e24f2ddc06dcfface3b78df113c4bf4132a065a9fc93175f87a141089",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__fold_7__surrogate.csv": {
+      "bytes": 17483,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "fea0b81c0a1489b704d15e44c8bd04786403ae7a8f88e3f555695a4973a84495",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__forward_2025__direct.csv": {
+      "bytes": 17542,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "a8d4fbcf92d90ce1b54fc0eff997b0b84eb5fa93e46e73b01837dece7958eda7",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__forward_2025__native.csv": {
+      "bytes": 885,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "afeabdcfd74a1d43e645b10b83b48cfb134b68871377e08781942b4a79ffbb10",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__forward_2025__surrogate.csv": {
+      "bytes": 17641,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "a38a23700ee0dab0bd1de6d5ba0343841ce013b9c0bdffe43f99699fe8835876",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__heldout__direct.csv": {
+      "bytes": 17405,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "0d35909876166d0cb85fe28430e6854efc2885a051327209d511f9b6c263577a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__heldout__native.csv": {
+      "bytes": 884,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "bc12c9a759c8d5b2aec49a0f747eb5fd12808885667b040b1202fcd3183e0d65",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dpurge__heldout__surrogate.csv": {
+      "bytes": 17507,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "5a348c41ad59d54bd290585ddda95d0f78d1675d990b3bb566476d7bd418d7db",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_1__direct.csv": {
+      "bytes": 17449,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "2f3e0199ac31aca6a85b46199c877f163797e8513b40d5c8582a8ebd0bf9ebf0",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_1__native.csv": {
+      "bytes": 885,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "acd98156dff0fc7ca967b3e79c776e112df71b17813c311da1b53f20a8eb0832",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_1__surrogate.csv": {
+      "bytes": 17563,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "c387ffa4bf747c1d9034fca54f2fb44a1c2f0f77e5bfd65c109d0a59d7356a96",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_2__direct.csv": {
+      "bytes": 17516,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "957521f281a9b93c1258b30a1ee5894016d23de2590e458f5bd1cf3093f87faa",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_2__native.csv": {
+      "bytes": 885,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "f83554d380debb640f18cbd92720b92dd941505f56d7a191cfa8672387d34fdf",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_2__surrogate.csv": {
+      "bytes": 17598,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "e50b31c9c64ae129957914d12f57e059185e7318997f6bc56555633bd4b1b54c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_3__direct.csv": {
+      "bytes": 17502,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "445b35f63800ad1a8a60e2eed25208f14ad69e6a62356a0bf749b43edb7360a0",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_3__native.csv": {
+      "bytes": 881,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "6f58054ad0c994776d98d246ec44b71dc45ac3c01d94b696e7f9f8210a67e8ba",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_3__surrogate.csv": {
+      "bytes": 17609,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "ff705ee7014c28dbb852bf057e2557ac72231065209109032f2537f5e7d8937d",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_4__direct.csv": {
+      "bytes": 17513,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "e12526a5636d247807b514347b763dfaee46fca73e34cc18e5f29439a2717b48",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_4__native.csv": {
+      "bytes": 883,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "0b43e4713f275d22b50979b294d49df8147fd20791713aa7361f4981caf610b0",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_4__surrogate.csv": {
+      "bytes": 17608,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "b022bcf732525413d0280f6dd88de689d8b5c32ac29a440c3a1d5d4f87523083",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_5__direct.csv": {
+      "bytes": 17499,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "5f3cce8f362f8dd6d8382c369fe39f64df871cdd04e4b516808400baae753976",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_5__native.csv": {
+      "bytes": 883,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "0e90fcd974e8acefeb6a5cee1e8c38b6ecb7f22412a7c26b4562c0240eb5a05a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_5__surrogate.csv": {
+      "bytes": 17614,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "e20ba39ca26c13d4a323d65f073dfc833c580d28f9da2fe8475b3723b63a6439",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_6__direct.csv": {
+      "bytes": 17509,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "a2213064169f321fa44d19cfcd9640f3975dc72c9d031aa1ebf29e8a46740d43",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_6__native.csv": {
+      "bytes": 881,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "598ba96cccf30991e90805224efc3085e9abe8956778d135fe102e0a96e055bb",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_6__surrogate.csv": {
+      "bytes": 17596,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "0f3bf9e9ef5b4adab833bc680a74bab6c55270cc1583f949c44fd292796e73ca",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_7__direct.csv": {
+      "bytes": 17479,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "bf60dca1d9aff704fa2f3c077fe832b6e87a607499361923531d058285f8ecd9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_7__native.csv": {
+      "bytes": 880,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "d0bdd32d8069264388c094c4a669f3db8fd1e3919806b06e61bc50f69c89a18b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__fold_7__surrogate.csv": {
+      "bytes": 17581,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "54f66904fa8815b3b7974795e0299e34e1f75c0aaae8c54f5b183dcc4d1818bb",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__forward_2025__direct.csv": {
+      "bytes": 17659,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "a726f698e9532e3b258ed4e2eb9a25a5ac6e69f848f50b76f57ec8f2b7a499a7",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__forward_2025__native.csv": {
+      "bytes": 890,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "37e98fabc81cbec7e74e15dff3c117aa24c2b0dea03b3249dc6cf1c9809105f9",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__forward_2025__surrogate.csv": {
+      "bytes": 17755,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "c6b5449d7406faeb66c88c9cc4ec0b086f4e32c31a7dda2c1fc645d5efe15c8e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__heldout__direct.csv": {
+      "bytes": 17527,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "8d851545ea5c90ba3208dda7b0507b3d4b715a4488f5a3670364889aaca4aed2",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__heldout__native.csv": {
+      "bytes": 887,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "52d5ccdd1548aa5a5e8d21581534f13748b90f45d19a01375bc41e72bd8ea436",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_shard__dsnap__heldout__surrogate.csv": {
+      "bytes": 17623,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_3_TEMPORAL",
+      "sha256": "c1be095fe6c1e7f9867d0412189fd799b3329fa7ddc30c413bc681c5f924f068",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_unseen_subset.csv": {
+      "bytes": 215979,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "d77867217e6fbef5292f62d33339a24b2a69ca722f90dcc319a1001f31a9b421",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/robustness_vs_frozen_deltas.csv": {
+      "bytes": 348538,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "5e35b5bdf606f9a80b183d8fd01f457bb1e88de6eaa43e786db31b95b02d6e41",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/source_equivalence_audit.csv": {
+      "bytes": 6349,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "37ce839b4161df5b9d958bc0e91f427b355081de2ce37c38f8535e7d3116b6be",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/source_equivalence_behaviour_equivalence.csv": {
+      "bytes": 435,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "96889feb1272f6bb2583c02854aaeaaa63721778466126a48ac751fdcc6bde51",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/source_equivalence_grid_hashes.csv": {
+      "bytes": 1010,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "0149f62fa0575acb8377dce32a33dd063466c150145c145e2fe51bccb339fcc7",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/source_equivalence_hash_verification.csv": {
+      "bytes": 2305,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "05053b40a281ee3223da30fd7e4b25baf38f0c0528d844a5a80751b001978bfc",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/source_equivalence_verdict.json": {
+      "bytes": 4267,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "0ebb10253224548205e8972e7b9fb686965dba72764f642770e4af90162152c0",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/source_equivalence_worktree_filecmp.csv": {
+      "bytes": 5150,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "dd497121eae562aa5d3c3182ee6407ee39cb00f57f3fde5d762b711eaf7dab85",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/stage1_summary.json": {
+      "bytes": 1632,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "7e5cf54954d1718af08f79c31781c564d8fe54c3d3acfc57dccd87ca0e748341",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/surrogate_weight_distribution.csv": {
+      "bytes": 149062,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "aa8f50014293e8fc3e980b76fd2e297a3cc566eca701dd9af0f5f7815e951e0e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/temporal_material_change_triggers.csv": {
+      "bytes": 13667,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "338b6ba123506857522a451838817cdd189127a83005e178ec559f40a8beda94",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/temporal_material_change_triggers_detail.json": {
+      "bytes": 17492,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "2a99b265541271ab9084e79247cc77886ec2a952662b8567c4c1e77209364eae",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/temporal_validation_overlap_audit.csv": {
+      "bytes": 470,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "106be50c9aebebf1dac3b674e1ed84e8930a3d483b1e27a316c07a48c3e6c976",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/temporal_validation_overlap_summary.json": {
+      "bytes": 1247,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "3fc97205548b49fc091ad32da530caef91d1907b5f26411695699c89e56fb84c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_control_frozen_crosscheck.csv": {
+      "bytes": 15266,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "ecc8ad0d11dfc15ee3512252868cb4df4e103705211e3305891838b79732a30a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_control_full.csv": {
+      "bytes": 45615,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits.csv": {
+      "bytes": 32891,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "e22af85bff16d47ea8af481278e17fdb74ccac8677bad64bd17d8d1819f7e3fd",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block0.csv": {
+      "bytes": 4106,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "ef35fe937329705182ef65051d1dff4ea0ff37840c10bd43c9c0ccc249a56193",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block1.csv": {
+      "bytes": 4113,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "5e3deb8ad975f3239c36be94320939704846fb78fb6695fbb1c1e540cf546685",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block2.csv": {
+      "bytes": 4111,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "3714f44c63e8e69e80a49ec7ca8e8a14b2b46a8348317f834f3091ebde1875d4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block3.csv": {
+      "bytes": 4113,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "395383cf7e0bad68c46e25fd5ceb8f0478a40f917eb6d1af8580200e2be0b4ea",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block4.csv": {
+      "bytes": 4104,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "cd31f65e0d0bc903315d897fc505d28eb203e701b4589da416d8b537005cc8d7",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block5.csv": {
+      "bytes": 4112,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "b91e9f48e3d2e233819b509df217016171e6eae01b4dddfaf35ab6bf93d4b675",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block6.csv": {
+      "bytes": 4108,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "ef8dc4f6c07b5d2a3ce2cae2eed72236daae11d29cc4bee5ccb0795140b11cfe",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block7.csv": {
+      "bytes": 4431,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "64553d2f5d8b5da051bce092e9b146cdcf937c33942e324b3412bd22457b921c",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_fits_block8.csv": {
+      "bytes": 4470,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "cbc205c6d41957f97652dcfc304f5dbed611421963334686446450f2cfdc9d03",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv": {
+      "bytes": 6203,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P0_STAGE_1_5_G2",
+      "sha256": "7857e46b4fb7a94a808b699919175dc3199730adc565ca794a5586454c845157",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tests/run_all_tests.py": {
+      "bytes": 2240,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "5d190a5262f24b94864f97fd74e5596fc62d1dfd4158e9078dd01b3917ad265b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tests/run_stage1_tests.py": {
+      "bytes": 1502,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "52868af75ae57ad7e0766571169c0a50ed407766e49c554b8e40ae072f2e8d61",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tests/test_g2_assertions.py": {
+      "bytes": 16646,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "f47a8f7b3b32498a3ed46e881cac0e65dd76b800eaabe63e3e2fb487ef9db687",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tests/test_g3_assertions.py": {
+      "bytes": 15866,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "d38aa13d31dfb01612286b49db3c9680a45931d4d3ee7d5b5e8f467d95dfd801",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tests/test_g5b_assertions.py": {
+      "bytes": 13388,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P0_STAGE_3B_G5B",
+      "sha256": "b07bf009637c5450b08feb3ef373bdef33dfa6b65837865d3231098e546b8b8b",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tests/test_p0_assertions.py": {
+      "bytes": 12456,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P0_STAGE_1",
+      "sha256": "fbf901f3874e2995a36de4aa4cd36981e346d2a557ae044103bf32e1241e7f7a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p0_major_revision_validation/tests/test_stage3_assertions.py": {
+      "bytes": 16687,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P0_PROVENANCE",
+      "sha256": "b6cd66ff4274d0f962c383f827ddb0b5aba82abb183fd0cda29699f9d89d8a87",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/P1_CHECKPOINT.md": {
+      "bytes": 13567,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "32e1e58351138d3001eb7ccfe4e173f91503a63505e9bb2effda1fc71c3cb2cc",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_0_freeze_display_set.py": {
+      "bytes": 10274,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "7832b9997063aeeeb31704c70975066bc4db4bc5e120d02e3610596f0d19ada2",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_1_dcor_documentation.py": {
+      "bytes": 8219,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "182aba42bd93c55d0fa702874eded02ab6bf56f9a01915ba5a8d0de1ba62b1c5",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_2_prb_inference.py": {
+      "bytes": 18537,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "2c84f194b71fead97e6877bc9d61e300be33c2ac2987487e6d162b0ca871609d",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_3_vei_ed2_inference.py": {
+      "bytes": 16461,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "490291ce372e2373730da6601bb3a874a4426526f2f9a98470ba5c51b8e88280",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_4_smearing_sensitivity.py": {
+      "bytes": 25279,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "648c0584fc071743b098a68673cba19f9a72187af761b5d09a2b6fc48c573f39",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_9_freeze_evidence.py": {
+      "bytes": 10898,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "c1f58b920f259e679542a3392a63b0e8b960e52341553ce5926a48c765111da7",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_9_headline_numbers.py": {
+      "bytes": 8883,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "448d9f16b9ad7efa5ad30ecb2bcb0dc44b717808ddf43649acba1fb4b4fe24d3",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/code/p1_common.py": {
+      "bytes": 12459,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "code",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "9a2d175400c950a34542d622af70e3225daae1d3c40c92283bad4e609eaaa1e4",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/configs/display_set_frozen.json": {
+      "bytes": 107181,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P1_DISPLAY_SET",
+      "sha256": "b050a2bbd08b09ac83b3cbce0678eb4e54cd27099f7b1072e4f0fba8c8bcd6a8",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/configs/display_set_frozen_hash.json": {
+      "bytes": 180,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P1_DISPLAY_SET",
+      "sha256": "f30b79763d0094a5a5d114621fa9aeb5c186a993e65ea3f3f1dd6e1d26964d52",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json": {
+      "bytes": 11702,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P1_VEI_ED2",
+      "sha256": "5bf62c9de6b22d906abd299d54694b3389ef8e9229301bbd964f1ee85e813b63",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/configs/smearing_estimator_frozen.json": {
+      "bytes": 3598,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "6e00c9fa14b3fa5813be00691d48b36fb6917110b6cd8faa0ff9201fbd36bf18",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/configs/smearing_estimator_frozen_hash.json": {
+      "bytes": 225,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "convention_or_config",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "132247499af161d1b7d67e4e438ddeb6f781b8890cc3c0baa56dfb4c42fd8dbb",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/provenance/DEVIATIONS_P1.md": {
+      "bytes": 22963,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "6c1b281d3478c6fcd53b8b6d4907a2cb6f9bfaa9964f4de39b00c28b64f5ff55",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/provenance/ed2_source_cache/.gitignore": {
+      "bytes": 328,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "2ec2a270697986aa7bc68788a43f94a43920aa8e71bd9217086a27a7e675392c",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/provenance/ed2_source_manifest.json": {
+      "bytes": 2856,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "63306a00dc6aeaf4198a3397966d3f4f7096edbece345b2518553632d294eb82",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/provenance/p0_suite_at_tag.json": {
+      "bytes": 4078,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "37f6e58b3680d1bba2c724e2b85dec9beb89c84b4a33a6563c28a72e00a73e4f",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/provenance/p0_suite_on_p1_branch.json": {
+      "bytes": 1831,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "eeac249650760a7ba22c586d1c7203982987197e70732794ec78493cc2376372",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/provenance/p1_artifact_hashes.json": {
+      "bytes": 16749,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "409170521b2cf65559293a546aa9a17ffd4dd730be3d4b710a026d827f25ff0f",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json": {
+      "bytes": 8155,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "provenance",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "45116898f7de32e69ff471c42ee3de0813bc28ac0066584882ea9c5f9acbc748",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/reports/MANUSCRIPT_EVIDENCE_PACKAGE.md": {
+      "bytes": 22762,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "6f28490d21e76e12ba5469f96c2f702889a6390b088f85aa239cc74ff6a52df0",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/reports/MANUSCRIPT_IMPACT_MEMO.md": {
+      "bytes": 15039,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "report",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "94316684d102bc833079285796468d9d53ce211faf72ba916dd5f3a71364792f",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/dcor_estimator_audit.csv": {
+      "bytes": 1004,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_DCOR",
+      "sha256": "735d26066d16f5a34b92da3b28fb9080174fbea94fd1f3d69ef401d0c5c6db45",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/dcor_estimator_facts.json": {
+      "bytes": 3553,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_DCOR",
+      "sha256": "175bf4ca7eb597ecfb47872a2288766d36cbdaafdf5faaa0eb77761503463a94",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/prb_inference.csv": {
+      "bytes": 250523,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_PRB",
+      "sha256": "fb7e8f117c7916d0a22f14f4c2e7f00d1e84eceaff63c12a4edd5833f7ef926a",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/prb_inference_summary.json": {
+      "bytes": 2999,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_PRB",
+      "sha256": "1458c8466af0a3ec7f1e961d9ecb039ff2cb1a38d77cf35acb39748a011ed0b9",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/smearing_apply_delta_nl_subset.csv": {
+      "bytes": 5313,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "08f439a20c5b31cefcd00dda45d69e31d3c1a528e9515d8f6ad9420c025c06ab",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/smearing_apply_ed2_stability.csv": {
+      "bytes": 303131,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "9251db3502e5bf9e5b0c2549b7e5804f108564c9e4117122e6acad7b1daaa749",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/smearing_apply_fastpath_reconciliation.csv": {
+      "bytes": 43269,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "intermediate",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "24c6c9e6187edbb5784a806cde66ea3a21000fdba816eb753e431bec14ce473e",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv": {
+      "bytes": 1571430,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/smearing_apply_summary.json": {
+      "bytes": 5009,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "b9e0de564ddd9f48b23cc9d4152af55c7a5791ea4761f75c2222ab7c55f6fd5c",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/smearing_factor_provenance.csv": {
+      "bytes": 12295,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_SMEARING",
+      "sha256": "54a2c4332dbb23f9f3e533bc405a2c83a74612a8f4ae56625df6311116986d58",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/vei_significance.csv": {
+      "bytes": 532784,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_VEI_ED2",
+      "sha256": "8e27d0ae0bd25d337ff078f79273de9205f668134883a441119ffb6c622fa757",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tables/vei_significance_summary.json": {
+      "bytes": 2734,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "primary_evidence",
+      "scientific_stage": "P1_VEI_ED2",
+      "sha256": "2a0f93a965153741d9cb98ffee1d00aca9cdf42401fa207c21df1141759a5bab",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tests/test_p1_headline_numbers.py": {
+      "bytes": 6882,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "51444279aa6fffe97a8f048bb60321b534b277880e4423927cd6d7680383273b",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tests/test_p1_prb_assertions.py": {
+      "bytes": 5825,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "ed3d5b60cbecf2dfb2ac873262ccb6acdb025c4e06796cf5aff9f784075e3b51",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tests/test_p1_smearing_apply_assertions.py": {
+      "bytes": 12582,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "c583cacb2fc2004f6cdbf6fd0baf28b6386d6e42b43115f4125d533cf19c64df",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tests/test_p1_vei_assertions.py": {
+      "bytes": 20159,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "905d14754b9ed89227554e8ad3b84e9778e07c2b7e7436add8993353e0fa3d6f",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "analysis/p1_inferential_reporting/tests/test_smearing_sign.py": {
+      "bytes": 5568,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "test",
+      "scientific_stage": "P1_PROVENANCE",
+      "sha256": "7f254a3f340140d2e0e777fabf1c3f2b3fbad536e2a344a4a0409336288150fc",
+      "source_commit_or_tag": "p1-inferential-reporting-final-20260907"
+    },
+    "data/CCAO/2025/training_data.parquet": {
+      "bytes": 215400916,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.canonical_data_parquet.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "b1fc00b514041af5aa7135d85ed59a028afe40569bba1014c4dcf3ad2f3a7b51",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v12_lower_rho_extension_994_v2/analysis/data_id=d4929d43ec19badf/split_id=3d464d4a611b131b/penalty_path_analysis/transition_regions_paper_assets_v4_delta_nl_bends/tables/combined_path_table_v4_analysis_view.csv": {
+      "bytes": 640795,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.frozen_path_table_v4_csv.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "d5b0fcfc49eb8e2a209d5f477b4b37312a1d6015f7e0ba7bd7ac54a178b60363",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v12_lower_rho_extension_994_v2/experiment_spec.json": {
+      "bytes": 3383,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.v12_experiment_spec_json.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "be77f060744ab6961026da1867a58c60602fe100cab99b7d625a0bc43f11b06e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/experiment_spec.json": {
+      "bytes": 4058,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.v6_experiment_spec_json.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "30b3edca5a543350b123519e52f4fbbb77791ea3af206a4612cf566d07e1d9a4",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/final_local_results/delta_nl_estimator.json": {
+      "bytes": 1229,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.delta_nl_estimator_json.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "54cbf30b6acc0b10c9442428b41fb5ba3ae4917665fca026e3a88e94664d4840",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/final_local_results/recalibration_path.csv": {
+      "bytes": 43866,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.v6_recalibration_path_csv.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "805e9579a054fca405044f84089aee7d5091fe90dcc0e7670cacca6af8d9f818",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/final_local_results/recalibration_spec.json": {
+      "bytes": 5132,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.v6_recalibration_spec_json.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "f51f843b6eb23a5dac60563019c4532e96b5ede833732f2c544816ede6cfd77e",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/final_local_results/rho0_split_audit.csv": {
+      "bytes": 1939,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.v6_rho0_split_audit_csv.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "79a6331007d3b94f9056346da77c44472a8cfab56594258866611738f1f3bcf3",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/final_local_results/rho0_split_audit.json": {
+      "bytes": 8143,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.v6_rho0_split_audit_json.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "8d6cc17723abd58bcb5e72c8e8c96134eec4461c198dae1cdc364d6ac0b0f185",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/lgbm_config.json": {
+      "bytes": 1878,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.frozen_lgbm_config_json.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "0bfa69fda29a715ec8142e7bfae1a947a5b36afce015ef0daf5ac1a8a3c58e22",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "output/paper_v6_preselection_994/protocol/data_id=d4929d43ec19badf/split_id=3d464d4a611b131b/folds.json": {
+      "bytes": 2477,
+      "hash_source": "P0_PREFLIGHT_INPUT_INDEX",
+      "hash_source_file": "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json",
+      "hash_source_key": "$.input_artifact_hashes.archived_folds_json.sha256",
+      "note": "gitignored by design; in no checkout. Hash quoted, never re-derived. Tier B0 reads this file never.",
+      "present_in_worktree": false,
+      "role": "legacy_frozen_input",
+      "scientific_stage": "LEGACY_FROZEN_PATH",
+      "sha256": "852bba7d520e71791871ec5f734018a7eef26b7326d958ae7e291256d914939a",
+      "source_commit_or_tag": "p0-major-revision-final-20260907"
+    },
+    "paper/paper_analysis/paper_v17/MAJOR_REVISION_CHANGELOG.md": {
+      "bytes": 3879,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "manuscript_analysis",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "a727cb1d5bb1568b586e30f099c179c99f1e4becdf5fb0de98d05563ea7975d6",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/paper_analysis/paper_v17/P0_P1_MAJOR_REVISION_PLAN.md": {
+      "bytes": 18954,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "manuscript_analysis",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "346e8b16477d106dd790169bd0ee6f55aa6a2deb1408c8251ff912173176683a",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/paper_analysis/paper_v17/analysis_v17.md": {
+      "bytes": 16036,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "manuscript_analysis",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "64051655ae12bd543ee6721385ab1f7fec7ab82d75d06a1ad79ffc69a40fcbed",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/paper_analysis/paper_v17/markup_preflight.py": {
+      "bytes": 6286,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "manuscript_analysis",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "b8e25e3f72804ebb2385fa3a0e37cd41372fc6fb9c4de77d265d97eb3a56e3de",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/paper_analysis/paper_v17/superseded_text_archive.md": {
+      "bytes": 71408,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "manuscript_analysis",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "cc982e56c14a33fc717fa034bc3cf4b96a82a6605ae984905bc563b1c3d3a15b",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/paper_v17_option1.tex": {
+      "bytes": 388448,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "manuscript_source",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/paper_v17_option2.tex": {
+      "bytes": 159027,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "wording_precedent_only",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "32751dfc1f4913f7a5f88ccfb996e5ec4dad22f43a9a12a3a750f823f0c90bbd",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/references.bib": {
+      "bytes": 24220,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "bibliography",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "9c29bcc58c98cdca62a3c959ae9588897d35e9ac3d59280c8026510683430205",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/references_additions.bib": {
+      "bytes": 8048,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "bibliography",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "d47ebef72d54e59b416c6aa19cf551e11e4c7599f3e9dd145f394a25dfda12ea",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    },
+    "paper/references_major_revision_additions.txt": {
+      "bytes": 1253,
+      "hash_source": "RECOMPUTED",
+      "present_in_worktree": true,
+      "role": "bibliography_staging_source",
+      "scientific_stage": "TIER_A_MANUSCRIPT",
+      "sha256": "908c8de5308f61c255e69f852701560af266aca56a1139dbaf6fac8c634de44b",
+      "source_commit_or_tag": "097544fff8c98bc864035674d038d9602ea667cb"
+    }
+  },
+  "coordinates": {
+    "integration_branch": "paper-major-revision-integration",
+    "integration_head": "cd5bfce35e446d4ff2950cb2e077c0c33b5aaefd",
+    "manuscript": "paper/paper_v17_option1.tex",
+    "manuscript_sha256": "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a",
+    "p0_commit": "805c426e1587972a2a07dcaf60220603397c0d3e",
+    "p0_tag": "p0-major-revision-final-20260907",
+    "p1_commit": "6caf66774f2979f80d3cc74fa09c4d63b4e9f909",
+    "p1_tag": "p1-inferential-reporting-final-20260907",
+    "tier_a_commit": "097544fff8c98bc864035674d038d9602ea667cb"
+  },
+  "counts": {
+    "absent_legacy": 11,
+    "by_role": {
+      "bibliography": 2,
+      "bibliography_staging_source": 1,
+      "code": 36,
+      "convention_or_config": 20,
+      "figure": 3,
+      "intermediate": 100,
+      "legacy_frozen_input": 11,
+      "manuscript_analysis": 5,
+      "manuscript_source": 1,
+      "primary_evidence": 130,
+      "protocol": 3,
+      "provenance": 27,
+      "report": 8,
+      "slurm_script": 10,
+      "test": 12,
+      "wording_precedent_only": 1
+    },
+    "by_stage": {
+      "LEGACY_FROZEN_PATH": 11,
+      "P0_CONVENTION": 10,
+      "P0_PROVENANCE": 42,
+      "P0_STAGE_1": 35,
+      "P0_STAGE_1_5_G2": 30,
+      "P0_STAGE_2_G3": 31,
+      "P0_STAGE_3B_G5B": 86,
+      "P0_STAGE_3_MATCHED_BETA": 19,
+      "P0_STAGE_3_TEMPORAL": 56,
+      "P1_DCOR": 2,
+      "P1_DISPLAY_SET": 2,
+      "P1_PRB": 2,
+      "P1_PROVENANCE": 23,
+      "P1_SMEARING": 8,
+      "P1_VEI_ED2": 3,
+      "TIER_A_MANUSCRIPT": 10
+    },
+    "present": 359,
+    "total": 370
+  },
+  "discipline": [
+    "PRESENT artifacts carry a RECOMPUTED sha256.",
+    "ABSENT legacy artifacts carry a hash QUOTED from the frozen index named in hash_source, whose own sha256 is recorded in hash_indices and recomputed by the test suite. Absent files are never read.",
+    "External-benchmark streams are recorded under excluded_streams, never under artifacts.",
+    "No Tier-B0 output claims CSV bit-exactness: P1 records that the committed CSVs round-trip float64 to ~3.55e-15, so values are carried as the literal decimal text found in the artifact."
+  ],
+  "excluded_streams": [
+    {
+      "detail": "external-jurisdiction benchmark. Recorded so the exclusion is explicit; no external-benchmark artifact may back a manuscript claim, and any active manuscript number depending on that stream is FLAGGED_UNSUPPORTED rather than legitimized here.",
+      "path": "analysis/external_jurisdiction_benchmark_v1/audits/zero_rho_parity.csv",
+      "preflight_key": "external_zero_rho_parity_csv",
+      "reason": "OUT_OF_SCOPE_FOR_B0"
+    },
+    {
+      "detail": "external benchmark stream; not indexed.",
+      "path": "analysis/external_jurisdiction_benchmark_v1/",
+      "preflight_key": null,
+      "reason": "OUT_OF_SCOPE_FOR_B0"
+    },
+    {
+      "detail": "external benchmark stream; not indexed.",
+      "path": "analysis/berry_attom_validation_v2/",
+      "preflight_key": null,
+      "reason": "OUT_OF_SCOPE_FOR_B0"
+    },
+    {
+      "detail": "external benchmark stream; not indexed.",
+      "path": "analysis/berry_attom_validation_v3/",
+      "preflight_key": null,
+      "reason": "OUT_OF_SCOPE_FOR_B0"
+    },
+    {
+      "detail": "external benchmark stream; not indexed.",
+      "path": "analysis/berry_cmf_validation/",
+      "preflight_key": null,
+      "reason": "OUT_OF_SCOPE_FOR_B0"
+    }
+  ],
+  "generated_by": "analysis/final_manuscript_evidence/code/b0_1_build_manifest.py",
+  "hash_indices": {
+    "analysis/p0_major_revision_validation/provenance/PREFLIGHT.json": {
+      "role": "P0_PREFLIGHT_INPUT_INDEX",
+      "sha256": "ce4a46f06f42c07e32e065f7984a48963a87750582b60e309a09fa998dbe7cb2"
+    },
+    "analysis/p0_major_revision_validation/provenance/large_local_artifacts.json": {
+      "role": "P0_LARGE_LOCAL_INDEX",
+      "sha256": "aa19d7d7e77b831620860d1367c3549908c2facfd716fbfa92de82bfd5337763"
+    },
+    "analysis/p0_major_revision_validation/provenance/output_artifact_hashes.json": {
+      "role": "P0_OUTPUT_INDEX",
+      "sha256": "dcad559388050cefdc6bdd7e97892a385222d7b8882e1128a1c5c5ca51f89fa9"
+    },
+    "analysis/p0_major_revision_validation/provenance/stage1_frozen_hashes.json": {
+      "role": "P0_STAGE1_INDEX",
+      "sha256": "82d0bdec4cf811094107af653c95e1102ae26976e14915c6a44eef2633262311"
+    },
+    "analysis/p0_major_revision_validation/provenance/stage3b_artifact_hashes.json": {
+      "role": "P0_STAGE3B_INDEX",
+      "sha256": "a03ca072322255cb5c05eeb55efeb033d34eab49ad6f56e8baf34711994356cc"
+    },
+    "analysis/p1_inferential_reporting/provenance/p1_artifact_hashes.json": {
+      "role": "P1_ARTIFACT_INDEX",
+      "sha256": "409170521b2cf65559293a546aa9a17ffd4dd730be3d4b710a026d827f25ff0f"
+    }
+  },
+  "schema_version": 1,
+  "what": "Hash-pinned index of every artifact Tier B0 may cite as evidence."
+}

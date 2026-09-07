@@ -1,0 +1,539 @@
+# =============================================================================
+# Disposition of EVERY table and figure in paper_v17_option1.tex.
+#
+# This vocabulary is deliberately SEPARATE from the claim disposition vocabulary
+# in claims.yaml: a float is a display object, and "rebuild this table" is not
+# the same decision as "rewrite this claim".
+#
+#   KEEP               correct and supported; leave it alone
+#   UPDATE             keep the object, fix specific cells, labels or notes
+#   REBUILD            regenerate from frozen evidence; the current object mixes
+#                      supported and unsupported cells
+#   DEMOTE_TO_APPENDIX keep, but not in the main text
+#   DELETE             remove; the content is unsupported or not compiled
+#
+# numbers_fully_supported: FULLY_SUPPORTED / PARTIALLY_SUPPORTED / UNSUPPORTED /
+# NOT_RENDERED. It is CHECKED, not asserted: code/b0_5_build_tf_disposition.py
+# recomputes each float's SOURCED / ALLOWLISTED / FLAGGED_UNSUPPORTED token
+# tallies from coverage/active_tex_numeric_tokens.csv and fails if a declared
+# support level contradicts them.
+#
+# Every label here must exist in the tex with the declared render bucket, and
+# every float in the tex must appear here. A float that has no entry fails the
+# build, so this inventory cannot silently fall behind the manuscript.
+# =============================================================================
+schema_version: 1
+
+floats:
+
+# --------------------------------------------------------------- main tables
+- label: tab:assessment_metrics_summary
+  kind: table
+  render_bucket: ACTIVE
+  disposition: UPDATE
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    Definitions and reference ranges, not results. The ranges themselves are
+    correct, but the table does not consistently separate ADOPTED 2013 guidance
+    (PRD, PRB, COD) from EXPOSURE-DRAFT diagnostic bands (MKI, VEI).
+  frozen_evidence:
+  - analysis/p1_inferential_reporting/tables/vei_significance.csv
+  - analysis/p1_inferential_reporting/provenance/ed2_source_manifest.json
+  writing_pass: >-
+    Add a guidance-status column, or mark each row, so that IAAO 2013 ADOPTED
+    and May-2026 EXPOSURE DRAFT are visibly distinct. Note the source
+    discrepancy: the cached URL filename says Exposure-Mar2026 while the printed
+    title is "Exposure Draft May 2026".
+
+- label: tab:ccao_baseline_results
+  kind: table
+  render_bucket: ACTIVE
+  disposition: UPDATE
+  numbers_fully_supported: PARTIALLY_SUPPORTED
+  why: >-
+    The Ordinary LightGBM (Cell A) half resolves exactly -- all eight metrics on
+    both evaluations, from zero_control_full.csv. The Linear-regression half
+    resolves from nothing, and prints R^2_P = 0.799 in BOTH panels.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  writing_pass: >-
+    Re-source the LightGBM columns from cell A. Re-derive the Linear columns
+    from a frozen artifact or delete them. Label the comparison as an
+    assessor-facing workflow-benchmark comparison, not a penalty effect.
+
+- label: tab:ccao_samples
+  kind: table
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    All four sample counts resolve from PREFLIGHT.json's
+    canonical_sample_counts_expected. The boundary DATES are not recorded in the
+    frozen evidence and are allowlisted as design constants.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+  writing_pass: Keep. Cite PREFLIGHT.json for the counts.
+
+- label: tab:feature_groups
+  kind: table
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    A description of the fixed upstream feature design, not a result. Recorded
+    honestly: none of the group sizes, the 95 total or the 23 categorical count
+    appears in the frozen P0/P1 evidence, so they are allowlisted as design
+    constants with frozen_source NOT_RECORDED_IN_FROZEN_EVIDENCE.
+  frozen_evidence: []
+  writing_pass: >-
+    Keep. Do not imply the counts were validated by P0 or P1; they describe the
+    upstream CCAO pipeline.
+
+- label: tab:ccao_design
+  kind: table
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    A design summary. Its counts and the 994-tree capacity resolve from
+    PREFLIGHT.json, and the 82-positive-value grid from robustness_rho_grid.json
+    and e4_verdict.json.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+  - analysis/p0_major_revision_validation/configs/robustness_rho_grid.json
+  writing_pass: >-
+    Keep, and keep the two-stage grid history explicit: 50 original points plus
+    a 32-point lower-tail extension, not 82 prespecified points.
+
+- label: tab:path_anchor_summary
+  kind: table
+  render_bucket: ACTIVE
+  disposition: REBUILD
+  numbers_fully_supported: PARTIALLY_SUPPORTED
+  why: >-
+    The single most important table in the paper, and it mixes three kinds of
+    cell. Supported: the Ordinary LightGBM rows; Direct and Surrogate at the two
+    frozen anchors (rho ~ 1 tested 0.954095, and rho = 100), reproduction tier
+    R1; and PRB and VEI at ALL FIVE anchors from P1. Unsupported: every
+    Linear-regression cell, and R^2_P / MAE / MAPE / RMSE_log / PRD / MKI at the
+    three legacy anchors. Separately, the highlighting bolds and stars every
+    penalized row against Cell A, which the paper's own caveat says is a
+    confounded contrast.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  - analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.csv
+  - analysis/p1_inferential_reporting/tables/prb_inference.csv
+  - analysis/p1_inferential_reporting/tables/vei_significance.csv
+  writing_pass: >-
+    Rebuild from the frozen artifacts. Keep PRB and VEI at all five anchors.
+    Either re-derive the six accuracy metrics at the three legacy anchors or
+    restrict those columns to the two frozen anchors. Adopt the two-role
+    highlighting convention: one device for the workflow-benchmark comparison
+    against Ordinary LightGBM, a visibly different device for the
+    penalty-isolating comparison against the custom-objective rho=0 origin, and
+    say which is which in the notes.
+
+- label: tab:rho_candidate_regions
+  kind: table
+  render_bucket: ACTIVE
+  disposition: DELETE
+  numbers_fully_supported: UNSUPPORTED
+  why: >-
+    Not one cell resolves. P0 holds screening-grid proxies that are explicitly
+    NOT a reproduction of the published 82-point smoothed changepoint estimator.
+    The rho values appear in the frozen grid maps as GRID COORDINATES, but the
+    screen RESULT -- that these are the activity onset and upper guardrail -- is
+    reproduced nowhere, and neither are the 7/7 LOFO counts or the guardrail
+    indices 53-56 and 53-55.
+  frozen_evidence: []
+  writing_pass: >-
+    Delete the table. A qualitative sentence about exploratory candidate-region
+    screening may survive in prose, with no numbers. Relabelling the table
+    "exploratory" is not sufficient.
+
+- label: tab:roles
+  kind: table
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    States the novelty boundary and the roles of the contribution. This is
+    load-bearing and must survive intact.
+  frozen_evidence: []
+  writing_pass: >-
+    Keep all five non-novelty statements and all eight defensible
+    contributions. Wording may be borrowed from Option 2; no number, threshold
+    or conclusion may be.
+
+- label: tab:rho_zero_control
+  kind: table
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    Every cell resolves: cells A and C from zero_control_full.csv, and the A<->C
+    prediction-difference magnitudes from
+    zero_reference_reproduction_qc.csv (tier AGGREGATE_CROSSCHECK). This is the
+    table that establishes why A-to-penalized contrasts cannot isolate rho.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  - analysis/p0_major_revision_validation/tables/zero_reference_reproduction_qc.csv
+  writing_pass: >-
+    Keep the table. Replace the two todo notes beneath it: the parity rerun was
+    done and resolves in the NEGATIVE (A<->B agrees to about 7.7e-09, B<->C does
+    not and pinning does not fix it), and the normalization audit is closed by
+    objective_scaling_audit.csv. Use the accepted conservative characterization,
+    never "innocuous numerical effect".
+
+- label: tab:ccao_baseline_complementary
+  kind: table
+  render_bucket: ACTIVE
+  disposition: UPDATE
+  numbers_fully_supported: PARTIALLY_SUPPORTED
+  why: >-
+    The LightGBM half resolves for all eight complementary metrics, including
+    Delta_NL and dCor, from zero_control_full.csv. The Linear half resolves from
+    nothing.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  writing_pass: >-
+    Re-source the LightGBM columns. Re-derive or delete the Linear columns.
+    State that baseline COD lies outside the adopted [5,15] range.
+
+- label: tab:path_anchor_complementary
+  kind: table
+  render_bucket: ACTIVE
+  disposition: REBUILD
+  numbers_fully_supported: PARTIALLY_SUPPORTED
+  why: >-
+    Same three-way split as the primary path table, and worse: the frozen
+    reproduction table carries no Delta_NL and no dCor column at all, so those
+    two columns are unsupported at EVERY positive-rho anchor, not just the
+    legacy three.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  - analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.csv
+  writing_pass: >-
+    Rebuild. Keep the six complementary metrics at the two frozen anchors and
+    the baseline rows. Drop or re-derive the Delta_NL and dCor columns for every
+    positive rho. Apply the same two-role highlighting convention.
+
+- label: tab:transition_summary
+  kind: table
+  render_bucket: ACTIVE
+  disposition: DELETE
+  numbers_fully_supported: UNSUPPORTED
+  why: >-
+    No event location, span, log10 width, LOFO endpoint or concordance ratio
+    resolves from the frozen evidence. P0's screening-grid proxies are
+    explicitly not a reproduction of the published smoothed changepoint
+    estimator.
+  frozen_evidence: []
+  writing_pass: >-
+    Delete, or rebuild from a frozen artifact. The qualitative point -- that
+    reproducible within-CV transition structure is distinct from temporal
+    portability -- may survive without these numbers.
+
+- label: tab:transition_regret
+  kind: table
+  render_bucket: ACTIVE
+  disposition: DELETE
+  numbers_fully_supported: UNSUPPORTED
+  why: >-
+    The largest single concentration of unsupported numbers in the manuscript.
+    No frozen artifact carries the span-regret quantities.
+  frozen_evidence: []
+  writing_pass: >-
+    Delete, or rebuild from a frozen artifact. If the qualitative point survives
+    -- event-location disagreement and value-based loss are distinct aspects of
+    temporal portability -- state it without these numbers.
+
+- label: tab:fold_structure
+  kind: table
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    Every n_train resolves from objective_scaling_audit.csv and every n_val from
+    zero_control_full.csv. The window end dates are not in the frozen evidence
+    and are allowlisted as design constants.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/objective_scaling_audit.csv
+  - analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  - analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_summary.json
+  writing_pass: >-
+    Keep, and add the frozen finding that the fold-6 and fold-7 validation
+    blocks overlap, so the pooled out-of-fold coordinate double-counts those
+    rows. Each prediction is still genuinely out of fold and the equal-weight
+    CV-mean coordinate is unaffected.
+
+# ------------------------------------------------ inactive ATTOM tables
+- label: tab:attom_baselines
+  kind: table
+  render_bucket: IFFALSE
+  disposition: DELETE
+  numbers_fully_supported: NOT_RENDERED
+  why: >-
+    Inside the \iffalse region 2925-2993, so not compiled. The external
+    benchmark is OUT_OF_SCOPE_FOR_B0 and no external-benchmark artifact enters
+    the evidence manifest.
+  frozen_evidence: []
+  writing_pass: Delete the inert block rather than reviving it.
+
+- label: tab:attom_selected_penalty
+  kind: table
+  render_bucket: IFFALSE
+  disposition: DELETE
+  numbers_fully_supported: NOT_RENDERED
+  why: Inside the same uncompiled \iffalse region.
+  frozen_evidence: []
+  writing_pass: Delete the inert block.
+
+- label: tab:attom_design_appendix
+  kind: table
+  render_bucket: IFFALSE
+  disposition: DELETE
+  numbers_fully_supported: NOT_RENDERED
+  why: >-
+    Inside the \iffalse region 4320-4370. Deleting this block also removes the
+    duplicate \label{app:attom}, which is currently an INERT duplicate of the
+    active label at line 4316 rather than a live clash.
+  frozen_evidence: []
+  writing_pass: >-
+    Delete the inert appendix. Keep Appendix H's active external-validity
+    boundary statement.
+
+# --------------------------------------------------------------- main figures
+- label: fig:baseline_motivation
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Descriptive baseline ratio pattern; the caption carries no result values.
+  frozen_evidence: []
+  writing_pass: Keep.
+
+- label: fig:ratio_shape_path_placeholder
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: UPDATE
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    The figure itself is a descriptive ratio-shape path, but its surrounding
+    caption and prose lean on candidate-region and LOFO-stability language whose
+    numbers do not resolve.
+  frozen_evidence: []
+  writing_pass: >-
+    Keep the figure. Strip candidate-region and guardrail claims from the
+    caption and the neighbouring prose.
+
+- label: fig:mechanism_path_placeholder
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: UPDATE
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    Descriptive mechanism path. The adjacent prose quotes positive-rho dCor
+    values that do not resolve, while the beta_log values it quotes do.
+  frozen_evidence:
+  - analysis/p0_major_revision_validation/tables/zero_control_full.csv
+  - analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.csv
+  writing_pass: >-
+    Keep the figure. Keep the beta_log statements, which resolve at both ends.
+    Re-derive or drop the positive-rho dCor path values.
+
+- label: fig:accuracy_equity_placeholder
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Descriptive accuracy-equity trajectory; no result values in the caption.
+  frozen_evidence: []
+  writing_pass: >-
+    Keep. Do not add a preferred operating point to the figure or its caption.
+
+# ----------------------------------------------------------- appendix figures
+- label: fig:transition_event_locations
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: DELETE
+  numbers_fully_supported: UNSUPPORTED
+  why: >-
+    Displays the transition event locations that no frozen artifact reproduces.
+    It goes with tab:transition_summary.
+  frozen_evidence: []
+  writing_pass: Delete alongside the transition tables.
+
+- label: fig:vertical_equity_event_locations
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: DELETE
+  numbers_fully_supported: UNSUPPORTED
+  why: Same unsupported event-location construction.
+  frozen_evidence: []
+  writing_pass: Delete alongside the transition tables.
+
+- label: fig:mechanism_event_locations
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: DELETE
+  numbers_fully_supported: UNSUPPORTED
+  why: Same unsupported event-location construction.
+  frozen_evidence: []
+  writing_pass: Delete alongside the transition tables.
+
+- label: fig:ratio_shape_cv_transition_span_only
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: DELETE
+  numbers_fully_supported: UNSUPPORTED
+  why: >-
+    Restricted to the CV transition span, which is exactly the construction the
+    frozen evidence does not reproduce.
+  frozen_evidence: []
+  writing_pass: Delete, or replace with an unrestricted path figure.
+
+- label: fig:other_metric_paths_placeholder
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: A complete descriptive path figure, not a selected region.
+  frozen_evidence: []
+  writing_pass: Keep.
+
+- label: fig:vertical_equity_metric_paths
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: A complete descriptive path figure.
+  frozen_evidence: []
+  writing_pass: Keep.
+
+- label: fig:cv_predictive_metric_paths
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Complete fold-level CV paths, reported descriptively.
+  frozen_evidence: []
+  writing_pass: Keep.
+
+- label: fig:cv_level_uniformity_paths
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Complete fold-level CV paths, reported descriptively.
+  frozen_evidence: []
+  writing_pass: Keep.
+
+- label: fig:cv_vertical_equity_metric_paths
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Complete fold-level CV paths, reported descriptively.
+  frozen_evidence: []
+  writing_pass: Keep.
+
+- label: fig:cv_mechanism_metric_paths
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    Complete fold-level CV mechanism paths. The only numbers near it are figure
+    gridline values in a caption, allowlisted as typesetting.
+  frozen_evidence: []
+  writing_pass: Keep.
+
+- label: fig:tradeoff_equity_vs_accuracy_heldout
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Descriptive tradeoff scatter over the complete path.
+  frozen_evidence: []
+  writing_pass: Keep. Do not mark a preferred point.
+
+- label: fig:tradeoff_equity_vs_accuracy_2025
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Descriptive tradeoff scatter over the complete path.
+  frozen_evidence: []
+  writing_pass: Keep. Do not mark a preferred point.
+
+- label: fig:tradeoff_mechanism_vs_accuracy_heldout
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Descriptive tradeoff scatter over the complete path.
+  frozen_evidence: []
+  writing_pass: Keep. Do not mark a preferred point.
+
+- label: fig:tradeoff_mechanism_vs_accuracy_2025
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: KEEP
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: Descriptive tradeoff scatter over the complete path.
+  frozen_evidence: []
+  writing_pass: Keep. Do not mark a preferred point.
+
+- label: fig:vei_group_profile_placeholder
+  kind: figure
+  render_bucket: ACTIVE
+  disposition: UPDATE
+  numbers_fully_supported: FULLY_SUPPORTED
+  why: >-
+    A VEI percentile-group profile. VEI's construction and its +/-10% band come
+    from the May-2026 Exposure Draft, which the caption does not say.
+  frozen_evidence:
+  - analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json
+  - analysis/p1_inferential_reporting/tables/vei_significance.csv
+  writing_pass: >-
+    Keep the figure and label the band as a proposed exposure-draft diagnostic,
+    never as adopted guidance.
+
+# ------------------------------------------- commented duplicates (not rendered)
+- label: tab:assessment_metrics_summary
+  kind: table
+  render_bucket: COMMENTED
+  occurrences: 2
+  disposition: DELETE
+  numbers_fully_supported: NOT_RENDERED
+  why: >-
+    Two %-commented earlier revisions of the same table remain in the source.
+    They never print and are preserved verbatim in
+    paper_analysis/paper_v17/superseded_text_archive.md.
+  frozen_evidence: []
+  writing_pass: Delete the commented copies; the archive preserves them.
+
+- label: tab:path_anchor_summary
+  kind: table
+  render_bucket: COMMENTED
+  occurrences: 3
+  disposition: DELETE
+  numbers_fully_supported: NOT_RENDERED
+  why: >-
+    Three %-commented earlier revisions of the primary path table. They never
+    print, and they carry superseded numbers that must not be resurrected.
+  frozen_evidence: []
+  writing_pass: >-
+    Delete the commented copies. Do NOT mine them for values: the archive
+    preserves them, and their numbers are superseded.
+
+- label: tab:path_anchor_complementary
+  kind: table
+  render_bucket: COMMENTED
+  occurrences: 1
+  disposition: DELETE
+  numbers_fully_supported: NOT_RENDERED
+  why: A %-commented earlier revision of the complementary path table.
+  frozen_evidence: []
+  writing_pass: Delete the commented copy.

@@ -1,0 +1,193 @@
+# =============================================================================
+# Frozen wording prohibitions, and the reference-role semantics the guards read.
+#
+# tests/test_b0_role_guards.py is DATA-DRIVEN from this file: it does not hold
+# its own copy of these strings. A phrase may appear in a Tier-B0 output only
+# inside a sentence that states the prohibition itself; the guard checks that
+# every occurrence is accompanied by one of `prohibition_markers`.
+# =============================================================================
+schema_version: 1
+
+# The two frozen reference roles, quoted from
+# analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml
+reference_roles:
+  A:
+    forward_display_name: Ordinary LightGBM (standard raw-label native)
+    legacy_stage1_label: Ordinary LightGBM (standard raw-label native)
+    role: assessor-facing / workflow benchmark
+    primary_penalty_reference: false
+    comparison_purpose: WORKFLOW_BENCHMARK
+    attribution_rule: >-
+      comparisons against A are descriptively valid, but changes relative to A
+      must NOT be attributed solely to rho
+  B:
+    forward_display_name: Centered-label native L2 (initialization-aligned)
+    legacy_stage1_label: Parity-aligned native L2
+    role: implementation-decomposition control only
+    primary_penalty_reference: false
+    comparison_purpose: WITHIN_MODEL
+    attribution_rule: no full path; diagnostic only
+  C:
+    forward_display_name: Custom-objective rho=0 origin
+    legacy_stage1_label: Custom rho=0 origin
+    role: PRIMARY within-path penalty-isolating reference
+    primary_penalty_reference: true
+    comparison_purpose: PENALTY_ISOLATING
+    attribution_rule: >-
+      C(rho=0) -> Direct/Surrogate(rho>0) is the clean penalty contrast and is
+      the only comparison from which a rho effect may be attributed
+
+# A forbidden phrase may appear in a Tier-B0 output only inside a sentence that
+# states the prohibition. These are the cues the guard accepts as such. The
+# DECLARATION SITES -- this file, the `forbidden_wording` column of the two maps,
+# and the forbidden-wording sections of the generated documents -- are excluded
+# from pattern scanning entirely, since quoting the prohibited string is their
+# whole job; test_no_forbidden_phrase_appears_outside_a_prohibition checks them
+# separately, by requiring every `why` here to carry a cue.
+prohibition_markers:
+- "must NOT"
+- "must not"
+- "may not"
+- "do not"
+- "Do not"
+- "does not"
+- "did not"
+- "cannot"
+- "no longer"
+- FORBIDDEN
+- forbidden
+- "never "
+- "Never "
+- "never."
+- withdrawn
+- prohibited
+- prohibition
+- "is wrong"
+- "not be used"
+- "rather than"
+- "instead of"
+- "not sufficient"
+- "not adopted"
+- "not evidence"
+- "denies"
+- "denied"
+- "no penalty strength is selected"
+
+forbidden_phrases:
+- phrase: innocuous numerical effect
+  why: >-
+    Explicitly withdrawn by the frozen Gate-G2 adjudication. The accepted
+    conservative characterization is "deterministic built-in-vs-custom
+    feature-subsampling execution-path divergence".
+  source: analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml
+- phrase: Direct is effectively gradient-only
+  why: >-
+    Forbidden until Gate E.4 supports it. e4_verdict is INDETERMINATE: max
+    curvature ratio 40.04 against an accept threshold of 1.2, and max penalty
+    contribution M = 0.0118 against an accept threshold of 0.01.
+  source: analysis/p0_major_revision_validation/tables/e4_verdict.json
+- phrase: b_max = 1.25 * b_star
+  why: >-
+    The frozen rule is b_max = 1 + 1.25*(max development root - 1), a 25%
+    overshoot in (b-1). The 1.25*b_star form is recorded as forbidden.
+  source: analysis/p0_major_revision_validation/configs/posthoc_comparator_convention.yaml
+- phrase: s = mean(exp(e))
+  why: >-
+    Wrong Duan sign. The frozen estimator is
+    s = mean(exp(y_true_log - y_pred_log)). Note dCor uses the OPPOSITE residual
+    convention, e = y_pred_log - y_true_log, and the two must not be conflated.
+  source: analysis/p1_inferential_reporting/configs/smearing_estimator_frozen.json
+- phrase: weighted median
+  why: >-
+    No weighted-rank ED2 variant exists. ED2 Appendix D.2 is a rank-based
+    order-statistic CI on DISTINCT observations, which is exactly why pooled-OOF
+    has no row-balanced analogue and carries no ED2 inference.
+  source: analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json
+- phrase: "mean +/- SD/sqrt(7)"
+  why: >-
+    Fold SD is not a standard error and the seven folds are not IID. No
+    across-fold inference of this form may be reported.
+  source: analysis/p1_inferential_reporting/reports/MANUSCRIPT_EVIDENCE_PACKAGE.md
+- phrase: RMSE_log is smearing-invariant
+  why: >-
+    RMSE_log is NOT among the smearing-invariant metrics. Listing it there is a
+    substantive error.
+  source: analysis/p1_inferential_reporting/tables/smearing_apply_summary.json
+- phrase: multiplicity 2 gives 41,976 rows
+  why: >-
+    41,976 is a count of APPEARANCES arising from 20,988 unique duplicated rows,
+    not a row count. Appearances and unique rows must never be interchanged.
+  source: analysis/p1_inferential_reporting/provenance/p1_headline_numbers.json
+- phrase: project D3 is ED2 Appendix D.3
+  why: >-
+    The project's D3 sensitivity coordinate and ED2's own Appendix D.3
+    (a weighted-MEAN confidence interval) are different things.
+  source: analysis/p1_inferential_reporting/configs/ed2_vei_procedure.json
+- phrase: retrained Direct is equivalent to post-hoc rescaling
+  why: >-
+    Post-hoc rescaling matches much of the Direct path, but equivalence is not
+    established. The Surrogate claim is the one that survives, and Cell C is the
+    only penalty-isolating reference.
+  source: analysis/p0_major_revision_validation/reports/CENTERED_SPREAD_COMPARATOR_REPORT.md
+- phrase: ED2 is adopted guidance
+  why: >-
+    The May-2026 document is an EXPOSURE DRAFT. IAAO 2013 is the only adopted
+    guidance cited in this paper. Every ED2 mention must carry "Exposure Draft"
+    or "proposed".
+  source: analysis/p1_inferential_reporting/provenance/ed2_source_manifest.json
+- phrase: sweet spot
+  why: No penalty strength is selected anywhere in this paper.
+  source: analysis/p0_major_revision_validation/protocol_p0_validation.yaml
+- phrase: safe region
+  why: No penalty strength is selected anywhere in this paper.
+  source: analysis/p0_major_revision_validation/protocol_p0_validation.yaml
+- phrase: deployment point
+  why: No penalty strength is selected anywhere in this paper.
+  source: analysis/p0_major_revision_validation/protocol_p0_validation.yaml
+- phrase: recommended rho
+  why: No penalty strength is selected anywhere in this paper.
+  source: analysis/p0_major_revision_validation/protocol_p0_validation.yaml
+- phrase: zero covariance implies fairness
+  why: >-
+    Zero covariance is never equated with fairness, conditional unbiasedness or
+    independence. The active manuscript already denies this four times.
+  source: analysis/p0_major_revision_validation/protocol_p0_validation.yaml
+- phrase: the post-hoc root is 1/R^2
+  why: >-
+    1/R^2 is a theoretical diagnostic confined to the linear/projection special
+    case. The general root is b_star_train = Var_T(y)/Cov_T(f0,y).
+  source: analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml
+
+# Literal strings from a frozen report that must never be quoted: they are
+# unrendered f-string placeholders, not values.
+forbidden_literals:
+- "['executed_in_stage_2']}"
+- "{g['n_grid']}"
+- "{len(path):,}"
+forbidden_literals_why: >-
+  reports/CENTERED_SPREAD_COMPARATOR_REPORT.md sections 8 and 9 carry unrendered
+  f-string placeholders. Resolve them to values (executed_in_stage_2 = false,
+  n_grid = 124, len(path) = 2,480) and never quote the literals.
+
+# Counting units that may never appear in the same statement.
+mutually_exclusive_count_sets:
+- name: ed2_entry_level
+  counting_unit: display_entry
+  values: ["396", "279", "228"]
+- name: ed2_unique_realization
+  counting_unit: unique_realization
+  values: ["387", "270", "219"]
+mutually_exclusive_why: >-
+  The two families differ by exactly 9, because
+  fit:LGBCovPenalty:1fb838f7d6bfda88 appears twice in the display set -- once as
+  the Cell-C reference and once as core j=0 Direct -- across the nine
+  ED2-applicable evaluation blocks. Methodological summary statements should
+  prefer the unique-realization counts; the entry-level counts are for claims
+  specifically about display roles.
+
+option2_rule: >-
+  paper_v17_option2.tex may be read for WORDING PRECEDENT ONLY. No number,
+  threshold, empirical result or scientific conclusion may be imported from
+  Option 2 unless it is independently supported by the frozen Tier-B0 numeric or
+  claim map. The option2_precedent field carries line ranges and wording notes
+  only, never a value.
