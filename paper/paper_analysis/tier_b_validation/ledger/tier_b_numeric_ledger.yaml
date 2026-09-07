@@ -287,3 +287,133 @@ entries:
     comparison_purpose: NOT_APPLICABLE
     counting_unit: NOT_APPLICABLE
     attained_status: ATTAINED
+
+# --------------------------------------------------------------------------
+# B1.4 -- Design: the extract identification and the development coordinates.
+#
+# The CCAO extract is hash-pinned but not redistributed, and no build or
+# retrieval date was recorded when it was taken. That gap is explicitly
+# NON-BLOCKING: nothing is invented to fill it, and the paper states the
+# limitation instead. What CAN be pinned is pinned here, including the printed
+# sha256 itself, so the hex string in the manuscript is checked against the
+# frozen provenance rather than trusted.
+# --------------------------------------------------------------------------
+
+  - entry_id: TB-extract-sha256
+    added_by_stage: B1.4
+    artifact_path: analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+    artifact_sha256: ce4a46f06f42c07e32e065f7984a48963a87750582b60e309a09fa998dbe7cb2
+    artifact_kind: json
+    selector: $.input_artifact_hashes.canonical_data_parquet.sha256
+    metric: canonical_data_parquet_sha256
+    raw_value: "b1fc00b514041af5aa7135d85ed59a028afe40569bba1014c4dcf3ad2f3a7b51"
+    value_transform: identity
+    rounding_rule: verbatim
+    rendered_value: "b1fc00b514041af5aa7135d85ed59a028afe40569bba1014c4dcf3ad2f3a7b51"
+    manuscript_anchor: subsec:ccao_design
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: >-
+      Not a numeric token, so the coverage audit never sees it -- which is
+      exactly why it needs an entry: a mistyped hash would otherwise be
+      invisible to every check.
+
+  - entry_id: TB-extract-bytes
+    added_by_stage: B1.4
+    artifact_path: analysis/p0_major_revision_validation/provenance/PREFLIGHT.json
+    artifact_sha256: ce4a46f06f42c07e32e065f7984a48963a87750582b60e309a09fa998dbe7cb2
+    artifact_kind: json
+    selector: $.input_artifact_hashes.canonical_data_parquet.bytes
+    metric: canonical_data_parquet_bytes
+    raw_value: "215400916"
+    value_transform: identity
+    rounding_rule: usd_comma:0
+    rendered_value: "215,400,916"
+    manuscript_anchor: subsec:ccao_design
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+
+  - entry_id: TB-overlap-n-unique
+    added_by_stage: B1.4
+    artifact_path: analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_summary.json
+    artifact_sha256: e4eb13ed874b3d685b3aef2fffd4860d3127e65ce7bbe6469d4a6c96b5f9ae33
+    artifact_kind: json
+    selector: $.n_unique
+    metric: n_unique_sales
+    raw_value: "130165"
+    value_transform: identity
+    rounding_rule: usd_comma:0
+    rendered_value: "130,165"
+    manuscript_anchor: subsec:path_design
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: evaluation_cell
+    attained_status: ATTAINED
+    note: >-
+      DISTINCT SALES, and the unit matters. The neighbouring count, 151,153, is
+      APPEARANCES. Appearances and unique rows are never interchanged: the
+      related P0 key m_i_distribution is valued in appearances even though one
+      frozen adjudication describes it as counts of sales.
+
+  - entry_id: TB-overlap-n-appearances
+    added_by_stage: B1.4
+    artifact_path: analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_summary.json
+    artifact_sha256: e4eb13ed874b3d685b3aef2fffd4860d3127e65ce7bbe6469d4a6c96b5f9ae33
+    artifact_kind: json
+    selector: $.n_concatenated
+    metric: n_concatenated_appearances
+    raw_value: "151153"
+    value_transform: identity
+    rounding_rule: usd_comma:0
+    rendered_value: "151,153"
+    manuscript_anchor: subsec:path_design
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: evaluation_cell
+    attained_status: ATTAINED
+    note: APPEARANCES in the concatenated pooled sample, not distinct sales.
+
+  - entry_id: TB-overlap-n-duplicated-rows
+    added_by_stage: B1.4
+    artifact_path: analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_summary.json
+    artifact_sha256: e4eb13ed874b3d685b3aef2fffd4860d3127e65ce7bbe6469d4a6c96b5f9ae33
+    artifact_kind: json
+    selector: $.n_duplicated_rows
+    metric: n_duplicated_rows
+    raw_value: "20988"
+    value_transform: identity
+    rounding_rule: usd_comma:0
+    rendered_value: "20,988"
+    manuscript_anchor: subsec:path_design
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: evaluation_cell
+    attained_status: ATTAINED
+    note: >-
+      Unique sales appearing twice. The doubled figure 41,976 is a count of
+      APPEARANCES and is never written as a row count.
+
+  - entry_id: TB-overlap-share-duplicated
+    added_by_stage: B1.4
+    artifact_path: analysis/p0_major_revision_validation/tables/cv_fold_validation_overlap_summary.json
+    artifact_sha256: e4eb13ed874b3d685b3aef2fffd4860d3127e65ce7bbe6469d4a6c96b5f9ae33
+    artifact_kind: json
+    selector: $.share_duplicated
+    metric: share_duplicated
+    raw_value: "0.13885268568933465"
+    value_transform: times_100
+    rounding_rule: half_up:1
+    rendered_value: "13.9"
+    manuscript_anchor: subsec:path_design
+    reference_cell: NONE
+    comparison_purpose: NOT_APPLICABLE
+    counting_unit: NOT_APPLICABLE
+    attained_status: ATTAINED
+    note: >-
+      A fraction in the artifact, printed as a percent, and attributed in the
+      prose to "the frozen accounting" rather than restated as a ratio the
+      reader is invited to recompute from two counts with different units.

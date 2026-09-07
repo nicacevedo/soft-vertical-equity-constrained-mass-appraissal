@@ -26,8 +26,20 @@ baseline/FROZEN_SUITE_EXPECTATIONS.md rather than fixed.
 What certifies the science is what the three tags carry. What certifies the
 writing is validate.py plus the scope and immutability checks.
 
-Nothing here writes under analysis/: sys.dont_write_bytecode is set before any
-frozen module is imported, so not even a __pycache__ appears.
+DANGER, MEASURED THE HARD WAY: the Tier-B0 suite is not read-only. Several of its
+tests RE-EXECUTE the Tier-B0 builders -- test_every_builder_regenerates_byte_identically,
+test_coverage_regenerates_byte_identically, test_manifest_is_deterministic -- and those
+builders WRITE into analysis/final_manuscript_evidence/. While the manuscript is
+byte-identical to the Tier-A baseline the regenerated outputs match and nothing changes,
+which is why the pre-edit run is safe. Once the manuscript has been edited the regenerated
+outputs differ, and re-running the suite silently OVERWRITES FINAL_EVIDENCE_MANIFEST.json,
+certification/CERTIFICATION.md and certification/certification.json -- mutating the frozen
+subtree the whole pass exists to protect.
+
+So the Tier-B0 suite is REFUSED unless the live manuscript still hashes to the pinned
+baseline, and every run is followed by an assertion that all three frozen subtrees are
+still byte-identical to their tags, in the working tree as well as at HEAD. This script
+does not write under analysis/, and it now proves it rather than promising it.
 """
 from __future__ import annotations
 
@@ -119,12 +131,28 @@ def main(argv=None) -> int:
     shim = out / "_p1_runner.py"
     tb.write_text(shim, P1_SHIM)
 
+    live_sha = tb.sha256_file(tb.TEX)
+    baseline = live_sha == tb.BASELINE_TEX_SHA256
+
     results = {}
     for name, cmd in (
             ("tier_b0", [sys.executable, str(B0_RUNNER)]),
             ("p0", [sys.executable, str(P0_RUNNER)]),
             ("p1", [sys.executable, str(shim), str(P1_TESTS)] + list(P1_MODULES)),
     ):
+        if name == "tier_b0" and not baseline:
+            reason = (
+                "REFUSED: the Tier-B0 suite re-executes the Tier-B0 builders, which "
+                "write into analysis/final_manuscript_evidence/. With the manuscript "
+                "edited, the regenerated outputs differ and the run would OVERWRITE the "
+                "frozen subtree (measured: FINAL_EVIDENCE_MANIFEST.json, "
+                "certification/CERTIFICATION.md, certification/certification.json). It "
+                "is informational anyway, and its pre-edit result is already recorded in "
+                "baseline/. Run it only against the pinned baseline manuscript, in a "
+                "throwaway checkout.")
+            print(f"{name:8s} SKIPPED -- {reason}")
+            results[name] = {"skipped": True, "reason": reason}
+            continue
         code, text = _run(cmd)
         tb.write_text(out / f"{name}_suite_{a.label}.log", text)
         results[name] = {"exit_code": code, **_parse(text)}
@@ -135,6 +163,25 @@ def main(argv=None) -> int:
             print(f"           FAIL {t}")
     shim.unlink(missing_ok=True)
 
+    # Prove, do not promise: the three frozen subtrees must still be
+    # byte-identical to their tags -- in the WORKING TREE, not just at HEAD,
+    # because a suite that writes leaves an uncommitted mutation.
+    violations = []
+    for tag, subtree in tb.FROZEN_SUBTREES:
+        for rev in (("HEAD",), ()):
+            d = tb.git("diff", "--stat", tag, *rev, "--", subtree).strip()
+            if d:
+                violations.append(f"{subtree} diverged from {tag} "
+                                  f"({'HEAD' if rev else 'worktree'}):\n{d}")
+    if violations:
+        print("\n*** FROZEN SUBTREE MUTATED BY A SUITE RUN ***")
+        for v in violations:
+            print("  " + v)
+        print("\nRestore it before doing anything else:\n"
+              "  git checkout -- analysis/\n"
+              "then re-check the three tag diffs. Do NOT commit the mutation.")
+        return 2
+
     tb.write_json(out / f"frozen_suites_{a.label}.json", {
         "label": a.label,
         "informational_only": True,
@@ -143,7 +190,9 @@ def main(argv=None) -> int:
             "fail by design once the manuscript is intentionally edited. They are "
             "never a writing-stage pass/fail criterion, never modified, and never "
             "cited as certification of this pass."),
-        "manuscript_sha256": tb.sha256_file(tb.TEX),
+        "manuscript_sha256": live_sha,
+        "manuscript_is_tier_a_baseline": baseline,
+        "frozen_subtrees_verified_after_run": True,
         "head": tb.git("rev-parse", "HEAD").strip(),
         "results": results,
     })

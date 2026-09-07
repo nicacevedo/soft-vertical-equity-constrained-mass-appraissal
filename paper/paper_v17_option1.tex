@@ -703,7 +703,7 @@ A negative VEI indicates that higher-value properties have lower median valuatio
 \begin{table}[!ht]
 \centering
 \footnotesize
-\setlength{\tabcolsep}{5pt}
+\setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.10}
 
 % Indentation for individual measures within each family
@@ -715,8 +715,9 @@ A negative VEI indicates that higher-value properties have lower median valuatio
 \begin{tabularx}{\textwidth}{
 @{}
 >{\raggedright\arraybackslash}p{3.8cm}
->{\centering\arraybackslash}p{1.8cm}%{1.5cm}
+>{\centering\arraybackslash}p{1.8cm}
 >{\centering\arraybackslash}p{2.9cm}
+>{\centering\arraybackslash}p{2.3cm}
 >{\raggedright\arraybackslash}X
 @{}
 }
@@ -726,31 +727,36 @@ A negative VEI indicates that higher-value properties have lower median valuatio
 & 
 % \oldtext{\textbf{\shortstack{Reference range}}}
 \newtext{\textbf{\shortstack{Reference range}}}
+& \newtext{\textbf{Guidance status}}
 & \textbf{Interpretation} \\
 \midrule
 
 \textbf{Predictive performance}
-& & & \\
+& & & & \\
 \cmidrule(r){1-1}
 
 \metriclabel{$R^2_P$}
 & $1$
 & --
+& \newtext{n/a}
 & Original price-scale goodness of fit. \\
 
 \metriclabel{$\operatorname{MAE}_P$}
 & $0$
 & --
+& \newtext{n/a}
 & Mean absolute prediction error in dollars. \\
 
 \metriclabel{$\operatorname{MAPE}_P$}
 & $0$
 & --
+& \newtext{n/a}
 & Mean absolute prediction error relative to sale price. \\
 
 \metriclabel{$\operatorname{RMSE}_{\log P}$}
 & $0$
 & --
+& \newtext{n/a}
 & RMSE on the log-price estimation scale. \\
 
 
@@ -759,22 +765,25 @@ A negative VEI indicates that higher-value properties have lower median valuatio
 \textbf{{Valuation level}
 % \quad\textcolor{impGreen}{Valuation level}
 }
-& & & \\
+& & & & \\
 \cmidrule(r){1-1}
 
 \metriclabel{Median ratio $m_S$}
 & $1$
 & $[0.90,1.10]$
+& \newtext{IAAO 2013 (adopted)}
 & Robust aggregate valuation level. \\
 
 \metriclabel{Mean ratio $\bar r_S$}
 & $1$
 & $[0.90,1.10]$
+& \newtext{IAAO 2013 (adopted)}
 & Unweighted aggregate valuation level. \\
 
 \metriclabel{Weighted mean $\bar r_{W,S}$}
 & $1$
 & $[0.90,1.10]$
+& \newtext{IAAO 2013 (adopted)}
 & Value-weighted valuation level. \\
 
 
@@ -783,44 +792,50 @@ A negative VEI indicates that higher-value properties have lower median valuatio
 \textbf{{Horizontal uniformity}
 % \quad\textcolor{impGreen}{Ratio dispersion}
 }
-& & & \\
+& & & & \\
 \cmidrule(r){1-1}
 
 \metriclabel{COD}
 & --
 & $[5.0,15.0]$
+& \newtext{IAAO 2013 (adopted)}
 & Absolute dispersion relative to the median ratio. \\
 
 \metriclabel{COV}
 & --
 & $[6.25\%,18.75\%]$
+& \newtext{derived approximation}
 & Relative dispersion around the mean ratio. \\
 
 
 \midrule
 \addlinespace[5pt]
 \textbf{Vertical equity}
-& & & \\
+& & & & \\
 \cmidrule(r){1-1}
 
 \metriclabel{PRD}
 & $1$
 & $[0.98,1.03]$
+& \newtext{IAAO 2013 (adopted)}
 & Mean-to-weighted-mean ratio comparison. \\
 
 \metriclabel{PRB}
 & $0$
 & $[-0.05,0.05]$
+& \newtext{IAAO 2013 (adopted)}
 & Regression-based value-related ratio trend. \\
 
 \metriclabel{MKI}
 & $1$
 & $[0.95,1.05]$
+& \newtext{May 2026 (exposure draft)}
 & Distributional concentration relative to sale prices. \\
 
 \metriclabel{VEI}
 & $0$
 & $[-10\%,10\%]$
+& \newtext{May 2026 (exposure draft)}
 & High-versus-low value-group median-ratio difference. \\
 
 \bottomrule
@@ -845,6 +860,14 @@ optimal range for lower-variability strata.
 The May 2026 IAAO exposure draft proposes $[-10\%,10\%]$ for VEI.
 The exposure draft remains under review; the 2013 Standard remains the
 recommended IAAO guidance until a final revision is approved.
+\newtext{The guidance-status column records that standing explicitly, because
+the two are not interchangeable: the level-ratio, COD, PRD and PRB ranges come
+from the \emph{adopted} 2013 Standard, whereas the MKI and VEI bands come from
+the May 2026 \emph{exposure draft} and are proposed rather than adopted
+guidance. The COV range is neither: it is a derived approximation obtained from
+the COD range through the stated relationship, and is labelled as such rather
+than presented as a published band. Predictive measures carry no guidance status
+because no ratio-study standard defines a range for them.}
 \end{minipage}
 
 \end{table}
@@ -1691,6 +1714,19 @@ matters is precisely what E.4 was designed to settle, and it did not settle it.}
 % \oldtext{The CCAO application uses verified Cook County residential sales from the CCAO residential modeling data used for the final evaluation. The residential scope includes the property types represented in the CCAO residential pipeline, including single-family homes, townhomes, small multifamily properties, and condominiums. Following the office pipeline, we exclude multicard PINs and sales marked as outliers.}
 
 \newtext{The primary CCAO application uses verified Cook County residential sales from the final residential-modeling extract used to construct the evaluation samples. The residential scope follows the property types represented in the translated CCAO residential pipeline, including single-family homes, townhomes, small multifamily properties, and condominiums; following the office pipeline, we exclude multicard PINs and sales marked as outliers.}
+\newtext{The extract is identified by content rather than by a version string. Every
+sample reported here is constructed from
+\texttt{data/CCAO/2025/training\_data.parquet}, of 215,400,916 bytes, with sha256}
+\begin{center}
+\texttt{\small b1fc00b514041af5aa7135d85ed59a028afe40569bba1014c4dcf3ad2f3a7b51}
+\end{center}
+\newtext{as recorded in the frozen preflight provenance. Two limitations belong
+with that identification rather than after it. The file is hash-pinned but not
+redistributed: it is not part of the replication package, and no claim of public
+availability is made for it. And no build or retrieval date was recorded when the extract
+was taken, so none is asserted here -- the hash fixes \emph{which} extract was used, not
+when it was produced.}
+
 \todo{Insert the exact final CCAO extract/version, build or retrieval date, and citable source into the first sentence before submission.}
 
 % \textcolor{blue}{\sout{The pre-2024 modeling sample contains 349,661 observations. Sales from 2016--2022 form the development period; 2023 is held out for final testing. The 2024 sales block is reserved for later assessment-year analysis and is not used for the results reported here.}}
@@ -1768,6 +1804,38 @@ and the centered log-price deviations, are recomputed from $\mathcal T_v$ only.
 % \oldtext{The exact seven-fold date, validation-rule, and sample-size table was displayed in the main text.}
 \newtext{The exact fold dates and sample sizes are reported in Appendix~\ref{app:ccao_path_details}, Table~\ref{tab:fold_structure}; because the newest-10\% validation rule is identical in every fold, it is stated once rather than repeated as a table column.}
 
+\paragraph{\newtext{Development coordinates.}}
+\newtext{Three development coordinates appear below, and they are not interchangeable.
+The primary coordinate, D1, preserves the CCAO-inspired overlapping rolling-origin
+workflow: it is the equal-weight mean of the seven chronological fold metrics. D3 is the
+one-sale-one-vote sensitivity, in which every distinct sale carries total weight exactly
+one through $w_{ik}=1/m_i$ across the $m_i$ folds in which sale $i$ appears; it is defined
+on the development pool alone and covers 130,165 distinct sales. D2 is the
+duplicate-weighted pooled out-of-fold coordinate, retained as a historical and
+reproducibility sensitivity and never elevated over D1 or D3.}
+
+\newtext{The three differ because of a property of the fold construction that has to be
+stated before any result is read. The fold-6 and fold-7 origins are only about four months
+apart, while the rule reserving the most recent tenth of each cumulative window for
+validation spans close to a year of the development pool, so those two validation blocks
+overlap. The concatenated pooled sample therefore contains 151,153 appearances of 130,165
+distinct sales: 20,988 sales appear twice and none appears more often, which the frozen
+accounting records as a duplicated share of 13.9\%.}
+
+\newtext{D1's status under that overlap is exactly five things, and the last two are the
+ones easily lost. D1 remains the primary coordinate; its mathematical definition is
+unchanged; every fold-level prediction is still genuinely out of training sample, because
+no overlapping row lies in the training block of the model that predicted it; but D1 is
+\emph{not} an independent-observation aggregate, since some sales contribute to more than
+one fold-specific value; and fold-level statistics are therefore not independent. We do
+not describe D1 as unaffected by the overlap. It follows that the fold-level standard
+deviations reported alongside fold means are descriptive chronological-window variation
+and not standard errors: they support no IID reading of the seven folds and no across-fold
+significance statement. D2 is the only one of the three coordinates that double-counts by
+construction, and where the nonlinearity gap is computed on that pooled sample a composite
+\texttt{fold|row\_id} identifier is supplied to the otherwise unchanged frozen estimator,
+so the quantity stays a function of observation identity alone.}
+
 The experiment traces the full regularization paths rather than choosing a penalty
 strength at this stage. 
 % \oldtext{The candidate set contains standard LightGBM, a custom-objective implementation control with $\rho=0$, and the direct and sample-additive covariance-penalized LightGBM families.}
@@ -1784,10 +1852,7 @@ valuation-level, ratio-dispersion, vertical-equity, and mechanism/residual-struc
 We report equal-weight fold means and standard deviations to describe the
 chronological behavior of the regularization paths.
 % \oldtext{No $\rho$, model family, or penalized configuration is selected in the present analysis.}
-\latesttext{No deployment operating point is selected in the present analysis. The chronological-CV path is used only to characterize the path and, in the screening analysis below, to narrow the positive-$\rho$ configurations that would be passed to a later decision rule.}
-
-\paragraph{\latesttext{Secondary path summaries.}}
-\latesttext{The full regularization paths are the primary empirical objects. For operational interpretability, we additionally report (i) a CV-only candidate-region screen with a soft activity marker and a family-specific upper deterioration/caution guardrail and (ii) a descriptive envelope of five prediction/COD turning events. Neither construction is an estimator, confidence interval, safe range, or model-selection rule. Both are assessed by leave-one-fold-out recomputation; their held-out and 2025 comparisons are retrospective because later-path information had already been examined during manuscript development. Appendix~\ref{app:ccao_path_details} states the algorithms, endpoints, stability checks, and value-regret calculations in full. Keeping those details in the appendix prevents a post-path screening device from being mistaken for the central method.}
+\latesttext{No deployment operating point is selected in the present analysis.} \newtext{The chronological-CV path is used only to characterize the path.}
 
 % \oldtext{For compact main-text displays only, we use a small set of \emph{prespecified display anchors}: $\rho=0$ together with the positive grid points nearest $0.1$, $1$, $10$, and $100$.}
 % \oldtext{For compact main-text tables, we use the positive grid points nearest $0.1$, $1$, $10$, and $100$ as prespecified display anchors and show ordinary LightGBM as the unpenalized baseline. These anchors are chosen before inspecting the sweep outcomes and are used only to make tables and ratio-shape figures readable.}
@@ -1844,6 +1909,27 @@ Current analysis & \latesttext{Full CV, held-out, and forward paths; secondary C
 % \textcolor{blue}{\sout{Four comparisons are needed to interpret the method.}}
 % \oldtext{The empirical comparison separates the baseline model class, the custom-objective implementation path, positive covariance regularization, and a centered post-hoc recalibration benchmark.}
 \newtext{The empirical comparison in this paper is deliberately restricted to the baseline model classes, the custom-objective implementation control, and the Direct and Surrogate training-time regularization paths. A systematic comparison with post-hoc calibration is left to follow-up work.}
+
+\paragraph{\newtext{Reference cells, and what each one licenses.}}
+\newtext{Three reference cells appear below, and the distinction between two of them is
+load-bearing for every comparison in the Results. \emph{Ordinary LightGBM (standard
+raw-label native)} is the assessor-facing workflow benchmark: the standard pipeline as an
+office would run it. \emph{Centered-label native L2 (initialization-aligned)} is an
+implementation-decomposition control only, and no full regularization path is traced for
+it. \emph{Custom-objective $\rho=0$ origin} is the primary within-path penalty-isolating
+reference: the same custom-objective code path as the penalized fits, evaluated at zero
+penalty.}
+
+\newtext{The attribution rule that goes with them is not a nicety. Comparisons against
+the workflow benchmark are descriptively valid, and they are the practitioner's question
+-- can a different objective beat the standard pipeline? -- but a change relative to it
+must not be attributed to $\rho$ alone, because that cell differs from the penalized fits
+in execution path as well as in penalty. Only the contrast from the custom-objective
+$\rho=0$ origin to a positive-$\rho$ fit within the same family isolates an effect of the
+penalty. Where both comparisons are reported they are labelled as the different questions
+they are, and no workflow-benchmark difference is presented as a pure penalty effect.
+Appendix~\ref{app:implementation} reports the $\rho=0$ implementation audit that makes
+the distinction necessary rather than merely cautious.}
 
 \paragraph{Linear and nonlinear baselines.}
 % \textcolor{blue}{\sout{Linear regression shows the performance of a simpler model; unpenalized LightGBM is the relevant modern AVM baseline.}}

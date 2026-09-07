@@ -131,7 +131,11 @@ def main(argv=None) -> int:
     if a.compile:
         import tb_compile
         comp = tb_compile.compile_manuscript()
+        # Ephemeral: a scratch directory name and a log tail would make the
+        # committed per-stage record differ on every re-run for no reason. A
+        # stage record should be reproducible from the stage's tree.
         comp.pop("stdout_tail", None)
+        comp.pop("outdir", None)
 
     n_unexpected = len(cls["unexpected"])
     ok = (n_unexpected == 0 and scope["ok"] and token_ok and traj_ok

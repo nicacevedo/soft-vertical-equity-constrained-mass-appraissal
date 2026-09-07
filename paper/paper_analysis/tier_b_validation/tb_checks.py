@@ -396,10 +396,18 @@ def c04_development_coordinates(ctx) -> list:
     # "unaffected" is prohibited for D1: POST_G3_ADJUDICATION section 2
     # supersedes both the Tier-B0 spec's phrasing and the comparator report.
     for u in ctx.at.units:
-        if "unaffected" in u.norm and re.search(r"\bd1\b|cv-mean|cv mean", u.norm):
-            out.append(Finding("C04", "C04:d1_unaffected",
-                               "D1 is described as 'unaffected' by the overlap",
-                               line=u.line, anchor=u.anchor))
+        if "unaffected" not in u.norm:
+            continue
+        if not re.search(r"\bd1\b|cv-mean|cv mean", u.norm):
+            continue
+        # A sentence that STATES the prohibition -- "we do not describe D1 as
+        # unaffected" -- is the compliant form, not a violation. Same exemption
+        # C07 and C08 apply, from the same frozen prohibition_markers vocabulary.
+        if ctx.states_a_prohibition(u):
+            continue
+        out.append(Finding("C04", "C04:d1_unaffected",
+                           "D1 is described as 'unaffected' by the overlap",
+                           line=u.line, anchor=u.anchor))
     # No IID reading of seven overlapping chronological folds.
     for u in ctx.at.units:
         if re.search(r"\bsd\b|standard deviation", u.norm) and \
