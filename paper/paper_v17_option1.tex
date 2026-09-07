@@ -311,9 +311,10 @@ Equity has long been a central objective in mass appraisal practice and standard
 \paragraph{Residual--outcome decorrelation outside mass appraisal.}
 The mechanism controlled here, namely dependence between a model's residuals and the
 very outcome that model predicts, has already been formulated, and controlled, outside
-mass appraisal, and the closest prior art is not in the valuation literature at all. In
-brain-age prediction the same structure appears as the ``brain-age delta'' problem: the
-residual of predicted age on true age is systematically associated with true age.
+mass appraisal. Some of the closest methodological prior art comes from outside the
+valuation literature, particularly brain-age prediction, where the same structure appears
+as the ``brain-age delta'' problem: the residual of predicted age on true age is
+systematically associated with true age.
 \textcite{SmithEtAl2019} set out that estimation problem together with its
 regression-based correction, and \textcite{BeheshtiEtAl2019} give a post-hoc affine
 bias-adjustment scheme for it. \textcite{TrederEtAl2021} impose a correlation constraint
@@ -322,8 +323,8 @@ constraint strength varies. \textcite{WangEtAl2023} instead reshape the loss so 
 corrects the target-dependent component of predictive bias, and \textcite{RenEtAl2026}
 place an explicit delta--outcome correlation loss inside a nonlinear learner.
 \textcite{LeeChen2026} supply a statistical framing for this class of procedures, through
-outcome-calibrated regression and inference based on predicted outcomes. In the fairness
-literature the same idea appears as a dependence restriction expressed through a
+outcome-calibrated regression and inference based on predicted outcomes. Related
+fair-regression work also expresses dependence restrictions through measures such as the
 coefficient of determination \cite{KomiyamaEtAl2018}.
 
 Nothing in the following list is novel here: residual--outcome decorrelation itself;
@@ -1841,7 +1842,7 @@ strength at this stage.
 % \oldtext{The candidate set contains standard LightGBM, a custom-objective implementation control with $\rho=0$, and the direct and sample-additive covariance-penalized LightGBM families.}
 \newtext{The substantive comparison contains standard LightGBM and the positive-penalty Direct and Surrogate LightGBM families.}
 % \oldtext{For each positive-penalty family, we evaluate 50 geometrically spaced values between $0.1$ and $100$.}
-\latesttext{Each family was first evaluated on 50 geometrically spaced positive values from $0.1$ to $100$. The initial transition analysis left the lower tail unresolved: the Direct $\operatorname{RMSE}_{\log P}$ event occurred at the first positive grid point, while the Surrogate $\operatorname{RMSE}_{\log P}$ event occurred at $\rho=0$. We therefore fixed a one-time lower-tail extension of 32 additional positive values from $0.0010985$ to $0.0868511$, aligned to the same logarithmic spacing as the original grid. The final augmented path contains 82 positive values per family, and the previously fitted $0.1$--$100$ points are retained unchanged.}
+\latesttext{Each family was first evaluated on 50 geometrically spaced positive values from $0.1$ to $100$. A one-time lower-tail extension then added 32 positive values between approximately $0.00110$ and $0.08685$, aligned to the same logarithmic spacing as the original grid, to increase resolution near zero. The final augmented path therefore contains 82 positive values per family, with the originally fitted $0.1$--$100$ points retained unchanged.}
 Because the direct and surrogate objectives have different numerical scales, their $\rho$
 values are not interpreted as comparable magnitudes. The LightGBM hyperparameters were tuned on the same seven chronological folds before any penalty path was estimated. The tuning criterion was the equal-weight mean of fold validation price RMSE, $\operatorname{RMSE}_P(S)=\sqrt{n_S^{-1}\sum_{i\in S}(\widehat P_i-P_i)^2}$. The adopted configuration uses 994 trees and was then frozen for ordinary LightGBM, Direct, and Surrogate fits. The held-out and 2025 samples were not used for this hyperparameter choice. With that vector held fixed, $\rho$ is the only dimension varied within each penalized family.
 
@@ -1924,10 +1925,12 @@ penalty.}
 the workflow benchmark are descriptively valid, and they are the practitioner's question
 -- can a different objective beat the standard pipeline? -- but a change relative to it
 must not be attributed to $\rho$ alone, because that cell differs from the penalized fits
-in execution path as well as in penalty. Only the contrast from the custom-objective
-$\rho=0$ origin to a positive-$\rho$ fit within the same family isolates an effect of the
-penalty. Where both comparisons are reported they are labelled as the different questions
-they are, and no workflow-benchmark difference is presented as a pure penalty effect.
+in execution path as well as in penalty. The custom-objective $\rho=0$ origin to
+positive-$\rho$ contrast, taken within the same family, is therefore the primary
+within-path penalty-isolating comparison: it isolates the change associated with
+activating the penalty within the same frozen implementation path. Where both comparisons
+are reported they are labelled as the different questions they are, and no
+workflow-benchmark difference is presented as a pure penalty effect.
 Appendix~\ref{app:implementation} reports the $\rho=0$ implementation audit that makes
 the distinction necessary rather than merely cautious.}
 
@@ -3179,7 +3182,7 @@ Surrogate & 100 & \latesttext{0.948} & \latesttext{0.964} & \latesttext{\textbf{
 {\color{impGreen}
 \begin{table}[!ht]
 \centering
-\caption{Rolling-origin validation structure for the final CCAO development sample. In every fold, the newest 10\% of observations in the cumulative window form the validation block.}
+\caption{Rolling-origin validation structure for the final CCAO development sample. In every fold, the newest 10\% of observations in the cumulative window form the validation block. The fold-6 and fold-7 validation blocks overlap; accordingly, fold-level statistics computed across these rows are descriptive chronological-window summaries rather than independent replications, and they support no IID standard errors. See Section~\ref{subsec:path_design} for the development coordinates and the one-sale-one-vote D3 sensitivity.}
 \label{tab:fold_structure}
 \begin{tabular}{clrr}
 \toprule

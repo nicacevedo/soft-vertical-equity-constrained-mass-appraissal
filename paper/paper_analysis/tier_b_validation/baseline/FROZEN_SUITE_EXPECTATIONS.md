@@ -103,3 +103,40 @@ report `test_frozen_stages_and_paper_are_untouched`,
 resting on `TEX_SHA256`. That is the designed behaviour of a
 paper-immutability guard during a paper rewrite. It is documented here and left
 alone.
+
+## Post-edit execution policy (added at Tier B1.5)
+
+The measurements above are the record. This section is the policy that follows
+from them, and it is deliberately wider than the one hazard that was measured.
+
+**Once the live manuscript is no longer byte-identical to the pinned pre-writing
+baseline, `run_frozen_suites_informational.py` refuses ALL frozen P0/P1/B0
+suites in this live writing worktree.** Before B1.5 only the Tier-B0 suite was
+refused, because that is the one caught re-executing its own builders and
+overwriting `FINAL_EVIDENCE_MANIFEST.json`, `certification/CERTIFICATION.md` and
+`certification/certification.json`.
+
+Three reasons the refusal is now general rather than specific:
+
+1. **A post-edit rerun measures nothing.** Every one of these suites carries
+   HEAD-relative or paper-immutability guards that are *expected* to fail during
+   a writing pass, as the table above records. A run that is expected to fail is
+   not evidence, and it is not Tier-B certification either.
+2. **The B0 case proved the hazard class is real, not hypothetical.** A frozen
+   suite that re-executes a builder can mutate the subtree the whole pass exists
+   to protect. Enumerating which of the remaining suites happen not to do that
+   today is a guarantee about code nobody in this pass is allowed to change or
+   re-audit.
+3. **The refusal is free.** There is nothing to lose by not running them here,
+   and a mutated frozen subtree would cost the pass.
+
+If an informational rerun is genuinely wanted, run it in a **disposable clean
+checkout or throwaway git worktree at the appropriate frozen tag** --
+`tier-b0-final-20260907`, `p0-major-revision-final-20260907`,
+`p1-inferential-reporting-final-20260907` -- and discard the checkout afterwards.
+The runner prints the exact commands when it refuses.
+
+No frozen P0/P1/B0 test is modified by any of this. Refusing to *run* a suite in
+this worktree is a Tier-B policy about this worktree; the binding immutability
+checks remain the direct tag and subtree diffs in `tb_scope.py`, which are
+asserted at every stage and may never fail.

@@ -43,16 +43,40 @@
 schema_version: 1
 manuscript_baseline_sha256: 13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a
 baseline_unsupported_tokens: 356
+# The ORDINARY, text-mode flagged-token budget. It is not a statement about
+# math-mode numbers: the frozen coverage audit masks math environments, so an
+# unsupported value written as $0.08677$ is outside this population entirely.
+# Those are carried by spec/unsupported_math_claims.yaml and reported by C13
+# alongside this budget -- never inside it.
 expected_token_trajectory:
   B1.0: 356
   B1.1: 218
   B1.2: 218
   B1.3: 218
   B1.4: 218
+  B1.5: 218        # bounded hardening pass; clears no flagged anchor
   B2.1: 34
   B2.2: 0
 
 expected_failures:
+- key: 'C13:unsupported_math_claim:MATH-001-cv-delta-nl-minima'
+  resolved_by_stage: B2.6
+  why: >-
+    The descriptive CV Delta_NL minima sentence in Appendix F (Direct 0.08685 at
+    rho=100; Surrogate 0.08677 at rho ~= 1.677). The approved plan lists it in
+    section E.6 and again in section G among the claims that cannot be written
+    from the frozen evidence: none of the three values is in the frozen numeric
+    map, and Delta_NL is absent from frozen_artifact_reproduction.csv at every
+    positive rho. It is registered rather than deleted at B1.5 because B1.5 is a
+    bounded wording and validation-boundary pass and the plan assigns the removal
+    to Tier B2 -- and B2.6, the last B2 commit, is where the passage is rewritten,
+    so the mandatory B2 stop cannot be reached with it still printing.
+
+    Why it needs an entry at all: this claim is written entirely in math mode, so
+    the frozen coverage audit never sees it and C02 can neither source nor flag
+    it. Without this declaration the contractual UNSUPPORTED_TOKENS = 0 at B2.2
+    would read as "every printed number resolves", which would be false. See
+    spec/unsupported_math_claims.yaml.
 - key: 'C02:flagged:subsec:path_stability_results'
   resolved_by_stage: B1.1
   expected_count: 4

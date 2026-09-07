@@ -36,10 +36,22 @@ outputs differ, and re-running the suite silently OVERWRITES FINAL_EVIDENCE_MANI
 certification/CERTIFICATION.md and certification/certification.json -- mutating the frozen
 subtree the whole pass exists to protect.
 
-So the Tier-B0 suite is REFUSED unless the live manuscript still hashes to the pinned
-baseline, and every run is followed by an assertion that all three frozen subtrees are
-still byte-identical to their tags, in the working tree as well as at HEAD. This script
-does not write under analysis/, and it now proves it rather than promising it.
+HARDENED AT B1.5 -- the refusal is no longer specific to the suite that was caught.
+Once the live manuscript is no longer byte-identical to the pinned pre-writing baseline,
+this runner refuses EVERY frozen suite (Tier-B0, P0 and P1) in this live writing worktree.
+The reasoning is not that P0 and P1 were measured to write -- it is that the B0 case
+proved the class of hazard is real, that a post-edit rerun has no scientific value here
+(these suites' HEAD-relative and paper-immutability guards are EXPECTED to fail, and they
+are not Tier-B certification), and that a refusal costs nothing while a mutation of a
+frozen subtree costs the pass. An informational rerun, if one is ever wanted, belongs in a
+DISPOSABLE CLEAN CHECKOUT or worktree at the appropriate frozen tag -- never here.
+
+No frozen P0/P1/B0 test is modified by any of this: refusing to RUN a suite is a Tier-B
+policy about this worktree, and the binding immutability checks remain the direct tag and
+subtree diffs. Every run that does happen is followed by an assertion that all three
+frozen subtrees are still byte-identical to their tags, in the working tree as well as at
+HEAD. This script does not write under analysis/, and it proves it rather than promising
+it.
 """
 from __future__ import annotations
 
@@ -103,6 +115,47 @@ raise SystemExit(1 if tot[1] else 0)
 '''
 
 
+# Once the live manuscript diverges from the pinned pre-writing baseline, EVERY frozen
+# suite is refused in this worktree. Per-suite text, because the reasons differ in kind
+# and a reader deserves the specific one.
+_TIER_B0_REASON = (
+    "REFUSED (manuscript edited): the Tier-B0 suite re-executes the Tier-B0 builders, "
+    "which write into analysis/final_manuscript_evidence/. With the manuscript edited "
+    "the regenerated outputs differ and the run OVERWRITES the frozen subtree "
+    "(measured: FINAL_EVIDENCE_MANIFEST.json, certification/CERTIFICATION.md, "
+    "certification/certification.json).")
+_P0_REASON = (
+    "REFUSED (manuscript edited): P0's HEAD-relative scope guard "
+    "(test_g2_assertions::test_only_gitignore_modified_outside_p0) is expected to fail "
+    "during a writing pass, so a post-edit run measures nothing, and a frozen suite that "
+    "re-executes anything is a mutation hazard to the subtree this pass exists to "
+    "protect. Its pre-edit result is already recorded under baseline/.")
+_P1_REASON = (
+    "REFUSED (manuscript edited): P1's paper-immutability guards "
+    "(test_no_protected_path_written, whose _PROTECTED includes REPO/'paper', and "
+    "test_reports_state_that_no_manuscript_file_was_edited) fail BY DESIGN on the first "
+    "manuscript edit, so a post-edit run is not evidence about anything. Its pre-edit "
+    "result is already recorded under baseline/.")
+
+POST_EDIT_REFUSAL = {"tier_b0": _TIER_B0_REASON, "p0": _P0_REASON, "p1": _P1_REASON}
+
+DISPOSABLE_CHECKOUT_HELP = (
+    "These suites are informational, never Tier-B certification. If an informational "
+    "rerun is genuinely wanted, perform it in a DISPOSABLE CLEAN CHECKOUT or throwaway "
+    "git worktree at the appropriate frozen tag -- "
+    "tier-b0-final-20260907 for the Tier-B0 suite, "
+    "p0-major-revision-final-20260907 for P0, "
+    "p1-inferential-reporting-final-20260907 for P1 -- and DISCARD that checkout "
+    "afterwards. Example:\n"
+    "    git worktree add /tmp/frozen-b0 tier-b0-final-20260907\n"
+    "    (cd /tmp/frozen-b0 && python3 analysis/final_manuscript_evidence/tests/"
+    "run_all_tests.py)\n"
+    "    git worktree remove --force /tmp/frozen-b0\n"
+    "Never run them in this live writing worktree, and never modify a frozen test to "
+    "make one pass. The binding immutability checks stay the direct tag/subtree diffs "
+    "in tb_scope.py.")
+
+
 def _run(cmd, cwd=None):
     env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1")
     r = subprocess.run(cmd, capture_output=True, text=True, env=env,
@@ -140,18 +193,11 @@ def main(argv=None) -> int:
             ("p0", [sys.executable, str(P0_RUNNER)]),
             ("p1", [sys.executable, str(shim), str(P1_TESTS)] + list(P1_MODULES)),
     ):
-        if name == "tier_b0" and not baseline:
-            reason = (
-                "REFUSED: the Tier-B0 suite re-executes the Tier-B0 builders, which "
-                "write into analysis/final_manuscript_evidence/. With the manuscript "
-                "edited, the regenerated outputs differ and the run would OVERWRITE the "
-                "frozen subtree (measured: FINAL_EVIDENCE_MANIFEST.json, "
-                "certification/CERTIFICATION.md, certification/certification.json). It "
-                "is informational anyway, and its pre-edit result is already recorded in "
-                "baseline/. Run it only against the pinned baseline manuscript, in a "
-                "throwaway checkout.")
-            print(f"{name:8s} SKIPPED -- {reason}")
-            results[name] = {"skipped": True, "reason": reason}
+        if not baseline:
+            print(f"{name:8s} SKIPPED -- {POST_EDIT_REFUSAL[name]}")
+            results[name] = {"skipped": True, "reason": POST_EDIT_REFUSAL[name],
+                             "refusal_policy": "post_edit_frozen_suites_refused",
+                             "how_to_run_informationally": DISPOSABLE_CHECKOUT_HELP}
             continue
         code, text = _run(cmd)
         tb.write_text(out / f"{name}_suite_{a.label}.log", text)
@@ -182,9 +228,17 @@ def main(argv=None) -> int:
               "then re-check the three tag diffs. Do NOT commit the mutation.")
         return 2
 
+    if not baseline:
+        print("\n" + DISPOSABLE_CHECKOUT_HELP)
+
     tb.write_json(out / f"frozen_suites_{a.label}.json", {
         "label": a.label,
         "informational_only": True,
+        "post_edit_policy": (
+            "Once the live manuscript is no longer byte-identical to the pinned "
+            "pre-writing baseline, ALL frozen P0/P1/B0 suites are refused in this live "
+            "writing worktree. Hardened at Tier B1.5."),
+        "how_to_run_informationally": DISPOSABLE_CHECKOUT_HELP,
         "why_not_the_gate": (
             "These suites carry paper-immutability and HEAD-relative guards that "
             "fail by design once the manuscript is intentionally edited. They are "

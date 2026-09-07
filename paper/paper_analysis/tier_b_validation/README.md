@@ -20,6 +20,18 @@ manuscript is intentionally edited, and modifying a frozen test is prohibited.
 `baseline/FROZEN_SUITE_EXPECTATIONS.md` records their pre-edit state and
 classifies every failure. Frozen-suite reruns are informational only.
 
+**Hardened at B1.5:** once the live manuscript is no longer byte-identical to the
+pinned pre-writing baseline, `run_frozen_suites_informational.py` refuses **all**
+frozen P0/P1/B0 suites in this worktree, not just the Tier-B0 one that was
+measured writing into its own frozen subtree. A post-edit rerun has no
+certification value here and their paper-facing guards are expected to fail, so
+the refusal costs nothing while a mutation of a frozen subtree would cost the
+pass. If an informational rerun is ever wanted, it belongs in a **disposable
+clean checkout or throwaway worktree at the appropriate frozen tag**; the
+runner's help text says so and gives the commands. No frozen test is modified by
+any of this, and the binding immutability checks remain the direct tag/subtree
+diffs in `tb_scope.py`.
+
 ## Hard boundaries
 
 * **Reads** frozen material under `analysis/`; **never writes** there.
@@ -59,7 +71,7 @@ count at its baseline **356**.
 | `tb_text.py` | the ACTIVE build as sentence units, with LaTeX-aware normalization |
 | `tb_coverage.py` | the numeric coverage audit, re-run against the live manuscript |
 | `tb_ledger.py` | the Tier-B provenance ledger: the seven-step verifier and its self-test |
-| `tb_checks.py` | the twelve checks (C01-C12) |
+| `tb_checks.py` | the thirteen checks (C01-C13) |
 | `tb_scope.py` | cumulative paper-only write scope; the three frozen-subtree tag diffs |
 | `tb_compile.py` | `latexmk` plus the log diagnostics that matter |
 | `validate.py` | the runner: classify, report, exit non-zero on an unexpected failure |
@@ -68,11 +80,12 @@ count at its baseline **356**.
 | `spec/tier_b_citations.yaml` | required citation keys, the two-`\addbibresource` rule, bib fields that may not be invented |
 | `spec/ledger_selftest.yaml` | entries that prove the ledger verifier works |
 | `spec/tier_b_required_statements.yaml` | statements the manuscript must keep printing |
+| `spec/unsupported_math_claims.yaml` | known ACTIVE unsupported claims written inside math mode, which the coverage audit cannot see |
 | `ledger/tier_b_numeric_ledger.yaml` | the ledger itself -- empty at B1.0 by design; 12 entries from B1.3 |
 | `baseline/` | the pre-edit record: frozen-suite transcripts, compile diagnostics |
 | `runs/` | one JSON per stage validation |
 
-## The twelve checks
+## The thirteen checks
 
 | id | check | notes |
 |---|---|---|
@@ -88,6 +101,19 @@ count at its baseline **356**.
 | C10 | label / reference integrity | no duplicate compiled label, no reference to an undefined one. A `\ref` inside an `oldrevisionblock` DOES resolve (the body is typeset into a discarded box); inside `\oldtext` it does not (the argument is gobbled). Getting that wrong makes the check blind or noisy. |
 | C11 | citation integrity | every active `\cite` key in a loaded `.bib`; the ten required prior-art keys cited; exactly two `\addbibresource` and no dependency on a bibliography file under `analysis/`; `Cheng1974` carries no invented DOI/volume/number/pages and `Edelstein1979` only the confirmed start page. |
 | C12 | TODO closure | the 19-site crosswalk is intact, the count never increases, and the sites go with the scaffolding at B4.2. |
+| C13 | known unsupported math-mode claims | the blind spot C02 cannot cover. `b0_tex` masks math environments before extracting tokens, so an unsupported value written `$0.08677$` is outside the token population entirely -- neither SOURCED nor FLAGGED. `spec/unsupported_math_claims.yaml` registers the known ones by content (all identifying literals in one ACTIVE sentence, plus a drift cue and the normalized-excerpt sha256), each with the stage that owes its removal or rewrite. Reported **alongside** the token budget, never inside it. |
+
+### Two numeric populations, never merged
+
+`UNSUPPORTED_TOKENS` counts the ordinary **text-mode** population, whose
+trajectory 356 -> 218 -> 34 -> 0 is contractual. `KNOWN_UNSUPPORTED_MATH_CLAIMS`
+counts the C13 registry. Keeping them apart is the whole point: reaching
+`UNSUPPORTED_TOKENS = 0` at B2.2 is a true statement about the text-mode tokens
+and **not** a statement that every printed number resolves. A registered claim
+that is still active at or after its owning stage becomes an UNEXPECTED failure,
+so B2 cannot leave one behind by accident. Absence from the registry is not
+evidence that a math-mode number is supported -- if a later stage finds another,
+it is added there in the same commit.
 
 Alongside them, two checks that have no expected-failure entries because they
 may never fail: **cumulative paper-only write scope**

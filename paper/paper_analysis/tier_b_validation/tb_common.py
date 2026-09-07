@@ -77,7 +77,10 @@ FROZEN_SUBTREES = (
 # the divergence is deliberate and visible rather than accidental.
 BASELINE_TEX_SHA256 = "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd124de19a"
 
-STAGES = ("B1.0", "B1.1", "B1.2", "B1.3", "B1.4",
+# B1.5 is a bounded post-B1.4 hardening pass, not a new scientific stage: it
+# corrects wording and tightens this validator's own boundaries. It clears no
+# flagged-token anchor, so its budget is B1.4's -- see expected_token_trajectory.
+STAGES = ("B1.0", "B1.1", "B1.2", "B1.3", "B1.4", "B1.5",
           "B2.1", "B2.2", "B2.3", "B2.4", "B2.5", "B2.6",
           "B3.1", "B3.2", "B4.1", "B4.2", "B4.3")
 
@@ -228,3 +231,16 @@ def frozen_manifest() -> dict:
 
 def frozen_coverage_summary() -> dict:
     return read_json(B0 / "coverage" / "coverage_summary.json")
+
+
+# Tier-B-owned specs. These are NOT frozen evidence: they are this pass's own
+# registries, and they are authored and maintained under paper/.
+def tier_b_math_claims() -> dict:
+    """Known ACTIVE unsupported numeric claims that sit inside math mode.
+
+    The frozen coverage audit masks math environments, so such a claim is never
+    in the token population and can be neither SOURCED nor FLAGGED. Without this
+    registry a later FLAGGED_UNSUPPORTED = 0 would read as "every printed number
+    resolves", when what it actually means is "every TEXT-MODE token resolves".
+    """
+    return read_yaml(TB_SPEC / "unsupported_math_claims.yaml")

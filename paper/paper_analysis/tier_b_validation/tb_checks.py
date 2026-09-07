@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The twelve Tier-B manuscript checks.
+"""The thirteen Tier-B manuscript checks.
 
 Each check returns Findings. A Finding is not automatically a failure: the
 canonical manuscript is intentionally NOT compliant with the final-state checks
@@ -26,6 +26,15 @@ allowed to be fewer.
     C10  label / reference integrity
     C11  citation integrity
     C12  TODO closure
+    C13  known ACTIVE unsupported claims that hide inside math mode
+
+C13 exists because C02 cannot see them. The frozen coverage audit masks math
+environments before extracting tokens, so ``$0.08677$`` is not in the token
+population at all -- neither SOURCED nor FLAGGED. The contractual trajectory
+356 -> 218 -> 34 -> 0 is therefore a statement about the TEXT-MODE population,
+and a future ``FLAGGED_UNSUPPORTED = 0`` must not be read as "every printed
+number resolves". C13 carries the known exceptions explicitly, by content rather
+than by line number, each with the stage that owes its removal or rewrite.
 
 ``tb_scope`` supplies the two non-negotiable checks that sit alongside these --
 cumulative paper-only write scope, and byte-identity of the three frozen
@@ -742,6 +751,127 @@ def c12_todo_closure(ctx) -> list:
     return out
 
 
+# ---------------------------------------------------------------------------
+# C13  known ACTIVE unsupported claims inside math mode
+# ---------------------------------------------------------------------------
+MATH_CLAIM_REQUIRED_FIELDS = (
+    "claim_id", "status", "disposition", "resolved_by_stage",
+    "manuscript_anchor", "identify_by_literals", "drift_cue",
+    "normalized_excerpt_sha256", "why_unsupported")
+
+
+def math_claim_status(ctx) -> list:
+    """Locate every registered math-mode claim in the LIVE manuscript.
+
+    Returns one status dict per registry entry. ``validate.py`` reports these
+    alongside -- never inside -- the ordinary flagged-token budget, because they
+    are by construction outside the token population that budget counts.
+
+    Identification is by content, never by line number: every literal in
+    ``identify_by_literals`` must appear in one ACTIVE sentence unit. All of
+    them, because one value alone can legitimately recur -- ``0.08685`` is also
+    the upper end of the lower-tail grid extension in the design section, and a
+    single-literal matcher would fire there.
+    """
+    reg = tb.tier_b_math_claims()
+    out = []
+    for c in reg.get("claims") or []:
+        lits = [str(x) for x in (c.get("identify_by_literals") or [])]
+        cue = tb_text.normalize(str(c.get("drift_cue") or ""))
+        exact = [u for u in ctx.at.units if lits and all(l in u.raw for l in lits)]
+        partial = []
+        if not exact and cue:
+            partial = [u for u in ctx.at.units
+                       if cue in u.norm and any(l in u.raw for l in lits)]
+        found = exact or partial
+        st = {
+            "claim_id": c.get("claim_id"),
+            "resolved_by_stage": c.get("resolved_by_stage"),
+            "disposition": c.get("disposition"),
+            "active": bool(found),
+            "matched_exactly": bool(exact),
+            "n_matches": len(found),
+            "line": found[0].line if found else None,
+            "anchor": found[0].anchor if found else "",
+            "excerpt_matches_registry": None,
+            # Proof, not assertion, that this claim really is outside the token
+            # budget: if the coverage audit ever starts seeing these literals,
+            # the registry and the budget would be counting the same fact twice.
+            "in_token_population": sorted(
+                {t["token"] for t in ctx.coverage["tokens"] if t["token"] in lits}),
+        }
+        if found:
+            st["excerpt_matches_registry"] = (
+                tb.sha256_text(found[0].norm)
+                == str(c.get("normalized_excerpt_sha256") or ""))
+        out.append(st)
+    return out
+
+
+def c13_unsupported_math_claims(ctx) -> list:
+    out = []
+    reg = tb.tier_b_math_claims()
+    claims = reg.get("claims") or []
+    vocab = set(reg.get("dispositions") or ())
+
+    # The registry's own shape. A malformed entry is a silent hole, so it fails
+    # as itself rather than being skipped.
+    seen = set()
+    for c in claims:
+        cid = c.get("claim_id") or "(unnamed)"
+        missing = [f for f in MATH_CLAIM_REQUIRED_FIELDS if not c.get(f)]
+        if missing:
+            out.append(Finding("C13", f"C13:registry_shape:{cid}",
+                               f"registry entry is missing required field(s) "
+                               f"{missing}"))
+        if cid in seen:
+            out.append(Finding("C13", f"C13:registry_shape:{cid}",
+                               "duplicate claim_id in the registry"))
+        seen.add(cid)
+        if c.get("disposition") and c["disposition"] not in vocab:
+            out.append(Finding("C13", f"C13:registry_shape:{cid}",
+                               f"disposition {c['disposition']!r} is outside the "
+                               f"closed vocabulary {sorted(vocab)}"))
+        if c.get("resolved_by_stage") not in tb.STAGES:
+            out.append(Finding("C13", f"C13:registry_shape:{cid}",
+                               f"resolved_by_stage {c.get('resolved_by_stage')!r} "
+                               f"is not a known Tier-B stage"))
+
+    by_id = {c.get("claim_id"): c for c in claims}
+    for st in math_claim_status(ctx):
+        cid = st["claim_id"]
+        c = by_id.get(cid, {})
+        if not st["active"]:
+            continue                    # gone: the registry entry goes STALE
+        out.append(Finding(
+            "C13", f"C13:unsupported_math_claim:{cid}",
+            f"a known unsupported math-mode claim is still ACTIVE and is "
+            f"scheduled for {c.get('disposition')} at "
+            f"{c.get('resolved_by_stage')}. It is INVISIBLE to the "
+            f"flagged-token budget because the frozen coverage audit masks math "
+            f"mode, so it must not be read as validated by any "
+            f"FLAGGED_UNSUPPORTED count. {str(c.get('why_unsupported','')).strip()}",
+            count=st["n_matches"], anchor=st["anchor"], line=st["line"]))
+        if st["excerpt_matches_registry"] is False:
+            out.append(Finding(
+                "C13", f"C13:excerpt_drift:{cid}",
+                "the registered claim is still active but its text no longer "
+                "matches the registered excerpt. A rewrite of a registered "
+                "claim must update spec/unsupported_math_claims.yaml in the "
+                "same commit -- retire the entry if the claim was resolved, or "
+                "re-register the new text and its sha256 if it was not.",
+                anchor=st["anchor"], line=st["line"]))
+        if st["in_token_population"]:
+            out.append(Finding(
+                "C13", f"C13:double_counted:{cid}",
+                f"literal(s) {st['in_token_population']} are now IN the coverage "
+                f"token population, so this claim is counted both by the "
+                f"flagged-token budget and by this registry. Reconcile the two "
+                f"before either number is reported.",
+                anchor=st["anchor"], line=st["line"]))
+    return out
+
+
 CHECKS = (
     ("C01", "numeric provenance (Tier-B ledger, recomputed)", c01_numeric_provenance),
     ("C02", "no FLAGGED_UNSUPPORTED token remains", c02_no_flagged_unsupported),
@@ -755,6 +885,8 @@ CHECKS = (
     ("C10", "label / reference integrity", c10_label_ref_integrity),
     ("C11", "citation integrity", c11_citation_integrity),
     ("C12", "TODO closure", c12_todo_closure),
+    ("C13", "known unsupported math-mode claims (outside the token budget)",
+     c13_unsupported_math_claims),
 )
 
 

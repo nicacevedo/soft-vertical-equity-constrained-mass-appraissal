@@ -27,6 +27,14 @@ Three outcomes per finding:
                pending -- reported, because a failure vanishing early is a
                change worth seeing, not a silent win.
 
+Two numeric populations are reported, never merged. ``UNSUPPORTED_TOKENS`` is
+the ordinary text-mode flagged-token budget, whose trajectory
+(356 -> 218 -> 34 -> 0) is contractual. ``KNOWN_UNSUPPORTED_MATH_CLAIMS`` is the
+C13 registry of unsupported claims written inside math mode, which the frozen
+coverage audit masks and therefore cannot count. Keeping them apart is what
+stops a future ``UNSUPPORTED_TOKENS = 0`` from being read as "every printed
+number resolves".
+
 Usage:  python3 validate.py --stage B1.1 [--compile] [--json out.json]
 """
 from __future__ import annotations
@@ -117,6 +125,8 @@ def main(argv=None) -> int:
     scope = tb_scope.all_scope_checks()
 
     cov = ctx.coverage
+    math_status = tb_checks.math_claim_status(ctx)
+    n_math_active = sum(1 for m in math_status if m["active"])
     budget = expected_token_total(a.stage, registry)
     token_ok = cov["flagged_unsupported"] == budget
     # Cross-check the per-anchor budget against the trajectory declared in the
@@ -150,7 +160,8 @@ def main(argv=None) -> int:
         print("=" * 78)
         print(f"\nACTIVE numeric tokens {cov['active_tokens']}: "
               f"{cov['active_resolution']}")
-        print(f"UNSUPPORTED_TOKENS  measured={cov['flagged_unsupported']}  "
+        print(f"UNSUPPORTED_TOKENS (ordinary, text-mode)  "
+              f"measured={cov['flagged_unsupported']}  "
               f"expected_at_{a.stage}={budget}  "
               f"{'OK' if token_ok else '<-- MISMATCH, a finding'}")
         if not traj_ok:
@@ -159,6 +170,23 @@ def main(argv=None) -> int:
         for anchor, n in sorted(cov["flagged_unsupported_by_anchor"].items(),
                                 key=lambda kv: -kv[1]):
             print(f"    {n:5d}  {anchor}")
+
+        # Reported SEPARATELY and never folded into the count above. The frozen
+        # coverage audit masks math environments, so these claims are not in the
+        # token population at all: the budget cannot see them, and a future
+        # UNSUPPORTED_TOKENS = 0 says nothing whatever about them.
+        print(f"\nKNOWN_UNSUPPORTED_MATH_CLAIMS (registry, OUTSIDE that budget) "
+              f"= {n_math_active} active of {len(math_status)} registered")
+        for st in math_status:
+            where = (f"L{st['line']} @{st['anchor']}" if st["active"]
+                     else "no longer present")
+            drift = ("" if st["excerpt_matches_registry"] in (None, True)
+                     else "  <-- TEXT DRIFTED FROM THE REGISTRY")
+            dbl = ("  <-- ALSO IN THE TOKEN BUDGET, reconcile"
+                   if st["in_token_population"] else "")
+            print(f"    {'ACTIVE ' if st['active'] else 'RESOLVED'}  "
+                  f"{st['claim_id']}  ({st['disposition']} at "
+                  f"{st['resolved_by_stage']})  {where}{drift}{dbl}")
 
         print(f"\n--- checks ---")
         by_check = {}
@@ -205,9 +233,11 @@ def main(argv=None) -> int:
             for e in cls["stale"]:
                 print(f"  {e['key']}  (resolved_by {e['resolved_by_stage']})")
 
-        print(f"\nEXPECTED_FAILURES            = {len(cls['expected'])}")
+        print(f"\nEXPECTED_FAILURES             = {len(cls['expected'])}")
         print(f"UNEXPECTED_VALIDATOR_FAILURES = {n_unexpected}")
-        print(f"UNSUPPORTED_TOKENS            = {cov['flagged_unsupported']}")
+        print(f"UNSUPPORTED_TOKENS (ordinary) = {cov['flagged_unsupported']}")
+        print(f"KNOWN_UNSUPPORTED_MATH_CLAIMS = {n_math_active}  "
+              f"(active, outside the token budget)")
         print(f"\nTIER_B_VALIDATOR = {'PASS' if ok else 'FAIL'}  (stage {a.stage})")
 
     if a.json:
@@ -219,6 +249,13 @@ def main(argv=None) -> int:
             "unsupported_tokens": cov["flagged_unsupported"],
             "unsupported_tokens_expected": budget,
             "unsupported_tokens_by_anchor": cov["flagged_unsupported_by_anchor"],
+            "known_unsupported_math_claims": math_status,
+            "known_unsupported_math_claims_active": n_math_active,
+            "known_unsupported_math_claims_note": (
+                "Counted SEPARATELY from unsupported_tokens. The frozen coverage "
+                "audit masks math environments, so these claims are outside the "
+                "token population entirely: unsupported_tokens = 0 would not "
+                "mean they had been resolved."),
             "n_expected_failures": len(cls["expected"]),
             "n_unexpected_failures": n_unexpected,
             "expected_failures": [{"finding": f.as_dict(),

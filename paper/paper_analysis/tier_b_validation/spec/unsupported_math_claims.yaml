@@ -1,0 +1,107 @@
+# =============================================================================
+# Known ACTIVE unsupported numerical claims that live inside MATH MODE.
+#
+# WHY THIS FILE EXISTS -- a measured blind spot, not a hypothetical one.
+#
+# The Tier-B0 coverage audit masks mathematical environments before extracting
+# numeric tokens (analysis/final_manuscript_evidence/code/b0_tex.py: `self.math`
+# spans are excluded in `numeric_tokens`). That is a deliberate and correct
+# choice for the audit it was built for -- $\rho$, $n$, subscripts and equation
+# constants are not manuscript-facing empirical values -- but it has an exact
+# consequence: an unsupported empirical NUMBER written as `$0.08677$` is never
+# in the token population at all, so it can neither be SOURCED nor
+# FLAGGED_UNSUPPORTED. It is simply invisible.
+#
+# The contractual token trajectory (356 -> 218 -> 34 -> 0) therefore measures
+# the TEXT-MODE population only. Reaching `FLAGGED_UNSUPPORTED = 0` at B2.2 is
+# a true statement about that population and NOT a statement that every printed
+# number has been resolved. Without this file a reader of the B2 report would
+# have no way to tell those two apart -- which is exactly the false zero this
+# registry exists to prevent.
+#
+# WHAT THIS FILE IS NOT. It is not a LaTeX numeric parser, and building one was
+# explicitly out of scope at B1.5. It is a narrow, hand-authored, Tier-B-owned
+# registry of the math-mode claims that ARE known to be unsupported, each
+# identified by content rather than by line number, each carrying the stage that
+# must remove or rewrite it. It closes a known hole; it does not claim the hole
+# is now impossible.
+#
+# Absence from this file is therefore NOT evidence that a math-mode number is
+# supported. If a later stage finds another one, add it here in the same commit.
+#
+# IDENTITY IS CONTENT, NEVER A LINE NUMBER. Every line number in the frozen maps
+# and in the plan went stale at B1.1 by construction (SELECTOR_GRAMMAR.md 4),
+# so a claim is located by:
+#   * `identify_by_literals` -- every literal decimal string that must appear in
+#     one ACTIVE sentence unit for this to be the registered claim. All of them,
+#     because a single value can legitimately recur elsewhere: `0.08685` is also
+#     the upper end of the lower-tail grid extension in the design section, and
+#     matching on it alone would produce a false positive there.
+#   * `drift_cue` -- a distinctive normalized phrase, used ONLY to catch the
+#     case where the sentence is still present but has been paraphrased or had
+#     one of its values changed. A drift finding is deliberately NOT declared in
+#     expected_failures.yaml, so it surfaces as an UNEXPECTED failure: a rewrite
+#     of one of these claims must update this registry in the same commit.
+#   * `normalized_excerpt_sha256` -- the exact text as registered, so a silent
+#     edit is visible even when the literals survive.
+#
+# HOW A CLAIM IS RETIRED. When the owning stage deletes the claim, or rewrites
+# it against a frozen artifact and records that derivation in the Tier-B numeric
+# ledger, delete the entry here and its expected_failures.yaml entry in that same
+# commit. Do not retire an entry by weakening its matcher.
+# =============================================================================
+schema_version: 1
+
+# Closed vocabulary for `disposition`.
+dispositions:
+- DELETE
+- REWRITE_WITH_SUPPORTED_EVIDENCE
+- DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE
+
+claims:
+
+- claim_id: MATH-001-cv-delta-nl-minima
+  status: ACTIVE_UNSUPPORTED
+  disposition: DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE
+  resolved_by_stage: B2.6
+  manuscript_anchor: fig:cv_mechanism_metric_paths
+  manuscript_section: "Appendix F, subsection: Chronological Fold Stability"
+  identify_by_literals: ["0.08685", "0.08677", "1.677"]
+  drift_cue: "reaches an interior minimum"
+  normalized_excerpt_sha256: c3995c8d70c495038ebe1eadf8f336257662a9c6cff5ada7e5a1399808ab2d99
+  normalized_excerpt: >-
+    descriptively, on the frozen tested grid, the retrospectively reconstructed
+    cv delta_ nl paths also differ across the two objectives: the direct
+    equal-weight cv mean reaches its smallest observed value, 0.08685 , only at
+    the upper tested boundary rho=100 , whereas the surrogate cv mean reaches an
+    interior minimum of 0.08677 at rho =1.677 .
+  what_it_claims: >-
+    The reconstructed CV Delta_NL path minima: Direct reaching its smallest
+    observed equal-weight CV mean 0.08685 only at the upper tested boundary
+    rho=100, and Surrogate reaching an interior minimum 0.08677 at rho ~= 1.677.
+  why_unsupported: >-
+    Neither value, nor the rho ~= 1.677 location, is in the frozen Tier-B0
+    numeric map. The approved Tier-B execution plan lists this claim twice --
+    section E.6 ("The descriptive CV Delta_NL minima sentence ... is NOT in the
+    numeric map -- treat as unsupported unless it resolves") and section G,
+    among the claims that cannot be written from the frozen evidence. It is
+    also an instance of the broader frozen finding that Delta_NL and dCor are
+    absent from frozen_artifact_reproduction.csv at EVERY positive rho, which
+    is why the same two columns are being dropped for positive rho from
+    tab:path_anchor_complementary at B2.1.
+  plan_authority:
+  - "tier-b-merry-cloud.md, section E.6 (old 5.3 merged into new 5.4)"
+  - "tier-b-merry-cloud.md, section G (claims that cannot yet be written)"
+  why_this_stage: >-
+    B2.6 owns this passage. The claim sits in the Appendix-F "Chronological Fold
+    Stability" block whose eight candidate-region assets and captions B2.6 swaps
+    and strips, and it is the LAST Tier-B2 commit, so the mandatory B2 stop
+    cannot be reached with the claim still printing. Assigning it earlier would
+    not make it more binding; assigning it later would push an unsupported
+    number past the stop it must not survive.
+  b1_5_note: >-
+    Registered, deliberately NOT deleted, at B1.5. B1.5 is a bounded wording and
+    validation-boundary pass; deleting an active Results-adjacent claim is B2
+    work, and the plan assigns it there. What B1.5 owes is that B2 cannot leave
+    it behind by accident, and that no future FLAGGED_UNSUPPORTED = 0 is read as
+    having validated it.
