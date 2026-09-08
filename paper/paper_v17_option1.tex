@@ -1918,7 +1918,7 @@ Current analysis & \latesttext{Full CV, held-out, and forward paths; secondary C
 
 % \textcolor{blue}{\sout{Four comparisons are needed to interpret the method.}}
 % \oldtext{The empirical comparison separates the baseline model class, the custom-objective implementation path, positive covariance regularization, and a centered post-hoc recalibration benchmark.}
-\newtext{The empirical comparison in this paper is deliberately restricted to the baseline model classes, the custom-objective implementation control, and the Direct and Surrogate training-time regularization paths. A systematic comparison with post-hoc calibration is left to follow-up work.}
+\newtext{The empirical comparison in this paper covers the baseline model class, the custom-objective implementation control, and the Direct and Surrogate training-time regularization paths,} \latesttext{together with a global post-hoc centered rescaling of the same unregularized predictors. That comparator is reported in Sections~\ref{subsec:posthoc_comparator} and~\ref{subsec:matched_beta_results}, both descriptively and at matched development first-order correction. \emph{Structured} post-hoc calibration by geography, property class or time is a different construction and remains outside the empirical scope.}
 
 \paragraph{\newtext{Reference cells, and what each one licenses.}}
 \newtext{Three reference cells appear below, and the distinction between two of them is
@@ -1954,8 +1954,8 @@ the distinction necessary rather than merely cautious.}
 % \oldtext{The final comparison also includes a custom-objective fit at $\rho=0$. This implementation control separates changes caused by the custom-objective code path from changes caused by a positive penalty.}
 
 % \oldtext{\textbf{Post-hoc rescaling.} The previous draft included a validation-fitted centered rescaling of the baseline predictions as a primary and multi-county comparator.}
-\newtext{Post-hoc calibration is outside the empirical scope of the present paper. The fixed-space Direct result in Appendix~\ref{app:theory} makes that comparison scientifically natural, but the current contribution is the design, implementation, mechanism analysis, and evaluation of training-time covariance-guided corrections.}
-\todo{Follow-up research: compare in-processing with global and structured post-hoc calibration under matched temporal validation and matched fairness/accuracy targets; do not infer superiority of either family from the present paper.}
+\latesttext{\textbf{Post-hoc centered rescaling.} A global one-parameter post-hoc centered rescaling of an already fitted predictor is \emph{inside} the empirical scope of this paper. The fixed-space Direct result in Appendix~\ref{app:theory} makes that comparison scientifically natural, and Sections~\ref{subsec:posthoc_comparator} and~\ref{subsec:matched_beta_results} carry it out: first descriptively, then at matched development first-order correction, with the rescaling of the custom-objective $\rho=0$ origin as the primary post-hoc family and the rescaling of the workflow benchmark as a secondary practical variant. The paper's contribution remains the design, implementation, mechanism analysis and evaluation of training-time covariance-guided corrections; the comparator is what keeps that contribution from resting on an untested assumption that retraining is necessary.}
+\todo{Executed for the GLOBAL one-parameter map at matched development first-order correction: Sections~\ref{subsec:posthoc_comparator} and~\ref{subsec:matched_beta_results}. What remains for follow-up is STRUCTURED post-hoc calibration by geography, class and time under the same temporal design. No superiority of either family is inferred here.}
 
 % \paragraph{\textcolor{blue}{\sout{Richer information.}}}
 % \textcolor{blue}{\sout{Spatial, temporal, neighborhood, and property-characteristic improvements can reduce omitted structure and may improve both accuracy and equity. They are complements to the penalty, not substitutes assumed away by the paper. The preferred sequence is to build the strongest defensible AVM first and then test whether an explicit vertical-equity safeguard still adds value.}}
@@ -2323,6 +2323,303 @@ performance and vertical-equity diagnostics.
 \newtext{At stronger regularization, $R^2_P$ bends downward while several vertical-equity diagnostics approach or cross their neutral values; the resulting trajectories can themselves become non-monotone.} This is why the complete path, rather than a single endpoint or a presumed accuracy cost, is 
 % \oldtext{the relevant pre-selection empirical object}
 \newtext{the relevant empirical object before selecting an operating point}. \oldtext{Accordingly, the main accuracy--equity figure does not highlight the Direct CV transition span as a preferred segment; temporal portability of that span is assessed separately below.}\latesttext{Accordingly, the main accuracy--equity figure does not highlight either family's CV transition span as a preferred segment; temporal portability of those spans is assessed separately below.}
+
+\subsection{\latesttext{What Retraining Buys over Post-Hoc Centered Rescaling}}
+\label{subsec:posthoc_comparator}
+
+\latesttext{Corollary~\ref{cor:path_scaling} shows that inside the exact fixed-prediction-space
+benchmark the Direct path \emph{is} a one-parameter centered rescaling of the unpenalized predictor.
+That turns a theoretical remark into an empirical question this paper can answer rather than defer:
+along the actual CCAO paths, what does retraining buy relative to globally rescaling the same
+unregularized predictor at the same first-order correction? This subsection reports the comparator
+and the descriptive comparison the frozen record supports;
+Section~\ref{subsec:matched_beta_results} then reports the formal comparison at matched
+first-order correction.}
+
+\paragraph{\latesttext{The map, and the one sensitivity attached to it.}}
+\latesttext{The comparator rescales a cached prediction array about the mean log \emph{target} of
+its own fitting block,
+\[
+  f_b(x) \;=\; \bar y_T + b\,\bigl(f_0(x)-\bar y_T\bigr),
+\]
+where $\bar y_T$ is the fold-$k$ training mean for fold $k$, the development-pool mean for the
+held-out block, and the 2016--2024 production mean for the 2025 forward block. This is the
+theorem-matched form, because Corollary~\ref{cor:path_scaling} writes the fixed-space Direct path in
+exactly that shape, and it is the only map used for the full path. At $b=1$ the map returns the
+cached array unchanged, so each post-hoc path starts at its own reference cell rather than at a
+re-evaluation of it. No model is refit anywhere in this comparator: the inputs are the frozen
+prediction arrays, hash-verified before use. The frozen grid holds 124 base values, giving a
+path table of 2,480 rows.}
+
+\latesttext{A second centering --- about the fitting block's mean \emph{prediction}
+$\bar f_{0,T}$ instead of $\bar y_T$ --- is a named sensitivity rather than an alternative primary
+map, and the two are never merged. At the same $b$ they differ by $b\,(\bar f_{0,T}-\bar y_T)$, a
+constant in $x$, so $\beta_{\log}$, the residual--price covariance, COD, COV and distance
+correlation are exactly unchanged by the choice, and only level-sensitive measures can move at all.
+The largest gap between the two centers over the fitted blocks is 8.36e-06 and it bounds the
+log shift over the whole grid at 6.266e-06; the largest metric movement the alternative
+centering produces anywhere is \$1.54{} of mean absolute error, and $\beta_{\log}$ moves
+by 2.78e-17 --- machine precision, exactly as the constant-shift argument requires. The
+sensitivity was therefore evaluated at four base values on each regime for both reference cells
+instead of as a duplicate full path, and it is reported here with that bound rather than waved away
+as numerically close.}
+
+\paragraph{\latesttext{Three roots, and they are three different objects.}}
+\latesttext{The rescaling coefficient can be defined on three different samples, and collapsing them
+would misstate what the comparator does. The \emph{fitting-block} coefficient
+$b^{\star}_{T}=\widehat{\Var}_T(y)/\widehat{\Cov}_T(f_0,y)$ of Appendix~\ref{app:theory} is an
+in-sample theory diagnostic and sets no empirical endpoint: for the custom-objective $\rho=0$ origin
+it runs from 1.065397 to 1.092817 over the fitting blocks, because in sample that learner's
+$\beta_{\log}$ lies between -0.061383 and -0.084934 while out of sample it is about
+$-0.15$, so an in-sample calibration would under-correct by roughly a factor of two in $b-1$. The
+\emph{primary empirical} root is the development-coordinate one. On the D1 coordinate
+$\beta_{\log}$ is exactly linear in $b$, with
+$\beta_k(b)=b\,\widehat{\Cov}_{V_k}(f_0,y)/\widehat{\Var}_{V_k}(y)-1$ per fold and
+$\beta_{\mathrm{D1}}(b)$ their equal-weight mean, so the root is
+$b_{0}=\bigl[\tfrac{1}{7}\sum_{k}\widehat{\Cov}_{V_k}(f_0,y)/\widehat{\Var}_{V_k}(y)\bigr]^{-1}$. Note what
+that expression is built from: fold-specific \emph{validation}-block covariance and variance, not a
+training covariance/variance relation. It equals 1.160458 for the custom-objective $\rho=0$
+origin and 1.160367 for the workflow benchmark, and it drives the development coordinate to
+1.00e-16 against a target of $10^{-12}$. The \emph{third} root is the pooled out-of-fold one at
+1.167027 and it is a sensitivity only: the pooled development sample gives the sales in the
+overlapping validation blocks double observation weight by construction. The grid runs to
+$b_{\max}=1+1.25\,(\max_{\text{roots}}-1)=$ 1.209082 --- a twenty-five percent overshoot in the
+adjustment $b-1$ rather than in $b$ itself --- and every root and bound is computed from development
+predictions alone. The familiar $1/R^{2}$ expression, as Appendix~\ref{app:theory} states, is the
+linear/projection special case rather than the general coefficient for a boosted predictor.}
+
+\paragraph{\latesttext{The descriptive comparison, and it crosses over.}}
+\latesttext{Table~\ref{tab:posthoc_crossover} places the two most-corrected retrained
+configurations beside post-hoc rescalings of the custom-objective $\rho=0$ origin at a comparable
+held-out first-order correction. The frozen record is explicit that this juxtaposition is keyed on
+\emph{held-out} $\beta_{\log}$ and is descriptive: the comparison on the development coordinate,
+which is the one that can be matched by design, is
+Section~\ref{subsec:matched_beta_results}.}
+
+\latesttext{Read in one direction the comparison favours rescaling; read in the other it favours
+retraining. At the strongest correction the Direct path attains, post-hoc rescaling is the more
+accurate of the two on the price scale. At near-neutral correction, which only the Surrogate among
+the retrained families approaches, the retrained fit is dramatically the more accurate: post-hoc
+rescaling has by then given up more than a tenth of price-scale $R^2_P$. The frozen report's own
+summary is that the accuracy comparison appears to cross over with correction strength, and that is
+the honest reading. It is also why no superiority claim for either family appears anywhere in this
+paper. What does hold in both regimes is a mechanism difference: at comparable first-order
+correction the retrained configurations carry the lower correlation-ratio nonlinearity gap.}
+
+\paragraph{\latesttext{What a one-parameter rescaling costs, and what it cannot do.}}
+\latesttext{Driving the development coordinate to first-order neutrality post-hoc requires
+$b=$ 1.160458, and Table~\ref{tab:centered_spread} records what that costs. On the held-out
+block $R^2_P$ falls from 0.8928 to 0.8063 and mean absolute error rises from
+\$75,976 to \$87,182; on the 2025 forward block $R^2_P$ falls from
+0.9039 to 0.7991. The assessor-facing measures do not merely flatten, they
+overshoot: held-out PRD moves from 1.0690 to 0.9871 and MKI from 0.9230 to
+1.0726; VEI --- a May-2026 Exposure Draft diagnostic, proposed rather than adopted ---
+from -26.17\% to $+$14.77\%, while COD worsens from 21.60 to
+22.59. And the correction does not reach the nonlinear structure: the correlation-ratio
+nonlinearity gap \emph{rises} from 0.1164 to 0.1343 while distance correlation
+falls from 0.3822 to 0.2518 and then turns back up to 0.2681 at
+$b_{\max}$. An affine map of a fixed predictor cannot change non-affine conditional-mean structure
+except incidentally, and what it does incidentally here is make it larger. So the comparator
+reproduces or improves much of the first-order accuracy and equity frontier that retraining reaches
+over the range retraining attains, and it does not reproduce the residual-structure behaviour.}
+
+\latesttext{The comparator is built on the custom-objective $\rho=0$ origin because that cell is the
+common origin of both penalized families, so rescaling it holds the execution path fixed and
+isolates retraining. The same map applied to \emph{Ordinary LightGBM (standard raw-label native)} is
+reported as a secondary, practical variant --- could a practitioner obtain a similar trade-off by
+post-processing the standard pipeline? --- and Panel~C of Table~\ref{tab:centered_spread} shows that
+it tracks the primary comparator closely, so the answer is descriptively yes. Under the frozen
+convention that secondary variant determines nothing: not the common support, not the choice of
+comparison targets, and not the primary mechanistic test. \emph{Centered-label native L2
+(initialization-aligned)} has no post-hoc path at all, consistent with its role as an
+implementation-decomposition control.}
+
+
+{\color{latestPurple}
+\begin{table}[!htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{\latesttext{Descriptive juxtaposition of the two most-corrected retrained configurations
+with post-hoc centered rescalings of the \emph{Custom-objective $\rho=0$ origin} at comparable
+held-out first-order correction. Held-out evaluation. This comparison is keyed on the held-out
+coordinate and is descriptive; the comparison matched on the development coordinate is
+Table~\ref{tab:matched_beta} and Section~\ref{subsec:matched_beta_results}. No configuration is
+selected or recommended here.}}
+\label{tab:posthoc_crossover}
+\begin{tabular}{@{}rllrrrr@{}}
+\toprule
+$\beta_{\log}$ & Family & Configuration & $R^2_P$ & MAE & $\Delta_{\mathrm{NL}}$ & dCor \\
+\midrule
+-0.07941 & Direct & $\rho=100$ & 0.86868 & \$84,918 & 0.11535 & 0.26493 \\
+-0.07905 & C-posthoc & $b=1.080148$ & 0.89242 & \$74,930 & 0.12946 & 0.28404 \\
+\addlinespace[3pt]
++0.00084 & Surrogate & $\rho=75.4312$ & 0.88908 & \$81,930 & 0.12434 & 0.26804 \\
++0.00118 & C-posthoc & $b=1.174235$ & 0.77962 & \$90,429 & 0.13438 & 0.25408 \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\small
+\emph{Notes.}
+\latesttext{$\beta_{\log}$ is the held-out first-order slope, which is what the two rows in each
+block are matched on approximately; the post-hoc base value is solved on the development coordinate
+and then evaluated here. Post-hoc rows are rescalings of a cached prediction array through
+$f_b(x)=\bar y_T+b(f_0(x)-\bar y_T)$ with no refitting. $\Delta_{\mathrm{NL}}$ and dCor carry no
+assessor-facing reference range and are residual-structure diagnostics, so a lower value is
+directional only. Values are read from the frozen Stage-2 comparator record and the frozen
+reproduction audit.}
+\end{minipage}
+\end{table}
+}
+
+
+\subsection{\latesttext{Matched First-Order Correction: Direct, Surrogate and Post-Hoc Rescaling}}
+\label{subsec:matched_beta_results}
+
+\latesttext{The comparison in Section~\ref{subsec:posthoc_comparator} is keyed on an outcome
+sample. The comparison that can be designed rather than observed matches configurations on the
+\emph{development} first-order coordinate and then reads their out-of-time behaviour. This
+subsection reports it for the three primary families --- Direct, Surrogate and post-hoc rescaling of
+the custom-objective $\rho=0$ origin --- with the corresponding rescaling of the workflow benchmark
+carried as a secondary practical variant only.}
+
+\paragraph{\latesttext{The design, and the tolerance it was frozen with.}}
+\latesttext{Matching uses the primary development coordinate D1, the equal-weight mean of the seven
+chronological fold values; the one-sale-one-vote D3 coordinate enters below as the sensitivity. The
+three families share the development range from -0.138271 to -0.078651 whose upper endpoint is
+set by Direct, the binding family. Six comparison targets are placed in that range by a
+deterministic rule: probe equally spaced points, then take as the target the \emph{achieved}
+development $\beta_{\log}$ of the fitted Direct configuration nearest the probe. Because the target
+is an achieved value rather than the probe, Direct matches exactly by construction and no selection
+discretion enters. Table~\ref{tab:matched_beta} lists the six targets and the configuration each
+family used; every one of them is an actually fitted model or an exactly solved rescaling, and no
+targeted new fit was required. The materiality and matching tolerance is
+$\tau=$ 0.002. It was frozen in the matched-configuration record before any held-out or 2025
+metric was read. That ordering is a strength of the design rather than a caveat, and it is what makes both the
+attainment adjudication below and the materiality classification of the D3 sensitivity credible: the
+worst matching gap over the twenty-four matched cells is 1.0569e-03 and lies inside $\tau$. The
+$j=0$ row is an identity check rather than a result --- Direct at $\rho=0$, Surrogate at $\rho=0$
+and the post-hoc map at $b=1$ are the same object --- and the largest relative disagreement anywhere
+in that check, over all seventeen metrics and four evaluations, is 4.42e-12.}
+
+\latesttext{One qualification governs every reading of the outcome columns. The configurations are
+matched on the \emph{development} coordinate, and nothing in the design equalises their held-out or
+forward $\beta_{\log}$; matching a development statistic does not transport to an evaluation block.
+The out-of-time differences below are therefore differences between configurations chosen to
+approximately match the frozen development first-order coordinate, not effects measured at exactly
+equal out-of-sample first-order correction.}
+
+\paragraph{\latesttext{At the strongest common target the retrained Direct path is the worst of the
+three.}}
+\latesttext{Table~\ref{tab:matched_beta_headline} reports the held-out outcome at $j=5$, the
+strongest correction all three families attain. Direct needs $\rho\approx87$ to reach it, and at
+that penalty the fit has degraded: its $R^2_P$ is below both comparators, its mean absolute error is
+several thousand dollars higher, its $\operatorname{RMSE}_{\log P}$ is the largest of the three, and
+its COD is more than two points higher. That ordering is not the one the anchor tables of
+Section~\ref{subsec:path_results} suggest, and it is available only because the comparison is made
+at a matched first-order coordinate. Across the whole attainable range
+(Table~\ref{tab:matched_beta}) the post-hoc comparator reproduces or improves much of the Direct
+first-order frontier, so the Direct family's advantage over a one-parameter rescaling is not what
+carries the paper. What does separate the families is residual structure: at every matched target
+the Surrogate carries a markedly lower correlation-ratio nonlinearity gap than either comparator,
+and it is the only family whose gap falls below the origin value.}
+
+\paragraph{\latesttext{Price-level and log-scale accuracy disagree, and both are reported.}}
+\latesttext{The extended targets in Table~\ref{tab:matched_beta_ext} make that disagreement
+explicit. At the development target $-0.03$ the Surrogate holds held-out $R^2_P$ at
+0.8917 while the post-hoc comparator has fallen to 0.8569 --- a large margin on
+the price scale --- yet in $\operatorname{RMSE}_{\log P}$ the ranking reverses, 0.3443
+against 0.2999. The same reversal is present at $-0.06$: 0.8934 against
+0.8868 on the price scale, 0.3230 against 0.2944 in logs. It appears
+again at the strongest common target, in a sharper form: there the price-scale difference between
+the Surrogate and the post-hoc comparator is -0.00035 --- below its own frozen materiality
+floor of 0.0005 and therefore a tie --- while the log-scale difference is 0.0174 and
+sits well above the same floor while pointing the other way. The two metrics weight the price distribution
+differently --- price-scale $R^2_P$ is dominated by the expensive tail that the Surrogate's
+$1+\rho c_i^2$ weighting protects, while $\operatorname{RMSE}_{\log P}$ weights all sales equally in
+logs --- so they can order the same pair of configurations in opposite directions. Neither settles
+``predictive performance'' on its own, and this paper does not let that phrase collapse onto one
+metric.}
+
+\paragraph{\latesttext{Non-attainment over the evaluated path.}}
+\latesttext{Three of the extended targets lie outside the three-way common support, and the frozen
+record carries an explicit attainment state for every family at each of them rather than an
+interpolated number. Over the evaluated frozen path the Direct family did not attain
+$\beta_{\log}\in\{-0.06,-0.03,0\}$, and the Surrogate family did not attain $0$ over its evaluated
+path; the largest development corrections they reached were -0.078651 and
+-0.018609 respectively. Both post-hoc families attain all three exactly, because a
+one-parameter rescaling can be solved for any first-order target. Those four display states are
+reported with their metric columns blank, never dropped and never filled. They are statements about
+the penalty grid this experiment evaluated --- eighty-two positive values per family --- and not
+about the objectives or about $\rho$ values the experiment never examined. The informative content
+of the asymmetry is what the frozen record says it is: reaching a target is not by itself an
+advantage, since driving the post-hoc coordinate to neutrality costs the accuracy recorded in
+Section~\ref{subsec:posthoc_comparator}.}
+
+\paragraph{\latesttext{The one-sale-one-vote sensitivity moves a material subset of the
+comparison.}}
+\latesttext{Because the fold-6 and fold-7 validation blocks overlap, the primary D1 coordinate
+carries an observation weighting that was never chosen deliberately, and the frozen design requires
+the row-balanced D3 coordinate as a sensitivity. It is not a small perturbation. The largest
+disagreement between the two coordinates is 0.004867 in $\beta_{\log}$ units, larger than
+$\tau$; the common support shifts to the range from -0.137744 to -0.076705; and re-running the
+identical deterministic construction on the 130,165 distinct development sales reselects
+13 of the 24 matched configurations. Of 315 headline sign comparisons,
+259 agree in sign, 41 fall below the materiality floor on both coordinates, and
+10 are material sign flips, a raw sign-agreement rate of 0.9365. Rank order is not
+preserved between the two coordinates. That reordering should not be read as the overlap scrambling
+the paths: the $\beta_{\log}$ paths of both retrained families are non-monotone in $\rho$ under
+\emph{both} coordinates, while both post-hoc families are monotone under both, so a shift of a few
+thousandths reorders configurations that were already close to tied. Everything in this subsection
+that carries a margin above the frozen floors survives the change of coordinate; the fine ordering
+of near-ties does not. The seven chronological folds are overlapping windows rather than independent
+replicates, so no statement here is a significance statement, and no fold spread is read as a
+standard error.}
+
+\latesttext{Taken together, the three families are not interchangeable at matched first-order
+correction, and no family is better on every diagnostic. Post-hoc rescaling reproduces much of the
+Direct frontier and reaches first-order targets Direct did not reach on this path, at a large
+accuracy cost when pushed that far. The Surrogate preserves price-scale accuracy and reduces
+nonlinear residual structure where the comparator increases it, and is worse in logs. That is the
+result: a diagnostic distinction between mechanisms, not a ranking, and no penalty strength is
+selected anywhere.}
+
+{\color{latestPurple}
+\begin{table}[!htbp]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\caption{\latesttext{Held-out outcome at the strongest development first-order correction all three
+primary families attain ($j=5$ of Table~\ref{tab:matched_beta}). Configurations are matched on the
+\emph{development} coordinate D1; their held-out first-order slopes are not equalised by that match,
+so these are differences between approximately matched configurations rather than effects at exactly
+equal out-of-sample correction. No configuration is selected or recommended.}}
+\label{tab:matched_beta_headline}
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+Family & Configuration & $R^2_P$ & MAE & $\operatorname{RMSE}_{\log P}$ & COD
+ & $\Delta_{\mathrm{NL}}$ & dCor \\
+\midrule
+Direct & $\rho=86.8511$ & 0.8760 & \$82,764 & 0.3170 & 23.97 & 0.1198 & 0.2730 \\
+Surrogate & $\rho=2.5595$ & 0.8963 & \$76,128 & 0.3094 & 21.40 & 0.0914 & 0.2714 \\
+C-posthoc & $b=1.069186$ & 0.8966 & \$74,236 & 0.2920 & 21.61 & 0.1282 & 0.2944 \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\small
+\emph{Notes.}
+\latesttext{C-posthoc is the centered rescaling of the \emph{Custom-objective $\rho=0$ origin}, the
+primary post-hoc family because that cell is the common origin of both penalized paths. Direct and
+Surrogate penalty magnitudes are not numerically comparable across families. COD is reported in
+percent and lies outside the adopted $[5,15]$ range for every row, as it does at the path origin, so
+no compliance claim is implied. $\Delta_{\mathrm{NL}}$ and dCor are residual-structure diagnostics
+with no assessor-facing reference range.}
+\end{minipage}
+\end{table}
+}
+
 
 \subsection{Chronological Stability and Other Model-Quality Dimensions}
 \label{subsec:path_stability_results}
@@ -2763,8 +3060,8 @@ The remaining statements follow from $C_\rho=C_0/(1+\rho A/2)$.
 \end{remark}
 
 \oldtext{This equivalence is specific to the exact fixed-prediction-space benchmark and motivates the centered recalibration comparator in the previous draft.}
-\newtext{This equivalence is specific to the exact fixed-prediction-space benchmark. It reveals that, within that benchmark, Direct covariance regularization is no richer than a one-parameter centered spread correction. This is both a mechanism result and a limitation: whether an explicit post-hoc correction can reproduce the accuracy--equity path of a fully retrained nonlinear learner is a separate empirical question left for follow-up work.} It does not imply that the empirical Direct-LightGBM path is one-dimensional: retraining can change tree splits and leaf structure, and the standard-library Direct implementation uses only the diagonal of the covariance Hessian.
-\todo{Future research: use the centered-spread equivalence as the starting point for a separate matched-frontier study of post-hoc versus in-processing correction; this comparison is intentionally not part of the present empirical results.}
+\newtext{This equivalence is specific to the exact fixed-prediction-space benchmark. It reveals that, within that benchmark, Direct covariance regularization is no richer than a one-parameter centered spread correction.} \latesttext{That makes it a mechanism result with an empirical prediction attached, and the prediction is tested rather than deferred: whether an explicit post-hoc correction reproduces the accuracy--equity path of a fully retrained nonlinear learner is answered for this application in Sections~\ref{subsec:posthoc_comparator} and~\ref{subsec:matched_beta_results}, where it reproduces much of the Direct first-order frontier over the range Direct attains and does not reproduce the residual-structure behaviour of the Surrogate.} It does not imply that the empirical Direct-LightGBM path is one-dimensional: retraining can change tree splits and leaf structure, and the standard-library Direct implementation uses only the diagonal of the covariance Hessian.
+\todo{Done: the centered-spread comparator and the matched first-order comparison are now part of the empirical results, in Sections~\ref{subsec:posthoc_comparator} and~\ref{subsec:matched_beta_results}. Retain this pointer until the Discussion is rewritten.}
 }
 
 \newtext{The rescaling coefficient that this benchmark implies should be stated in its
@@ -3444,6 +3741,234 @@ Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
 \caption{\oldtext{2025 mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical).}\latesttext{2025 mechanism/residual diagnostics (horizontal) versus predictive metrics (vertical). The dotted vertical line at $\beta_{\log}=0$ is a first-order neutrality reference where applicable; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets.}}
 \label{fig:tradeoff_mechanism_vs_accuracy_2025}
 \end{figure}
+
+\subsection{\latesttext{Centered-Spread Post-Hoc Comparator Detail}}
+\label{app:centered_spread_detail}
+
+\latesttext{Table~\ref{tab:centered_spread} reports the comparator of
+Section~\ref{subsec:posthoc_comparator} at the frozen base-value anchors, for the primary base cell
+on both out-of-time blocks and for the secondary practical base cell on the held-out block. The
+complete path over all frozen base values, the per-fold summaries with their descriptive
+chronological spread, the base-value-one bitwise check, the linearity check against the closed form,
+the root verification, and the anchor-level centering sensitivity are archived with the replication
+artifacts. Two properties of the construction are worth restating here because they bound what the
+table can be read to show. First, $\beta_{\log}$ is exactly linear in the base value on a fixed
+evaluation sample, so the post-hoc first-order coordinate is solved rather than searched, and the
+frozen record verifies the achieved development value against the closed form. Second, the
+comparator refits nothing: it is an affine transformation of a stored prediction array, which is why
+it can match a first-order coordinate exactly and cannot alter non-affine conditional-mean
+structure except incidentally.}
+
+{\color{latestPurple}
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\renewcommand{\arraystretch}{1.06}
+\caption{\latesttext{Centered-spread post-hoc comparator at the frozen base-value anchors. The map
+is $f_b(x)=\bar y_T+b(f_0(x)-\bar y_T)$ applied to cached prediction arrays; no model was refit.
+D1 is the primary development coordinate and D2 the pooled out-of-fold sensitivity, so ``D1 root''
+is the base value that drives the primary development coordinate to first-order neutrality and
+``D2 root'' the same for the sensitivity coordinate. VEI is a May-2026 Exposure Draft diagnostic and
+is proposed rather than adopted guidance, so no VEI entry is a compliance determination. No base
+value is selected or recommended.}}
+\label{tab:centered_spread}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}lrrrrrrrrrrr@{}}
+\toprule
+Anchor & $b$ & $R^2_P$ & MAE & $\operatorname{RMSE}_{\log P}$ & COD & PRD & MKI
+ & VEI & $\beta_{\log}$ & $\Delta_{\mathrm{NL}}$ & dCor \\
+\midrule
+\addlinespace[2pt]
+\multicolumn{12}{l}{\textit{Panel A: \emph{Custom-objective $\rho=0$ origin} rescaled, held-out (primary)}} \\
+\addlinespace[2pt]
+\cmidrule(lr){1-12}
+$b=1$ (no rescaling) & 1.000000 & 0.8928 & \$75,976 & 0.2894 & 21.60 & 1.0690 & 0.9230 & -26.17 & -0.1474 & 0.1164 & 0.3822 \\
+D1 root & 1.160458 & 0.8063 & \$87,182 & 0.3071 & 22.59 & 0.9871 & 1.0726 & 14.77 & -0.0106 & 0.1343 & 0.2518 \\
+D2 root & 1.167027 & 0.7941 & \$88,689 & 0.3087 & 22.69 & 0.9839 & 1.0787 & 16.44 & -0.0050 & 0.1344 & 0.2526 \\
+$b_{\max}$ & 1.209082 & 0.6926 & \$99,978 & 0.3200 & 23.50 & 0.9630 & 1.1175 & 26.82 & 0.0309 & 0.1338 & 0.2681 \\
+\addlinespace[2pt]
+\multicolumn{12}{l}{\textit{Panel B: \emph{Custom-objective $\rho=0$ origin} rescaled, 2025 forward (primary)}} \\
+\addlinespace[2pt]
+\cmidrule(lr){1-12}
+$b=1$ (no rescaling) & 1.000000 & 0.9039 & \$79,139 & 0.2791 & 21.23 & 1.0775 & 0.9093 & -28.41 & -0.1612 & 0.1212 & 0.4168 \\
+D1 root & 1.160458 & 0.7991 & \$96,243 & 0.2939 & 21.91 & 0.9934 & 1.0581 & 11.37 & -0.0266 & 0.1454 & 0.2542 \\
+D2 root & 1.167027 & 0.7850 & \$98,248 & 0.2955 & 22.01 & 0.9900 & 1.0642 & 12.97 & -0.0211 & 0.1457 & 0.2536 \\
+$b_{\max}$ & 1.209082 & 0.6682 & \$112,802 & 0.3069 & 22.75 & 0.9685 & 1.1029 & 23.74 & 0.0142 & 0.1459 & 0.2619 \\
+\addlinespace[2pt]
+\multicolumn{12}{l}{\textit{Panel C: \emph{Ordinary LightGBM (standard raw-label native)} rescaled, held-out (secondary, practical)}} \\
+\addlinespace[2pt]
+\cmidrule(lr){1-12}
+$b=1$ (no rescaling) & 1.000000 & 0.8942 & \$75,655 & 0.2887 & 21.63 & 1.0695 & 0.9230 & -26.46 & -0.1496 & 0.1187 & 0.3871 \\
+D1 root & 1.160367 & 0.8024 & \$87,658 & 0.3060 & 22.61 & 0.9875 & 1.0728 & 14.34 & -0.0132 & 0.1375 & 0.2531 \\
+D2 root & 1.167266 & 0.7892 & \$89,277 & 0.3076 & 22.73 & 0.9840 & 1.0792 & 16.18 & -0.0074 & 0.1376 & 0.2537 \\
+$b_{\max}$ & 1.209082 & 0.6852 & \$100,604 & 0.3188 & 23.53 & 0.9633 & 1.1180 & 27.33 & 0.0282 & 0.1371 & 0.2678 \\
+\bottomrule
+\end{tabular}}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+\latesttext{Panels A and B rescale the \emph{Custom-objective $\rho=0$ origin}, the primary post-hoc
+base because it is the common origin of both penalized families, so rescaling it holds the execution
+path fixed. Panel~C rescales \emph{Ordinary LightGBM (standard raw-label native)} and is the
+secondary, practical variant; under the frozen convention it determines neither the comparison range
+nor the choice of comparison targets nor the primary mechanistic test. \emph{Centered-label native
+L2 (initialization-aligned)} has no post-hoc path. At $b=1$ the map returns the cached prediction
+array unchanged, so the first row of each panel is the reference cell itself. VEI is reported in
+percent and COD in percent; COD lies outside the adopted $[5,15]$ range throughout. The alternative
+centering about the fitting block's mean prediction is a named sensitivity evaluated at these same
+four base values; its analytic difference from the map used here is constant in $x$, so it cannot
+move $\beta_{\log}$, COD, COV or dCor at all. $\Delta_{\mathrm{NL}}$ and dCor carry no
+assessor-facing reference range.}
+\end{minipage}
+\end{table}
+}
+
+
+\subsection{\latesttext{Matched First-Order Targets and Attainment}}
+\label{app:matched_beta_detail}
+
+\latesttext{Tables~\ref{tab:matched_beta} and~\ref{tab:matched_beta_ext} carry the design and the
+outcomes behind Section~\ref{subsec:matched_beta_results}: the six comparison targets inside the
+three-way development range with the configuration each family used, the held-out outcome at those
+targets, and the three extended targets outside the range with an explicit attainment state for
+every family. The D1 coordinate is primary throughout and the one-sale-one-vote D3 coordinate is the
+sensitivity; the D3 reselection counts and sign-agreement classification reported in
+Section~\ref{subsec:matched_beta_results} come from the frozen D3 branch, which re-runs the
+identical deterministic construction on the row-balanced coordinate and reproduces its targets from
+the pre-outcome record. The equal-weight and forward-year outcome columns, the pairwise difference
+tables, the crossing locations, the origin-identity check and the D3 twins of all four tables are
+archived with the replication artifacts.}
+
+{\color{latestPurple}
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.06}
+\caption{\latesttext{Matched first-order comparison on the primary development coordinate D1.
+Panel~A gives the six comparison targets and the configuration each family used; Panel~B gives the
+held-out outcome at those targets for the three primary families. Every configuration is an actually
+fitted model or an exactly solved rescaling, and no metric is interpolated between penalty values.
+The match is on the \emph{development} coordinate and does not equalise held-out first-order
+correction. No configuration is selected or recommended.}}
+\label{tab:matched_beta}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llrrrrrr@{}}
+\toprule
+\multicolumn{8}{l}{\textit{Panel A: comparison targets and the matched configurations}} \\
+\cmidrule(lr){1-8}
+$j$ & Target $\beta_{\log}$ (D1) & Direct $\rho$ & Surrogate $\rho$ & C-posthoc $b$
+ & A-posthoc $b$ & & \\
+\midrule
+0 & -0.138271 & 0 & 0 & 1.000000 & 0.999922 \\
+1 & -0.126490 & 0.7197 & 0.1326 & 1.013671 & 1.013592 \\
+2 & -0.114733 & 1.6768 & 0.4095 & 1.027316 & 1.027235 \\
+3 & -0.102033 & 3.9069 & 0.8286 & 1.042053 & 1.041972 \\
+4 & -0.090902 & 9.1030 & 1.4563 & 1.054971 & 1.054888 \\
+5 & -0.078651 & 86.8511 & 2.5595 & 1.069186 & 1.069103 \\
+\midrule
+\multicolumn{8}{l}{\textit{Panel B: held-out outcome at those targets}} \\
+\cmidrule(lr){1-8}
+$j$ & Family & $R^2_P$ & MAE & $\operatorname{RMSE}_{\log P}$ & COD
+ & $\Delta_{\mathrm{NL}}$ & dCor \\
+\midrule
+\addlinespace[2pt]
+0 & Direct & 0.8928 & \$75,976 & 0.2894 & 21.60 & 0.1164 & 0.3822 \\
+ & Surrogate & 0.8928 & \$75,976 & 0.2894 & 21.60 & 0.1164 & 0.3822 \\
+ & C-posthoc & 0.8928 & \$75,976 & 0.2894 & 21.60 & 0.1164 & 0.3822 \\
+\addlinespace[2pt]
+1 & Direct & 0.8984 & \$74,516 & 0.2888 & 21.60 & 0.1216 & 0.3637 \\
+ & Surrogate & 0.8954 & \$75,416 & 0.2909 & 21.50 & 0.1132 & 0.3660 \\
+ & C-posthoc & 0.8972 & \$74,897 & 0.2893 & 21.55 & 0.1192 & 0.3625 \\
+\addlinespace[2pt]
+2 & Direct & 0.9006 & \$74,167 & 0.2900 & 21.57 & 0.1231 & 0.3424 \\
+ & Surrogate & 0.8948 & \$75,831 & 0.2948 & 21.36 & 0.1035 & 0.3358 \\
+ & C-posthoc & 0.9000 & \$74,151 & 0.2895 & 21.52 & 0.1218 & 0.3438 \\
+\addlinespace[2pt]
+3 & Direct & 0.8993 & \$74,164 & 0.2910 & 21.70 & 0.1292 & 0.3227 \\
+ & Surrogate & 0.8963 & \$75,505 & 0.2976 & 21.40 & 0.0983 & 0.3134 \\
+ & C-posthoc & 0.9009 & \$73,725 & 0.2900 & 21.52 & 0.1243 & 0.3248 \\
+\addlinespace[2pt]
+4 & Direct & 0.8958 & \$75,296 & 0.2937 & 21.93 & 0.1298 & 0.3017 \\
+ & Surrogate & 0.8955 & \$76,083 & 0.3030 & 21.39 & 0.0938 & 0.2938 \\
+ & C-posthoc & 0.8999 & \$73,755 & 0.2908 & 21.55 & 0.1263 & 0.3096 \\
+\addlinespace[2pt]
+5 & Direct & 0.8760 & \$82,764 & 0.3170 & 23.97 & 0.1198 & 0.2730 \\
+ & Surrogate & 0.8963 & \$76,128 & 0.3094 & 21.40 & 0.0914 & 0.2714 \\
+ & C-posthoc & 0.8966 & \$74,236 & 0.2920 & 21.61 & 0.1282 & 0.2944 \\
+\bottomrule
+\end{tabular}}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+\latesttext{Targets are placed by a deterministic rule: probe equally spaced points in the
+three-way development range, then take as the target the achieved development $\beta_{\log}$ of the
+fitted Direct configuration nearest the probe. The target is therefore an achieved value rather than
+the probe, Direct matches exactly by construction, and no selection discretion enters. Surrogate
+rows use the nearest actually fitted penalty value and the post-hoc rows an exact solve, all within
+the frozen tolerance $\tau=$ 0.002. The $j=0$ row is an origin identity check: Direct at
+$\rho=0$, Surrogate at $\rho=0$ and the post-hoc map at $b=1$ are the same object. A-posthoc is the
+rescaling of \emph{Ordinary LightGBM (standard raw-label native)} and is carried as a secondary,
+practical variant; per the frozen convention it determines neither the comparison range, nor the
+target selection, nor whether a target exists, and its outcome columns are therefore not reported
+here. Direct and Surrogate penalty magnitudes are not comparable across families. COD is in percent
+and lies outside the adopted $[5,15]$ range throughout. $\Delta_{\mathrm{NL}}$ and dCor are
+residual-structure diagnostics with no assessor-facing reference range.}
+\end{minipage}
+\end{table}
+}
+
+{\color{latestPurple}
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3.4pt}
+\renewcommand{\arraystretch}{1.06}
+\caption{\latesttext{Extended development targets, which lie outside the three-way common range,
+with an explicit attainment state for every family. Held-out evaluation. Rows recorded as not
+attained carry blank outcome columns: they are neither dropped nor filled by interpolation. The
+states describe the penalty grid this experiment evaluated, not the objectives and not penalty
+values the experiment never examined.}}
+\label{tab:matched_beta_ext}
+\begin{tabular}{@{}llllrrrrrrr@{}}
+\toprule
+Target $\beta_{\log}$ (D1) & Family & Configuration & State & Max attained $\beta_{\log}$
+ & $R^2_P$ & MAE & $\operatorname{RMSE}_{\log P}$ & COD & $\Delta_{\mathrm{NL}}$ & dCor \\
+\midrule
+\addlinespace[2pt]
+-0.06 & Direct & --- & \verb|NOT_ATTAINED| & -0.078651 & --- & --- & --- & --- & --- & --- \\
+ & Surrogate & 5.9636 & attained & --- & 0.8934 & \$77,813 & 0.3230 & 21.81 & 0.0968 & 0.2518 \\
+ & C-posthoc & 1.090830 & attained & --- & 0.8868 & \$75,847 & 0.2944 & 21.75 & 0.1306 & 0.2752 \\
+\addlinespace[2pt]
+-0.03 & Direct & --- & \verb|NOT_ATTAINED| & -0.078651 & --- & --- & --- & --- & --- & --- \\
+ & Surrogate & 28.1177 & attained & --- & 0.8917 & \$79,939 & 0.3443 & 22.84 & 0.1126 & 0.2553 \\
+ & C-posthoc & 1.125644 & attained & --- & 0.8569 & \$80,444 & 0.2999 & 22.10 & 0.1332 & 0.2559 \\
+\addlinespace[2pt]
+0.00 & Direct & --- & \verb|NOT_ATTAINED| & -0.078651 & --- & --- & --- & --- & --- & --- \\
+ & Surrogate & --- & \verb|NOT_ATTAINED| & -0.018609 & --- & --- & --- & --- & --- & --- \\
+ & C-posthoc & 1.160458 & attained & --- & 0.8063 & \$87,182 & 0.3071 & 22.59 & 0.1343 & 0.2518 \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+\latesttext{Configuration is a fitted penalty value for the Surrogate rows and an exactly solved
+base value for the post-hoc rows. The ``Max attained'' column is filled only for rows recorded as
+not attained, and reports the largest development first-order correction that family reached over
+the evaluated frozen path. Over that path the Direct family did not attain any of the three extended
+targets and the Surrogate family did not attain zero; both post-hoc families attain all three
+exactly, because a one-parameter rescaling can be solved for any first-order target. Reaching a
+target is not by itself an advantage: driving the post-hoc coordinate to neutrality costs the
+price-scale accuracy recorded in Table~\ref{tab:centered_spread}. COD is in percent;
+$\Delta_{\mathrm{NL}}$ and dCor carry no assessor-facing reference range.}
+\end{minipage}
+\end{table}
+}
+
 
 \subsection{VEI Percentile-Group Profiles}
 

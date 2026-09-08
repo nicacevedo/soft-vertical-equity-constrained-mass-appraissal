@@ -1,0 +1,478 @@
+{
+  "active_resolution": {
+    "ALLOWLISTED": 224,
+    "SOURCED": 154,
+    "SOURCED_LEDGER": 600
+  },
+  "compile": {
+    "biber_warnings": [],
+    "exit_code": 0,
+    "latex_errors": [],
+    "latex_warnings": [],
+    "missing_bib_entries": [],
+    "n_latex_errors": 0,
+    "n_overfull_hbox": 2,
+    "n_overfull_vbox": 0,
+    "n_underfull": 4,
+    "ok": true,
+    "overfull_hbox": [
+      {
+        "from": 2660,
+        "pt": 1.9402,
+        "to": 2661
+      },
+      {
+        "from": 2759,
+        "pt": 11.817,
+        "to": 2759
+      }
+    ],
+    "pages": 59,
+    "pdf_written": true,
+    "undefined_citations": [],
+    "undefined_references": []
+  },
+  "expected_failures": [
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:mechanism_vs_rho_candidate_region.pdf",
+        "line": 2287,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/mechanism_vs_rho_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:predictive_metric_paths_candidate_region.pdf",
+        "line": 3660,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/predictive_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:level_uniformity_paths_candidate_region.pdf",
+        "line": 3661,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/level_uniformity_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:vertical_equity_metric_paths_candidate_region.pdf",
+        "line": 3666,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/vertical_equity_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_predictive_metric_paths_candidate_region.pdf",
+        "line": 3701,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_predictive_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_level_uniformity_paths_candidate_region.pdf",
+        "line": 3706,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_level_uniformity_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_vertical_equity_metric_paths_candidate_region.pdf",
+        "line": 3711,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_vertical_equity_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C08",
+        "count": null,
+        "key": "C08:asset:cv_mechanism_metric_paths_candidate_region.pdf",
+        "line": 3716,
+        "message": "the ACTIVE build draws an unsupported candidate-region overlay asset: img/generated_v12_994/cv_mechanism_metric_paths_candidate_region.pdf",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:mechanism_path_placeholder",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:mechanism_path_placeholder",
+        "line": 2285,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:other_metric_paths_placeholder",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:other_metric_paths_placeholder",
+        "line": 3658,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:vertical_equity_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:vertical_equity_metric_paths",
+        "line": 3664,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_predictive_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_predictive_metric_paths",
+        "line": 3699,
+        "message": "caption states the unsupported screen result ['activity-onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_level_uniformity_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_level_uniformity_paths",
+        "line": 3704,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_vertical_equity_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_vertical_equity_metric_paths",
+        "line": 3709,
+        "message": "caption states the unsupported screen result ['activity onset', 'candidate region', 'guardrail', 'transition span']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_mechanism_metric_paths",
+        "check": "C08",
+        "count": null,
+        "key": "C08:caption:fig:cv_mechanism_metric_paths",
+        "line": 3714,
+        "message": "caption states the unsupported screen result ['candidate region', 'guardrail', 'transition span', 'upper guardrail']",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "sec:discussion",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:5095ebb531c2",
+        "line": 2673,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['candidate region'] at sec:discussion: 'the cv-derived candidate regions summarize where activity becomes visible and where a family-specific deterioration or c'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B3.1"
+    },
+    {
+      "finding": {
+        "anchor": "sec:implementation_workflow",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:3b488871faed",
+        "line": 2703,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['guardrail'] at sec:implementation_workflow: 'if a later operating point is required, choose it using an explicit predictive/equity loss and prespecified guardrails, '",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B3.1"
+    },
+    {
+      "finding": {
+        "anchor": "eq:nonlinearity_gap_estimator",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:a2fbe0836f1f",
+        "line": 2878,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['transition span'] at eq:nonlinearity_gap_estimator: 'the same frozen cross-fitted estimator was later applied, fold by fold, to the already-stored chronological validation p'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "tab:path_anchor_complementary",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:47dc81fdc141",
+        "line": 3656,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['transition span'] at tab:path_anchor_complementary: 'throughout the rho -evolution figures below, gray fill and dashed vertical boundaries mark the frozen family-specific cv'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "app:ccao_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:dae7fbbad332",
+        "line": 3987,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity-onset', 'guardrail'] at app:ccao_results: 'the final screening package should additionally archive the frozen generic v2.1 method specification, activity-onset and'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B4.3"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C12",
+        "count": 14,
+        "key": "C12:todos_present",
+        "line": null,
+        "message": "14 \\todo sites remain in the source (11 in the ACTIVE build)",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B4.2"
+    },
+    {
+      "finding": {
+        "anchor": "fig:cv_mechanism_metric_paths",
+        "check": "C13",
+        "count": 1,
+        "key": "C13:unsupported_math_claim:MATH-001-cv-delta-nl-minima",
+        "line": 3721,
+        "message": "a known unsupported math-mode claim is still ACTIVE and is scheduled for DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE at B2.6. It is INVISIBLE to the flagged-token budget because the frozen coverage audit masks math mode, so it must not be read as validated by any FLAGGED_UNSUPPORTED count. Neither value, nor the rho ~= 1.677 location, is in the frozen Tier-B0 numeric map. The approved Tier-B execution plan lists this claim twice -- section E.6 (\"The descriptive CV Delta_NL minima sentence ... is NOT in the numeric map -- treat as unsupported unless it resolves\") and section G, among the claims that cannot be written from the frozen evidence. It is also an instance of the broader frozen finding that Delta_NL and dCor are absent from frozen_artifact_reproduction.csv at EVERY positive rho, which is why the same two columns are being dropped for positive rho from tab:path_anchor_complementary at B2.1.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:ratio_shape_path_placeholder",
+        "check": "C13",
+        "count": 1,
+        "key": "C13:unsupported_math_claim:MATH-002-direct-positive-rho-delta-nl-band",
+        "line": 2272,
+        "message": "a known unsupported math-mode claim is still ACTIVE and is scheduled for DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE at B2.6. It is INVISIBLE to the flagged-token budget because the frozen coverage audit masks math mode, so it must not be read as validated by any FLAGGED_UNSUPPORTED count. Every positive-rho value in the sentence is a Delta_NL value, and frozen_artifact_reproduction.csv -- the only artifact that reproduces the two frozen positive-rho anchors -- carries no Delta_NL column at all. The lower band endpoint 0.116 is the rho=0 Cell-C value and does resolve; the upper endpoint 0.132, the 0.115 at rho=100, and the 2025 endpoint 0.119 do not. The phrase \"over the previously reported representative configurations\" is itself a residue of the three legacy display anchors whose fitted artifacts are hash-pinned but in no checkout.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:ratio_shape_path_placeholder",
+        "check": "C13",
+        "count": 2,
+        "key": "C13:unsupported_math_claim:MATH-003-surrogate-positive-rho-delta-nl-trajectory",
+        "line": 2272,
+        "message": "a known unsupported math-mode claim is still ACTIVE and is scheduled for DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE at B2.6. It is INVISIBLE to the flagged-token budget because the frozen coverage audit masks math mode, so it must not be read as validated by any FLAGGED_UNSUPPORTED count. Same frozen fact as MATH-002: no Delta_NL column exists at any positive rho. The rho=0 endpoints 0.116 and 0.121 are Cell-C values and do resolve; every positive-rho value in either sentence does not. The Surrogate \"falls then rebounds\" shape is exactly the claim the plan flags, and it cannot be asserted from values that reproduce nowhere.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "finding": {
+        "anchor": "fig:mechanism_path_placeholder",
+        "check": "C13",
+        "count": 1,
+        "key": "C13:unsupported_math_claim:MATH-004-surrogate-positive-rho-dcor-nonmonotonicity",
+        "line": 2298,
+        "message": "a known unsupported math-mode claim is still ACTIVE and is scheduled for DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE at B2.6. It is INVISIBLE to the flagged-token budget because the frozen coverage audit masks math mode, so it must not be read as validated by any FLAGGED_UNSUPPORTED count. frozen_artifact_reproduction.csv carries no dCor column at any positive rho, so 0.250, 0.267, 0.258 and 0.266 resolve from nothing. Only the rho=0 endpoint 0.382 resolves, from zero_control_full.csv cell C. The approved plan names this exact chain in section G -- \"The Surrogate dCor non-monotonicity (0.382 -> 0.250 -> 0.267): positive-rho endpoints unresolvable\" -- and in section E.6, which adds that the same values must not be kept in tab:path_anchor_complementary while being deleted from the prose. B2.1 removed the table side; this is the prose side. 0.250 is deliberately NOT one of the identifying literals: it also occurs as a commented-out Linear dCor cell, and including it would make this entry collide with the coverage token population.",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B2.6"
+    }
+  ],
+  "known_unsupported_math_claims": [
+    {
+      "active": true,
+      "anchor": "fig:cv_mechanism_metric_paths",
+      "claim_id": "MATH-001-cv-delta-nl-minima",
+      "disposition": "DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE",
+      "excerpt_matches_registry": true,
+      "in_token_population": [],
+      "line": 3721,
+      "matched_exactly": true,
+      "n_matches": 1,
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "active": true,
+      "anchor": "fig:ratio_shape_path_placeholder",
+      "claim_id": "MATH-002-direct-positive-rho-delta-nl-band",
+      "disposition": "DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE",
+      "excerpt_matches_registry": true,
+      "in_token_population": [],
+      "line": 2272,
+      "matched_exactly": true,
+      "n_matches": 1,
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "active": true,
+      "anchor": "fig:ratio_shape_path_placeholder",
+      "claim_id": "MATH-003-surrogate-positive-rho-delta-nl-trajectory",
+      "disposition": "DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE",
+      "excerpt_matches_registry": true,
+      "in_token_population": [],
+      "line": 2272,
+      "matched_exactly": true,
+      "n_matches": 2,
+      "resolved_by_stage": "B2.6"
+    },
+    {
+      "active": true,
+      "anchor": "fig:mechanism_path_placeholder",
+      "claim_id": "MATH-004-surrogate-positive-rho-dcor-nonmonotonicity",
+      "disposition": "DELETE_OR_REWRITE_WITH_SUPPORTED_EVIDENCE",
+      "excerpt_matches_registry": true,
+      "in_token_population": [],
+      "line": 2298,
+      "matched_exactly": true,
+      "n_matches": 1,
+      "resolved_by_stage": "B2.6"
+    }
+  ],
+  "known_unsupported_math_claims_active": 4,
+  "known_unsupported_math_claims_note": "Counted SEPARATELY from unsupported_tokens. The frozen coverage audit masks math environments, so these claims are outside the token population entirely: unsupported_tokens = 0 would not mean they had been resolved.",
+  "manuscript": "paper/paper_v17_option1.tex",
+  "manuscript_sha256": "52a5f16d41d2b390b27f4a83609450167758fea4b394e38ea76fcf75a33db6cd",
+  "n_expected_failures": 25,
+  "n_unexpected_failures": 0,
+  "ok": true,
+  "scope": {
+    "cumulative": {
+      "command": "git diff --name-only tier-b0-final-20260907..HEAD",
+      "n_paths": 34,
+      "ok": true,
+      "outside_paper": [],
+      "paths": [
+        "paper/paper_analysis/tier_b_validation/.gitignore",
+        "paper/paper_analysis/tier_b_validation/README.md",
+        "paper/paper_analysis/tier_b_validation/baseline/FROZEN_SUITE_EXPECTATIONS.md",
+        "paper/paper_analysis/tier_b_validation/baseline/compile_pre_edit_B1.0.json",
+        "paper/paper_analysis/tier_b_validation/baseline/frozen_suites_pre_edit_B1.0.json",
+        "paper/paper_analysis/tier_b_validation/baseline/p0_suite_pre_edit_B1.0.log",
+        "paper/paper_analysis/tier_b_validation/baseline/p1_suite_pre_edit_B1.0.log",
+        "paper/paper_analysis/tier_b_validation/baseline/tier_b0_suite_pre_edit_B1.0.log",
+        "paper/paper_analysis/tier_b_validation/ledger/tier_b_numeric_ledger.yaml",
+        "paper/paper_analysis/tier_b_validation/run_frozen_suites_informational.py",
+        "paper/paper_analysis/tier_b_validation/runs/B1.0.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.1.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.2.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.3.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.4.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.5.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.1.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.2.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.3.json",
+        "paper/paper_analysis/tier_b_validation/spec/expected_failures.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/ledger_selftest.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/tier_b_citations.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/tier_b_required_statements.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/unsupported_math_claims.yaml",
+        "paper/paper_analysis/tier_b_validation/tb_checks.py",
+        "paper/paper_analysis/tier_b_validation/tb_common.py",
+        "paper/paper_analysis/tier_b_validation/tb_compile.py",
+        "paper/paper_analysis/tier_b_validation/tb_coverage.py",
+        "paper/paper_analysis/tier_b_validation/tb_ledger.py",
+        "paper/paper_analysis/tier_b_validation/tb_scope.py",
+        "paper/paper_analysis/tier_b_validation/tb_text.py",
+        "paper/paper_analysis/tier_b_validation/validate.py",
+        "paper/paper_v17_option1.tex",
+        "paper/references_additions.bib"
+      ]
+    },
+    "frozen_subtrees": {
+      "ok": true,
+      "subtrees": [
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/p0_major_revision_validation",
+          "tag": "p0-major-revision-final-20260907"
+        },
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/p1_inferential_reporting",
+          "tag": "p1-inferential-reporting-final-20260907"
+        },
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/final_manuscript_evidence",
+          "tag": "tier-b0-final-20260907"
+        }
+      ]
+    },
+    "ok": true,
+    "uncommitted": {
+      "n_paths": 2,
+      "ok": true,
+      "outside_paper": [],
+      "paths": [
+        "paper/paper_analysis/tier_b_validation/ledger/tier_b_numeric_ledger.yaml",
+        "paper/paper_v17_option1.tex"
+      ],
+      "untracked": []
+    }
+  },
+  "stage": "B2.4",
+  "stale_expectations": [],
+  "unexpected_failures": [],
+  "unsupported_tokens": 0,
+  "unsupported_tokens_by_anchor": {},
+  "unsupported_tokens_expected": 0
+}
