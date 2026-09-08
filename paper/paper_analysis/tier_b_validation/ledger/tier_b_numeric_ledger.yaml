@@ -15088,3 +15088,125 @@ entries:
       forward block. Paired with TB-pc-origin-betalog-oos-upper this ties both
       printed endpoints to frozen artifacts, so the replacement range is
       resolved provenance rather than a differently-worded approximation.
+
+# --------------------------------------------------------------------------
+# B2.5 -- Temporal robustness and portability closure.
+#
+# C-results-017 requires the frozen Stage-3B gate outcomes to be reported AS
+# RECORDED rather than paraphrased as a clean pass, so the three status tokens
+# are resolved here as verbatim strings against their frozen artifacts. The
+# fourth entry ties the materiality tolerance printed beside them to the gate
+# artifact itself, which is also what documents that tau was adopted from the
+# matched-beta configuration BEFORE this comparison read any outcome -- the
+# provenance claim the manuscript now makes positively.
+#
+# No new number enters the paper here beyond tau: the span, regret and
+# concordance values that the suppressed block quoted stay deleted, because the
+# audit finds them unresolvable and C-results-015 forbids restoring them.
+# --------------------------------------------------------------------------
+
+  - entry_id: "TB-temporal-g5a-outcome"
+    added_by_stage: "B2.5"
+    artifact_path: "analysis/p0_major_revision_validation/reports/TEMPORAL_ROBUSTNESS_REPORT.md"
+    artifact_sha256: "9e68246c5a4724347c88305114814ad5b2fa748dc865ea06c31fbfdccff5362b"
+    artifact_kind: "markdown"
+    selector: 'heading="8. Statuses and scope"; quote="ALERT"'
+    metric: "g5a_outcome"
+    raw_value: "ALERT"
+    value_transform: "identity"
+    rounding_rule: "verbatim"
+    rendered_value: "ALERT"
+    manuscript_anchor: "subsec:path_stability_results"
+    reference_cell: "NONE"
+    comparison_purpose: "NOT_APPLICABLE"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The screening-gate outcome, quoted from the status block of the frozen
+      report. gate_g5a_outcome.json carries the same verdict as the longer
+      string "ALERT -- targeted local refinement required before any
+      promotion", together with n_dsnap_triggers_fired = 1; the manuscript
+      states the single fired criterion in words rather than printing that
+      count. The screening grid is 4x coarser than the frozen path, which is
+      why the report calls a trigger here an alert and not a verdict.
+
+  - entry_id: "TB-temporal-g5b-status"
+    added_by_stage: "B2.5"
+    artifact_path: "analysis/p0_major_revision_validation/tables/gate_g5b_outcome.json"
+    artifact_sha256: "64bc5d426538e9e3a0cf3faf31e6fa6a59c2cd847cf0c2e6b8d976806b0d4767"
+    artifact_kind: "json"
+    selector: "$.status"
+    metric: "g5b_status"
+    raw_value: "NOT_CONFIRMED"
+    value_transform: "identity"
+    rounding_rule: "verbatim"
+    rendered_value: "NOT\\_CONFIRMED"
+    manuscript_anchor: "subsec:path_stability_results"
+    reference_cell: "NONE"
+    comparison_purpose: "NOT_APPLICABLE"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The refinement gate. The same artifact's `promotion` field is the source
+      of the manuscript's characterization of the alert as a near-tie /
+      near-zero artifact that did not survive local refinement; it is
+      paraphrased rather than quoted, so only the status token is printed. The
+      underscore is escaped for LaTeX, which the rendered_value comparison
+      normalizes away.
+
+  - entry_id: "TB-temporal-status"
+    added_by_stage: "B2.5"
+    artifact_path: "analysis/p0_major_revision_validation/reports/TEMPORAL_ROBUSTNESS_REPORT.md"
+    artifact_sha256: "9e68246c5a4724347c88305114814ad5b2fa748dc865ea06c31fbfdccff5362b"
+    artifact_kind: "markdown"
+    selector: 'heading="8. Statuses and scope"; quote="PASS_PRIMARY_STANDS"'
+    metric: "temporal_status"
+    raw_value: "PASS_PRIMARY_STANDS"
+    value_transform: "identity"
+    rounding_rule: "verbatim"
+    rendered_value: "PASS\\_PRIMARY\\_STANDS"
+    manuscript_anchor: "subsec:path_stability_results"
+    reference_cell: "NONE"
+    comparison_purpose: "NOT_APPLICABLE"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The overall temporal verdict: the primary design stands. Printed together
+      with the ALERT and NOT_CONFIRMED tokens precisely so the sequence reads as
+      recorded -- an alert that was raised, tested and not confirmed -- rather
+      than as a clean pass.
+
+  - entry_id: "TB-temporal-tau-match"
+    added_by_stage: "B2.5"
+    artifact_path: "analysis/p0_major_revision_validation/tables/gate_g5b_outcome.json"
+    artifact_sha256: "64bc5d426538e9e3a0cf3faf31e6fa6a59c2cd847cf0c2e6b8d976806b0d4767"
+    artifact_kind: "json"
+    selector: "$.materiality_rule.TAU_MATCH"
+    metric: "tau_match"
+    raw_value: "0.002"
+    value_transform: "identity"
+    rounding_rule: "verbatim"
+    rendered_value: "0.002"
+    manuscript_anchor: "subsec:path_stability_results"
+    reference_cell: "NONE"
+    comparison_purpose: "NOT_APPLICABLE"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The separation tolerance the gate judges materiality against. The same
+      artifact's materiality_rule.source records that it is "the beta_log
+      matching tolerance frozen in configs/matched_beta_frozen.json BEFORE this
+      stage read any outcome; no new constant was introduced at decision time",
+      and mode_g5b re-reads that file and raises if the two ever disagree. That
+      is the provenance the manuscript now asserts positively, and it is why
+      tau is not described as data-selected or tuned to obtain a band. The same
+      value is printed at subsec:matched_beta_results from the matched-beta
+      record; this entry resolves the occurrence at the temporal anchor.

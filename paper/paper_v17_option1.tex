@@ -2651,18 +2651,72 @@ prediction/level/dispersion paths for Appendix~\ref{app:ccao_path_details}, whil
 reporting the main path findings in the figures above.}
 \latesttext{We therefore reserve the complete fold-level paths for prediction, valuation level and horizontal uniformity, vertical equity, and mechanism diagnostics for Appendix~\ref{app:ccao_path_details}, while reporting the main path findings in the figures above.}
 
-\begin{oldrevisionblock}
-\oldtext{The chronological folds support the direction of the targeted first-order mechanism but do not imply a stable multi-metric operating point. On Direct, $\beta_{\log}$ becomes less negative from $\rho=0$ to $\rho=100$ in all seven folds. Applying the frozen five-metric transition rule to the equal-weight chronological-CV path yields a descriptive Direct span $\rho\in[0.1,1.099]$. All seven leave-one-fold-out aggregations also yield a five-event positive-interior span, so this within-CV pattern is not driven by any single fold. The lower endpoint requires an important qualification: $\rho=0.1$ is the smallest positive penalty on the tested grid and therefore is not an estimated lower transition threshold.}
-\latesttext{The chronological folds support reproducible within-development path structure but do not identify a stable multi-metric operating point. After the lower-tail extension, the five Direct CV events all occur at positive interior grid points and define the descriptive span $\rho\in[0.0494,1.099]$. The event that had previously been censored at the first positive point---$\operatorname{RMSE}_{\log P}$---moves inward to $\rho=0.0494$, while the other four Direct event locations are unchanged at the reported grid resolution. All seven Direct leave-one-fold-out aggregations again yield a valid positive-interior five-event span.}
+The seven chronological folds are overlapping expanding-window constructions rather
+than independent replications. Their validation blocks are not mutually disjoint---the
+sixth and seventh blocks share observations---so the equal-weight cross-validation mean
+is an average over partly overlapping evaluation evidence. Every prediction is still
+genuinely out of training sample, but across-fold dispersion is descriptive
+chronological-window variation and not an IID standard error, and it is never reported
+as one. On this evidence the folds support the direction of the targeted first-order
+mechanism while they do not identify a stable multi-metric operating point: the
+penalty scales at which individual diagnostics turn are not common across
+metrics, and no materiality threshold is imposed on the fold-level path comparisons
+themselves, so their differences are not labelled material or negligible.
 
-\oldtext{Temporal concordance of the exact event locations is substantially weaker. After freezing the Direct CV span, only one of the five held-out turning events and none of the five 2025 turning events fall inside it. Value-based span regret gives a more nuanced result than event locations alone: held-out $\operatorname{RMSE}_{\log P}$ has zero span regret, whereas the other four held-out primary metrics have strictly positive regret; all five 2025 primary metrics have strictly positive regret. Because no substantive ``small-regret'' threshold is imposed, these signs are not used to label the positive regrets as material or negligible. The evidence is therefore mixed by metric: the Direct span is a reproducible description of the development-period CV path, but it does not define a temporally invariant penalty region.}
-\latesttext{Exact temporal concordance is nevertheless weak. None of the five Direct held-out turning events and none of the five Direct 2025 turning events fall inside the frozen v2 CV span. Thus, the lower-tail extension strengthens the interpretation of the Direct span as an interior description of the development-period CV path while providing no evidence that the same event envelope is a temporally invariant operating region.}
+Temporal portability is weaker than within-development reproducibility, and the two
+out-of-time blocks do not play the same role. The held-out block is the later
+development-period evaluation used in the primary analysis; the separate 2025 forward
+sample is a stronger portability check on a subsequent market period. They do not
+behave identically. Along the frozen Surrogate path the held-out first-order slope
+attains a maximum marginally above zero, whereas the cross-validation mean and the 2025
+forward path remain negative throughout, so the same correction does not leave the same
+first-order signature on every evaluation period. A disagreement of this kind is
+evidence about temporal sensitivity rather than a defect to be tuned away. The shaded
+landmarks retained in the appendix path figures accordingly describe where particular
+development-period diagnostics begin to move, and they do not delimit a selected,
+portable, or recommended operating interval.
 
-\oldtext{The Surrogate does not support the same five-metric construction in the full chronological-CV aggregate because $\operatorname{RMSE}_{\log P}$ is minimized at the $\rho=0$ boundary; only two of seven leave-one-fold-out aggregations produce a common positive-interior span. Thus, moderate Surrogate regularization can still improve several predictive and assessor-facing criteria, but those improvements do not organize into the same common five-metric CV transition structure as Direct. Appendix~\ref{app:ccao_path_details} reports the event locations, leave-one-fold-out diagnostics, and Direct regret values. These are descriptive path-stability results and do not select a model family or operating point.}
-\latesttext{The lower-tail extension also changes the Surrogate conclusion. Its CV $\operatorname{RMSE}_{\log P}$ event moves from the $\rho=0$ boundary to the positive interior point $\rho=0.00222$, and its MAE event moves below $0.1$. The five Surrogate CV events therefore define their own descriptive span, $\rho\in[0.00222,0.954]$, and all seven Surrogate leave-one-fold-out aggregations now support a positive-interior five-event span. This does not make the Surrogate span a selected or portable operating range: only one of five held-out events and one of five 2025 events (MAE in each case) fall inside it. Taken together, the two families show that reproducible within-CV transition structure is distinct from temporal portability of the exact operating location. Appendix~\ref{app:ccao_path_details} reports the event locations and leave-one-fold-out diagnostics. These are descriptive path-stability results and do not select a model family or operating point.}
-\oldtext{The corresponding metric-value losses are generally limited in magnitude over the observed paths, although no materiality threshold is imposed.}
-\latesttext{These regret values show that exact event-location disagreement and value-based loss are distinct aspects of temporal portability; no materiality threshold is imposed. Direct $\operatorname{RMSE}_{\log P}$ and Surrogate $R^2_P$ CV events are particularly value-flat, while MAE events are comparatively sharper; exact event-$\rho$ movement therefore should not be interpreted as equal substantive movement for all criteria.}
-\end{oldrevisionblock}
+Three alternative temporal designs were evaluated against the primary design without
+refitting it. A strict-date design moves every boundary-date sale to the evaluation
+side, so that training strictly precedes evaluation at each origin; an oracle
+overlap-removal diagnostic deletes from each training block every parcel that reappears
+in the paired evaluation block; and an unseen-parcel view restricts the frozen
+predictions to evaluation rows whose parcel never appears in the corresponding training
+block. The screening gate returned \texttt{ALERT} on a single criterion, the first-order
+slope's sign and family ordering. Targeted local refinement of the affected regions of
+the frozen grid returned \texttt{NOT\_CONFIRMED}, recording the alert as a near-tie and
+near-zero artifact that did not survive refinement, with overall temporal status
+\texttt{PASS\_PRIMARY\_STANDS}. The separation tolerance against which that comparison
+judged materiality is $\tau=$ 0.002. It was not a constant chosen at decision time: it is
+the first-order matching tolerance already frozen for the matched-correction analysis,
+adopted here before this comparison read any outcome.
+
+These designs sharpen rather than soften the reading. Under the strict-date design the
+first-order path keeps its shape, sign, and family ordering wherever the two families
+are separated by more than that tolerance, and the 2025 forward numbers are unchanged
+because that boundary was already date-separated---a property of the design rather than
+independent confirmation of portability. The oracle diagnostic could not be implemented
+prospectively, since constructing its training blocks requires knowing which parcels
+appear in a future evaluation block; it is therefore reported as a diagnostic and not as
+a proposed sample-construction rule. It leaves the within-path conclusions in place, but
+it does materially attenuate the broader-dependence rebound in the Surrogate family, and
+it makes the uncorrected origin measurably more regressive, which strengthens rather
+than weakens the motivation for the correction. The unseen-parcel view refits nothing
+and changes the denominators, so it is reported on its own base and is never differenced
+against the frozen path; on it the Surrogate continues to attain substantially more
+first-order correction than the Direct family at strong penalties. Direct and Surrogate
+are accordingly not interchangeable, and their attainable spans and temporal behaviour
+are reported separately rather than averaged together.
+
+Taken together, the corrections move the targeted first-order mechanism on every
+evaluation block, but they do not do so at a penalty scale that is stable across market
+periods, and the diagnostics do not all turn on a common scale: the broader-dependence
+and nonlinear-residual diagnostics reach their interior minima at different penalty
+scales, and those locations shift across evaluation periods. The penalty grid was frozen
+in advance, no diagnostic reported here defined it or any selection rule, and no penalty
+strength is selected. The contribution of this section is a controlled characterization
+of the attainable paths together with a temporal failure-mode audit, rather than the
+identification of a deployment penalty or a portable operating interval.
 
 
 \subsection{External-Validity Boundary}
