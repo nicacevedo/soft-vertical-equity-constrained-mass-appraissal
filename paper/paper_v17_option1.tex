@@ -2014,8 +2014,9 @@ same custom-objective code path as the penalized fits, evaluated at zero penalty
 the two custom-objective controls are the same object: at $\rho=0$ the Direct and Surrogate
 predictions coincide exactly, with a maximum absolute log difference of $0$ in every audited
 capacity-by-sample cell. Second, the custom-objective origin is \emph{not} numerically identical to
-ordinary LightGBM. Aligned on sale identifiers, the two differ by a mean absolute log deviation of
-3.24e-02, with a maximum of 3.09e-01, on the held-out sample, and by 3.06e-02, with a maximum of
+ordinary LightGBM. Evaluated on the same held-out and 2025 samples, the two differ by a mean
+absolute log deviation of 3.24e-02, with a maximum of 3.09e-01, on the held-out sample, and by
+3.06e-02, with a maximum of
 2.83e-01, on the 2025 forward sample. Those differences are large enough to move reported metrics
 and are not a rounding artifact. Third, the audit locates the difference in the execution path
 rather than in the objective: at the first boosting iteration the supplied zero-penalty gradients
@@ -2356,8 +2357,9 @@ $\bar f_{0,T}$ instead of $\bar y_T$ --- is a named sensitivity rather than an a
 map, and the two are never merged. At the same $b$ they differ by $b\,(\bar f_{0,T}-\bar y_T)$, a
 constant in $x$, so $\beta_{\log}$, the residual--price covariance, COD, COV and distance
 correlation are exactly unchanged by the choice, and only level-sensitive measures can move at all.
-The largest gap between the two centers over the fitted blocks is 8.36e-06 and it bounds the
-log shift over the whole grid at 6.266e-06; the largest metric movement the alternative
+Over the blocks on which the two post-hoc paths are traced the largest gap between the two centers
+is 5.18e-06 --- across all three reference cells it is bounded by 8.36e-06 --- so at the largest
+base value the induced log shift is at most 6.266e-06; the largest metric movement the alternative
 centering produces anywhere is \$1.54{} of mean absolute error, and $\beta_{\log}$ moves
 by 2.78e-17 --- machine precision, exactly as the constant-shift argument requires. The
 sensitivity was therefore evaluated at four base values on each regime for both reference cells
@@ -2371,7 +2373,7 @@ $b^{\star}_{T}=\widehat{\Var}_T(y)/\widehat{\Cov}_T(f_0,y)$ of Appendix~\ref{app
 in-sample theory diagnostic and sets no empirical endpoint: for the custom-objective $\rho=0$ origin
 it runs from 1.065397 to 1.092817 over the fitting blocks, because in sample that learner's
 $\beta_{\log}$ lies between -0.061383 and -0.084934 while out of sample it is about
-$-0.15$, so an in-sample calibration would under-correct by roughly a factor of two in $b-1$. The
+$-0.14$ to $-0.16$, so an in-sample calibration would under-correct by roughly a factor of two in $b-1$. The
 \emph{primary empirical} root is the development-coordinate one. On the D1 coordinate
 $\beta_{\log}$ is exactly linear in $b$, with
 $\beta_k(b)=b\,\widehat{\Cov}_{V_k}(f_0,y)/\widehat{\Var}_{V_k}(y)-1$ per fold and
@@ -2389,9 +2391,9 @@ predictions alone. The familiar $1/R^{2}$ expression, as Appendix~\ref{app:theor
 linear/projection special case rather than the general coefficient for a boosted predictor.}
 
 \paragraph{\latesttext{The descriptive comparison, and it crosses over.}}
-\latesttext{Table~\ref{tab:posthoc_crossover} places the two most-corrected retrained
-configurations beside post-hoc rescalings of the custom-objective $\rho=0$ origin at a comparable
-held-out first-order correction. The frozen record is explicit that this juxtaposition is keyed on
+\latesttext{Table~\ref{tab:posthoc_crossover} places Direct's most-corrected held-out
+configuration and the Surrogate's near-neutral held-out configuration beside post-hoc rescalings
+of the custom-objective $\rho=0$ origin at a comparable held-out first-order correction. The frozen record is explicit that this juxtaposition is keyed on
 \emph{held-out} $\beta_{\log}$ and is descriptive: the comparison on the development coordinate,
 which is the one that can be matched by design, is
 Section~\ref{subsec:matched_beta_results}.}
@@ -2420,12 +2422,13 @@ nonlinearity gap \emph{rises} from 0.1164 to 0.1343 while distance correlation
 falls from 0.3822 to 0.2518 and then turns back up to 0.2681 at
 $b_{\max}$. An affine map of a fixed predictor cannot change non-affine conditional-mean structure
 except incidentally, and what it does incidentally here is make it larger. So the comparator
-reproduces or improves much of the first-order accuracy and equity frontier that retraining reaches
-over the range retraining attains, and it does not reproduce the residual-structure behaviour.}
+reproduces or improves much of the first-order accuracy and equity frontier that the Direct path
+reaches over the range Direct attains, and it does not reproduce the residual-structure behaviour.}
 
 \latesttext{The comparator is built on the custom-objective $\rho=0$ origin because that cell is the
-common origin of both penalized families, so rescaling it holds the execution path fixed and
-isolates retraining. The same map applied to \emph{Ordinary LightGBM (standard raw-label native)} is
+common origin of both penalized families, so rescaling it holds the execution path fixed, and the
+contrast is then between penalized retraining and a one-parameter affine rescaling of the same
+predictor rather than between two implementations. The same map applied to \emph{Ordinary LightGBM (standard raw-label native)} is
 reported as a secondary, practical variant --- could a practitioner obtain a similar trade-off by
 post-processing the standard pipeline? --- and Panel~C of Table~\ref{tab:centered_spread} shows that
 it tracks the primary comparator closely, so the answer is descriptively yes. Under the frozen
@@ -2463,8 +2466,10 @@ $\beta_{\log}$ & Family & Configuration & $R^2_P$ & MAE & $\Delta_{\mathrm{NL}}$
 \small
 \emph{Notes.}
 \latesttext{$\beta_{\log}$ is the held-out first-order slope, which is what the two rows in each
-block are matched on approximately; the post-hoc base value is solved on the development coordinate
-and then evaluated here. Post-hoc rows are rescalings of a cached prediction array through
+block are matched on approximately; the post-hoc base value is the frozen-grid value whose held-out
+slope is nearest the retrained configuration's, not a development-coordinate solve. The
+development-coordinate solves appear in Table~\ref{tab:matched_beta} instead. Post-hoc rows are
+rescalings of a cached prediction array through
 $f_b(x)=\bar y_T+b(f_0(x)-\bar y_T)$ with no refitting. $\Delta_{\mathrm{NL}}$ and dCor carry no
 assessor-facing reference range and are residual-structure diagnostics, so a lower value is
 directional only. Values are read from the frozen Stage-2 comparator record and the frozen
@@ -2522,8 +2527,10 @@ at a matched first-order coordinate. Across the whole attainable range
 (Table~\ref{tab:matched_beta}) the post-hoc comparator reproduces or improves much of the Direct
 first-order frontier, so the Direct family's advantage over a one-parameter rescaling is not what
 carries the paper. What does separate the families is residual structure: at every matched target
-the Surrogate carries a markedly lower correlation-ratio nonlinearity gap than either comparator,
-and it is the only family whose gap falls below the origin value.}
+with a nonzero correction ($j=1,\dots,5$) the Surrogate carries a markedly lower correlation-ratio
+nonlinearity gap than either comparator, and it is the only family whose gap falls below the origin
+value. At $j=0$ the three families are the same object, so that row is an identity check rather
+than a comparison.}
 
 \paragraph{\latesttext{Price-level and log-scale accuracy disagree, and both are reported.}}
 \latesttext{The extended targets in Table~\ref{tab:matched_beta_ext} make that disagreement
@@ -2535,10 +2542,13 @@ against 0.2999. The same reversal is present at $-0.06$: 0.8934 against
 again at the strongest common target, in a sharper form: there the price-scale difference between
 the Surrogate and the post-hoc comparator is -0.00035 --- below its own frozen materiality
 floor of 0.0005 and therefore a tie --- while the log-scale difference is 0.0174 and
-sits well above the same floor while pointing the other way. The two metrics weight the price distribution
-differently --- price-scale $R^2_P$ is dominated by the expensive tail that the Surrogate's
-$1+\rho c_i^2$ weighting protects, while $\operatorname{RMSE}_{\log P}$ weights all sales equally in
-logs --- so they can order the same pair of configurations in opposite directions. Neither settles
+sits well above the same floor while pointing the other way. The two metrics weight the price
+distribution differently --- price-scale $R^2_P$ is dominated by squared errors on high-priced
+sales, while $\operatorname{RMSE}_{\log P}$ weights all sales equally in logs --- so they can order
+the same pair of configurations in opposite directions. The Surrogate's $1+\rho c_i^2$ weighting
+up-weights sales far from the centre of the log-price distribution in \emph{either} direction, and
+the frozen record does not decompose which part of the distribution drives the divergence, so the
+pattern is reported as measured rather than attributed to one tail. Neither settles
 ``predictive performance'' on its own, and this paper does not let that phrase collapse onto one
 metric.}
 
@@ -2565,15 +2575,24 @@ the row-balanced D3 coordinate as a sensitivity. It is not a small perturbation.
 disagreement between the two coordinates is 0.004867 in $\beta_{\log}$ units, larger than
 $\tau$; the common support shifts to the range from -0.137744 to -0.076705; and re-running the
 identical deterministic construction on the 130,165 distinct development sales reselects
-13 of the 24 matched configurations. Of 315 headline sign comparisons,
-259 agree in sign, 41 fall below the materiality floor on both coordinates, and
-10 are material sign flips, a raw sign-agreement rate of 0.9365. Rank order is not
+13 of the 24 matched configurations --- eleven of them exact re-solves of the one-parameter
+post-hoc map, which must move when the coordinate does, and two different fitted penalty values,
+both at $j=2$. Of 315 headline sign comparisons, 259 agree in sign, 41 fall below the materiality
+floor on both coordinates, 5 are structural zeros forced by the D1 match, and 10 are material sign
+flips; raw sign agreement across all 315 is 0.9365. Rank order is not
 preserved between the two coordinates. That reordering should not be read as the overlap scrambling
 the paths: the $\beta_{\log}$ paths of both retrained families are non-monotone in $\rho$ under
 \emph{both} coordinates, while both post-hoc families are monotone under both, so a shift of a few
-thousandths reorders configurations that were already close to tied. Everything in this subsection
-that carries a margin above the frozen floors survives the change of coordinate; the fine ordering
-of near-ties does not. The seven chronological folds are overlapping windows rather than independent
+thousandths reorders configurations that were already close to tied. The subsection's high-level
+conclusions survive the change of coordinate: no $\Delta_{\mathrm{NL}}$ comparison flips sign under
+D3 anywhere, and no flip touches the Direct degradation at $j=5$. What does not survive is the fine
+ordering of near-ties. Ten pairwise comparisons cross a frozen floor and reverse sign, all of them
+in small differences --- the largest is held-out mean absolute error at $j=2$, which moves from
+$+$\$15 to $-$\$149 against an error of about \$76,000 --- and one of them is the $j=5$
+price-scale tie reported above: on D3 the Surrogate-minus-post-hoc difference is $+$0.00055 rather
+than -0.00035, above the floor and pointing the other way. That particular comparison is therefore
+coordinate-sensitive and is not read as a result. The seven chronological folds are overlapping
+windows rather than independent
 replicates, so no statement here is a significance statement, and no fold spread is read as a
 standard error.}
 
@@ -3394,8 +3413,9 @@ amplified by capacity --- also enters the ordinary-versus-centered comparison, w
 clean label-representation decomposition is legible only at reduced capacity.}
 
 \latesttext{Two further results fix the interpretation. Repeating the whole ladder with LightGBM's
-determinism controls engaged reproduces the unpinned ladder cell for cell, with the same largest
-absolute log difference of 2.97e-01 under both, so pinning does not remove the difference and
+determinism controls engaged reproduces the unpinned ladder cell for cell, with the same
+centered-label-to-custom canonical-capacity held-out maximum of 2.97e-01 under both, so pinning
+does not remove the difference and
 run-to-run numerical variation cannot account for it; the same-host replicate check puts that
 numerical floor at exactly zero. Tracing single-tree fits then isolates one setting. With the frozen
 \texttt{colsample\_bytree} of 0.541 the two learners already differ in the structure of the first

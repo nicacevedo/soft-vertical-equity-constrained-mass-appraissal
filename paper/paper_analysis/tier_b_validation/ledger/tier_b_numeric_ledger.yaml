@@ -14870,3 +14870,221 @@ entries:
       The same frozen tolerance the Results subsection states, restated in the
       table notes so the attainment column can be read there without turning
       back. Frozen before any held-out or 2025 metric was read.
+
+# ---------------------------------------------------------------------------
+# Added by the B2.3/B2.4 audit-correction pass. Every entry below resolves a
+# number that one of the twelve audited corrections PRINTS, from an artifact
+# that was already frozen and already listed in FINAL_EVIDENCE_MANIFEST.json.
+# Nothing here was recomputed: the raw literals are read byte-exactly out of
+# the existing artifacts by the same resolver C01 uses, and the plan's section
+# H.2 is what authorizes a ledger entry as the resolution path for a number a
+# writing pass adds.
+# ---------------------------------------------------------------------------
+
+  - entry_id: "TB-pc-centering-gap-C"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/tables/b_star_diagnostics.csv"
+    artifact_sha256: "7fd9ce42d5e8ce60c7d8f6bde685252f60a3e348f3754795bba596577bca1959"
+    artifact_kind: "csv"
+    selector: "cell_id=C;block_id=production_2016_2024"
+    column: "f0bar_minus_ybar"
+    metric: "f0bar_minus_ybar"
+    raw_value: "5.182582787810475e-06"
+    value_transform: "identity"
+    rounding_rule: "sci:3"
+    rendered_value: "5.18e-06"
+    manuscript_anchor: "subsec:posthoc_comparator"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The largest gap between the fitting-block mean prediction and the
+      fitting-block mean log target over the nine Cell-C blocks -- the cell that
+      carries the PRIMARY post-hoc path. This is the gap the grid bound actually
+      comes from: b_max * 5.182582787810475e-06 = 6.266168073833368e-06, which
+      reproduces the frozen centering_max_analytic_shift_log of
+      TB-pc-centering-shift to every digit. TB-pc-centering-gap (Cell B,
+      8.36e-06) remains the bound over all three reference cells and is still
+      printed as such at this anchor; it is retained unchanged and not
+      redirected. Cell B has no post-hoc path, which is why it cannot be the
+      gap the shift is derived from.
+
+  - entry_id: "TB-mbp-d3_structzero"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/tables/matched_beta_d3_sensitivity_summary.json"
+    artifact_sha256: "9e2c73e6de16f3e37904a168c727f06b84a8eaa485de14fc617ddc1374724a65"
+    artifact_kind: "json"
+    selector: "$.classification_counts.structural_zero"
+    metric: "structural_zero"
+    raw_value: "5"
+    value_transform: "identity"
+    rounding_rule: "int"
+    rendered_value: "5"
+    manuscript_anchor: "subsec:matched_beta_results"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "evaluation_cell"
+    attained_status: "ATTAINED"
+    note: >-
+      The fourth classification bucket. Without it the three counts the
+      manuscript printed (259 + 41 + 10) summed to 310 rather than the printed
+      315, and the printed 0.9365 did not follow from them: 259/315 is 0.822.
+      The rate is a SEPARATE quantity -- raw_sign_agreement_rate, 295 of 315
+      comparisons agreeing in sign, independent of the materiality
+      classification -- and TB-mbp-d3_rate carries it.
+
+  - entry_id: "TB-mbp-d3_flip_mae_d1"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/tables/matched_beta_d3_sign_agreement.csv"
+    artifact_sha256: "ae53f82de2d61907f1368cfef97d360a2252667cf09c5d9f03b4860e950d2455"
+    artifact_kind: "csv"
+    selector: "evaluation=heldout;pair=Direct_minus_Cposthoc;metric=MAE_price;j=2"
+    column: "delta_D1"
+    metric: "MAE_price"
+    raw_value: "15.255897219409237"
+    value_transform: "identity"
+    rounding_rule: "int"
+    rendered_value: "15"
+    manuscript_anchor: "subsec:matched_beta_results"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "PRIMARY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      D1 side of the largest of the ten material sign flips. Its row carries
+      classification = MATERIAL_SIGN_FLIP and materiality_floor = 100.0 dollars.
+
+  - entry_id: "TB-mbp-d3_flip_mae_d3"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/tables/matched_beta_d3_sign_agreement.csv"
+    artifact_sha256: "ae53f82de2d61907f1368cfef97d360a2252667cf09c5d9f03b4860e950d2455"
+    artifact_kind: "csv"
+    selector: "evaluation=heldout;pair=Direct_minus_Cposthoc;metric=MAE_price;j=2"
+    column: "delta_D3"
+    metric: "MAE_price"
+    raw_value: "-149.02888657985022"
+    value_transform: "identity"
+    rounding_rule: "int"
+    rendered_value: "-149"
+    manuscript_anchor: "subsec:matched_beta_results"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      D3 side of the same comparison. The sign reverses and the magnitude
+      crosses the 100-dollar floor, which is what makes it a material flip
+      rather than a rounding difference.
+
+  - entry_id: "TB-mbp-d3_flip_mae_scale"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/reports/MATCHED_BETA_REPORT.md"
+    artifact_sha256: "77426013e4e3bcf6f4503d14287adef1bf0d5eb7818ac8e9c306049aee53d67e"
+    artifact_kind: "markdown"
+    selector: "heading=\"3. D3 bounded sensitivity\"; quote=\"76,000\""
+    metric: "MAE_price"
+    raw_value: "76,000"
+    value_transform: "identity"
+    rounding_rule: "verbatim"
+    rendered_value: "76,000"
+    manuscript_anchor: "subsec:matched_beta_results"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The metric scale the largest flip is read against, resolved through the
+      frozen report's own approximate figure because that is the quantity the
+      report states and the manuscript repeats. Same authorized markdown
+      selector kind the crossover Delta_NL entries use; the quote occurs exactly
+      once under that heading.
+
+  - entry_id: "TB-mbp-d3_flip_r2_d3"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/tables/matched_beta_d3_sign_agreement.csv"
+    artifact_sha256: "ae53f82de2d61907f1368cfef97d360a2252667cf09c5d9f03b4860e950d2455"
+    artifact_kind: "csv"
+    selector: "evaluation=heldout;pair=Surrogate_minus_Cposthoc;metric=R2_price;j=5"
+    column: "delta_D3"
+    metric: "R2_price"
+    raw_value: "0.0005518902284061"
+    value_transform: "identity"
+    rounding_rule: "half_up:5"
+    rendered_value: "0.00055"
+    manuscript_anchor: "subsec:matched_beta_results"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The D3 value of the one comparison the manuscript reports as a tie on D1.
+      TB-mbp-delta-r2-j5 carries the D1 value -0.00035, below the 0.0005 floor;
+      on D3 the same comparison is +0.00055, above the floor and opposite in
+      sign, and its row carries classification = MATERIAL_SIGN_FLIP. Printing
+      both is what stops the D1 tie from being read as coordinate-robust.
+
+  - entry_id: "TB-pc-origin-betalog-oos-upper"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/tables/centered_spread_path__C__pooled_oof.csv"
+    artifact_sha256: "99f22236990cc34be8a69e246149d45d7019fad0a08c901fe86e73b125071c9d"
+    artifact_kind: "csv"
+    selector: "reference=C;evaluation=pooled_oof;b=1.0"
+    column: "beta_log"
+    metric: "betalog"
+    raw_value: "-0.1413074854595518"
+    value_transform: "identity"
+    rounding_rule: "half_up:2"
+    rendered_value: "-0.14"
+    manuscript_anchor: "subsec:posthoc_comparator"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Least-negative endpoint of the out-of-sample beta_log range of the
+      custom-objective rho=0 origin, at the b=1 identity row of the Cell-C
+      post-hoc path. Replaces the prior point approximation -0.15, which was
+      the Cell-A held-out value (TB-comp-betalog-A-heldout) and therefore did
+      not describe this Cell-C learner at all. The three out-of-sample blocks
+      are pooled OOF -0.1413, held-out -0.1474 and 2025 -0.1612, so the printed
+      range is exactly their envelope and no interior point is asserted.
+
+  - entry_id: "TB-pc-origin-betalog-oos-lower"
+    added_by_stage: "B2.4-audit"
+    artifact_path: "analysis/p0_major_revision_validation/tables/centered_spread_path__C__forward_2025.csv"
+    artifact_sha256: "27426b3f34f1cabb94dfc1a625b7c29d261ffcd023d72357484a771de595cf7d"
+    artifact_kind: "csv"
+    selector: "reference=C;evaluation=forward_2025;b=1.0"
+    column: "beta_log"
+    metric: "betalog"
+    raw_value: "-0.16120241944791652"
+    value_transform: "identity"
+    rounding_rule: "half_up:2"
+    rendered_value: "-0.16"
+    manuscript_anchor: "subsec:posthoc_comparator"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Most-negative endpoint of the same out-of-sample envelope, on the 2025
+      forward block. Paired with TB-pc-origin-betalog-oos-upper this ties both
+      printed endpoints to frozen artifacts, so the replacement range is
+      resolved provenance rather than a differently-worded approximation.
