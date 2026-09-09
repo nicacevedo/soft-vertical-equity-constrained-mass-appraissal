@@ -2729,29 +2729,142 @@ identification of a deployment penalty or a portable operating interval.
 % Superseded discussion opening retained in the repository diff.
 \latesttext{The CCAO application answers a bounded model-design question. Along the currently frozen custom-objective paths, covariance-guided regularization can materially attenuate the regressive first-order pattern among observed sales, and moderate configurations can do so before predictive performance deteriorates. Stronger correction can alter valuation level, ratio dispersion, and nonlinear ratio structure. These are fixed-base-learner path results: the 994-tree LightGBM configuration is held constant to isolate objective behavior, so the experiment does not estimate each objective family's fully retuned attainable frontier. In addition, a comparison against ordinary LightGBM carries a native-versus-custom execution-path difference as well as the penalty, which is why the within-family custom-objective $\rho=0$ origin, rather than the workflow benchmark, is the penalty-isolating reference; Appendix~\ref{subsec:zero_control_results} reports the completed parity audit that located that difference. The evidence therefore supports a practical control for one component of a sale-price-related ratio pattern, not a complete solution to vertical equity or a deployment model.}
 
-The complete paths sharpen that conclusion in two ways. First, moderate
-regularization need not impose an immediate accuracy cost \latesttext{relative to each family's custom-objective path origin}: parts of both
-custom-objective paths improve price-scale predictive performance while moving
-multiple vertical-equity diagnostics toward neutrality. 
-% \oldtext{Second, stronger regularization exposes the limits of a global first-order target. The Surrogate can drive $\beta_{\log}$ and grouped diagnostics close to neutral while the ratio-shape profile remains non-monotone and distance correlation rebounds. Global first-order neutrality is therefore informative but not sufficient evidence of locally uniform vertical equity.}
-\newtext{Second, stronger regularization exposes the limits of a global first-order target. The Surrogate provides the clearest current CCAO example: $\beta_{\log}$ and grouped diagnostics can approach neutrality while the ratio-shape profile remains non-monotone. At matched first-order correction the families also separate on non-affine residual structure rather than on the first-order coordinate alone (Section~\ref{subsec:matched_beta_results}). The methodological limitation is broader than that example, however: neither Direct nor Surrogate directly controls the non-affine conditional-mean structure measured by $\Delta_{\mathrm{NL}}$. Global first-order neutrality is therefore informative but not sufficient evidence of a flat value-related profile, broader residual--price independence, or locally uniform vertical equity.}
+% B3.1: the interpretive hierarchy below replaces the two-point "the complete
+% paths sharpen that conclusion" paragraph, the CV candidate-region summary, and
+% the separate scope paragraph. All three are retained in the repository diff.
+
+\paragraph{\latesttext{Predictive accuracy alone does not remove the price-related ratio trend.}}
+\latesttext{In this application the two coexist. The ordinary workflow benchmark, \emph{Ordinary
+LightGBM (standard raw-label native)}, attains high price-scale predictive accuracy on both
+out-of-time evaluations while its first-order log-ratio/log-price slope and its assessor-facing
+vertical-equity diagnostics remain well away from their neutral values
+(Section~\ref{subsec:baseline_tension}). Stronger predictive accuracy therefore does not by itself
+remove the first-order assessment-ratio trend, which is what makes the mechanism worth targeting
+directly. That statement is bounded by the application: it describes CCAO's residential sale
+sample, its feature information, its temporal design, and one fixed base-learner configuration. It
+is not a general result that machine-learning valuation is inherently regressive. No alternative
+model class is re-estimated for comparison, no linear-regression quantitative result is reported
+anywhere in this paper, and nothing in the evidence attributes the trend to the learner rather than
+to the data, the prediction target, or the workflow.}
+
+\paragraph{\latesttext{The target is one global, first-order, price-related mechanism.}}
+\latesttext{Both objectives control a single scalar: the covariance $\Cov(e,y)$ between the log
+valuation-ratio residual and log sale price in~\eqref{eq:training_covariance}, equivalently the
+first-order log-ratio/log-price trend summarized by $\beta_{\log}$ in~\eqref{eq:log_ratio_slope}.
+What that quantity is, and what it is not, governs every conclusion that follows. It is a mechanism
+diagnostic; it is global over the evaluated sample; it is first order in log price; and it is
+specific to a price-related association. It is not fairness in general, not individual fairness, not
+local or subgroup equity, not causal fairness, not statistical independence of residuals and price,
+and not fairness of the final tax burden. Better information can still improve prediction and equity
+together, and the penalties do not compete with that: they target a countywide first-order pattern
+among observed sales, and they do not determine valuation level, guarantee assessor-facing reference
+ranges, remove nonlinear or local inequity, establish residual--price independence, or identify
+effects on final tax liabilities. Section~\ref{subsec:correction_scope} states the corresponding
+denials for the objectives themselves, and every result below is read inside that scope.}
+
+\paragraph{\latesttext{A one-parameter post-hoc rescaling reproduces much of the first-order
+movement.}}
+\latesttext{The closest post-processing alternative is not a straw comparator and is not treated as
+one. It is the exact fixed-prediction-space form of the Direct path
+(Corollary~\ref{cor:path_scaling}): a centered rescaling of a cached prediction array, solved rather
+than fitted, refitting nothing. Over the first-order range the Direct family attains on the
+evaluated grid, that comparator reproduces or improves much of the accuracy and first-order equity
+frontier Direct reaches, and it reaches first-order targets the evaluated Direct grid did not reach
+at all (Sections~\ref{subsec:posthoc_comparator} and~\ref{subsec:matched_beta_results}). Two
+consequences follow, and this paper accepts both. First, the paper does not claim that training-time
+regularization is necessary in order to move the first-order mechanism. Second, the Direct objective
+nonetheless remains a trainable mechanism for moving along that dimension --- the penalty is what
+moves it, read within family from the shared custom-objective $\rho=0$ origin rather than against
+the workflow benchmark --- but the first-order correction itself is not unique to retraining.}
+
+\paragraph{\latesttext{Equalizing the first-order trend does not equalize the residual geometry.}}
+\latesttext{The three families are nevertheless not interchangeable, and the comparison that shows
+it is the one made at matched first-order correction rather than at matched penalty. Matching uses
+the primary development coordinate D1, with the row-balanced one-sale-one-vote coordinate D3 as the
+declared sensitivity and the zero-correction row an identity check rather than a comparison. At
+every matched target with a nonzero correction the Surrogate carries a markedly lower
+correlation-ratio nonlinearity gap than either comparator and is the only family whose gap falls
+below the origin value, whereas driving a fixed predictor to first-order neutrality by affine
+rescaling \emph{raises} that gap. At the strongest correction all three families attain, the
+retrained Direct configuration is the worst of the three on price-scale accuracy, on log-scale
+accuracy, and on dispersion --- an ordering visible only because the comparison is made at a matched
+first-order coordinate. The D3 sensitivity reorders a material subset of the near-ties, but it flips
+no nonlinearity-gap comparison anywhere and does not touch the Direct degradation at the strongest
+common target, and where a retrained family did not attain an extended target on its evaluated
+path that display state is reported as a state rather than interpolated. The general statement is the one this evidence
+supports: equalizing the first-order price-related trend does not equalize the full residual
+geometry, and neither objective directly controls the non-affine conditional-mean structure that
+$\Delta_{\mathrm{NL}}$ measures. These are diagnostic distinctions between mechanisms and not a
+ranking of them, and they are quoted only at the coordinates where the frozen record reports them
+--- the zero-penalty origin, the matched first-order and extended targets, the descriptive crossover
+juxtaposition, and the centered-spread comparator path --- and never as a shape claim along the
+whole positive-$\rho$ paths. Global first-order neutrality is therefore informative but not
+sufficient evidence of a flat value-related profile, of broader residual--price independence, or of
+locally uniform vertical equity.}
+
+\newtext{The fixed-prediction-space analysis sharpens this interpretation rather than creating a separate theoretical claim. The Direct objective has rank-one geometry and, with an intercept in the fixed space, reduces exactly to a centered spread correction; this makes transparent both what the covariance penalty controls and how limited that control can be. The Surrogate, by contrast, is a log-price-distance-weighted projection whose correction can combine multiple learnable modes and therefore need not trace the same path as Direct. This comparison explains why the Surrogate should not be interpreted as a computational approximation to the Direct objective alone. At the same time, neither fixed-space result predicts the exact path of a retrained tree ensemble, and the spectral representation does not by itself explain the empirical high-$\rho$ ratio shape.}
+
+\paragraph{\latesttext{Part of the price-scale comparison depends on the retransformation
+convention.}}
+\latesttext{Predictions are returned to the price scale by direct exponentiation, which is an
+operational convention rather than a conditional-mean correction, and one half of the
+matched-correction comparison turns on it. Under the frozen Duan sensitivity the estimated smearing
+factor is not common across the arms compared at the selected matched first-order illustration, and
+the Surrogate-versus-post-hoc ordering on price-scale $R^2_P$ and on mean absolute error reverses
+(Appendix~\ref{app:smearing}). That ordering is accordingly a property of the retransformation
+convention at that coordinate, and it is not evidence of general predictive superiority for either
+arm. This should not be over-read into a claim that every metric ranking in the paper is unstable.
+COD, COV, PRD, PRB, MKI, VEI, $\beta_{\log}$, $\Delta_{\mathrm{NL}}$ and distance correlation are
+invariant to a common multiplicative factor as a matter of algebra, so no vertical-equity,
+uniformity, or residual-structure conclusion here depends on the choice, while the valuation-level
+ratios scale exactly by the factor. $\operatorname{RMSE}_{\log P}$ is defined on the log scale and
+is not a price-scale rescaling quantity. Three groups of quantities should therefore be kept apart
+whenever these comparisons are quoted: convention-sensitive price-scale quantities, log-scale
+quantities, and exactly invariant ratio and dependence quantities.}
 
 \oldtext{The transition analysis adds a separate temporal qualification. A targeted mechanism can be directionally stable without yielding a stable multi-metric operating point. Direct exhibits an internally reproducible five-metric CV transition span, including seven-of-seven leave-one-fold-out support, but the exact held-out and forward turning locations show limited concordance with that interval and the value-based regret result is mixed across metrics. The Surrogate does not support the analogous common positive span in the full CV aggregate. Chronological validation is therefore valuable for characterizing the regularization path, but the evidence does not support treating a particular raw-$\rho$ interval as an intrinsic or temporally invariant property of either objective. Any later deployment calibration should specify explicitly which predictive, valuation, and equity criteria define the operating decision and re-evaluate that decision across time.}
 \oldtext{The transition analysis adds a separate temporal qualification. After resolving the lower tail of the grid, both Direct and Surrogate exhibit positive-interior five-metric CV transition spans with seven-of-seven leave-one-fold-out support. Exact out-of-time event portability remains weak, however: Direct has zero of five held-out and zero of five 2025 events inside its frozen span, while Surrogate has one of five in each period. Chronological validation is therefore useful for characterizing repeatable path structure, but the evidence does not support treating either raw-$\rho$ interval as an intrinsic or temporally invariant operating region. Any later deployment calibration should specify explicitly which predictive, valuation, and equity criteria define the operating decision and re-evaluate that decision across time.}
 \oldtext{The transition analysis adds a separate temporal qualification. After resolving the lower tail of the grid, both Direct and Surrogate exhibit positive-interior five-metric CV transition spans with seven-of-seven leave-one-fold-out support. Exact out-of-time event portability remains weak, however: Direct has zero of five held-out and zero of five 2025 events inside its frozen span, while Surrogate has one of five in each period. The augmented evidence distinguishes a reproducible prediction/COD transition structure from the much larger penalties at which assessor-facing measures or mechanism diagnostics become closest to neutrality. Therefore there is no single empirically supported ``safe'' $\rho$ interval, and a future deployment choice requires an explicit operating criterion. Chronological validation is therefore useful for characterizing repeatable path structure, but the evidence does not support treating either raw-$\rho$ interval as an intrinsic or temporally invariant operating region. Any later deployment calibration should specify explicitly which predictive, valuation, and equity criteria define the operating decision and re-evaluate that decision across time.}
-% Detailed candidate-region interpretation is retained in Appendix~\ref{app:ccao_path_details}.
-\latesttext{The CV-derived candidate regions summarize where activity becomes visible and where a family-specific deterioration or caution signal first binds. Their numerical endpoints are descriptive outputs of the current folds and screen definition, not confidence bounds, validated selectors, or portable ``safe'' intervals. Exact event locations transfer weakly to the held-out and forward paths, so the full paths remain the primary evidence and the detailed screen belongs in the appendix.}
 
+\paragraph{\latesttext{The correction-strength relationship does not transport across market
+periods.}}
+\latesttext{The regularization paths describe tradeoffs over the tested grids, and that is the whole
+of what they describe. The chronological folds are overlapping expanding-window constructions rather
+than independent replications --- the sixth and seventh validation blocks share observations, so
+across-fold dispersion is chronological-window variation and is never read as an IID standard error
+--- and on that evidence they support the direction of the targeted mechanism without identifying a
+stable multi-metric operating point. The two out-of-time blocks keep distinct roles: the held-out
+block is the later development-period evaluation used in the primary analysis, and the separate 2025
+forward sample is a stronger portability check on a subsequent market period. They do not agree, and
+that disagreement is itself the finding rather than a defect to be tuned away. Development-period
+path landmarks did not transfer to those blocks, so this study identifies no candidate region, no
+portable interval of $\rho$, no activity-onset boundary, and no upper guardrail: the evidence does
+not support any such construct, and none is used here. No $\rho$ is selected, and no deployment
+penalty is chosen anywhere in this paper. The correct reading is not that the paper failed to find
+the right $\rho$. It is that the relationship between correction strength and path position varies
+enough across market periods that the evidence does not support a single portable operating region
+or a universal $\rho$. That is an empirical failure-mode result about the method rather than
+unfinished parameter tuning, and the design is what makes it one: the penalty grid was frozen in
+advance, no diagnostic reported here defined it or any selection rule, and the materiality tolerance
+$\tau$ was the first-order matching tolerance already frozen for the matched-correction analysis
+before the relevant outcome comparison was read.}
+
+\paragraph{\latesttext{What the study establishes, and where it stops.}}
 % \oldtext{The value of the approach is operational. It converts a ratio-study concern into a model-training option, works through a standard boosted-tree interface, and can be tuned with chronological validation.}
 \newtext{The value of the approach is operational. It converts a ratio-study concern into a model-training option that can be incorporated into a standard boosted-tree workflow: the Surrogate is exactly observation-additive, while the Direct implementation uses the exact covariance gradient with diagonal curvature through the standard LightGBM interface. Both can be evaluated through the same chronological-validation and ratio-study workflow used for the baseline model.} \advisorchange{Those features follow directly from the CCAO problem that motivated the collaboration.}
 
-% \oldtext{The previous version mixed the scope limitations, the native/custom implementation caveat, ATTOM external-validity caveats, and the centered-recalibration comparison in one repeated paragraph.}
-
-% \oldtext{The evidence also bounds the paper's claim. Better data can improve predictive accuracy and assessment equity together. The proposed penalties target a countywide first-order value-related pattern; they do not determine valuation level, guarantee assessor-facing reference ranges, remove nonlinear or local inequity, or establish broader residual--price independence. The ATTOM benchmark provides exploratory evidence about transferability and failure modes rather than confirmatory external validation. Centered recalibration provides a meaningful low-cost comparator: it can reproduce a large first-order correction, while the primary CCAO results show that moderate in-processing configurations can move the same broad family of diagnostics with substantially smaller predictive losses than the validation-neutral recalibration endpoint. The covariance-guided correction should therefore be treated as one auditable modeling option within the broader valuation-review process, not as an equity certificate.}
-% Superseded scope paragraph retained in the repository diff.
-\latesttext{The evidence also bounds the paper's claim. Better information can improve prediction and equity together. The proposed penalties target a countywide first-order pattern among observed sales; they do not determine valuation level, guarantee assessor-facing reference ranges, remove nonlinear or local inequity, establish residual--price independence, or identify effects on final tax liabilities. The active manuscript makes no external-validity claim from the superseded ATTOM analysis. Covariance-guided regularization should therefore be treated as one auditable modeling option within a broader valuation-review process, not as evidence that training-time regularization is necessary or sufficient for vertical equity.}
-
-\newtext{The fixed-prediction-space analysis sharpens this interpretation rather than creating a separate theoretical claim. The Direct objective has rank-one geometry and, with an intercept in the fixed space, reduces exactly to a centered spread correction; this makes transparent both what the covariance penalty controls and how limited that control can be. The Surrogate, by contrast, is a log-price-distance-weighted projection whose correction can combine multiple learnable modes and therefore need not trace the same path as Direct. This comparison explains why the Surrogate should not be interpreted as a computational approximation to the Direct objective alone. At the same time, neither fixed-space result predicts the exact path of a retrained tree ensemble, and the spectral representation does not by itself explain the empirical high-$\rho$ ratio shape.}
+\latesttext{Taken together, the contribution is a diagnostic and a training mechanism for assessor
+workflows rather than a deployment rule. The paper establishes how to target one specific
+first-order mechanism through a standard boosted-tree interface; how the Direct and Surrogate
+objectives move along the resulting tradeoff, read within family from the shared custom-objective
+$\rho=0$ origin; how a simple one-parameter post-hoc rescaling behaves beside them; what a
+comparison at matched first-order correction reveals about residual structure that a comparison at
+matched penalty does not; and how far temporal instability limits portability. It does not establish
+a universal fairness solution, a universal penalty, or a production-ready rule for selecting penalty
+strength, and it makes no external-validity claim from the superseded multi-county analysis
+(Section~\ref{subsec:external_results_boundary}). Covariance-guided regularization should therefore
+be treated as one auditable modeling option inside a broader valuation-review process, and not as
+evidence that training-time regularization is necessary or sufficient for vertical equity.}
 
 \subsection{\texorpdfstring{
 % \oldtext{Assessor Implementation}
@@ -2759,20 +2872,22 @@ multiple vertical-equity diagnostics toward neutrality.
 \label{sec:implementation_workflow}
 
 % \oldtext{The method can be inserted into an existing AVM with the following sequence.}
-\newtext{For a later operational implementation, the correction can be incorporated into an existing AVM development workflow through the following sequence.}
+% B3.1: the sequence now separates path characterization from operating-point
+% selection. The superseded CV-screen and prespecified-guardrail steps are
+% retained in the repository diff.
+\newtext{For a later operational implementation, the correction can be incorporated into an existing AVM development workflow through the following sequence.} \latesttext{The final step is a prospective decision this study does not make.}
 
 \begin{enumerate}[leftmargin=7mm]
-    \item Build a defensible baseline model using verified sales, appropriate time adjustment, relevant property features, and local market information.
+    \item Build a defensible baseline model using verified sales, appropriate time adjustment, relevant property features, and local market information\latesttext{, fitted as the office would ordinarily run it. This is the workflow benchmark against which the rest is described}.
     \item Reserve future observations for held-out and forward evaluation and create rolling or blocked validation folds that respect sale chronology.
-    \item Report baseline prediction and valuation-level results. Add COD, PRD, PRB, MKI, VEI, value-group ratio profiles, $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and dCor.
-    \item Fit the Direct and Surrogate covariance-guided objectives over prespecified logarithmic grids of $\rho$, including $\rho=0$ as an implementation control.
-    \item Summarize the complete regularization paths across chronological validation folds, including fold-level variability.
-    % Superseded operating-point instruction is replaced by items 6--8 below.
-    \item \latesttext{Optionally use a prespecified CV screen to remove inactive or clearly deteriorated configurations. Treat its endpoints as descriptive and family-specific, not as uncertainty bounds or a validated selection rule.}
-    \item \latesttext{Compare surviving in-processing configurations with constant calibration and a validation-fitted centered spread map, using identical temporal splits and diagnostics.}
-    \item \latesttext{If a later operating point is required, choose it using an explicit predictive/equity loss and prespecified guardrails, then assess temporal, subgroup, and parcel-level robustness.}
+    \item \latesttext{Diagnose the first-order mechanism on that benchmark before changing the objective.} Report baseline prediction and valuation-level results. Add COD, PRD, PRB, MKI, VEI, value-group ratio profiles, $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and dCor.
+    \item Fit the Direct and Surrogate covariance-guided objectives over prespecified logarithmic grids of $\rho$, including $\rho=0$ as an implementation control\latesttext{ and as the within-family origin against which penalty effects are read}.
+    \item Summarize the complete regularization paths across chronological validation folds, including fold-level variability\latesttext{, and report the paths themselves rather than a preferred segment of them}.
+    \item \latesttext{Compare the training-time configurations against the simple post-hoc alternatives on the same predictions --- constant level calibration and a validation-fitted centered spread map --- using identical temporal splits and diagnostics.}
+    \item \latesttext{Compare families at matched first-order correction rather than at matched penalty, and read predictive accuracy on both the price and log scales alongside the assessor-facing vertical-equity measures and the broader residual-structure diagnostics. State the retransformation convention under which any price-scale comparison is made.}
     \item Refit the same fixed paths on the full development samples and evaluate them descriptively on the held-out and forward periods without changing the grid or base learner.
     \item Repeat the diagnostics by geography, property class, value range, and time before any later deployment-oriented model-selection decision.
+    \item \latesttext{If deployment eventually requires a single operating point, define that decision prospectively instead of reading it off the paths above: fix the predictive, valuation-level, and equity criteria, their acceptance thresholds, and the tie-breaking rule in advance, then validate that rule out of time on periods not used to formulate it. The retrospective path characterization reported here does not supply such a rule and is not a substitute for one.}
 \end{enumerate}
 
 \begin{table}[t]
@@ -2801,16 +2916,61 @@ The office should save the penalty definition, full grid, validation predictions
 
 % \oldtext{First, the CCAO application uses sold properties. Results on sales do not establish performance for the full unsold inventory, particularly when the sale sample is not representative. Second, the primary application is a Python translation of the CCAO workflow rather than an official production run. Third, the Direct penalty targets log-scale covariance while the Surrogate penalizes its sample-additive upper bound; PRD, PRB, and VEI are price-scale statistics with different functional forms. Relatedly, neither Direct nor Surrogate directly minimizes the nonlinear lack-of-fit $\Delta_{\mathrm{NL}}$; strong regularization can therefore reduce the targeted first-order slope without guaranteeing a flatter conditional-mean residual--price relationship. Fourth, the current pre-selection analysis does not yet identify a deployment-oriented penalty strength; that decision is intentionally deferred. Fifth, fold-level variation and the reported group-level uncertainty should accompany any later operational decision. Sixth, a countywide correction can average away local regressivity and progressivity. Seventh, the ATTOM benchmark is exploratory, uses commercially harmonized data, and does not reproduce the six offices' institutional data or a single confirmatory model-selection protocol. Finally, post-hoc centered recalibration provides an important benchmark.}
 
-% Superseded limitations paragraph retained in the repository diff.
-\latesttext{First, the evidence is sales-based and application-specific. The primary analysis is a Python research translation of CCAO's published residential workflow, not an official production run or assessment decision. Outcomes on verified transacting properties need not transport to the full roll when sale propensity, verification, property condition, or unobserved quality differs between sold and unsold parcels. The paper therefore estimates model behavior on the observed sale distribution, not jurisdiction-wide tax incidence or inequity relative to latent market value. The active paper also makes no external-validity claim from the superseded multi-county analysis.}
+% B3.1: the three superseded limitation paragraphs are retained in the
+% repository diff. Nothing listed below is an analysis that has in fact been
+% completed and reported elsewhere in the paper.
+\latesttext{\emph{The target and the proxy.} Sale price is simultaneously the learning target, the
+benchmark against which valuations are judged, and the denominator of the assessment ratio itself,
+so the correction is defined on a quantity that appears on both sides of the diagnostic. Sale price
+is also an imperfect proxy for latent market value. Equation~\eqref{eq:bayes_residual_covariance}
+shows that residual--sale-price covariance carries a mechanically negative component from
+conditionally unpredictable transaction variation, so forcing it toward zero may spread predictions
+toward realized sale noise rather than recover latent value. For the same reasons $\beta_{\log}$ is
+used here as a first-order mechanism diagnostic and not as a complete definition of vertical
+equity.}
 
-% \oldtext{Second, the correction is deliberately narrow. Direct targets a global log-scale covariance, while the Surrogate penalizes a sample-additive upper bound with a distinct weighted-loss mechanism. Neither objective directly optimizes PRD, PRB, VEI, valuation level, or the correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$. A countywide first-order correction can therefore coexist with nonlinear, geographic, property-class, or temporal inequity.}
-% Superseded limitations paragraph retained in the repository diff.
-\latesttext{Second, the estimand and correction are deliberately narrow. Equation~\eqref{eq:bayes_residual_covariance} shows that residual--sale-price covariance contains mechanically negative association from unpredictable transaction variation; forcing it toward zero may spread predictions toward realized sale noise. Direct targets only a global log-scale covariance, while the Surrogate changes observation weights and may also alter level and tail fit. Neither objective directly optimizes PRD, PRB, VEI, valuation level, $\Delta_{\mathrm{NL}}$, or local equity. Direct exponentiation of log predictions is an operational retransformation, not a smearing or conditional-mean correction. A countywide first-order improvement can therefore coexist with nonlinear, geographic, class-specific, temporal, or level inequity, and the reported price-scale path should be checked against smearing or other retransformation choices.}
+\latesttext{\emph{What the objective does not control.} The objective controls a global first-order
+dependence between log residuals and log price. Nonlinear conditional-mean structure and broader
+statistical dependence can remain, and neither Direct nor Surrogate optimizes PRD, PRB, VEI,
+valuation level, $\Delta_{\mathrm{NL}}$, or local equity, so a countywide first-order improvement
+can coexist with nonlinear, geographic, class-specific, temporal, or level inequity. The Surrogate's
+$1+\rho c_i^2$ weighting is symmetric in log-price distance from the centre of the log-price
+distribution and is not a protection of any particular part of that distribution. Price-scale
+comparisons carry one further dependence: predictions are returned to the price scale by direct
+exponentiation, which is an operational retransformation rather than a smearing or conditional-mean
+correction, and Appendix~\ref{app:smearing} reports a frozen sensitivity under which some
+price-scale orderings reverse while every ratio, uniformity, and residual-structure quantity is
+algebraically unchanged. Finally, the closest post-processing comparator --- the centered spread map
+implied by the Direct fixed-space result --- is included rather than omitted, and it reproduces much
+of the Direct first-order movement over the range Direct attains, so this paper claims neither
+necessity nor general superiority for training-time regularization.}
 
-% \oldtext{Third, the present analysis characterizes regularization paths rather than a deployment decision. Fold-level heterogeneity and group-level uncertainty should accompany any later operating-point choice, and simple centered recalibration remains an important benchmark because it can reproduce a substantial first-order correction. The present evidence supports comparing the complete in-processing and recalibration paths rather than claiming that either approach uniformly dominates the other.}
-% Superseded limitations paragraph retained in the repository diff.
-\latesttext{Third, the experiment characterizes fixed-994-tree regularization paths, not a deployment decision or fully retuned family frontier. Apart from selected group-profile intervals, the paper reports descriptive point estimates and fold variation rather than inferential uncertainty for path differences. The chronological split is ordered by sale date, but a final robustness audit should keep equal-date transactions together and block repeated sales of the same parcel to rule out boundary and parcel-history leakage. Descriptive development-period path landmarks were examined, but no stable penalty interval was identified: fold-level agreement is not a confidence interval, and the weak transfer of turning locations to the out-of-time blocks rules out treating raw-$\rho$ endpoints as portable. Finally, the closest post-processing comparator---the centered spread map implied by the Direct fixed-space result---is included rather than omitted, and it reproduces much of the Direct first-order movement over the range Direct attains, so this paper claims neither necessity nor general superiority for training-time regularization.}
+\latesttext{\emph{Temporal evidence and its limits.} The seven rolling-origin folds are overlapping
+expanding-window constructions whose sixth and seventh validation blocks share observations. They
+are not independent experimental replications, and fold-level agreement among them is not a
+confidence interval. Across those folds, the held-out block, and the 2025 forward block the
+correction-strength relationship changes enough that the evidence identifies no portable universal
+$\rho$ and no single operating region, so raw-$\rho$ landmarks may not be treated as portable.
+Three alternative temporal designs were evaluated against the primary design rather than left
+outstanding, and their outcomes are reported as recorded in
+Section~\ref{subsec:path_stability_results}. Apart from selected group-profile intervals, the paper
+reports descriptive point estimates and fold variation rather than inferential uncertainty for path
+differences.}
+
+\latesttext{\emph{Scope, and the research/production boundary.} The evidence is centered on one
+application. The primary analysis is a Python research translation of CCAO's published residential
+workflow over its verified sale sample, not an official production run or assessment decision, and
+it characterizes fixed-994-tree regularization paths rather than each objective family's fully
+retuned frontier, because the base learner is held constant to isolate objective behavior.
+Outcomes on verified transacting properties need not transport to the full roll when sale
+propensity, verification, property condition, or unobserved quality differs between sold and unsold
+parcels, so the paper estimates model behavior on the observed sale distribution rather than
+jurisdiction-wide tax incidence or inequity relative to latent market value. External validity must
+be established elsewhere, and the active paper makes no external-validity claim from the superseded
+multi-county analysis. Research evaluation is also not deployment: no operational penalty strength
+is selected here, and the decisions a deployment would require --- an explicit selection rule, its
+acceptance criteria, and out-of-time validation of that rule --- lie outside what this study
+establishes.}
 
 \subsection{Future Work}
 
