@@ -2229,6 +2229,8 @@ Table~\ref{tab:path_anchor_frozen} reaches only two.
 Two entries need their own qualification. The Direct held-out VEI at the nominal $\rho=10$ anchor is
 -10.5\%: it is a movement toward zero relative to both reference cells, but it still lies just outside
 the proposed $\pm 10\%$ Exposure-Draft band, and it is therefore not a compliance result. The
+Exposure Draft does not treat a point estimate outside that band as a finding on its own: its
+procedure escalates such a case to a significance test, which this paper does not report. The
 Surrogate 2025 PRB at that same anchor displays as 0.000; the frozen estimate is 0.000135 with a 95\%
 confidence interval running from $-0.004$ to $0.005$, so it is a rounded near-zero estimate and not
 exact first-order neutrality. Under the adopted 2013 classification the entire 95\% confidence interval must
@@ -2266,7 +2268,7 @@ increases, but they change the profile differently.
 % \oldtext{The Direct path modifies the shape comparatively smoothly.} 
 \oldtext{At the prespecified anchors currently displayed, the Direct profile changes more smoothly than the Surrogate profile.}\latesttext{Across the decade-spaced display snapshots, the Direct profile changes more smoothly than the Surrogate profile.} Under stronger Surrogate regularization, the profile
 develops a pronounced non-monotone trough through the lower and middle sale-price
-range before recovering at higher prices. \newtext{This visual contrast is descriptive rather than a structural guarantee: Direct covariance controls the affine residual--price component but does not protect against nonlinear conditional-mean departures at stronger regularization. Nonlinear shape is therefore evaluated for both families with the common $\Delta_{\mathrm{NL}}$ diagnostic rather than inferred from visual smoothness alone.} 
+range before recovering at higher prices. \newtext{This visual contrast is descriptive rather than a structural guarantee: Direct covariance controls the affine residual--price component but does not protect against nonlinear conditional-mean departures at stronger regularization. The ratio-shape contrast here is therefore read from the profiles themselves; the two families' non-affine residual structure is compared numerically at matched first-order correction in Section~\ref{subsec:matched_beta_results}, not along these paths.} 
 % \oldtext{Consequently, a near-neutral global slope or grouped high-versus-low statistic need not imply a locally flat valuation-ratio profile.}
 \newtext{Consequently, a near-neutral global slope or high-versus-low grouped statistic need not imply a flat valuation-ratio profile across the value distribution.}
 \oldtext{The fixed cross-fitted $\Delta_{\mathrm{NL}}$ nonlinearity gap separates these families. Along the Direct anchors, held-out $\Delta_{\mathrm{NL}}$ remains near $0.116$--$0.132$ and is $0.115$ at $\rho=100$; the 2025 Direct path is similarly stable, ending at $0.119$. The Surrogate path instead falls through moderate regularization, from $0.116$ at $\rho=0$ to $0.099$ near $\rho=0.954$ held-out and from $0.121$ to $0.092$ near $\rho=10.481$ in 2025, then rises at $\rho=100$ to $0.124$ and $0.111$, respectively. That rebound coincides with the non-monotone Surrogate ratio trough above. We do not infer a specific functional shape from the scalar gap alone; the shape label comes from the ratio-profile figure.}
@@ -2286,7 +2288,7 @@ range before recovering at higher prices. \newtext{This visual contrast is descr
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/mechanism_vs_rho.pdf}
-\caption{\latesttext{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
+\caption{\latesttext{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets. The shaded band spans the smallest to the largest tested $\rho$ at which any of five equal-weight cross-validation criteria---$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD---attains its best value on the tested grid. It is descriptive only: it is derived from the chronological development folds even where it is drawn over held-out and 2025 curves, its endpoints are not reproduced by any artifact in the frozen evidence set, and it does not delimit a selected, portable, or recommended penalty interval. No penalty strength is selected in this paper.}}
 \label{fig:mechanism_path_placeholder}
 \end{figure}
 
@@ -2598,7 +2600,10 @@ Direct frontier and reaches first-order targets Direct did not reach on this pat
 accuracy cost when pushed that far. The Surrogate preserves price-scale accuracy and reduces
 nonlinear residual structure where the comparator increases it, and is worse in logs. That is the
 result: a diagnostic distinction between mechanisms, not a ranking, and no penalty strength is
-selected anywhere.}
+selected anywhere. The price-scale half of that comparison is stated under this paper's
+direct-exponentiation convention: Appendix~\ref{app:smearing} reports a frozen retransformation
+sensitivity under which the Surrogate--post-hoc ordering on $R^2_P$ and MAE reverses, while every
+vertical-equity, uniformity, and residual-structure diagnostic in this table is unchanged.}
 
 {\color{latestPurple}
 \begin{table}[!htbp]
@@ -3727,12 +3732,12 @@ marked differently. COD and COV are reported in percent.}
 \centering
 \safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/predictive_metric_paths.pdf}\\[1mm]
 \safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/level_uniformity_paths.pdf}
-\caption{\latesttext{Predictive-metric and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Valuation-level panels include the ratio $=1$ reference. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
+\caption{\latesttext{Predictive-metric and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Valuation-level panels include the ratio $=1$ reference. The shaded band spans the smallest to the largest tested $\rho$ at which any of five equal-weight cross-validation criteria---$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD---attains its best value on the tested grid. It is descriptive only: it is derived from the chronological development folds even where it is drawn over held-out and 2025 curves, its endpoints are not reproduced by any artifact in the frozen evidence set, and it does not delimit a selected, portable, or recommended penalty interval. No penalty strength is selected in this paper.}}
 \label{fig:other_metric_paths_placeholder}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vertical_equity_metric_paths.pdf}
-\caption{\latesttext{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
+\caption{\latesttext{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$. The shaded band spans the smallest to the largest tested $\rho$ at which any of five equal-weight cross-validation criteria---$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD---attains its best value on the tested grid. It is descriptive only: it is derived from the chronological development folds even where it is drawn over held-out and 2025 curves, its endpoints are not reproduced by any artifact in the frozen evidence set, and it does not delimit a selected, portable, or recommended penalty interval. No penalty strength is selected in this paper.}}
 \label{fig:vertical_equity_metric_paths}
 \end{figure}
 
@@ -3767,22 +3772,22 @@ Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
 \latesttext{That summary figure is removed from the active presentation because the comprehensive fold figures immediately below now report prediction, valuation level and horizontal uniformity, vertical equity, and mechanism paths separately for all available CV metrics.}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_predictive_metric_paths.pdf}
-\caption{\latesttext{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
+\caption{\latesttext{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band spans the smallest to the largest tested $\rho$ at which any of five equal-weight cross-validation criteria---$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD---attains its best value on the tested grid. It is descriptive only: it is derived from the chronological development folds even where it is drawn over held-out and 2025 curves, its endpoints are not reproduced by any artifact in the frozen evidence set, and it does not delimit a selected, portable, or recommended penalty interval. No penalty strength is selected in this paper.}}
 \label{fig:cv_predictive_metric_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_level_uniformity_paths.pdf}
-\caption{\latesttext{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick). Valuation-level panels include the ratio $=1$ reference. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
+\caption{\latesttext{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick). Valuation-level panels include the ratio $=1$ reference. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band spans the smallest to the largest tested $\rho$ at which any of five equal-weight cross-validation criteria---$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD---attains its best value on the tested grid. It is descriptive only: it is derived from the chronological development folds even where it is drawn over held-out and 2025 curves, its endpoints are not reproduced by any artifact in the frozen evidence set, and it does not delimit a selected, portable, or recommended penalty interval. No penalty strength is selected in this paper.}}
 \label{fig:cv_level_uniformity_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_vertical_equity_metric_paths.pdf}
-\caption{\latesttext{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick). Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
+\caption{\latesttext{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick). Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band spans the smallest to the largest tested $\rho$ at which any of five equal-weight cross-validation criteria---$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD---attains its best value on the tested grid. It is descriptive only: it is derived from the chronological development folds even where it is drawn over held-out and 2025 curves, its endpoints are not reproduced by any artifact in the frozen evidence set, and it does not delimit a selected, portable, or recommended penalty interval. No penalty strength is selected in this paper.}}
 \label{fig:cv_vertical_equity_metric_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_mechanism_metric_paths.pdf}
-\caption{\latesttext{Chronological-fold mechanism paths for $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and distance correlation (thin gray) and equal-weight CV means (thick). The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given forced zero lines. CV $\Delta_{\mathrm{NL}}$ was reconstructed from frozen validation predictions with the same fixed estimator used out of time; it is a retrospective diagnostic and does not select $\rho$. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
+\caption{\latesttext{Chronological-fold mechanism paths for $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and distance correlation (thin gray) and equal-weight CV means (thick). The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given forced zero lines. CV $\Delta_{\mathrm{NL}}$ was reconstructed from frozen validation predictions with the same fixed estimator used out of time; it is a retrospective diagnostic and does not select $\rho$. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band spans the smallest to the largest tested $\rho$ at which any of five equal-weight cross-validation criteria---$R^2_P$, MAE, MAPE, $\operatorname{RMSE}_{\log P}$, and COD---attains its best value on the tested grid. It is descriptive only: it is derived from the chronological development folds even where it is drawn over held-out and 2025 curves, its endpoints are not reproduced by any artifact in the frozen evidence set, and it does not delimit a selected, portable, or recommended penalty interval. No penalty strength is selected in this paper.}}
 \label{fig:cv_mechanism_metric_paths}
 \end{figure}
 
@@ -4036,6 +4041,66 @@ $\Delta_{\mathrm{NL}}$ and dCor carry no assessor-facing reference range.}
 \end{minipage}
 \end{table}
 }
+
+
+\subsection{\newtext{Retransformation Sensitivity}}
+\label{app:smearing}
+
+\newtext{Predictions are returned to the price scale by direct exponentiation,
+Equation~\eqref{eq:price_prediction}. That is an operational retransformation and not a
+conditional-mean correction, so it is a convention rather than a result. A frozen sensitivity
+therefore re-evaluates every display configuration under a Duan smearing factor
+\[
+s=\frac{\sum_i w_i\exp(u_i)}{\sum_i w_i},
+\qquad u_i=\log P_i-f(x_i),
+\]
+applied as $f(x_i)\mapsto f(x_i)+\log s$. The residual convention here is the negative of the one
+used by the residual-dependence diagnostics, where $e_i=f(x_i)-\log P_i$; the two are not
+interchangeable. The factor is estimated from development out-of-fold residuals under the
+one-sale-one-vote weighting and is never re-estimated on an evaluation block.}
+
+\newtext{The consequences separate by construction. Valuation-level ratios---median, mean and
+weighted-mean---are multiplied exactly by $s$. COD, COV, PRD, PRB, MKI, VEI, $\beta_{\log}$,
+$\Delta_{\mathrm{NL}}$ and $\operatorname{dCor}(e,y)$ are invariant to a common multiplicative
+factor, and the frozen sensitivity confirms that each of them is unchanged: no vertical-equity,
+uniformity, or residual-structure result in this paper depends on the retransformation choice.
+$R^2_P$, MAE and MAPE are not invariant and move nontrivially.
+$\operatorname{RMSE}_{\log P}$ is defined on the log scale and is not a price-scale rescaling
+quantity, so the frozen design does not recompute it under smearing.}
+
+\newtext{Table~\ref{tab:smearing_matched_beta} reports the movement at the three matched
+first-order configurations of Table~\ref{tab:matched_beta_headline}. The factor is not common
+across the arms---it is largest for the Surrogate and smallest for the post-hoc comparator---so
+direct exponentiation does not affect them equally. Under the sensitivity the price-scale
+ordering of the Surrogate and the post-hoc comparator reverses on both $R^2_P$ and MAE. The
+price-scale half of that matched comparison is therefore convention-dependent and is reported as
+such rather than as a property of the mechanisms; the residual-structure half is not, since the
+$\Delta_{\mathrm{NL}}$ and dCor entries of Table~\ref{tab:matched_beta_headline} are unchanged.}
+
+\begin{table}[!ht]
+\centering
+\caption{\newtext{Retransformation sensitivity at the matched first-order targets, development
+coordinate D1 at the strongest common target, held-out evaluation. Baseline columns reproduce
+Table~\ref{tab:matched_beta_headline}; smeared columns apply the frozen Duan factor $s$ to the
+same stored predictions. Nothing is refitted, no configuration is selected or recommended, and
+the table is a convention check rather than a result.}}
+\label{tab:smearing_matched_beta}
+\begin{tabular}{@{}lrrrrr@{}}
+\toprule
+Family & $s$ & $R^2_P$ base & $R^2_P$ smeared & MAE base & MAE smeared \\
+\midrule
+Direct & 1.0636 & 0.8760 & 0.8498 & \$82,764 & \$87,979 \\
+Surrogate & 1.0879 & 0.8963 & 0.9010 & \$76,128 & \$73,908 \\
+C-posthoc & 1.0524 & 0.8966 & 0.8860 & \$74,236 & \$75,548 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\newtext{One asymmetry is recorded rather than resolved. The factor is estimated on development
+out-of-fold residuals, whereas the 2025 forward block is evaluated from a production refit that
+has no out-of-fold analogue, so the development-estimated factor is applied there unchanged.
+That is an explicit assumption of the sensitivity, not a validated property of the forward
+period.}
 
 
 \subsection{VEI Percentile-Group Profiles}

@@ -15318,3 +15318,358 @@ entries:
       The 2025-forward companion of TB-mechanism-dCor-C-heldout. It replaces
       the removed 2025 rebound pair 0.258 -> 0.266 with the one 2025 dCor value
       that a frozen artifact reproduces.
+
+  # --- B2.7 ---------------------------------------------------------------
+  # The retransformation-sensitivity table at app:smearing. Every value is
+  # re-derived from the frozen P1 smearing artifacts; nothing is refitted. The
+  # baseline columns are the same numbers Table tab:matched_beta_headline prints,
+  # re-sourced here from the smearing artifact so the two halves of each row come
+  # from one file and one selector.
+  - entry_id: "TB-smear-s-Direct-j5"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_factor_provenance.csv"
+    artifact_sha256: "54a2c4332dbb23f9f3e533bc405a2c83a74612a8f4ae56625df6311116986d58"
+    artifact_kind: "csv"
+    selector: "family=Direct;rho=86.85113737513521"
+    column: "s"
+    metric: "smearing_factor"
+    raw_value: "1.0636405448697208"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "1.0636"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The Duan smearing factor for this realization, estimated from development
+      out-of-fold residuals under the one-sale-one-vote weighting and never
+      re-estimated on an evaluation block. The factors differ across the three arms,
+      which is why direct exponentiation does not affect them equally.
+  - entry_id: "TB-smear-R2_price-Direct-j5-baseline"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Direct;rho=86.85113737513521;evaluation=heldout;metric=R2_price"
+    column: "baseline"
+    metric: "R2_price_baseline"
+    raw_value: "0.8760470664328015"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "0.8760"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out R2_price for this arm, baseline arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-R2_price-Direct-j5-smeared"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Direct;rho=86.85113737513521;evaluation=heldout;metric=R2_price"
+    column: "smeared"
+    metric: "R2_price_smeared"
+    raw_value: "0.8498227744713713"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "0.8498"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out R2_price for this arm, smeared arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-MAE_price-Direct-j5-baseline"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Direct;rho=86.85113737513521;evaluation=heldout;metric=MAE_price"
+    column: "baseline"
+    metric: "MAE_price_baseline"
+    raw_value: "82763.71440461544"
+    value_transform: "identity"
+    rounding_rule: "usd_comma:0"
+    rendered_value: "82,764"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out MAE_price for this arm, baseline arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-MAE_price-Direct-j5-smeared"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Direct;rho=86.85113737513521;evaluation=heldout;metric=MAE_price"
+    column: "smeared"
+    metric: "MAE_price_smeared"
+    raw_value: "87979.0377080519"
+    value_transform: "identity"
+    rounding_rule: "usd_comma:0"
+    rendered_value: "87,979"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out MAE_price for this arm, smeared arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-s-Surrogate-j5"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_factor_provenance.csv"
+    artifact_sha256: "54a2c4332dbb23f9f3e533bc405a2c83a74612a8f4ae56625df6311116986d58"
+    artifact_kind: "csv"
+    selector: "family=Surrogate;rho=2.559547922699536"
+    column: "s"
+    metric: "smearing_factor"
+    raw_value: "1.0879072531266702"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "1.0879"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The Duan smearing factor for this realization, estimated from development
+      out-of-fold residuals under the one-sale-one-vote weighting and never
+      re-estimated on an evaluation block. The factors differ across the three arms,
+      which is why direct exponentiation does not affect them equally.
+  - entry_id: "TB-smear-R2_price-Surrogate-j5-baseline"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Surrogate;rho=2.559547922699536;evaluation=heldout;metric=R2_price"
+    column: "baseline"
+    metric: "R2_price_baseline"
+    raw_value: "0.8962999377210681"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "0.8963"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out R2_price for this arm, baseline arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-R2_price-Surrogate-j5-smeared"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Surrogate;rho=2.559547922699536;evaluation=heldout;metric=R2_price"
+    column: "smeared"
+    metric: "R2_price_smeared"
+    raw_value: "0.9009688760576392"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "0.9010"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out R2_price for this arm, smeared arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-MAE_price-Surrogate-j5-baseline"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Surrogate;rho=2.559547922699536;evaluation=heldout;metric=MAE_price"
+    column: "baseline"
+    metric: "MAE_price_baseline"
+    raw_value: "76128.30557035113"
+    value_transform: "identity"
+    rounding_rule: "usd_comma:0"
+    rendered_value: "76,128"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out MAE_price for this arm, baseline arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-MAE_price-Surrogate-j5-smeared"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=Surrogate;rho=2.559547922699536;evaluation=heldout;metric=MAE_price"
+    column: "smeared"
+    metric: "MAE_price_smeared"
+    raw_value: "73908.00984223059"
+    value_transform: "identity"
+    rounding_rule: "usd_comma:0"
+    rendered_value: "73,908"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out MAE_price for this arm, smeared arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-s-Cposthoc-j5"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_factor_provenance.csv"
+    artifact_sha256: "54a2c4332dbb23f9f3e533bc405a2c83a74612a8f4ae56625df6311116986d58"
+    artifact_kind: "csv"
+    selector: "family=C-posthoc;b=1.0691861972161865"
+    column: "s"
+    metric: "smearing_factor"
+    raw_value: "1.052383210862212"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "1.0524"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The Duan smearing factor for this realization, estimated from development
+      out-of-fold residuals under the one-sale-one-vote weighting and never
+      re-estimated on an evaluation block. The factors differ across the three arms,
+      which is why direct exponentiation does not affect them equally.
+  - entry_id: "TB-smear-R2_price-Cposthoc-j5-baseline"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=C-posthoc;b=1.0691861972161865;evaluation=heldout;metric=R2_price"
+    column: "baseline"
+    metric: "R2_price_baseline"
+    raw_value: "0.8966452550803876"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "0.8966"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out R2_price for this arm, baseline arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-R2_price-Cposthoc-j5-smeared"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=C-posthoc;b=1.0691861972161865;evaluation=heldout;metric=R2_price"
+    column: "smeared"
+    metric: "R2_price_smeared"
+    raw_value: "0.886032750947321"
+    value_transform: "identity"
+    rounding_rule: "half_up:4"
+    rendered_value: "0.8860"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out R2_price for this arm, smeared arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-MAE_price-Cposthoc-j5-baseline"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=C-posthoc;b=1.0691861972161865;evaluation=heldout;metric=MAE_price"
+    column: "baseline"
+    metric: "MAE_price_baseline"
+    raw_value: "74236.45926893601"
+    value_transform: "identity"
+    rounding_rule: "usd_comma:0"
+    rendered_value: "74,236"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out MAE_price for this arm, baseline arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
+  - entry_id: "TB-smear-MAE_price-Cposthoc-j5-smeared"
+    added_by_stage: "B2.7"
+    artifact_path: "analysis/p1_inferential_reporting/tables/smearing_apply_invariance.csv"
+    artifact_sha256: "83c10795b35c88aef850c5ae5759371ba121c1ade64661fc131512c7aba6a267"
+    artifact_kind: "csv"
+    selector: "family=C-posthoc;b=1.0691861972161865;evaluation=heldout;metric=MAE_price"
+    column: "smeared"
+    metric: "MAE_price_smeared"
+    raw_value: "75548.35951175465"
+    value_transform: "identity"
+    rounding_rule: "usd_comma:0"
+    rendered_value: "75,548"
+    manuscript_anchor: "tab:smearing_matched_beta"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "SENSITIVITY"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Held-out MAE_price for this arm, smeared arm of the frozen
+      retransformation sensitivity. The baseline value is identical to the one
+      tab:matched_beta_headline prints from matched_beta_comparison.csv.
