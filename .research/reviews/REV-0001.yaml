@@ -1,0 +1,34 @@
+id: REV-0001
+type: review
+schema_version: 1
+status: concluded
+title: Human review of CLAIM-0001
+created_from: []
+subject: CLAIM-0001
+reviewer_kind: human
+findings: 'I approve CLAIM-0001 as a bounded descriptive claim about the measured
+  Direct-versus-Surrogate divergence on the frozen 994-tree CCAO paths. This approval
+  does not establish the specific rank-one-curvature account for Direct: I treat EVI-0008
+  as conservative contrary evidence that keeps that mechanistic explanation INDETERMINATE,
+  not as a refutation of the measured divergence itself. I accept the provenance limitations
+  disclosed for EXP-0001, including the dirty historical execution state, incomplete
+  upstream artifact availability, and weaker provenance for the per-fold prediction
+  files. I also accept that EXP-0002 establishes tier-R1 exact reproduction only for
+  its sampled frozen configurations and does not establish complete-path tier-R1 reproduction.
+  EVI-0010 makes the upstream EXP-0001 dependency of the matched-correction and attainability
+  quantities explicit. This approval is limited to the Claim as written: it is not
+  a ranking of the methods, does not select a penalty strength or operating point,
+  does not establish temporal portability or deployment suitability, and does not
+  assert that Direct is effectively gradient-only.'
+verdict: approve
+subject_digest: 1:4126f12424fe4fcc0f1fe1050b2c31e0fd997cf6ebf480c32d238ab4dc4be752
+evidence_digests:
+  EVI-0002: 1:1ac24d579bcfdaf3a7c532a610998626576231d296c128aeeb65f0e7b862fa1f
+  EVI-0003: 1:fcaa0aaad0792ae86741301336a84fad528bfba2a2e45bb08a211bddecb7e381
+  EVI-0006: 1:a88c03dc88a7d889e1811eb307950cfbb3755002149481d4be2d1e021359e6a7
+  EVI-0007: 1:40b3af4c37cb630b791739b5e72375499136d5b7d22997fe20af03e504431ad5
+  EVI-0008: 1:36d2474589a3dce35cb1f1d343ab3b9a6af3e1c1e19aa5e884c90d7819a8d0a0
+  EVI-0010: 1:87ac25dff0f8d63040454a7ce51864d48a42b84d86d37650a17ddb4808715b6d
+experiment_digests:
+  EXP-0001: 1:1d8f6bde83ecb2d36a9c713918c5e8f357472e3e8ab6fbad98288be943309e4f
+  EXP-0002: 1:2b647a81bf22bc557f1fdcee15d221b1d2d43534658b34181eb02aca179d11d3

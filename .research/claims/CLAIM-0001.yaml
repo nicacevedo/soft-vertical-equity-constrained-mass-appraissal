@@ -1,7 +1,7 @@
 id: CLAIM-0001
 type: claim
 schema_version: 1
-status: evidence_linked
+status: accepted
 title: Direct and Surrogate are distinct mechanisms on the frozen CCAO paths
 statement: >-
   On the frozen CCAO regularization paths, the Direct and Surrogate covariance penalties

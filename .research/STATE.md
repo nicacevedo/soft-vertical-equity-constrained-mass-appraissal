@@ -100,10 +100,12 @@ placed only there would not be bound by any future Review.
    G3"). Authorization state must be read from the stage-specific gate JSONs, not from the
    protocol file.
 
-## Not done, deliberately
+## Human review and acceptance
 
-No Review exists. `CLAIM-0001` stands at `evidence_linked` because no human scientific
-Review has been performed, and no automated agent may author one.
+`REV-0001` is the qualifying human Review of `CLAIM-0001`: `reviewer_kind: human`,
+`verdict: approve`, with nonempty findings. It binds the complete required Evidence set
+(`EVI-0002`, `EVI-0003`, `EVI-0006`, `EVI-0007`, `EVI-0008`, `EVI-0010`) and the complete
+required Experiment set (`EXP-0001`, `EXP-0002`), as digests of their state at review time.
 
 The architectural blocker recorded here previously — that an Evidence object of
 `kind: experiment` binds an Experiment **ID**, and its digest does not cover that
@@ -114,12 +116,14 @@ OS kernel now explicitly binds Experiment digests in Claim Reviews: on branch
 set separately from the Evidence digests. A Review therefore now binds the experimental
 content itself, not only the Evidence objects' summaries of it.
 
-`CLAIM-0001`'s explicit dependency graph now reaches both Experiments. `EVI-0010` binds
+`CLAIM-0001`'s explicit dependency graph reaches both Experiments. `EVI-0010` binds
 `EXP-0001`, which produced the frozen Direct and Surrogate path and per-fold prediction
 artifacts that the matched-correction and attainability conjuncts consume; the remaining
 Claim-linked Evidence binds `EXP-0002`, which audits, cross-references and compares those
-frozen outputs without re-fitting the complete paths. The Experiment set a Review of this
-Claim will bind is `{EXP-0001, EXP-0002}`.
+frozen outputs without re-fitting the complete paths.
 
-What remains is the human step alone. `CLAIM-0001` stays at `evidence_linked` until a
-qualifying human approval is recorded, and acceptance is that reviewer's decision to make.
+`CLAIM-0001` is now `accepted`, following the human's acceptance decision recorded in
+`REV-0001`. This approval is bound to the digests recorded in `REV-0001`: any future
+digest-material change to `CLAIM-0001`, to any of its six bound Evidence objects, or to
+either bound Experiment (`EXP-0001`, `EXP-0002`) invalidates it and must surface as a
+stale-review error/warning on the next validation, not be silently repaired.
