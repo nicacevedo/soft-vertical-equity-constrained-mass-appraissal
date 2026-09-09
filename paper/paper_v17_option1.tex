@@ -954,7 +954,7 @@ Appendix~\ref{app:metrics} gives the equivalent projection representation, relat
 the construction to parametric-versus-nonparametric regression-fit comparisons
 \cite{HardleMammen1993}, and specifies the fixed cross-fitted estimator used in the
 held-out and 2025 evaluations.
-\latesttext{The same fixed estimator was later applied, fold by fold, to the already-frozen chronological-validation predictions as a retrospective diagnostic; those reconstructed CV values do not define the frozen prediction/COD transition span, the $\rho$ grid, or a model-selection rule.}
+\latesttext{The same fixed estimator was later applied, fold by fold, to the already-frozen chronological-validation predictions as a retrospective diagnostic; those reconstructed CV values do not define the $\rho$ grid or any model-selection rule.}
 
 \emph{Broader dependence.}
 Finally, we report distance correlation,
@@ -1128,7 +1128,7 @@ other model class.}
 \end{figure}
 
 
-The corresponding VEI percentile-group profile, with deterministic 90\% bootstrap intervals, is reported in Appendix~\ref{app:ccao_path_details} (Figure~\ref{fig:vei_group_profile_placeholder}).
+The corresponding VEI percentile-group profile is reported in Appendix~\ref{app:ccao_path_details} (Figure~\ref{fig:vei_group_profile_placeholder}); the intervals drawn there are descriptive bootstrap intervals on the plotted group medians and carry no exposure-draft compliance verdict.
 % \textcolor{blue}{\sout{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_value_groups} apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. Assessment level and vertical equity are interpreted separately: the former concerns aggregate calibration of the ratios, whereas the latter concerns how those ratios vary across property-value levels.}}
 % \oldtext{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. Valuation level and vertical equity are interpreted separately: the former concerns aggregate calibration of the ratios, whereas the latter concerns how ratios vary across property-value levels.}\oldtext{Tables~\ref{tab:ccao_baseline_results} and~\ref{tab:ccao_baseline_complementary}, together with Figure~\ref{fig:baseline_motivation}, apply the evaluation framework in Section~\ref{subsec:metrics} to the two baseline model classes. The primary table isolates prediction and vertical equity, while the complementary table separates valuation level, horizontal uniformity, and mechanism/residual structure.}
 \latesttext{Table~\ref{tab:ccao_baseline_results} and Figure~\ref{fig:baseline_motivation} present the primary baseline level in the main text. Appendix Table~\ref{tab:ccao_baseline_complementary} reports the complementary valuation-level, horizontal-uniformity, and mechanism/residual-structure diagnostics for the same cell.}
@@ -1907,7 +1907,7 @@ Validation & Seven expanding-window rolling-origin folds; newest 10\% validates 
 Base nonlinear learner & LightGBM on log sale price; 994 trees; hyperparameters frozen before the penalty sweep \\
 Corrections evaluated & Direct squared covariance and sample-additive covariance upper bound \\
 Penalty path & \latesttext{82 positive values per family: original 50-point $[0.1,100]$ path plus a 32-point lower-tail extension $[0.00110,0.08685]$} \\
-Current analysis & \latesttext{Full CV, held-out, and forward paths; secondary CV screen and transition diagnostics; no deployment operating-point selection} \\
+Current analysis & \latesttext{Full CV, held-out, and forward paths; descriptive path landmarks only; no screening result and no deployment operating-point selection} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1978,7 +1978,7 @@ the distinction necessary rather than merely cautious.}
 % \oldtext{The primary CCAO Results report the complete Direct and Surrogate regularization paths together with two complementary checks: the $\rho=0$ implementation control and the fixed cross-fitted correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$. $\Delta_{\mathrm{NL}}$ is reported for the primary held-out and 2025 forward evaluations but is not computed retrospectively for the completed chronological CV. No penalty family, penalty strength, or deployment operating point is selected.}
 % \oldtext{The primary CCAO Results report the complete Direct and Surrogate regularization paths together with the fixed cross-fitted correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$. $\Delta_{\mathrm{NL}}$ is reported for the primary held-out and 2025 forward evaluations but is not computed retrospectively for the completed chronological CV. No penalty family, penalty strength, or deployment operating point is selected.}
 % \oldtext{The primary CCAO Results report the complete Direct and Surrogate regularization paths together with the fixed cross-fitted correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$. Held-out and 2025 $\Delta_{\mathrm{NL}}$ remain the original out-of-time diagnostics. Chronological-CV $\Delta_{\mathrm{NL}}$ was retrospectively computed from the already-frozen validation predictions using the same fixed cross-fitted estimator; it was not used to define the frozen prediction/COD transition span, the $\rho$ grid, or a model-selection rule. No penalty family, penalty strength, or deployment operating point is selected.}
-\latesttext{The primary CCAO Results report the complete Direct and Surrogate regularization paths together with the fixed cross-fitted correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$. Held-out and 2025 $\Delta_{\mathrm{NL}}$ remain the original out-of-time diagnostics, while chronological-CV $\Delta_{\mathrm{NL}}$ is reconstructed from the already-frozen validation predictions using the same fixed estimator. In addition to the older prediction/COD transition diagnostic, we report the generic CV-derived candidate-region screen from Section~\ref{subsec:path_design}. That screen removes low-activity positive penalties and places a conservative upper guardrail before the high-$\rho$ deterioration/caution regime, but it does not rank surviving configurations or select a deployment operating point.}
+\latesttext{The primary CCAO Results report the complete Direct and Surrogate regularization paths. The fixed cross-fitted correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$ is traced along those paths: the held-out and 2025 values are the original out-of-time diagnostics, while the chronological-CV values are reconstructed from the already-frozen validation predictions using the same fixed estimator. The artifact that reproduces the positive-$\rho$ path anchors carries no $\Delta_{\mathrm{NL}}$ column, so no positive-$\rho$ value of it is reported for these paths, no screening result is derived from it, and no deployment operating point is selected.}
 % \oldtext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability, retrospective temporal concordance, and Direct span-regret calculations. This diagnostic characterizes the path and does not define a selected or recommended range.}
 % \oldtext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability and retrospective temporal concordance. This diagnostic characterizes the path and does not define a selected or recommended range.}
 \latesttext{We also report the frozen five-metric transition diagnostic from Section~\ref{subsec:path_design}, including fold and leave-one-fold-out stability, retrospective exact concordance, and family-symmetric value-based span regret. This diagnostic characterizes the path and does not define a selected or recommended range.}
@@ -2270,7 +2270,7 @@ range before recovering at higher prices. \newtext{This visual contrast is descr
 % \oldtext{Consequently, a near-neutral global slope or grouped high-versus-low statistic need not imply a locally flat valuation-ratio profile.}
 \newtext{Consequently, a near-neutral global slope or high-versus-low grouped statistic need not imply a flat valuation-ratio profile across the value distribution.}
 \oldtext{The fixed cross-fitted $\Delta_{\mathrm{NL}}$ nonlinearity gap separates these families. Along the Direct anchors, held-out $\Delta_{\mathrm{NL}}$ remains near $0.116$--$0.132$ and is $0.115$ at $\rho=100$; the 2025 Direct path is similarly stable, ending at $0.119$. The Surrogate path instead falls through moderate regularization, from $0.116$ at $\rho=0$ to $0.099$ near $\rho=0.954$ held-out and from $0.121$ to $0.092$ near $\rho=10.481$ in 2025, then rises at $\rho=100$ to $0.124$ and $0.111$, respectively. That rebound coincides with the non-monotone Surrogate ratio trough above. We do not infer a specific functional shape from the scalar gap alone; the shape label comes from the ratio-profile figure.}
-\latesttext{The fixed cross-fitted $\Delta_{\mathrm{NL}}$ nonlinearity gap separates these families. Along the Direct path, held-out $\Delta_{\mathrm{NL}}$ remains near $0.116$--$0.132$ over the previously reported representative configurations and is $0.115$ at $\rho=100$; the 2025 Direct path is similarly stable, ending at $0.119$. The Surrogate path instead falls through moderate regularization, from $0.116$ at $\rho=0$ to $0.099$ near the nominal $\rho=1$ display anchor (tested $\rho=0.954095$) on the held-out sample and from $0.121$ to $0.092$ near the nominal $\rho=10$ display anchor (tested $\rho=10.4811$) in 2025, then rises at $\rho=100$ to $0.124$ and $0.111$, respectively. That rebound coincides with the non-monotone Surrogate ratio trough above. We do not infer a specific functional shape from the scalar gap alone; the shape label comes from the ratio-profile figure.}
+\latesttext{The fixed cross-fitted $\Delta_{\mathrm{NL}}$ nonlinearity gap is reported here only where a frozen artifact reproduces it. At the shared zero-penalty path origin it is $0.116$ on the held-out sample and $0.121$ in 2025. The frozen artifact that reproduces the positive-$\rho$ display anchors carries no $\Delta_{\mathrm{NL}}$ column, so no positive-$\rho$ value of the gap is quoted for these paths and no claim is made about how it moves along them. (The matched first-order targets reported later are a different coordinate, with their own frozen source.) The ratio-shape contrast described above is therefore read from the profiles themselves rather than from the scalar gap.}
 
 \subsection{
 \texorpdfstring{
@@ -2285,8 +2285,8 @@ range before recovering at higher prices. \newtext{This visual contrast is descr
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/mechanism_vs_rho_candidate_region.pdf}
-\caption{\oldtext{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span; they are not a selected or recommended penalty interval.}\latesttext{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations, with the CV-derived screening region overlaid unchanged. The light fill marks the candidate region, the dashed left boundary is the soft activity onset, and the solid right boundary is the family-specific upper guardrail. The older prediction/COD transition span is retained only as subordinate context. For Surrogate, the binding upper boundary is the nonlinear-structure caution from the stable CV $\Delta_{\mathrm{NL}}$ rebound; dCor is still improving but flattening at that event and does not set the guardrail.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/mechanism_vs_rho.pdf}
+\caption{\latesttext{Mechanism and residual-structure paths versus $\rho$ for Direct and Surrogate on held-out (solid) and 2025 (dashed) evaluations. The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given assessor-style zero targets. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
 \label{fig:mechanism_path_placeholder}
 \end{figure}
 
@@ -2296,14 +2296,10 @@ $\rho=0$ to $-0.079$ at $\rho=100$; the corresponding 2025 values move from
 $-0.161$ to $-0.093$. The Surrogate path moves closer to first-order neutrality,
 reaching $-0.001$ on the held-out sample and $-0.015$ in 2025 at $\rho=100$.
 % \oldtext{The nonlinear dependence diagnostic is not monotone, however.} 
-\newtext{The broader distance-correlation diagnostic is not monotone along the Surrogate path, however.} For the Surrogate,
-held-out dCor falls from $0.382$ at $\rho=0$ to $0.250$ near
-$\rho=10.481$ and then rises to $0.267$ at $\rho=100$; the 2025 path shows
-the same rebound from $0.258$ to $0.266$. 
+\newtext{Along these paths the broader distance-correlation diagnostic is quoted only at the zero-penalty origin, where it is $0.382$ on the held-out sample and $0.417$ in 2025. The same frozen artifact carries no distance-correlation column either, so no positive-$\rho$ value and no claim about the shape of the dCor path are asserted for them.} 
 % \oldtext{This behavior is consistent with the non-monotone ratio shapes above and shows that reducing the targeted first-order association does not eliminate broader nonlinear sale-price-related dependence.} 
-\newtext{This rebound is consistent with the non-monotone ratio shapes above and shows that broader sale-price-related dependence can remain even as the targeted first-order association approaches zero. Because distance correlation is an omnibus dependence measure, the rebound does not by itself establish that nonlinear conditional-mean structure has increased; that distinction is assessed with $\Delta_{\mathrm{NL}}$.}
-\newtext{Figure~\ref{fig:mechanism_path_placeholder} traces that distinction on the complete grids. On Direct, $\lvert\beta_{\log}\rvert$ declines from $\rho=0$ to $\rho=100$ while $\Delta_{\mathrm{NL}}$ stays in a narrow band and is not increasing at the strongest penalty. On Surrogate, $\lvert\beta_{\log}\rvert$ continues to fall as $\Delta_{\mathrm{NL}}$ first declines and then rises at high $\rho$, including the held-out movement from $0.099$ near $\rho=0.954$ to $0.124$ at $\rho=100$. First-order slope reduction and the correlation-ratio nonlinearity gap are therefore not the same object, and the Surrogate path is the clearer CCAO example of that separation.}
-\latesttext{At the Surrogate CV caution event, distance correlation does not independently reverse: its local path is classified as \emph{flattening}, meaning that it is still decreasing but at a slightly smaller rate. This distinction is important for interpretation. The upper screen is triggered by the stable $\Delta_{\mathrm{NL}}$ rebound, not by a claimed simultaneous rebound in every dependence diagnostic.}
+\newtext{Because distance correlation is an omnibus dependence measure, a movement in it would not by itself establish that nonlinear conditional-mean structure had changed; that distinction belongs to $\Delta_{\mathrm{NL}}$, which is unavailable along these paths for the same reason. Neither diagnostic is therefore used to characterize residual structure at positive $\rho$ on the paths themselves.}
+\newtext{Figure~\ref{fig:mechanism_path_placeholder} traces the first-order coordinate on the complete grids: $\lvert\beta_{\log}\rvert$ declines from $\rho=0$ to $\rho=100$ on Direct and falls further on Surrogate, which reaches near first-order neutrality at the strongest tested penalty. First-order slope reduction and the correlation-ratio nonlinearity gap remain conceptually distinct objects, but along these paths $\Delta_{\mathrm{NL}}$ is quoted only at the zero-penalty origin, so no positive-$\rho$ comparison between the two is asserted for them.}
 
 \subsection{Accuracy--Equity Trajectories}
 \label{subsec:tradeoff_results}
@@ -2323,7 +2319,7 @@ performance and vertical-equity diagnostics.
 % \oldtext{At stronger regularization, the vertical-equity diagnostics continue toward neutrality while $R^2_P$ bends downward.}
 \newtext{At stronger regularization, $R^2_P$ bends downward while several vertical-equity diagnostics approach or cross their neutral values; the resulting trajectories can themselves become non-monotone.} This is why the complete path, rather than a single endpoint or a presumed accuracy cost, is 
 % \oldtext{the relevant pre-selection empirical object}
-\newtext{the relevant empirical object before selecting an operating point}. \oldtext{Accordingly, the main accuracy--equity figure does not highlight the Direct CV transition span as a preferred segment; temporal portability of that span is assessed separately below.}\latesttext{Accordingly, the main accuracy--equity figure does not highlight either family's CV transition span as a preferred segment; temporal portability of those spans is assessed separately below.}
+\newtext{the relevant empirical object before selecting an operating point}. \oldtext{Accordingly, the main accuracy--equity figure does not highlight the Direct CV transition span as a preferred segment; temporal portability of that span is assessed separately below.}\latesttext{Accordingly, the main accuracy--equity figure does not highlight any segment of either path as preferred, and temporal behaviour is assessed separately below.}
 
 \subsection{\latesttext{What Retraining Buys over Post-Hoc Centered Rescaling}}
 \label{subsec:posthoc_comparator}
@@ -2710,9 +2706,7 @@ are reported separately rather than averaged together.
 
 Taken together, the corrections move the targeted first-order mechanism on every
 evaluation block, but they do not do so at a penalty scale that is stable across market
-periods, and the diagnostics do not all turn on a common scale: the broader-dependence
-and nonlinear-residual diagnostics reach their interior minima at different penalty
-scales, and those locations shift across evaluation periods. The penalty grid was frozen
+periods, and the nonlinear-residual and broader-dependence diagnostics are quoted along these paths only at the zero-penalty origin, so this section makes no claim about where along the path they turn. The penalty grid was frozen
 in advance, no diagnostic reported here defined it or any selection rule, and no penalty
 strength is selected. The contribution of this section is a controlled characterization
 of the attainable paths together with a temporal failure-mode audit, rather than the
@@ -2722,7 +2716,7 @@ identification of a deployment penalty or a portable operating interval.
 \subsection{External-Validity Boundary}
 \label{subsec:external_results_boundary}
 
-\latesttext{The CCAO paths establish behavior only for the stated research translation, sale sample, temporal design, and fixed LightGBM configuration. They do not establish that the same raw penalty, candidate-region endpoints, or accuracy--equity path transfers to another jurisdiction. The repository's newer normalized external benchmark is therefore treated as a separate robustness project rather than as confirmatory evidence in this manuscript. In particular, official jurisdiction-level assessment-ratio profiles must not be conflated with valuation ratios generated by the common research AVM.}
+\latesttext{The CCAO paths establish behavior only for the stated research translation, sale sample, temporal design, and fixed LightGBM configuration. They do not establish that the same raw penalty or accuracy--equity path transfers to another jurisdiction. The repository's newer normalized external benchmark is therefore treated as a separate robustness project rather than as confirmatory evidence in this manuscript. In particular, official jurisdiction-level assessment-ratio profiles must not be conflated with valuation ratios generated by the common research AVM.}
 
 
 \section{Discussion and Conclusions}
@@ -2948,7 +2942,7 @@ $\Delta_{\mathrm{NL}}$ as shorthand for
 $\widehat{\Delta}_{\mathrm{NL}}(S)$. \oldtext{The estimator is reported on the primary
 held-out and 2025 forward paths and is not computed retrospectively for the already
 completed chronological CV.}
-\latesttext{The estimator is reported on the primary held-out and 2025 forward paths. The same frozen cross-fitted estimator was later applied, fold by fold, to the already-stored chronological validation predictions; those CV values are a retrospective diagnostic and were not used to define the frozen prediction/COD transition span, the $\rho$ grid, or a model-selection rule.}
+\latesttext{The estimator is reported on the primary held-out and 2025 forward paths. The same frozen cross-fitted estimator was later applied, fold by fold, to the already-stored chronological validation predictions; those CV values are a retrospective diagnostic and were not used to define the $\rho$ grid or any model-selection rule.}
 
 Finally, population distance correlation is zero if and only if independence under
 the usual moment conditions \cite{SzekelyRizzoBakirov2007}. The paper uses its
@@ -3727,18 +3721,18 @@ marked differently. COD and COV are reported in percent.}
 \subsection{Prediction, Valuation-Level, and Horizontal-Uniformity Paths}
 
 \oldtext{Throughout the $\rho$-evolution figures below, gray shading denotes the family-specific CV-derived descriptive transition span when one exists. It is a path-description aid, not a selected, safe, preferred, or recommended penalty interval.}
-\latesttext{Throughout the $\rho$-evolution figures below, gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span when one exists. It is a path-description aid, not a selected, safe, preferred, or recommended penalty interval.}
+\latesttext{The $\rho$-evolution figures below trace the frozen tested grid descriptively. They mark no penalty interval, and this paper does not select, recommend, or certify a penalty strength.}
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/predictive_metric_paths_candidate_region.pdf}\\[1mm]
-\safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/level_uniformity_paths_candidate_region.pdf}
-\caption{\oldtext{Predictive-metric paths and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Valuation-level panels include the ratio $=1$ reference.}\latesttext{Predictive-metric and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. The light fill marks the frozen CV-derived candidate region; the dashed left boundary is activity onset and the solid right boundary is the upper guardrail. The older prediction/COD transition span is retained as subordinate context. Valuation-level panels include the ratio $=1$ reference.}}
+\safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/predictive_metric_paths.pdf}\\[1mm]
+\safeincludegraphics[width=0.66\textwidth,height=0.34\textheight,keepaspectratio]{img/generated_v12_994/level_uniformity_paths.pdf}
+\caption{\latesttext{Predictive-metric and valuation-level/uniformity paths along the Direct and Surrogate grids, with held-out and 2025 evaluations overlaid. Valuation-level panels include the ratio $=1$ reference. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
 \label{fig:other_metric_paths_placeholder}
 \end{figure}\begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vertical_equity_metric_paths_candidate_region.pdf}
-\caption{\oldtext{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}\latesttext{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate with the frozen CV-derived candidate region overlaid. The dashed left boundary is the soft activity onset and the solid right boundary is the upper guardrail; the older prediction/COD span is subordinate context. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vertical_equity_metric_paths.pdf}
+\caption{\latesttext{Vertical-equity metric paths versus $\rho$ for Direct and Surrogate. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
 \label{fig:vertical_equity_metric_paths}
 \end{figure}
 
@@ -3772,27 +3766,27 @@ Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
 \oldtext{The previous appendix included a separate four-metric fold-stability figure for $R^2_P$, PRD, VEI, and $\beta_{\log}$.}
 \latesttext{That summary figure is removed from the active presentation because the comprehensive fold figures immediately below now report prediction, valuation level and horizontal uniformity, vertical equity, and mechanism paths separately for all available CV metrics.}\begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_predictive_metric_paths_candidate_region.pdf}
-\caption{\oldtext{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span.}\latesttext{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick), with the CV-derived candidate region overlaid. The dashed activity-onset boundary is soft; the solid upper guardrail marks the family-specific screening cutoff. The older prediction/COD transition span remains secondary context.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_predictive_metric_paths.pdf}
+\caption{\latesttext{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
 \label{fig:cv_predictive_metric_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_level_uniformity_paths_candidate_region.pdf}
-\caption{\oldtext{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick). Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Valuation-level panels include the ratio $=1$ reference.}\latesttext{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick), with the frozen CV-derived candidate region overlaid. The activity onset is a soft left marker and the upper guardrail is the screening boundary. Valuation-level panels include the ratio $=1$ reference.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_level_uniformity_paths.pdf}
+\caption{\latesttext{Chronological-fold valuation-level and uniformity paths (thin gray) and equal-weight CV means (thick). Valuation-level panels include the ratio $=1$ reference. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
 \label{fig:cv_level_uniformity_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_vertical_equity_metric_paths_candidate_region.pdf}
-\caption{\oldtext{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick). Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived descriptive transition span. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}\latesttext{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick), with the frozen CV-derived candidate region overlaid. The lower boundary marks activity onset, while the upper boundary is the family-specific screening guardrail. Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_vertical_equity_metric_paths.pdf}
+\caption{\latesttext{Chronological-fold vertical-equity paths (thin gray) and equal-weight CV means (thick). Reference lines mark PRD $=1$, PRB $=0$, MKI $=1$, and VEI $=0$. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
 \label{fig:cv_vertical_equity_metric_paths}
 \end{figure}\begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_mechanism_metric_paths_candidate_region.pdf}
-\caption{\oldtext{Chronological-fold mechanism paths for $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and distance correlation (thin gray) and equal-weight CV means (thick). The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given forced zero lines. Gray fill and dashed vertical boundaries mark the frozen family-specific CV-derived prediction/COD transition span. CV $\Delta_{\mathrm{NL}}$ was reconstructed from frozen validation predictions with the same fixed estimator used out of time; it does not define that span or select $\rho$.}\latesttext{Chronological-fold mechanism paths for $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and distance correlation (thin gray) and equal-weight CV means (thick), with the CV-derived candidate region overlaid. For Surrogate, the solid upper guardrail is the stable post-valley $\Delta_{\mathrm{NL}}$ caution event; dCor is classified as flattening rather than rebounding there. The older prediction/COD span is shown only as context.}}
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_mechanism_metric_paths.pdf}
+\caption{\latesttext{Chronological-fold mechanism paths for $\beta_{\log}$, $\Delta_{\mathrm{NL}}$, and distance correlation (thin gray) and equal-weight CV means (thick). The $\beta_{\log}=0$ line is a first-order neutrality reference; $\Delta_{\mathrm{NL}}$ and dCor are not given forced zero lines. CV $\Delta_{\mathrm{NL}}$ was reconstructed from frozen validation predictions with the same fixed estimator used out of time; it is a retrospective diagnostic and does not select $\rho$. The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. The shaded band and its dotted boundaries are a descriptive development-period landmark carried over from the frozen figure; they do not delimit a selected, portable, or recommended penalty interval, and no penalty strength is selected in this paper.}}
 \label{fig:cv_mechanism_metric_paths}
 \end{figure}
 
-\latesttext{Descriptively, on the frozen tested grid, the retrospectively reconstructed CV $\Delta_{\mathrm{NL}}$ paths also differ across the two objectives: the Direct equal-weight CV mean reaches its smallest observed value, $0.08685$, only at the upper tested boundary $\rho=100$, whereas the Surrogate CV mean reaches an interior minimum of $0.08677$ at $\rho\approx1.677$. These locations are not selected operating points; they further illustrate that first-order, nonlinear conditional-mean, broader-dependence, and assessor-facing vertical-equity diagnostics need not share a common transition scale.}
+\latesttext{The reconstructed CV $\Delta_{\mathrm{NL}}$ paths in the figure above are a retrospective diagnostic. No minimum value and no grid location is quoted from them, because the reconstructed CV path values are not part of the frozen numeric evidence, and no location on those paths is a selected operating point.}
 
 \begin{figure}[!htbp]
 \centering
@@ -4049,7 +4043,7 @@ $\Delta_{\mathrm{NL}}$ and dCor carry no assessor-facing reference range.}
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vei_percentile_group_profile.pdf}
-\caption{VEI percentile-group median valuation ratios for Linear and ordinary LightGBM on the held-out and 2025 samples, with deterministic 90\% bootstrap intervals.}
+\caption{VEI percentile-group median valuation ratios for Linear and ordinary LightGBM on the held-out and 2025 samples. The dashed line marks a valuation ratio of $1$; the dotted line marks the overall sample median ratio. The shaded ribbons are descriptive, deterministic percentile-bootstrap intervals for the plotted group medians at a nominal 90\% level, drawn only to convey sampling variability in this visualization. They are \emph{not} the rank-based order-statistic median interval that the May-2026 IAAO exposure draft specifies for its own VEI procedure in Appendix~D.2, and they are \emph{not} a standards-facing bootstrap-sensitivity calculation. No exposure-draft VEI verdict is attached to this figure.}
 \label{fig:vei_group_profile_placeholder}
 \end{figure}
 

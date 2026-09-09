@@ -15210,3 +15210,111 @@ entries:
       tau is not described as data-selected or tuned to obtain a band. The same
       value is printed at subsec:matched_beta_results from the matched-beta
       record; this entry resolves the occurrence at the temporal anchor.
+
+  # --- B2.6 -----------------------------------------------------------------
+  # The four zero-penalty origin values that survive the B2.6 removal of the
+  # positive-rho Delta_NL and dCor claims (MATH-001..MATH-004). They are the
+  # only values in those two passages that a frozen artifact reproduces, and
+  # they are written in math mode, so the coverage audit cannot see them: the
+  # ledger is the only place their provenance can be recorded.
+  - entry_id: "TB-ratioshape-DeltaNL-C-heldout"
+    added_by_stage: "B2.6"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=C;evaluation=heldout"
+    column: "Delta_NL"
+    metric: "Delta_NL"
+    raw_value: "0.11644888131301515"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "0.116"
+    manuscript_anchor: "fig:ratio_shape_path_placeholder"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      Cell C is the custom-objective rho=0 origin, shared by Direct and
+      Surrogate, which is why the sentence now calls it the shared zero-penalty
+      path origin rather than a Direct or a Surrogate value. The rest of the
+      old sentence -- the 0.116--0.132 band, the 0.115 at rho=100 and the 2025
+      endpoint 0.119 -- was removed at B2.6 because
+      frozen_artifact_reproduction.csv has no Delta_NL column at any positive
+      rho. See the retirement note in spec/unsupported_math_claims.yaml.
+  - entry_id: "TB-ratioshape-DeltaNL-C-forward2025"
+    added_by_stage: "B2.6"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=C;evaluation=forward_2025"
+    column: "Delta_NL"
+    metric: "Delta_NL"
+    raw_value: "0.1211834937731304"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "0.121"
+    manuscript_anchor: "fig:ratio_shape_path_placeholder"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The 2025-forward companion of TB-ratioshape-DeltaNL-C-heldout. The same
+      rendered string 0.121 is also printed at tab:ccao_baseline_complementary
+      from a different source; this entry resolves the occurrence at the
+      ratio-shape anchor only.
+  - entry_id: "TB-mechanism-dCor-C-heldout"
+    added_by_stage: "B2.6"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=C;evaluation=heldout"
+    column: "dCor_e_y"
+    metric: "dCor_e_y"
+    raw_value: "0.3822452533671"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "0.382"
+    manuscript_anchor: "fig:mechanism_path_placeholder"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The only value of the old Surrogate dCor non-monotonicity sentence that
+      resolved. 0.250, 0.267, 0.258 and 0.266 were removed at B2.6:
+      frozen_artifact_reproduction.csv has no distance-correlation column at
+      any positive rho, and rho=10.481 is not one of its two frozen positive
+      anchors either. dCor uses the residual convention
+      e = y_pred_log - y_true_log, the OPPOSITE of the Duan smearing
+      estimator's; the two are never conflated.
+  - entry_id: "TB-mechanism-dCor-C-forward2025"
+    added_by_stage: "B2.6"
+    artifact_path: "analysis/p0_major_revision_validation/tables/zero_control_full.csv"
+    artifact_sha256: "331f696ba78da1dcdd1553d0a824e1d1f752949459f301a0fb11413fad3a61ec"
+    artifact_kind: "csv"
+    selector: "cell_id=C;evaluation=forward_2025"
+    column: "dCor_e_y"
+    metric: "dCor_e_y"
+    raw_value: "0.4168358784392149"
+    value_transform: "identity"
+    rounding_rule: "half_up:3"
+    rendered_value: "0.417"
+    manuscript_anchor: "fig:mechanism_path_placeholder"
+    reference_cell: "C"
+    comparison_purpose: "PENALTY_ISOLATING"
+    primary_or_sensitivity: "DESCRIPTIVE"
+    guidance_status: "NOT_APPLICABLE"
+    counting_unit: "NOT_APPLICABLE"
+    attained_status: "ATTAINED"
+    note: >-
+      The 2025-forward companion of TB-mechanism-dCor-C-heldout. It replaces
+      the removed 2025 rebound pair 0.258 -> 0.266 with the one 2025 dCor value
+      that a frozen artifact reproduces.

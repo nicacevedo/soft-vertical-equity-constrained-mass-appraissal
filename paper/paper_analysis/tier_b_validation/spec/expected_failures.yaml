@@ -59,63 +59,15 @@ expected_token_trajectory:
   B2.2: 0
 
 expected_failures:
-- key: 'C13:unsupported_math_claim:MATH-002-direct-positive-rho-delta-nl-band'
-  resolved_by_stage: B2.6
-  expected_count: 1
-  why: >-
-    Discovered and registered at B2.2, in the same commit, per the standing rule
-    in spec/unsupported_math_claims.yaml that absence from the registry is not
-    evidence of support. The held-out Direct Delta_NL band 0.116-0.132, the
-    0.115 at rho=100 and the 2025 endpoint 0.119, in the ratio-shape subsection.
-    frozen_artifact_reproduction.csv carries no Delta_NL column at ANY positive
-    rho, which is the same frozen fact that removed the Delta_NL and dCor
-    columns from tab:path_anchor_complementary at B2.1. Written entirely in math
-    mode, so C02 cannot see it and the contractual UNSUPPORTED_TOKENS = 0 at
-    B2.2 says nothing about it. The plan assigns the passage to the section 5.4
-    rewrite (E.6, C-results-011) and lists the claim class in section G; B2.6 is
-    the last Tier-B2 commit, so the mandatory B2 stop cannot be reached with it
-    still printing.
-- key: 'C13:unsupported_math_claim:MATH-003-surrogate-positive-rho-delta-nl-trajectory'
-  resolved_by_stage: B2.6
-  expected_count: 2
-  why: >-
-    Same discovery and same frozen fact as MATH-002: the Surrogate positive-rho
-    Delta_NL trajectory (0.099 held-out near the nominal rho=1 anchor, 0.092 in
-    2025 near the nominal rho=10 anchor, rising to 0.124 and 0.111 at rho=100).
-    expected_count is 2 because the 0.099 -> 0.124 movement is printed at two
-    sites -- the ratio-shape subsection and the first-order mechanism subsection
-    -- and it is one claim, not two. A partial resolution changes the count and
-    therefore surfaces as an UNEXPECTED failure rather than as a silent win.
-- key: 'C13:unsupported_math_claim:MATH-004-surrogate-positive-rho-dcor-nonmonotonicity'
-  resolved_by_stage: B2.6
-  expected_count: 1
-  why: >-
-    The Surrogate dCor non-monotonicity, which the approved plan names value by
-    value in section G: 0.382 -> 0.250 -> 0.267 held-out with the 2025 rebound
-    0.258 -> 0.266, positive-rho endpoints unresolvable because
-    frozen_artifact_reproduction.csv carries no dCor column either. Section E.6
-    adds the constraint that these values must not survive in
-    tab:path_anchor_complementary while being deleted from the prose; B2.1
-    removed the table side, and B2.6 owns the prose side together with the
-    mechanism figure asset swap.
-- key: 'C13:unsupported_math_claim:MATH-001-cv-delta-nl-minima'
-  resolved_by_stage: B2.6
-  why: >-
-    The descriptive CV Delta_NL minima sentence in Appendix F (Direct 0.08685 at
-    rho=100; Surrogate 0.08677 at rho ~= 1.677). The approved plan lists it in
-    section E.6 and again in section G among the claims that cannot be written
-    from the frozen evidence: none of the three values is in the frozen numeric
-    map, and Delta_NL is absent from frozen_artifact_reproduction.csv at every
-    positive rho. It is registered rather than deleted at B1.5 because B1.5 is a
-    bounded wording and validation-boundary pass and the plan assigns the removal
-    to Tier B2 -- and B2.6, the last B2 commit, is where the passage is rewritten,
-    so the mandatory B2 stop cannot be reached with it still printing.
-
-    Why it needs an entry at all: this claim is written entirely in math mode, so
-    the frozen coverage audit never sees it and C02 can neither source nor flag
-    it. Without this declaration the contractual UNSUPPORTED_TOKENS = 0 at B2.2
-    would read as "every printed number resolves", which would be false. See
-    spec/unsupported_math_claims.yaml.
+# The four C13 math-mode claim entries (MATH-001..MATH-004) were RETIRED at B2.6
+# together with their entries in spec/unsupported_math_claims.yaml, per the
+# retirement rule in that file's header: when the owning stage deletes the claim,
+# delete the entry here and there in the same commit. All four passages were
+# rewritten at B2.6 to drop every positive-rho Delta_NL and dCor value; the
+# surviving rho=0 origin values are now carried by the ledger entries
+# TB-ratioshape-DeltaNL-C-{heldout,forward2025} and
+# TB-mechanism-dCor-C-{heldout,forward2025}. See the git history of this file for
+# the retired text.
 - key: 'C02:flagged:subsec:path_stability_results'
   resolved_by_stage: B1.1
   expected_count: 4
