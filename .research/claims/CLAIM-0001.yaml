@@ -52,8 +52,8 @@ contrary_evidence_addressed: >-
   a ranking. Second, the claim is bounded to the frozen 994-tree configuration and asserts
   nothing about temporal portability, which is why EVI-0009 is not linked here.
 notes: >-
-  Held at evidence_linked deliberately. It must not be moved to accepted until a bounded
-  Research OS integrity patch addresses the Experiment-binding gap recorded in STATE.md:
-  all five supporting Evidence objects are kind experiment and bind an Experiment ID whose
-  scientific content their own digests do not cover. No Review exists for this claim and
-  none may be authored by an automated agent.
+  Held at evidence_linked pending the first human scientific Review. Five supporting Evidence
+  objects and one contrary Evidence object are experiment-derived. Evidence digests themselves
+  bind Experiment IDs rather than Experiment content; the canonical Research OS Review gate now
+  separately binds the complete required Experiment-digest set. For this Claim that set is
+  {EXP-0001, EXP-0002}. No human Review exists yet, and no automated agent may author one.

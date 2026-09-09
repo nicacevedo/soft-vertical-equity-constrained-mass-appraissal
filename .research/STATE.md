@@ -102,9 +102,24 @@ placed only there would not be bound by any future Review.
 
 ## Not done, deliberately
 
-No Review exists. `CLAIM-0001` stands at `evidence_linked` and must not be moved to
-`accepted` until a bounded Research OS integrity patch addresses the demonstrated
-Experiment-binding gap: an Evidence object of `kind: experiment` binds an Experiment **ID**,
-and its digest does not cover that Experiment's provenance, predictions or metrics. Eight of
-the nine Evidence objects here are experiment-kind, so a human Review of `CLAIM-0001` today
-would bind the Evidence digests and none of the experimental content they summarise.
+No Review exists. `CLAIM-0001` stands at `evidence_linked` because no human scientific
+Review has been performed, and no automated agent may author one.
+
+The architectural blocker recorded here previously — that an Evidence object of
+`kind: experiment` binds an Experiment **ID**, and its digest does not cover that
+Experiment's provenance, predictions or metrics — is **resolved**. The canonical Research
+OS kernel now explicitly binds Experiment digests in Claim Reviews: on branch
+`r0/kernel-v1`, merge `f33fac4` ("Merge R0 dogfood integrity corrections", bringing in
+`3578b86` and `6895755`) makes a Claim Review bind the complete required Experiment-digest
+set separately from the Evidence digests. A Review therefore now binds the experimental
+content itself, not only the Evidence objects' summaries of it.
+
+`CLAIM-0001`'s explicit dependency graph now reaches both Experiments. `EVI-0010` binds
+`EXP-0001`, which produced the frozen Direct and Surrogate path and per-fold prediction
+artifacts that the matched-correction and attainability conjuncts consume; the remaining
+Claim-linked Evidence binds `EXP-0002`, which audits, cross-references and compares those
+frozen outputs without re-fitting the complete paths. The Experiment set a Review of this
+Claim will bind is `{EXP-0001, EXP-0002}`.
+
+What remains is the human step alone. `CLAIM-0001` stays at `evidence_linked` until a
+qualifying human approval is recorded, and acceptance is that reviewer's decision to make.
