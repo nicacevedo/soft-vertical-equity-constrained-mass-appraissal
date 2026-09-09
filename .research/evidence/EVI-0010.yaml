@@ -1,0 +1,80 @@
+id: EVI-0010
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0001
+title: >-
+  Direct and Surrogate matched-correction and attainability values are frozen EXP-0001
+  outputs
+statement: >-
+  The Direct and Surrogate rows that the matched-correction and attainability analyses
+  report are frozen EXP-0001 outputs read back by EXP-0002, not fits performed by EXP-0002.
+  In matched_beta_comparison.csv all 48 Direct and Surrogate rows (24 each; match_mode
+  exact_anchor 24 and nearest_fitted 24) carry source "frozen 82-point path table (actual
+  fit)". In matched_beta_ext_targets.csv the 8 attained Direct and Surrogate rows carry the
+  same source and the remaining 16 are the frozen NOT_ATTAINED display states. No Direct or
+  Surrogate row in either table is a Stage-3 targeted re-fit, and gate_g3_checks.json
+  records no_refit_performed true and input_hashes_verified true. The read path is
+  _fp_lookup at analysis/p0_major_revision_validation/code/p0_5_matched_beta.py:221-230,
+  called at :303, against the frozen 82-point path table loaded at :50-54 through
+  p0_common.py:47 (V12) from
+  output/paper_v12_lower_rho_extension_994_v2/analysis/data_id=d4929d43ec19badf/split_id=3d464d4a611b131b/penalty_path_analysis/transition_regions_paper_assets_v4_delta_nl_bends/tables/combined_path_table_v4_analysis_view.csv,
+  640795 bytes, sha256
+  d5b0fcfc49eb8e2a209d5f477b4b37312a1d6015f7e0ba7bd7ac54a178b60363, recorded in
+  provenance/PREFLIGHT.json under input_artifact_hashes.frozen_path_table_v4_csv. The same
+  frozen table is read again by p0_4_centered_spread.py:209, p0_6_assemble.py:238 and :597,
+  and p0_zero_control_assemble.py:229. The per-fold prediction artifacts behind the
+  development beta coordinate are enumerated in configs/frozen_cv_run_map.csv (1176 rows;
+  728 under root paper_v6_preselection_994 and 448 under
+  paper_v12_lower_rho_extension_994_v2) and consumed by p0_5_beta_coordinates.py:65.
+  EXP-0002 consumes, audits, cross-references and compares those frozen outputs: it
+  reproduces a sample of them (frozen_artifact_reproduction.csv), audits the development
+  first-order coordinate against them (development_beta_coordinate_audit.csv),
+  cross-references them at the zero-penalty reference cells (zero_control_full.csv), tests
+  them against the four regeneration triggers (regeneration_triggers.csv) and compares them
+  at matched first-order correction under the frozen plan (APPROVED_EXECUTION_PLAN.md,
+  sha256 d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1). It does NOT
+  re-fit the complete Direct and Surrogate regularization paths on which the
+  matched-correction and attainability conjuncts of CLAIM-0001 rest; those paths are
+  EXP-0001's, which is why EXP-0001 is an upstream dependency of those conjuncts and is
+  bound explicitly here. Five provenance limitations are retained rather than resolved.
+  (1) The rho=0 CV_mean and CV_SD Delta_NL values are absent from the frozen path table and
+  are substituted from zero_control_full.csv Cell C at p0_5_matched_beta.py:304-310, so
+  those two cells are Gate-G2 zero-control values and not frozen path-table values. (2)
+  EXP-0002's manifest provenance.data names output/paper_v12_994/, which does not resolve
+  in this snapshot; the root the code actually reads is
+  output/paper_v12_lower_rho_extension_994_v2/. (3) Neither upstream frozen root,
+  output/paper_v6_preselection_994/ nor output/paper_v12_lower_rho_extension_994_v2/, is
+  present in this worktree or anywhere in its commit history, because output/ is gitignored
+  (.gitignore:17); everything above is therefore a hash-and-path record of those roots and
+  not the roots themselves. (4) The path table carries a committed content hash, but the
+  1176 per-fold prediction files in frozen_cv_run_map.csv carry only a repository-relative
+  path and a pred_exists boolean, True on all 1176 rows and recorded at generation time,
+  with no content hash, so their provenance is materially weaker than the path table's. (5)
+  EVI-0002's tier-R1 exact reproduction sample covers 14 sampled frozen configurations and
+  does not establish tier-R1 reproduction of the complete Direct and Surrogate paths. This
+  object supplies provenance and traceability support for the Claim's quantitative
+  conjuncts rather than independent evidence about the direction or magnitude of the
+  effect. Sources: analysis/p0_major_revision_validation/tables/matched_beta_comparison.csv,
+  matched_beta_ext_targets.csv, development_beta_coordinate_audit.csv, zero_control_full.csv,
+  frozen_artifact_reproduction.csv, regeneration_triggers.csv, gate_g3_checks.json (keys
+  no_refit_performed, input_hashes_verified, coverage.direct_cvmean_range);
+  analysis/p0_major_revision_validation/configs/frozen_cv_run_map.csv;
+  analysis/p0_major_revision_validation/provenance/PREFLIGHT.json;
+  analysis/p0_major_revision_validation/reports/MATCHED_BETA_REPORT.md;
+  analysis/p0_major_revision_validation/APPROVED_EXECUTION_PLAN.md;
+  analysis/p0_major_revision_validation/code/p0_5_matched_beta.py,
+  p0_5_beta_coordinates.py, p0_4_centered_spread.py, p0_6_assemble.py,
+  p0_zero_control_assemble.py, p0_common.py.
+notes: >-
+  Created to close a real gap in CLAIM-0001's explicit dependency graph. Before this object,
+  every Claim-linked Evidence object pointed at EXP-0002, so a Review would have bound the
+  auditing experiment and not the experiment that produced the audited numbers. This object
+  supplies provenance and traceability support for the Claim's quantitative conjuncts rather
+  than independent evidence about the direction or magnitude of the effect: it asserts
+  nothing about whether Direct and Surrogate differ, only about where the values that show
+  they differ come from. It is linked as supporting because binding EXP-0001's content is
+  part of why the matched-correction and attainability conjuncts should be believed. It does
+  not, and cannot, address the F-DIRTY dirty-tree limitation on EXP-0001 recorded in
+  STATE.md and in that experiment's own artifacts list.

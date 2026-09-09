@@ -91,6 +91,16 @@ artifacts:
     lgbm_params_sha256 8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b and
     config_id 407d47775760c14d, verified by
     analysis/p0_major_revision_validation/code/p0_2_source_equivalence.py.
+  - >-
+    REPRODUCTION SCOPE: EXP-0002 establishes tier-R1 exact reproduction for its sampled
+    frozen configurations -- 14 sampled configurations recorded in
+    analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.csv -- and does
+    NOT establish complete-path tier-R1 reproduction of every artifact of this experiment
+    that the matched-correction and attainability analyses consume. Those Direct and
+    Surrogate values are read back from this experiment's frozen 82-point path table and
+    per-fold prediction artifacts rather than re-fitted by EXP-0002
+    (gate_g3_checks.json key no_refit_performed = true); EVI-0010 records that dependency
+    and its residual provenance limitations.
   - soft_constrained_models/
   - utils/delta_nl.py
   - utils/motivation_utils.py
@@ -100,4 +110,6 @@ notes: >-
   Executed-path source drift exists between HEAD and the provenance commits in
   run_temporal_cv.py and utils/delta_nl.py, which is why the historical reproduction test
   required a provenance worktree. All three provenance commits are ancestors of 993db93.
-  EXP-0002 certifies this experiment's frozen artifacts at reproduction tier R1 exact.
+  EXP-0002 establishes tier-R1 exact reproduction for its sampled frozen configurations;
+  it does not establish complete-path tier-R1 reproduction of every EXP-0001 artifact
+  used by the matched-correction and attainability analyses.

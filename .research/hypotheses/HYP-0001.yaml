@@ -28,13 +28,13 @@ contrary_evidence:
   - EVI-0005
 confidence: 0.6
 confidence_basis: >-
-  The direction is measured on CV-mean, held-out and 2025, and every frozen artifact it
-  rests on reproduces at tier R1 exact. Confidence is held down rather than up for two
-  reasons. First, EVI-0001: any version of this statement referenced to ordinary LightGBM
-  rather than to Cell C is a workflow comparison and not a penalty effect. Second,
-  EVI-0005: at mild correction the retrained advantage over a one-parameter global
-  rescaling is about 0.001 in R2_price, the same order as the Cell-A/Cell-C implementation
-  gap of 0.0014, which is a real sign and not a material margin.
+  The direction is measured on CV-mean, held-out and 2025, and the sampled frozen
+  configurations covered by the EXP-0002 reproduction audit reproduce at tier R1 exact.
+  Confidence is held down rather than up for two reasons. First, EVI-0001: any version of this
+  statement referenced to ordinary LightGBM rather than to Cell C is a workflow comparison and
+  not a penalty effect. Second, EVI-0005: at mild correction the retrained advantage over a
+  one-parameter global rescaling is about 0.001 in R2_price, the same order as the
+  Cell-A/Cell-C implementation gap of 0.0014, which is a real sign and not a material margin.
 notes: >-
   This hypothesis is about the shape of one family's own path against its own origin. It
   asserts nothing about whether the two families differ (HYP-0002) and nothing about

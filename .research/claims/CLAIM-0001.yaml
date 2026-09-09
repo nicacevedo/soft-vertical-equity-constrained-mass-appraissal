@@ -24,32 +24,36 @@ supporting_evidence:
   - EVI-0003
   - EVI-0006
   - EVI-0007
+  - EVI-0010
 contrary_evidence:
   - EVI-0008
 contrary_evidence_addressed: >-
-  EVI-0008 is contrary to the MECHANISM ACCOUNT this claim offers, not to the measured
-  divergence it asserts. Gate E.4 returned INDETERMINATE against thresholds fixed before
-  the audit ran: maximum penalty contribution M = 0.011803871804554139 against an
-  acceptance ceiling of 0.01 and a rejection floor of 0.05, with curvature ratios from
-  4.2552 to 40.0402 against an acceptance floor of 1.20. The rank-one-curvature explanation
-  for Direct's limitation is therefore offered as a mechanism and is NOT established; this
-  claim does not assert that Direct is effectively gradient-only, and does not assert the
-  opposite either. What survives is the measured divergence, which does not depend on that
-  account: the rho=0 coincidence is exact (EVI-0003), the Delta_NL separation holds at every
-  matched target on every evaluation block and flips sign nowhere under the D3
-  one-sale-one-vote sensitivity (EVI-0006), and Direct's non-attainment is a frozen state
-  rather than an estimate (EVI-0007). All of it reproduces at tier R1 exact (EVI-0002).
-  Two further limits are accepted rather than answered. First, the closest post-processing
-  comparator was run and it removes any claim that Direct's benefit comes from retraining
-  the nonlinear learner: to the resolution of six matched targets, Direct's
-  fixed-prediction-space effect is reproducible by a one-parameter global rescaling
-  (EVI-0005). That sharpens this claim rather than undermining it, because the Surrogate is
-  not so reproducible, and it is why the claim is worded as a distinction and not as a
-  ranking. Second, the claim is bounded to the frozen 994-tree configuration and asserts
+  EVI-0008 is contrary to the MECHANISM ACCOUNT this claim offers, not to the measured divergence
+  it asserts. Gate E.4 returned INDETERMINATE against thresholds fixed before the audit ran:
+  maximum penalty contribution M = 0.011803871804554139 against an acceptance ceiling of 0.01 and
+  a rejection floor of 0.05, with curvature ratios from 4.2552 to 40.0402 against an acceptance
+  floor of 1.20. The rank-one-curvature explanation for Direct's limitation is therefore offered
+  as a mechanism and is NOT established; this claim does not assert that Direct is effectively
+  gradient-only, and does not assert the opposite either. What survives is the measured
+  divergence, which does not depend on that account: the rho=0 coincidence is exact (EVI-0003),
+  the Delta_NL separation holds at every matched target on every evaluation block and flips sign
+  nowhere under the D3 one-sale-one-vote sensitivity (EVI-0006), and Direct's non-attainment is a
+  frozen state rather than an estimate (EVI-0007). EVI-0002 establishes tier-R1 exact
+  reproduction for the configurations it actually samples and supports the P0 validation
+  programme's regeneration audit, whose four triggers resolve False. It does not re-fit or
+  establish tier-R1 reproduction of the complete frozen Direct and Surrogate paths underlying the
+  matched-correction and attainability quantities; those upstream values originate in EXP-0001
+  and are now explicitly bound through EVI-0010. Two further limits are accepted rather than
+  answered. First, the closest post-processing comparator was run and it removes any claim that
+  Direct's benefit comes from retraining the nonlinear learner: to the resolution of six matched
+  targets, Direct's fixed-prediction-space effect is reproducible by a one-parameter global
+  rescaling (EVI-0005). That sharpens this claim rather than undermining it, because the
+  Surrogate is not so reproducible, and it is why the claim is worded as a distinction and not as
+  a ranking. Second, the claim is bounded to the frozen 994-tree configuration and asserts
   nothing about temporal portability, which is why EVI-0009 is not linked here.
 notes: >-
   Held at evidence_linked deliberately. It must not be moved to accepted until a bounded
   Research OS integrity patch addresses the Experiment-binding gap recorded in STATE.md:
-  all four supporting Evidence objects are kind experiment and bind an Experiment ID whose
+  all five supporting Evidence objects are kind experiment and bind an Experiment ID whose
   scientific content their own digests do not cover. No Review exists for this claim and
   none may be authored by an automated agent.
