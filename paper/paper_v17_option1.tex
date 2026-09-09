@@ -1719,7 +1719,7 @@ matters is precisely what E.4 was designed to settle, and it did not settle it.}
 \newtext{fixed Section-2 LightGBM hyperparameter configuration} is held fixed across the standard and penalized fits, so $\rho$ is the only dimension varied within each penalized family. 
 % \oldtext{This design isolates the practical effect of changing the objective while preserving the surrounding valuation workflow.} 
 % \oldtext{Holding the surrounding model specification fixed makes the training-objective change as controlled as possible; the separate $\rho=0$ implementation check below measures any residual difference introduced by the custom-objective code path.}
-\newtext{Holding the surrounding model specification fixed makes the training-objective change as controlled as possible. Implementation equivalence of the custom objectives at $\rho=0$ is treated as a reproducibility audit and reported in Appendix~\ref{app:implementation}; until the canonical parity audit is frozen, attribution of positive-penalty changes is made within each custom-objective family.}}
+\newtext{Holding the surrounding model specification fixed makes the training-objective change as controlled as possible. The native-versus-custom $\rho=0$ comparison is reported in Appendix~\ref{app:implementation}; because the completed parity audit identifies this difference as an execution-path distinction, attribution of positive-penalty changes is made within each custom-objective family.}}
 
 % \oldtext{The CCAO application uses verified Cook County residential sales from the CCAO residential modeling data used for the final evaluation. The residential scope includes the property types represented in the CCAO residential pipeline, including single-family homes, townhomes, small multifamily properties, and condominiums. Following the office pipeline, we exclude multicard PINs and sales marked as outliers.}
 
@@ -2672,10 +2672,9 @@ behave identically. Along the frozen Surrogate path the held-out first-order slo
 attains a maximum marginally above zero, whereas the cross-validation mean and the 2025
 forward path remain negative throughout, so the same correction does not leave the same
 first-order signature on every evaluation period. A disagreement of this kind is
-evidence about temporal sensitivity rather than a defect to be tuned away. The shaded
-landmarks retained in the appendix path figures accordingly describe where particular
-development-period diagnostics begin to move, and they do not delimit a selected,
-portable, or recommended operating interval.
+evidence about temporal sensitivity rather than a defect to be tuned away. Accordingly,
+the appendix path figures trace the tested grids descriptively and do not mark a
+selected, portable, or recommended operating interval.
 
 Three alternative temporal designs were evaluated against the primary design without
 refitting it. A strict-date design moves every boundary-date sale to the evaluation
