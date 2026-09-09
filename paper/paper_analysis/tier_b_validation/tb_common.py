@@ -81,7 +81,7 @@ BASELINE_TEX_SHA256 = "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd1
 # corrects wording and tightens this validator's own boundaries. It clears no
 # flagged-token anchor, so its budget is B1.4's -- see expected_token_trajectory.
 STAGES = ("B1.0", "B1.1", "B1.2", "B1.3", "B1.4", "B1.5",
-          "B2.1", "B2.2", "B2.3", "B2.4", "B2.5", "B2.6", "B2.7",
+          "B2.1", "B2.2", "B2.3", "B2.4", "B2.5", "B2.6", "B2.7", "B2.8",
           "B3.1", "B3.2", "B4.1", "B4.2", "B4.3")
 # B2.7 was added after the closure audit of B2.6, which found three reader-facing
 # defects the thirteen checks cannot see: a matched-beta price-scale comparison
@@ -90,6 +90,15 @@ STAGES = ("B1.0", "B1.1", "B1.2", "B1.3", "B1.4", "B1.5",
 # that invites the inference the Exposure Draft's own procedure declines. Adding
 # a stage only ever tightens the gate: an entry resolved by an earlier stage is
 # already UNEXPECTED here, and B2.7 owns no expected-failure entry of its own.
+# B2.8 closes the final Tier-B presentation/provenance pass identified by the
+# empirical-core closure audit: unsupported positive-rho dCor path-shape claims,
+# a Results promise of a transition diagnostic the paper no longer reports, a
+# Limitations clause denying the centered-spread comparator B2.4 added, two stale
+# "parity rerun outstanding" statements, and the legacy gray band itself, which is
+# removed from the eight active path figures by
+# remove_legacy_gray_bands.py rather than only disclosed. Like B2.7 this is an
+# ordered insert that tolerates nothing new: B2.8 owns no expected-failure entry,
+# and the four deferrals it inherits still resolve at B3.1/B4.2/B4.3.
 
 
 class TierBGuardError(RuntimeError):
