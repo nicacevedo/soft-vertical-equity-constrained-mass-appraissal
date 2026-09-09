@@ -1,0 +1,109 @@
+id: EXP-0002
+type: experiment
+schema_version: 1
+status: completed
+title: P0 major-revision validation programme, gates G1 through G5
+purpose: >-
+  Close the four P0 scientific blockers before any manuscript revision: audit the Direct
+  and Surrogate objective implementations and the Direct supplied curvature against the
+  omitted rank-one term; establish the zero-penalty A/B/C reference cells and what
+  comparisons against each may claim; reproduce the frozen positive-rho artifacts of
+  EXP-0001 under historical settings and classify every non-exact residual; and, at the
+  later gates, run the centered-spread post-hoc comparator, the matched-first-order-
+  correction comparison across Direct, Surrogate and post-hoc rescaling, and the temporal
+  robustness designs D-SNAP, D-PURGE and D-UNSEEN.
+created_from:
+  - EXP-0001
+hypotheses:
+  - HYP-0001
+  - HYP-0002
+  - HYP-0003
+predictions:
+  - hypothesis: HYP-0002
+    predicted_outcome: >-
+      [PRESPECIFIED] Gate E.4 thresholds were fixed before the audit ran. Accept the
+      statement "Direct is effectively gradient-only, retaining essentially native
+      curvature" only if the maximum penalty contribution M is below 0.01 AND the curvature
+      ratio is at least 1.20 at every rho >= 1. Reject it if M is at least 0.05 or the
+      curvature ratio is at most 1.05. Anything else is INDETERMINATE and licenses neither
+      the statement nor its negation.
+    discriminates: true
+  - hypothesis: HYP-0001
+    predicted_outcome: >-
+      [PRESPECIFIED] Regeneration trigger RG-1 fires only if historical Cell-B to Cell-C
+      non-parity has no identified cause OR implies the custom positive-rho path is
+      corrupted. A-to-B or A-to-C non-parity at any tier, including T4, is explicitly NOT a
+      trigger, and neither is a Track-P-only B-to-C result nor an R3/F-DIRTY
+      classification. RG-3 fires only if the frozen positive-rho artifacts fail historical
+      reproduction at tier R4.
+    discriminates: true
+  - hypothesis: HYP-0003
+    predicted_outcome: >-
+      [PRESPECIFIED] A temporal ordering or sign change is material only if the two
+      families are separated by at least TAU_MATCH = 0.002 on BOTH paths and the ordering
+      genuinely reverses, or if a path maximum crossing zero exceeds TAU_MATCH in absolute
+      value. TAU_MATCH is the beta_log matching tolerance frozen in
+      configs/matched_beta_frozen.json before this stage read any outcome; no new constant
+      is introduced at decision time.
+    discriminates: true
+primary_metrics:
+  - reproduction_tier
+  - parity_tier
+  - max_abs_delta_log
+  - e4_verdict
+  - penalty_contribution_M
+  - curvature_ratio
+  - beta_log
+  - Delta_NL
+  - R2_price
+  - COD
+  - dCor_e_y
+decision_rule: >-
+  [PRESPECIFIED] Frozen in APPROVED_EXECUTION_PLAN.md rev. 3 FINAL, sha256
+  d3b7ae3419660a8fc13897d8b867abc8bee46f4e3bb7d59db0f98c2788fb8ba1, which is read-only and
+  is never amended; deviations are recorded in provenance/DEVIATIONS.md instead. (1)
+  Reproduction tiers R1-R4 and parity tiers T1-T4 are distinct fields and must never share
+  a column or a verdict; only R4 contributes to the regeneration gate. (2) Every non-R1
+  reproduction result must carry a failure class from F-SRC, F-DIRTY, F-ENV, F-NUM, F-IMP
+  before Gate G1; "nondeterminism" may never be used as a catch-all. (3) Regenerate the
+  82-point positive-rho path only if one of RG-1 through RG-4 fires. (4) Track P
+  (pinned determinism) may never certify a historical artifact. (5) The E.4 acceptance and
+  rejection thresholds above. (6) The TAU_MATCH materiality rule above. (7) The stylized
+  fixed-lambda leaf-shrinkage analysis stays a stylized diagnostic unless actual
+  trained-leaf Hessian sums are measured. (8) No manuscript claim may be changed during the
+  run.
+provenance:
+  code: analysis/p0_major_revision_validation/code/
+  config: analysis/p0_major_revision_validation/protocol_p0_validation.yaml
+  data: >-
+    Same CCAO residential sales extract and canonical splits as EXP-0001, plus the frozen
+    EXP-0001 cached prediction artifacts under output/paper_v6_preselection_994/ and
+    output/paper_v12_994/ consumed read-only; new fits written only under
+    output/p0_major_revision_validation/.
+  git_commit: 271d0a0748ac6df5e4712ff2dec04db3c6a77511
+result_manifest: analysis/p0_major_revision_validation/provenance/POSTFLIGHT.json
+artifacts:
+  - analysis/p0_major_revision_validation/tables/
+  - analysis/p0_major_revision_validation/reports/
+  - analysis/p0_major_revision_validation/figures/
+  - analysis/p0_major_revision_validation/configs/
+  - analysis/p0_major_revision_validation/provenance/
+  - analysis/p1_inferential_reporting/tables/
+  - >-
+    AUTHORIZATION LIMITATION: this was a multi-stage programme and
+    provenance.config points at a file whose scope field is stale.
+    protocol_p0_validation.yaml still declares authorized_scope.this_run =
+    STAGE_1_THROUGH_GATE_G1 and was never refreshed after Stage 2 (centered spread) and
+    Stage 3 (matched beta) ran under configs/posthoc_comparator_convention.yaml, frozen at
+    Gate G3. Read authorization state from the stage-specific gate JSONs
+    (gate_g2_checks.json, gate_g3_checks.json, gate_g5a_outcome.json, gate_g5b_outcome.json),
+    not from the protocol file.
+notes: >-
+  Preregistration content here is genuinely prespecified, unlike EXP-0001's. The plan file
+  carries a sha256 and is frozen read-only; the E.4 thresholds and the TAU_MATCH tolerance
+  were both set before any outcome was read. Only the mapping of those gate rules onto the
+  R0 predictions / primary_metrics / decision_rule shape was done for this capsule. The
+  tree was dirty at the baseline commit (untracked analysis/p0_major_revision_validation/),
+  which is expected for an additive analysis directory and is not the F-DIRTY situation
+  that affects EXP-0001. Frozen at tag p0-major-revision-final-20260907; the companion P1
+  inferential stage is tagged p1-inferential-reporting-final-20260907.

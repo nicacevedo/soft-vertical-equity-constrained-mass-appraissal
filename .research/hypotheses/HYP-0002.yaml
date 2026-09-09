@@ -1,0 +1,45 @@
+id: HYP-0002
+type: hypothesis
+schema_version: 1
+status: supported
+title: Direct and Surrogate are distinct mechanisms, not two implementations of one
+statement: >-
+  The Direct and Surrogate covariance penalties coincide exactly at rho=0 but trace
+  different attainable sets for rho>0. The Surrogate uniquely reduces the non-affine
+  conditional-mean residual gap Delta_NL where an affine post-hoc rescaling of the same
+  predictor increases it, and the Direct family's attainable first-order correction is
+  bounded short of targets the other families reach.
+mechanism: >-
+  Direct carries sample-coupled rank-one curvature, Hessian (2/n) I + (rho/n^2) c c^T, and
+  in a fixed prediction space with an intercept it reduces exactly to a one-parameter
+  centered spread of the unpenalized predictor. The Surrogate is exactly weighted squared
+  error with weights w_i(rho) = 1 + rho (y_i - ybar)^2, a multi-directional weighted
+  projection whose correction can combine several learnable modes and therefore need not
+  trace the Direct path.
+falsification: >-
+  The two families' beta_log-versus-accuracy paths coincide within the frozen matching
+  tolerance across evaluation blocks; or Direct attains the matched first-order targets
+  that the Surrogate and the post-hoc comparator attain; or the sign of the Surrogate minus
+  comparator Delta_NL difference is not consistent across matched targets and blocks.
+addresses:
+  - Q-0001
+supporting_evidence:
+  - EVI-0003
+  - EVI-0006
+  - EVI-0007
+contrary_evidence:
+  - EVI-0008
+confidence: 0.75
+confidence_basis: >-
+  The Delta_NL separation is the most consistent result of the matched-correction stage
+  (Surrogate better than the comparator at every matched target on every evaluation block,
+  with no sign flip under the D3 one-sale-one-vote sensitivity), and Direct's
+  non-attainment is a hard frozen state rather than an estimate. Confidence is not higher
+  because the curvature account that the mechanism field states for Direct is not
+  established: gate E.4 returns INDETERMINATE (EVI-0008), so the paper claims neither that
+  Direct is effectively gradient-only nor the opposite.
+notes: >-
+  A between-family claim. It is compatible with HYP-0001 holding for one family and not the
+  other. It is also compatible with the finding in EVI-0005 that Direct's empirical effect
+  is reproducible by a one-parameter global rescaling: that result sharpens the distinction
+  rather than dissolving it, because the Surrogate is not so reproducible.

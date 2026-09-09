@@ -1,0 +1,24 @@
+id: EVI-0003
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: Direct and Surrogate coincide exactly at rho=0
+statement: >-
+  At rho=0 the Direct and Surrogate objectives produce the same predictions exactly. The
+  parity ladder records the C-to-C_surrogate pair at tier T1 with mean, median, p95 and
+  maximum absolute log delta all 0.0, Pearson correlation 1.0, and frac_exact_equal 1.0
+  (n_exact_equal 38290 of 38290 on held-out), in every audited capacity-by-sample cell.
+  The post-G1 adjudication records this as verified premise p3,
+  p3_direct_equals_surrogate_at_rho0 = true over n_cells 6. This establishes that the two
+  families share a single common origin, so any divergence observed for rho>0 is a property
+  of the objectives and not of differing starting points or execution paths. Sources:
+  analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv, rows with
+  cell_pair C<->C_surrogate;
+  analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml, key
+  verified_premises.p3_direct_equals_surrogate_at_rho0; manuscript
+  paper/paper_v17_option1.tex:2018.
+notes: >-
+  The first conjunct of CLAIM-0001. Deliberately separated from EVI-0001, which concerns
+  the different question of how the shared origin relates to ordinary LightGBM.

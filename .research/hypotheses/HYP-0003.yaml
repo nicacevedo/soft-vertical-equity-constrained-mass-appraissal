@@ -1,0 +1,37 @@
+id: HYP-0003
+type: hypothesis
+schema_version: 1
+status: supported
+title: First-order neutrality is an insufficient proxy for vertical equity
+statement: >-
+  Driving beta_log to neutrality does not deliver a flat conditional ratio profile,
+  residual/price independence, or local equity. The non-affine conditional-mean gap
+  Delta_NL and the distance correlation dCor(e,y) reach interior minima at penalty scales
+  different from beta_log's and rebound past them, and an exact first-order correction can
+  increase Delta_NL and overshoot the assessor-facing diagnostics into progressivity.
+mechanism: >-
+  The penalty constrains only the linear projection of the residual onto centered log
+  price. Non-affine conditional-mean structure and full statistical dependence are
+  unconstrained, so a map that zeroes the projection can move them adversely; an affine
+  rescaling in particular cannot change nonlinear residual/price structure except
+  incidentally.
+falsification: >-
+  Delta_NL and dCor(e,y) decrease monotonically as beta_log approaches zero, and the binned
+  median-ratio profile flattens at beta_log = 0.
+addresses:
+  - Q-0001
+supporting_evidence:
+  - EVI-0005
+  - EVI-0009
+confidence: 0.8
+confidence_basis: >-
+  Directly measured rather than inferred. At the post-hoc beta=0 root on held-out, Delta_NL
+  rises from 0.11645 to 0.13430, VEI overshoots from -26.167 to +14.770, COD worsens from
+  21.599 to 22.587, and the 30-bin median-ratio profile remains wide (cheapest bin 1.709 to
+  1.474, dearest 0.863 to 1.163). The rebound structure carries interior_min = true in the
+  frozen temporal trigger table. Confidence is not higher because the manuscript's own
+  printed dCor endpoints are an active unsupported math-mode claim (MATH-004) and are
+  therefore not used here.
+notes: >-
+  A claim about the validity of the target itself, not about either method's performance.
+  It would survive even if both HYP-0001 and HYP-0002 were false.

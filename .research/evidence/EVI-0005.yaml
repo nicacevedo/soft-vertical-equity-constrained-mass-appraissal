@@ -1,0 +1,43 @@
+id: EVI-0005
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: At matched first-order correction, post-hoc rescaling matches or beats retraining on accuracy
+statement: >-
+  At the strongest development first-order correction that all three primary families
+  attain (index j=5), the held-out outcome is: C-posthoc at b = 1.069186 gives R2_price
+  0.8966, MAE 74236 dollars, RMSE_log 0.2920, COD 21.61, Delta_NL 0.1282, dCor 0.2944;
+  Surrogate at rho = 2.5595 gives 0.8963, 76128, 0.3094, 21.40, 0.0914, 0.2714; Direct at
+  rho = 86.8511 gives 0.8760, 82764, 0.3170, 23.97, 0.1198, 0.2730. Past j=3 the post-hoc
+  comparator is uniformly more accurate than Direct, with held-out R2 deficits of -0.0017
+  (j=3), -0.0042 (j=4) and -0.0206 (j=5). At mild correction the Direct advantage is about
+  0.001 in R2, the same order as the Cell-A to Cell-C implementation gap of 0.0014, which
+  the source calls a real sign and not a material margin. The stage's stated conclusion is
+  that the Direct family's empirical effect in the fixed-prediction-space benchmark is, to
+  the resolution of these six matched targets, reproducible by a one-parameter global
+  rescaling, which removes any claim that Direct's benefit comes from retraining the
+  nonlinear learner. Separately, pushing the post-hoc map to beta_dev = 0 costs 0.087 of
+  held-out R2_price (0.89281 to 0.80628; 0.90385 to 0.79906 on 2025), raises Delta_NL from
+  0.11645 to 0.13430, worsens COD from 21.599 to 22.587, and overshoots the assessor-facing
+  diagnostics into progressivity (PRD 1.0690 to 0.9871, MKI 0.92305 to 1.07258, VEI -26.167
+  to +14.770), while the 30-bin median-ratio profile stays wide (cheapest bin 1.709 to
+  1.474, dearest 0.863 to 1.163). Sources:
+  analysis/p0_major_revision_validation/tables/matched_beta_comparison.csv,
+  matched_beta_pairwise_deltas.csv, matched_beta_crossings.csv, centered_spread_path.csv,
+  centered_spread_ratio_profiles.csv;
+  analysis/p0_major_revision_validation/reports/MATCHED_BETA_REPORT.md sections Q1, Q2, Q3
+  and Q6; analysis/p0_major_revision_validation/reports/CENTERED_SPREAD_COMPARATOR_REPORT.md;
+  manuscript paper/paper_v17_option1.tex tab:matched_beta_headline (:2617) and
+  tab:centered_spread (:3849).
+notes: >-
+  Every comparison here is descriptive; no difference is called statistically significant.
+  Under the D3 one-sale-one-vote sensitivity, 10 of 315 sign comparisons flip materially,
+  the largest being held-out MAE at j=2 (+15.3 to -149.0 on an MAE of about 76000, roughly
+  0.2 percent). Deliberately NOT linked to CLAIM-0001: that Claim makes no accuracy
+  assertion, and the Q6 finding it does bear on strengthens rather than weakens the
+  mechanism distinction, because the Surrogate is not reproducible by the same rescaling
+  (see EVI-0006). Linked as contrary to HYP-0001, whose interior-region advantage it
+  quantifies as small, and as supporting to HYP-0003, because an exact first-order
+  correction here degrades shape and overshoots level.

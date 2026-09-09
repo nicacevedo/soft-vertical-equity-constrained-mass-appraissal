@@ -1,0 +1,28 @@
+id: EVI-0004
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0001
+title: An interior region of both paths preserves price-scale fit while equity diagnostics improve
+statement: >-
+  Referenced to the custom-objective rho=0 origin, both families show an interior region in
+  which price-scale predictive fit is preserved or improved while vertical-equity
+  diagnostics move toward neutrality. At the frozen anchor rho = 0.954095 the change in
+  R2_price relative to the origin is, for Direct, +0.0030549670532721285 (CV mean),
+  +0.0060254507871995155 (held-out) and +0.0060147662766057985 (2025 forward); for
+  Surrogate, +0.00408880856113536, +0.003918631135946926 and +0.004409182444374382. The
+  joint accuracy-equity trajectories are not monotone frontiers: at stronger rho, R2_price
+  bends downward while several vertical-equity diagnostics approach or cross their neutral
+  values, and the trajectories can themselves become non-monotone. Sources:
+  analysis/p0_major_revision_validation/tables/temporal_material_change_triggers.csv, row
+  design=dsnap trigger=T5_no_accuracy_cost_at_moderate_rho, evidence column, source=frozen
+  entries; manuscript paper/paper_v17_option1.tex tab:path_anchor_frozen (:2084) and
+  tab:path_anchor_standards (:2188), narrative at :2322, figure
+  paper/img/generated_v12_994/accuracy_equity_trajectories_inprocessing_only.pdf (:2318).
+notes: >-
+  Scope written deliberately on R2_price and on direction, not on MAE. The same frozen
+  trigger evidence shows dMAE at rho = 0.954095 changing sign between the frozen and robust
+  sources at CV mean (-131.14 versus +64.04 for Direct), so a claim of improvement on MAE
+  is not made. These are screening-grid quantities from the temporal design, used here
+  because they are the frozen artifact form in which the anchor deltas are recorded.

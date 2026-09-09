@@ -1,0 +1,39 @@
+id: EVI-0001
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: The custom-objective rho=0 origin is materially non-parity with ordinary LightGBM
+statement: >-
+  The custom-objective rho=0 origin (Cell C) is NOT numerically identical to ordinary
+  LightGBM (Cell A). At capacity F on held-out, A-to-C differs by mean |delta log|
+  0.0323895239386206 with maximum 0.3089424504824372; on the 2025 forward sample
+  0.0305629828537408 and 0.2825197364391023. B-to-C at capacity T on held-out is
+  0.0176264493209834 and 0.1401437110391103. Every one of these is parity tier T4.
+  Determinism pinning changes nothing: Track P is bit-identical to Track H in all 24
+  comparisons. The root cause is a deterministic built-in-objective versus custom-objective
+  feature-subsampling execution-path divergence under the frozen colsample_bytree =
+  0.5410105713520937; the rho=0 supplied gradients and Hessians are bit-identical (maximum
+  absolute gradient difference 0.0), divergence begins in tree 0, and B and C become
+  bitwise identical only when colsample_bytree is set to 1.0, which specifies a different
+  learner rather than reproducing the canonical experiment. CONSEQUENCE, and the reason
+  this object exists: a difference between ordinary LightGBM and a penalized fit is a
+  WORKFLOW comparison that carries the execution-path difference as well as the penalty,
+  and must not be attributed to rho alone. Sources:
+  analysis/p0_major_revision_validation/tables/parity_ladder_historical.csv,
+  parity_ladder_pinned.csv, bc_discriminate.csv, bc_rootcause_verdict.json,
+  gate_g2_checks.json, zero_control_full.csv;
+  analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml (keys
+  bc_discrepancy, magnitudes, verified_premises p4 and p5);
+  analysis/final_manuscript_evidence/spec/todo_closure.yaml entry todo_id 16, closure_status
+  CLOSED_WITH_CONTRARY_FINDING; manuscript paper/paper_v17_option1.tex:2002-2030.
+notes: >-
+  Contrary to HYP-0001 as a scope constraint, not as a refutation: it does not show that
+  the interior region is absent, it shows that the interior region may only be claimed
+  against Cell C. It is deliberately NOT linked to CLAIM-0001, which makes no
+  Cell-A-referenced assertion. The withdrawn phrase "innocuous numerical effect" must not
+  be used for this finding; it still appears at
+  analysis/p0_major_revision_validation/reports/RHO_ZERO_PARITY_REPORT.md:267, a report
+  frozen before the post-G1 adjudication withdrew the wording
+  (provenance/POST_G1_ADJUDICATION.md:40).

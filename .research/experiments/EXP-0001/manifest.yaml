@@ -1,0 +1,103 @@
+id: EXP-0001
+type: experiment
+schema_version: 1
+status: completed
+title: Frozen CCAO fixed-994-tree Direct and Surrogate regularization paths
+purpose: >-
+  Trace the complete regularization paths of the Direct squared-covariance penalty and its
+  sample-additive Surrogate over the frozen 82-point rho grid, with the 994-tree LightGBM
+  configuration held constant, across seven rolling-origin folds, a later held-out block
+  and a separate 2025 forward sample, reporting predictive, valuation-level,
+  horizontal-uniformity, vertical-equity, nonlinear-shape and residual-dependence
+  diagnostics at every grid point. No penalty strength is selected under any outcome.
+hypotheses:
+  - HYP-0001
+  - HYP-0002
+  - HYP-0003
+predictions:
+  - hypothesis: HYP-0001
+    predicted_outcome: >-
+      [RECONSTRUCTED] Not prespecified. Reconstructed for this capsule from the current
+      manuscript. Referenced to the custom-objective rho=0 origin, both families show an
+      interior rho region in which the change in R2_price is non-negative while at least
+      two of PRD, PRB, MKI and VEI move toward neutrality, on CV-mean, held-out and 2025.
+    discriminates: true
+  - hypothesis: HYP-0002
+    predicted_outcome: >-
+      [RECONSTRUCTED] Not prespecified. Reconstructed for this capsule. Direct and
+      Surrogate coincide at rho=0 and diverge for rho>0, with the Surrogate attaining
+      strictly more first-order correction than Direct at strong penalty on the same grid.
+    discriminates: true
+  - hypothesis: HYP-0003
+    predicted_outcome: >-
+      [RECONSTRUCTED] Not prespecified. Reconstructed for this capsule. Delta_NL and
+      dCor_e_y attain interior minima at penalty scales different from the scale at which
+      beta_log is closest to zero, and rise again beyond them.
+    discriminates: true
+primary_metrics:
+  - beta_log
+  - R2_price
+  - MAE_price
+  - RMSE_log
+  - COD
+  - PRD
+  - PRB
+  - MKI
+  - VEI
+  - Delta_NL
+  - dCor_e_y
+decision_rule: >-
+  [RECONSTRUCTED] This decision rule was written for this capsule and did NOT exist when
+  the runs executed. What IS historically documented is the no-selection policy and the
+  fact that the penalty grid was frozen in advance of any diagnostic: report the complete
+  path and select no rho, no penalty family and no operating point under any outcome.
+  Reconstructed discriminating rule: support HYP-0001 if, referenced to Cell C, an interior
+  rho region shows a non-negative change in R2_price with at least two vertical-equity
+  diagnostics moving toward neutrality; reject it if R2_price declines monotonically from
+  rho=0 for both families on every evaluation block. Support HYP-0002 if the two families'
+  attainable beta_log ranges differ materially on the same grid; reject if they coincide.
+  Support HYP-0003 if Delta_NL or dCor_e_y has an interior minimum away from the beta_log
+  minimum; reject if both fall monotonically with beta_log toward neutrality.
+provenance:
+  code: run_temporal_cv.py
+  config: output/paper_v6_preselection_994/lgbm_config.json
+  data: >-
+    CCAO residential sales extract loaded only via run_temporal_cv._load_and_split_data;
+    canonical splits development n=344607, heldout n=38290, forward_2025 n=26641,
+    production block 2016-2024 n=382897. The pyarrow row-group pushdown is part of the
+    frozen experiment definition and must not be replaced by pandas-side filtering.
+  git_commit: 508dc1c2
+result_manifest: analysis/final_manuscript_evidence/FINAL_EVIDENCE_MANIFEST.json
+artifacts:
+  - >-
+    PROVENANCE, additional commit: 2aa0346a -- lower-rho extension experiment spec. Tree
+    dirty; diff sha256 recorded but diff text not archived.
+  - >-
+    PROVENANCE, additional commit: d3ef45f2 -- final_local_results (rho=0 split audit,
+    recalibration path, Delta_NL). Tree dirty; no diff hash stored at all.
+  - >-
+    PROVENANCE, primary commit 508dc1c2 -- 994-tree baseline/config and v6 experiment spec.
+    Tree dirty; diff sha256 recorded but diff text not archived. Provenance.git_commit
+    holds this commit only because the field accepts exactly one.
+  - >-
+    PROVENANCE LIMITATION: all three trees were dirty, so checking out any provenance
+    commit reproduces the committed state and not the state that ran. The project
+    classifies the residual as F-DIRTY (unreconstructable dirty-state uncertainty), a
+    disclosure item and not a regeneration trigger. Source
+    analysis/p0_major_revision_validation/provenance/DIRTY_STATE_LIMITATION.md.
+  - >-
+    CONFIG LIMITATION: output/ is gitignored (.gitignore:17), so the frozen configuration
+    named in provenance.config is absent from the repository. Its content identity is
+    lgbm_params_sha256 8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b and
+    config_id 407d47775760c14d, verified by
+    analysis/p0_major_revision_validation/code/p0_2_source_equivalence.py.
+  - soft_constrained_models/
+  - utils/delta_nl.py
+  - utils/motivation_utils.py
+  - output/robust_rolling_origin_cv/
+  - paper/img/generated_v12_994/
+notes: >-
+  Executed-path source drift exists between HEAD and the provenance commits in
+  run_temporal_cv.py and utils/delta_nl.py, which is why the historical reproduction test
+  required a provenance worktree. All three provenance commits are ancestors of 993db93.
+  EXP-0002 certifies this experiment's frozen artifacts at reproduction tier R1 exact.

@@ -1,0 +1,33 @@
+id: EVI-0007
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: The Direct family cannot attain the first-order targets the other families reach
+statement: >-
+  The maximum development first-order correction the Direct family attains anywhere on its
+  82-point rho path is beta_log = -0.0786514918143895, at rho = 86.8511. The CORE matched
+  target -0.06 and the EXT target -0.03 are therefore recorded with match_mode
+  NOT_ATTAINED and attained False, with match gaps 0.018651491814389506 and
+  0.048651491814389505 respectively, giving four frozen NOT_ATTAINED display states that
+  are preserved verbatim with blank metric cells and are never interpolated. The post-hoc
+  family solves the same targets in closed form: C-posthoc reaches -0.06 at b =
+  1.090830469094053 with match gap 5.551115123125783e-17 by exact_posthoc_solve. The
+  Surrogate reaches -0.06 at rho = 5.963623316594643 (achieved -0.0591005992835812) and
+  -0.03 at rho = 28.11768697974231 (achieved -0.0296860280343518) by nearest_fitted, but
+  cannot reach beta_dev = 0 at any fitted rho up to 100, its maximum being -0.0186. The
+  three families share the development range -0.138271 to -0.078651, whose upper endpoint
+  is set by Direct as the binding family. Sources:
+  analysis/p0_major_revision_validation/tables/matched_beta_ext_targets.csv (columns target,
+  family, rho, b, achieved_dev_beta, match_gap, match_mode, attained),
+  matched_beta_ext_targets_d3.csv, matched_beta_origin_identity.csv,
+  gate_g3_checks.json (key coverage.direct_cvmean_range);
+  analysis/p0_major_revision_validation/reports/MATCHED_BETA_REPORT.md attainability table;
+  manuscript paper/paper_v17_option1.tex tab:matched_beta_ext (:4009) and :2492.
+notes: >-
+  A statement about the boundary of the attainable set, not about performance inside it.
+  NOT_ATTAINED is a first-class frozen display state in this project and must never be
+  filled in by interpolation. Supporting for CLAIM-0001 and HYP-0002 because it is a
+  between-family attainability difference; it is simultaneously an unfavourable fact about
+  Direct's practical reach, which is stated here rather than in a separate object.

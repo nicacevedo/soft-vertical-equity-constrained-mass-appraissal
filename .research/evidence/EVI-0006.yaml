@@ -1,0 +1,36 @@
+id: EVI-0006
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: The Surrogate reduces Delta_NL at every matched target on every evaluation block
+statement: >-
+  At matched development first-order correction, the Surrogate lowers the non-affine
+  conditional-mean residual gap Delta_NL relative to the post-hoc centered-rescaling
+  comparator decisively and consistently. Surrogate minus C-posthoc in Delta_NL on held-out
+  is -0.0060 (j=1), -0.0183 (j=2), -0.0260 (j=3), -0.0324 (j=4) and -0.0368 (j=5); on the
+  2025 forward sample it reaches -0.0490. In levels on held-out, the Surrogate takes
+  Delta_NL from 0.1165 at the origin down to 0.0914 at j=5, while C-posthoc rises to 0.1282
+  and Direct to 0.1198. Matching the first-order correction therefore does not equalize the
+  nonlinear residual structure: it moves the families in opposite directions. Two
+  independent strands point the same way. Accuracy is preserved at strong correction: at
+  beta_dev = -0.03 the Surrogate holds held-out R2 at 0.8917 while C-posthoc has fallen to
+  0.8569. And COD is lower for the Surrogate than for C-posthoc at every matched target on
+  held-out (-0.046 to -0.216) and on 2025, so the ratio distribution is genuinely tighter
+  rather than merely shifted. No Delta_NL comparison flips sign under the D3
+  one-sale-one-vote sensitivity anywhere. Sources:
+  analysis/p0_major_revision_validation/tables/matched_beta_comparison.csv,
+  matched_beta_pairwise_deltas.csv, matched_beta_d3_sign_agreement.csv,
+  matched_beta_d3_sensitivity_summary.json;
+  analysis/p0_major_revision_validation/reports/MATCHED_BETA_REPORT.md sections Q3, Q4 and
+  Q7; manuscript paper/paper_v17_option1.tex:2482-2610 and tab:matched_beta (:3930).
+notes: >-
+  An affine map of the unpenalized predictor cannot change nonlinear residual/price
+  structure except incidentally, and what it does incidentally is make it worse; only a
+  differently shaped fit can move Delta_NL down. This is specifically a SURROGATE result and
+  does not extend to Direct, which also increases Delta_NL at j=1 through j=4 on held-out
+  and only turns down at j=5 where its overall fit has degraded. The claim is descriptive,
+  rests on the Delta_NL, dCor and COD triple rather than on any inferential test, and the
+  RMSE_log reversal recorded in EVI-0005 travels with it: the Surrogate is worse in logs
+  (0.3443 versus 0.2999 at beta_dev = -0.03).

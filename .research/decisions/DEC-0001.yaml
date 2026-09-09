@@ -1,0 +1,49 @@
+id: DEC-0001
+type: decision
+schema_version: 1
+status: accepted
+title: Adopt the two-reference convention rather than regenerating the positive-rho path
+statement: >-
+  The custom-objective rho=0 origin (Cell C) is the primary within-path penalty-isolating
+  reference and the only cell against which a difference may be attributed to rho. Ordinary
+  LightGBM (Cell A) is retained as an assessor-facing workflow benchmark whose comparisons
+  are descriptive only. Centered-label native L2 (Cell B) is an implementation-decomposition
+  control that is never printed as "Ordinary LightGBM", never serves as the primary paper
+  baseline, and carries no full post-hoc path. The frozen 82-point positive-rho path is not
+  regenerated.
+rationale: >-
+  All four regeneration triggers resolved False. The Cell-B to Cell-C divergence is a
+  deterministic built-in-objective versus custom-objective feature-subsampling
+  execution-path difference, not a defect: the rho=0 supplied gradients and Hessians are
+  bit-identical (maximum absolute gradient difference 0.0), divergence begins in tree 0,
+  determinism pinning changes nothing (Track P bit-identical to Track H in 24 of 24
+  comparisons), and all 14 sampled frozen artifacts reproduce at tier R1 exact, so the
+  positive-rho path is not corrupted. Regeneration would not remove the divergence. Setting
+  colsample_bytree to 1.0 does remove it, but colsample_bytree = 0.5410105713520937 was
+  tuned as part of the frozen 994-tree configuration, so changing it specifies a different
+  learner rather than reproducing the canonical experiment. The attribution problem is
+  therefore resolved by choosing the right reference cell, not by rerunning the experiment.
+alternatives_considered:
+  - >-
+    Regenerate the full 82-point positive-rho path under matched feature subsampling.
+    Rejected: it would not remove the divergence, and no regeneration trigger fired.
+  - >-
+    Set colsample_bytree = 1.0 to force Cell-B/Cell-C parity. Rejected: this specifies a
+    different learner and would not reproduce the canonical frozen experiment.
+  - >-
+    Retain Cell A as the sole baseline and continue attributing differences to rho.
+    Rejected: the A-to-C difference is tier T4 and large enough to move reported metrics,
+    so such attribution would be false.
+  - >-
+    Make the pinned deterministic implementation canonical (trigger RG-4). Rejected: no
+    such decision was taken and pinning is a measured no-op.
+related:
+  - EVI-0001
+  - EVI-0002
+  - EXP-0002
+notes: >-
+  Recorded verbatim in analysis/p0_major_revision_validation/configs/post_g1_reference_convention.yaml
+  and provenance/POST_G1_ADJUDICATION.md, with per-trigger evidence in
+  tables/regeneration_triggers.csv. The adjudication supersedes the approved plan's F.4/F.6
+  wording in interpretation only; the frozen plan file itself is not edited. The phrase
+  "innocuous numerical effect" is withdrawn by this decision and must not be used.

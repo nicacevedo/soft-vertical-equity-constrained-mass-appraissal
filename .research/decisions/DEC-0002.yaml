@@ -1,0 +1,45 @@
+id: DEC-0002
+type: decision
+schema_version: 1
+status: accepted
+title: Exclude the external multi-jurisdiction stream from the active manuscript's evidence
+statement: >-
+  The external ATTOM-derived multi-jurisdiction benchmark is treated as a separate
+  robustness project and not as confirmatory evidence for the CCAO claims. No
+  external-benchmark artifact backs any claim in the active manuscript, every ATTOM number
+  sits inside an uncompiled region, and official jurisdiction-level assessment-ratio
+  profiles are never conflated with valuation ratios produced by the common research AVM.
+  No object in this capsule rests on that stream.
+rationale: >-
+  The stream's own record does not support a confirmatory reading. Of 18
+  family-jurisdiction pairs in the forward-2025 benchmark, 4 support and 14 are partial,
+  with no non-degenerate all-jurisdiction intersection for the Surrogate, so no portable
+  band exists; one county returned all seven requested reductions UNATTAINED under
+  MATERIAL_REVERSAL; and the quarantine review classifies the entire external Surrogate
+  family as protocol-deviating because the calibration rule was amended after the first
+  pass, giving a second held-out look. Relabelling numbers that do not resolve from a frozen
+  artifact as "exploratory" is explicitly insufficient in this project. The CCAO paths
+  establish behaviour only for the stated research translation, sale sample, temporal design
+  and fixed LightGBM configuration.
+alternatives_considered:
+  - >-
+    Present the six-county or nine-jurisdiction results as confirmatory external
+    validation. Rejected: no frozen artifact supports it and the transfer record is mostly
+    partial.
+  - >-
+    Retain the external results in the manuscript qualified as exploratory. Rejected: the
+    underlying numbers are not source-resolvable, and the exploratory label does not make an
+    unsupported number publishable.
+  - >-
+    Present the Berry/CMF panel as a multi-jurisdiction transfer test. Rejected: that pass
+    ran no method experiment at all and its own audit declined to justify one.
+related:
+  - Q-0001
+  - CLAIM-0001
+notes: >-
+  Sources: analysis/final_manuscript_evidence/spec/mandatory_coverage.yaml topic
+  T-external-benchmark-boundary; analysis/berry_attom_validation_v3/QUARANTINE_REVIEW.md;
+  analysis/external_jurisdiction_benchmark_v1/forward_2025/reports/FORWARD_2025_RESULTS.md
+  and PAPER_ORIENTED_FINDINGS.md; manuscript paper/paper_v17_option1.tex:2722, :2755 and
+  :4073. This decision is why no portability Hypothesis is proposed: promoting one would
+  require evidence the frozen record does not currently support.

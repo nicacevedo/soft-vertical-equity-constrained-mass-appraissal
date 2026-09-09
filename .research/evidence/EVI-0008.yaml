@@ -1,0 +1,38 @@
+id: EVI-0008
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: Gate E.4 returns INDETERMINATE, so the Direct curvature mechanism is not established
+statement: >-
+  The prespecified acceptance rule for the statement "Direct is effectively gradient-only,
+  retaining essentially native curvature" required the maximum penalty contribution M below
+  M_accept_max = 0.01 AND a curvature ratio of at least R_accept_min = 1.20 at every rho >=
+  1; rejection required M at least M_reject_min = 0.05 or a curvature ratio at most
+  R_reject_max = 1.05. Measured over 9 fitting blocks and 83 rho values: maximum M =
+  0.011803871804554139, which fails acceptance in exactly one cell of 45 (fold 1, rho=100,
+  1.18 percent against a 1 percent threshold); the minimum curvature ratio at rho >= 1 is
+  4.255153705496526 and the maximum is 40.04019493320774. The verdict recorded in
+  e4_verdict.json is therefore INDETERMINATE: neither acceptance nor rejection criterion is
+  met, so the statement is not asserted and neither is its negation. Two related facts sit
+  with it. min_sum_hessian_in_leaf is checked and non-binding, not a mechanism. And the
+  Surrogate's own weighting concentrates severely at strong penalty: at rho=100 the
+  effective sample size falls to between 24.999 and 28.575 percent of n across the nine
+  blocks, with the top 1 percent of observations carrying 8.87 to 10.80 percent of total
+  weight and a single largest weight of 1272.74. Sources:
+  analysis/p0_major_revision_validation/tables/e4_verdict.json (keys e4_verdict, rule,
+  evidence_at_display_anchors, min_sum_hessian_in_leaf), direct_hessian_magnitudes.csv,
+  surrogate_weight_distribution.csv (columns ess_fraction_of_n, top1pct_weight_share,
+  w_max), effective_leaf_shrinkage.csv;
+  analysis/p0_major_revision_validation/reports/P0_IMPLEMENTATION_AUDIT.md;
+  manuscript paper/paper_v17_option1.tex:1487.
+notes: >-
+  The only object in this capsule that attacks a stated mechanism rather than a measured
+  outcome, and the cleanest available demonstration that this project records
+  non-results: the rule was fixed in advance and the data landed between its two
+  thresholds. Contrary to CLAIM-0001 and HYP-0002 because both assert that Direct and
+  Surrogate are distinct MECHANISMS and offer a curvature account for Direct's limitation;
+  the audit does not license that account. It does not touch the measured attainability and
+  Delta_NL differences, which stand on EVI-0006 and EVI-0007. The phrase "Direct is
+  effectively gradient-only" is forbidden wording in this project and must not be used.

@@ -1,0 +1,49 @@
+id: EVI-0009
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: Temporal gates fired ALERT then NOT_CONFIRMED, with one mechanism materially attenuated
+statement: >-
+  On the D-SNAP screening grid (27 positive screening rho values plus rho=0), gate G5a
+  returned ALERT with one of five triggers fired, T1_beta_log_sign_or_ordering. Targeted
+  local refinement added 21 Direct and 30 Surrogate rho values and gate G5b returned
+  NOT_CONFIRMED: the recorded promotion field reads "no promotion -- the screening alert
+  was a near-tie / near-zero artifact that did not survive local refinement; the primary
+  design stands". Materiality used TAU_MATCH = 0.002, the beta_log matching tolerance
+  frozen in configs/matched_beta_frozen.json before the stage read any outcome; on the
+  refined support there were 23 ordering flips of which 0 were material, and no material
+  sign change. Overall TEMPORAL_STATUS is PASS_PRIMARY_STANDS. Against that, the D-PURGE
+  oracle design fires T2: the Surrogate dCor rebound is substantially attenuated, with
+  retained shares 0.24537255556222184 (CV mean), 0.13461987156035113 (held-out) and
+  0.13391492634234814 (2025 forward) against a 0.25 retention threshold, all three flagged
+  rebound_lost true. On held-out the valley floor rises from 0.2501095867758119 to
+  0.2542622446532225 and its location moves from rho 9.102981779915218 to
+  28.11768697974231, while the rho=100 endpoint falls from 0.2673320507681667 to
+  0.2565807305438261. The rebound structure carries interior_min true on both the frozen
+  and robust paths for dCor (T2) and for Delta_NL (T3), at penalty scales distinct from one
+  another: for Delta_NL the frozen CV-mean interior minimum sits at rho 1.6768329368110082
+  and for dCor at rho 15.998587196060573. Sources:
+  analysis/p0_major_revision_validation/tables/gate_g5a_outcome.json,
+  gate_g5b_outcome.json (keys status, promotion, materiality_rule, n_rho_after_refinement),
+  temporal_material_change_triggers.csv, temporal_material_change_triggers_detail.json,
+  dsnap_refinement.csv, robustness_path_dsnap.csv, robustness_path_dpurge.csv,
+  robustness_unseen_subset.csv;
+  analysis/p0_major_revision_validation/reports/TEMPORAL_ROBUSTNESS_REPORT.md;
+  manuscript paper/paper_v17_option1.tex:2643-2720.
+notes: >-
+  D-PURGE is an ORACLE diagnostic. It does not feed the D-SNAP promotion gate, it could not
+  be implemented prospectively, and it is neither a proposed sample-construction rule nor a
+  recommendation to CCAO. Recorded because it is the one place where the oracle diagnostic
+  materially changes a reported quantity, and the project reports it as such rather than
+  smoothing it over. Two further temporal facts belong with it: under D-PURGE beta_log
+  becomes MORE negative at the origin (-0.01184, -0.02949, -0.02257 across the three
+  evaluations), so repeat-parcel information was modestly masking regressivity, which
+  strengthens rather than weakens the motivation; and the seven rolling-origin folds are
+  overlapping expanding-window constructions whose sixth and seventh validation blocks share
+  20988 rows (13.89 percent of the concatenated 151153), so across-fold dispersion is
+  descriptive chronological-window variation and never an IID standard error. This object
+  sources the rebound structure from the frozen trigger table and NOT from the manuscript's
+  printed dCor endpoints, which are an active unsupported math-mode claim (MATH-004).
+  Deliberately not linked to CLAIM-0001, which asserts nothing about temporal portability.

@@ -1,0 +1,55 @@
+id: CLAIM-0001
+type: claim
+schema_version: 1
+status: evidence_linked
+title: Direct and Surrogate are distinct mechanisms on the frozen CCAO paths
+statement: >-
+  On the frozen CCAO regularization paths, the Direct and Surrogate covariance penalties
+  are distinct mechanisms rather than two implementations of one. They coincide exactly at
+  rho=0, with maximum absolute log difference 0.0 in every audited capacity-by-sample cell.
+  For rho>0 they diverge in two measured ways. At matched development first-order
+  correction the Surrogate lowers the non-affine conditional-mean residual gap Delta_NL at
+  every matched target on every evaluation block, reaching -0.0368 against the post-hoc
+  centered-rescaling comparator on held-out and -0.0490 on the 2025 forward sample, and in
+  levels takes Delta_NL from 0.1165 at the origin down to 0.0914, where the comparator
+  instead rises to 0.1282 and Direct to 0.1198. And the Direct family's attainable
+  first-order correction is bounded at beta_log = -0.0786514918143895, so the -0.06 and
+  -0.03 targets are NOT_ATTAINED anywhere on its 82-point path while the other two families
+  reach them. The claim is descriptive and is a distinction between mechanisms, not a
+  ranking of them; no penalty strength is selected.
+hypotheses:
+  - HYP-0002
+supporting_evidence:
+  - EVI-0002
+  - EVI-0003
+  - EVI-0006
+  - EVI-0007
+contrary_evidence:
+  - EVI-0008
+contrary_evidence_addressed: >-
+  EVI-0008 is contrary to the MECHANISM ACCOUNT this claim offers, not to the measured
+  divergence it asserts. Gate E.4 returned INDETERMINATE against thresholds fixed before
+  the audit ran: maximum penalty contribution M = 0.011803871804554139 against an
+  acceptance ceiling of 0.01 and a rejection floor of 0.05, with curvature ratios from
+  4.2552 to 40.0402 against an acceptance floor of 1.20. The rank-one-curvature explanation
+  for Direct's limitation is therefore offered as a mechanism and is NOT established; this
+  claim does not assert that Direct is effectively gradient-only, and does not assert the
+  opposite either. What survives is the measured divergence, which does not depend on that
+  account: the rho=0 coincidence is exact (EVI-0003), the Delta_NL separation holds at every
+  matched target on every evaluation block and flips sign nowhere under the D3
+  one-sale-one-vote sensitivity (EVI-0006), and Direct's non-attainment is a frozen state
+  rather than an estimate (EVI-0007). All of it reproduces at tier R1 exact (EVI-0002).
+  Two further limits are accepted rather than answered. First, the closest post-processing
+  comparator was run and it removes any claim that Direct's benefit comes from retraining
+  the nonlinear learner: to the resolution of six matched targets, Direct's
+  fixed-prediction-space effect is reproducible by a one-parameter global rescaling
+  (EVI-0005). That sharpens this claim rather than undermining it, because the Surrogate is
+  not so reproducible, and it is why the claim is worded as a distinction and not as a
+  ranking. Second, the claim is bounded to the frozen 994-tree configuration and asserts
+  nothing about temporal portability, which is why EVI-0009 is not linked here.
+notes: >-
+  Held at evidence_linked deliberately. It must not be moved to accepted until a bounded
+  Research OS integrity patch addresses the Experiment-binding gap recorded in STATE.md:
+  all four supporting Evidence objects are kind experiment and bind an Experiment ID whose
+  scientific content their own digests do not cover. No Review exists for this claim and
+  none may be authored by an automated agent.

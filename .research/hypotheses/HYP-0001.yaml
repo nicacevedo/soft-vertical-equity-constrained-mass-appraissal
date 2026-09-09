@@ -1,0 +1,41 @@
+id: HYP-0001
+type: hypothesis
+schema_version: 1
+status: supported
+title: Interior attenuation without an immediate accuracy cost, referenced to the rho=0 origin
+statement: >-
+  Along both custom-objective regularization paths there is an interior region of rho in
+  which the targeted first-order dependence beta_log is attenuated and several
+  assessor-facing vertical-equity diagnostics move toward neutrality while price-scale
+  predictive fit is preserved or improved RELATIVE TO THAT FAMILY'S OWN custom-objective
+  rho=0 origin (Cell C). Accuracy and ratio-shape deterioration set in only at stronger
+  rho, so the joint trajectory is not a monotone accuracy-for-equity exchange.
+mechanism: >-
+  Squared error does not price the global first-order component of the residual/price
+  covariance. At small rho the component the penalty removes is close to orthogonal to the
+  predictive signal, so R2_price is preserved or improves; at larger rho the spread
+  distortion (Direct) or the tail reweighting (Surrogate) dominates and fit degrades.
+falsification: >-
+  Referenced to Cell C, R2_price decreases monotonically in rho from rho=0 for BOTH
+  families on EVERY evaluation block, with no interior region in which a vertical-equity
+  diagnostic improves at non-negative change in R2_price.
+addresses:
+  - Q-0001
+supporting_evidence:
+  - EVI-0004
+contrary_evidence:
+  - EVI-0001
+  - EVI-0005
+confidence: 0.6
+confidence_basis: >-
+  The direction is measured on CV-mean, held-out and 2025, and every frozen artifact it
+  rests on reproduces at tier R1 exact. Confidence is held down rather than up for two
+  reasons. First, EVI-0001: any version of this statement referenced to ordinary LightGBM
+  rather than to Cell C is a workflow comparison and not a penalty effect. Second,
+  EVI-0005: at mild correction the retrained advantage over a one-parameter global
+  rescaling is about 0.001 in R2_price, the same order as the Cell-A/Cell-C implementation
+  gap of 0.0014, which is a real sign and not a material margin.
+notes: >-
+  This hypothesis is about the shape of one family's own path against its own origin. It
+  asserts nothing about whether the two families differ (HYP-0002) and nothing about
+  whether the first-order target is a valid proxy (HYP-0003).

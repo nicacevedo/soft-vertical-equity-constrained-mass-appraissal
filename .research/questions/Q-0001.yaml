@@ -1,0 +1,25 @@
+id: Q-0001
+type: question
+schema_version: 1
+status: open
+title: Attainable covariance-penalty regularization paths in the CCAO residential AVM
+statement: >-
+  In a fixed-base-learner research translation of the Cook County Assessor's Office
+  residential LightGBM workflow, how far along their complete regularization paths can a
+  Direct squared-covariance penalty and its sample-additive Surrogate move the targeted
+  first-order residual/log-price dependence (beta_log) and the assessor-facing
+  vertical-equity diagnostics (PRD, PRB, MKI, VEI) before predictive accuracy and ratio
+  shape deteriorate -- and are the two attainable paths distinguishable from each other,
+  and from post-hoc centered rescaling of the same unpenalized predictor?
+notes: >-
+  Recovered from the current manuscript at snapshot 993db93, not from earlier exploratory
+  framing. The bounding evidence is paper/paper_v17_option1.tex:145 (abstract: "a
+  CCAO-motivated objective translation, an exact distinction between Direct and Surrogate
+  mechanisms, and a temporal failure-mode audit of their attainable paths---not a general
+  fairness guarantee or a selected operational model"), :190 (the problem is "a
+  within-model one"), :224 (three application-driven contributions), and :344 ("No penalty
+  strength is selected anywhere in this paper"). The motivating tension is that accuracy
+  does not remove the ratio trend: held-out R2_price 0.894 with VEI -26.5 percent and COD
+  21.6 percent, above the adopted [5,15] range (tab:ccao_baseline_results, :1032). Status
+  is open rather than answered because the manuscript is mid-revision at Tier B2.5 with
+  stages B2.6, B3.1, B4.2 and B4.3 still owed.

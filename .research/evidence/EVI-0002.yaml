@@ -1,0 +1,28 @@
+id: EVI-0002
+type: evidence
+schema_version: 1
+status: active
+kind: experiment
+experiment: EXP-0002
+title: The frozen positive-rho path artifacts reproduce exactly, and no regeneration trigger fires
+statement: >-
+  All 14 sampled frozen configurations of EXP-0001 reproduce at reproduction tier R1,
+  exact: maximum absolute log delta 0.0, 100 percent of rows bitwise identical, every
+  reported metric agreeing at displayed precision, failure_class none on all 14 rows. The
+  sample spans Cell A native, and Direct and Surrogate at rho=0, rho about 0.954095 and
+  rho=100, on both the held-out and the 2025 forward evaluations. No result reaches tier
+  R4 anywhere. All four regeneration triggers resolve False: RG-1 (B-to-C non-parity with
+  unknown cause or implied path corruption), RG-2 (defect in the custom objective as it
+  stood at the provenance commit; boosting_models.py is byte-identical at all three
+  provenance commits and the manuscript Appendix E equations match the code), RG-3 (frozen
+  artifacts failing historical reproduction at R4), RG-4 (decision to make the pinned
+  deterministic implementation canonical; pinning is a no-op). Sources:
+  analysis/p0_major_revision_validation/tables/frozen_artifact_reproduction.csv (14 rows,
+  columns reproduction_tier, failure_class, max_abs_delta_log, frac_exact_equal),
+  regeneration_triggers.csv, bc_rootcause_verdict.json;
+  analysis/p0_major_revision_validation/reports/RHO_ZERO_PARITY_REPORT.md.
+notes: >-
+  Provenance evidence rather than a scientific result. It is linked as supporting to
+  CLAIM-0001 because every conjunct of that Claim is read off frozen artifacts, and their
+  exact reproduction is part of why the Claim should be believed. It does not, and cannot,
+  address the dirty-tree limitation on EXP-0001 recorded in STATE.md.
