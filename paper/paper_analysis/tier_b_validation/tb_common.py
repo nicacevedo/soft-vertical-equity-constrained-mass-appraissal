@@ -82,7 +82,7 @@ BASELINE_TEX_SHA256 = "13c84ce7e799d485cf33e20a96a53e1f7ff30ecbb505a2b7042f76fd1
 # flagged-token anchor, so its budget is B1.4's -- see expected_token_trajectory.
 STAGES = ("B1.0", "B1.1", "B1.2", "B1.3", "B1.4", "B1.5",
           "B2.1", "B2.2", "B2.3", "B2.4", "B2.5", "B2.6", "B2.7", "B2.8", "B2.9",
-          "B3.1", "B3.2", "B4.1", "B4.2", "B4.3")
+          "B3.1", "B3.2", "B3.3", "B4.1", "B4.2", "B4.3")
 # B2.7 was added after the closure audit of B2.6, which found three reader-facing
 # defects the thirteen checks cannot see: a matched-beta price-scale comparison
 # that reverses under the frozen retransformation sensitivity, a retained path
@@ -104,6 +104,17 @@ STAGES = ("B1.0", "B1.1", "B1.2", "B1.3", "B1.4", "B1.5",
 # landmarks and one stale conditional implying the completed rho=0 parity
 # audit remained pending. It introduces no new scientific result and owns
 # no expected-failure entry.
+# B3.3 is the surgical body-consistency / prior-art closure that follows the
+# independent B3.2 final acceptance and novelty audit. It removes the superseded
+# fitted-linear-baseline design story from the ACTIVE body (the finalized study
+# is within-model: the historical linear workflow is context, not an estimated
+# arm), narrows a small number of novelty and literature statements to what the
+# cited sources support, and integrates the 2026 Cook County prior art. It
+# introduces NO new science -- no fit, no rho, no rerun, no regenerated figure,
+# no changed table or ledger value -- and, like B2.7--B2.9 and B3.1--B3.2, it
+# owns no expected-failure entry of its own. The only failures it may carry are
+# the two it inherits: C12 (TODO/scaffolding closure, B4.2) and C08 (appendix
+# screening-package wording, B4.3).
 
 
 class TierBGuardError(RuntimeError):

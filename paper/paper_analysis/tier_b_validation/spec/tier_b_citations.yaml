@@ -89,8 +89,10 @@ bib_field_rules:
   Cheng1974:
     why: >-
       A Crossref bibliographic query returned NO matching record, which is why
-      the B0 pass carried only the minimal citable core and why no DOI exists
-      for this article: none was found and none may be invented. A later
+      the B0 pass carried only the minimal citable core and why no DOI is
+      carried for this article: none was found or verified, and none may be
+      invented. The absence is a fact about the lookup, not a demonstration
+      that no DOI exists. A later
       primary-source audit of the article confirmed volume 29, issues 3--4 and
       pages 268--284, consistent with independent bibliographic indexing of the
       same volume, so those three fields moved from "unverified, omit" to

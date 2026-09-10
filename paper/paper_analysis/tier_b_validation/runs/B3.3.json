@@ -1,0 +1,177 @@
+{
+  "active_resolution": {
+    "ALLOWLISTED": 232,
+    "SOURCED": 154,
+    "SOURCED_LEDGER": 624
+  },
+  "compile": {
+    "biber_warnings": [],
+    "exit_code": 0,
+    "latex_errors": [],
+    "latex_warnings": [],
+    "missing_bib_entries": [],
+    "n_latex_errors": 0,
+    "n_overfull_hbox": 2,
+    "n_overfull_vbox": 0,
+    "n_underfull": 4,
+    "ok": true,
+    "overfull_hbox": [
+      {
+        "from": 2732,
+        "pt": 1.9402,
+        "to": 2733
+      },
+      {
+        "from": 2997,
+        "pt": 11.817,
+        "to": 2997
+      }
+    ],
+    "pages": 63,
+    "pdf_written": true,
+    "undefined_citations": [],
+    "undefined_references": []
+  },
+  "expected_failures": [
+    {
+      "finding": {
+        "anchor": "app:ccao_results",
+        "check": "C08",
+        "count": null,
+        "key": "C08:prose:dae7fbbad332",
+        "line": 4292,
+        "message": "ACTIVE statement asserts the candidate-region / transition-span construction ['activity-onset', 'guardrail'] at app:ccao_results: 'the final screening package should additionally archive the frozen generic v2.1 method specification, activity-onset and'",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B4.3"
+    },
+    {
+      "finding": {
+        "anchor": "",
+        "check": "C12",
+        "count": 11,
+        "key": "C12:todos_present",
+        "line": null,
+        "message": "11 \\todo sites remain in the source (8 in the ACTIVE build)",
+        "severity": "FAIL"
+      },
+      "resolved_by_stage": "B4.2"
+    }
+  ],
+  "known_unsupported_math_claims": [],
+  "known_unsupported_math_claims_active": 0,
+  "known_unsupported_math_claims_note": "Counted SEPARATELY from unsupported_tokens. The frozen coverage audit masks math environments, so these claims are outside the token population entirely: unsupported_tokens = 0 would not mean they had been resolved.",
+  "manuscript": "paper/paper_v17_option1.tex",
+  "manuscript_sha256": "c568c58eb46672e5eda63b441da2dafe0531d50bb5a1b955e0b6affe59b8784a",
+  "n_expected_failures": 2,
+  "n_unexpected_failures": 0,
+  "ok": true,
+  "scope": {
+    "cumulative": {
+      "command": "git diff --name-only tier-b0-final-20260907..HEAD",
+      "n_paths": 52,
+      "ok": true,
+      "outside_paper": [],
+      "paths": [
+        "paper/img/generated_v12_994/cv_level_uniformity_paths.pdf",
+        "paper/img/generated_v12_994/cv_mechanism_metric_paths.pdf",
+        "paper/img/generated_v12_994/cv_predictive_metric_paths.pdf",
+        "paper/img/generated_v12_994/cv_vertical_equity_metric_paths.pdf",
+        "paper/img/generated_v12_994/level_uniformity_paths.pdf",
+        "paper/img/generated_v12_994/mechanism_vs_rho.pdf",
+        "paper/img/generated_v12_994/predictive_metric_paths.pdf",
+        "paper/img/generated_v12_994/vertical_equity_metric_paths.pdf",
+        "paper/paper_analysis/tier_b_validation/.gitignore",
+        "paper/paper_analysis/tier_b_validation/README.md",
+        "paper/paper_analysis/tier_b_validation/baseline/FROZEN_SUITE_EXPECTATIONS.md",
+        "paper/paper_analysis/tier_b_validation/baseline/compile_pre_edit_B1.0.json",
+        "paper/paper_analysis/tier_b_validation/baseline/frozen_suites_pre_edit_B1.0.json",
+        "paper/paper_analysis/tier_b_validation/baseline/p0_suite_pre_edit_B1.0.log",
+        "paper/paper_analysis/tier_b_validation/baseline/p1_suite_pre_edit_B1.0.log",
+        "paper/paper_analysis/tier_b_validation/baseline/tier_b0_suite_pre_edit_B1.0.log",
+        "paper/paper_analysis/tier_b_validation/ledger/tier_b_numeric_ledger.yaml",
+        "paper/paper_analysis/tier_b_validation/remove_legacy_gray_bands.py",
+        "paper/paper_analysis/tier_b_validation/run_frozen_suites_informational.py",
+        "paper/paper_analysis/tier_b_validation/runs/B1.0.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.1.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.2.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.3.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.4.json",
+        "paper/paper_analysis/tier_b_validation/runs/B1.5.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.1.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.2.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.3.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.4-audit.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.4.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.5.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.6.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.7.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.8.json",
+        "paper/paper_analysis/tier_b_validation/runs/B2.9.json",
+        "paper/paper_analysis/tier_b_validation/runs/B3.1.json",
+        "paper/paper_analysis/tier_b_validation/runs/B3.2.json",
+        "paper/paper_analysis/tier_b_validation/spec/expected_failures.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/ledger_selftest.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/tier_b_citations.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/tier_b_required_statements.yaml",
+        "paper/paper_analysis/tier_b_validation/spec/unsupported_math_claims.yaml",
+        "paper/paper_analysis/tier_b_validation/tb_checks.py",
+        "paper/paper_analysis/tier_b_validation/tb_common.py",
+        "paper/paper_analysis/tier_b_validation/tb_compile.py",
+        "paper/paper_analysis/tier_b_validation/tb_coverage.py",
+        "paper/paper_analysis/tier_b_validation/tb_ledger.py",
+        "paper/paper_analysis/tier_b_validation/tb_scope.py",
+        "paper/paper_analysis/tier_b_validation/tb_text.py",
+        "paper/paper_analysis/tier_b_validation/validate.py",
+        "paper/paper_v17_option1.tex",
+        "paper/references_additions.bib"
+      ]
+    },
+    "frozen_subtrees": {
+      "ok": true,
+      "subtrees": [
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/p0_major_revision_validation",
+          "tag": "p0-major-revision-final-20260907"
+        },
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/p1_inferential_reporting",
+          "tag": "p1-inferential-reporting-final-20260907"
+        },
+        {
+          "diff_stat": "",
+          "empty": true,
+          "subtree": "analysis/final_manuscript_evidence",
+          "tag": "tier-b0-final-20260907"
+        }
+      ]
+    },
+    "ok": true,
+    "uncommitted": {
+      "n_paths": 6,
+      "ok": true,
+      "outside_paper": [],
+      "paths": [
+        "paper/paper_analysis/tier_b_validation/README.md",
+        "paper/paper_analysis/tier_b_validation/runs/B3.3.json",
+        "paper/paper_analysis/tier_b_validation/spec/tier_b_citations.yaml",
+        "paper/paper_analysis/tier_b_validation/tb_common.py",
+        "paper/paper_v17_option1.tex",
+        "paper/references_additions.bib"
+      ],
+      "untracked": [
+        "paper/paper_analysis/tier_b_validation/runs/B3.3.json"
+      ]
+    }
+  },
+  "stage": "B3.3",
+  "stale_expectations": [],
+  "unexpected_failures": [],
+  "unsupported_tokens": 0,
+  "unsupported_tokens_by_anchor": {},
+  "unsupported_tokens_expected": 0
+}
