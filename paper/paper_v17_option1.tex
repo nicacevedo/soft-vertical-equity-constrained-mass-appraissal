@@ -119,7 +119,10 @@
 % A Covariance-Guided Correction for Assessor Workflows}
 
 % Superseded title: Fair Property Taxation: A Covariance-Guided Correction for Assessor Workflows
-\title{\latesttext{Covariance-Based Regularization for Regressivity in Machine-Learning Real Estate Valuation}}
+% Superseded title (replaced at B4.1): Covariance-Based Regularization for
+% Regressivity in Machine-Learning Real Estate Valuation
+\title{\latesttext{Targeting Price-Related Regressivity in Machine-Learning Mass Appraisal:
+Covariance-Guided Objectives, Post-Hoc Comparison, and Temporal Limits}}
 
 \author{
 Nicol\'as Acevedo\thanks{Operations Research Center, MIT, Cambridge, MA 02139. \texttt{nacevedo@mit.edu}}
@@ -142,7 +145,24 @@ Timothy Sparer\thanks{Cook County Assessor's Office, Chicago, IL 60602. \texttt{
 % The superseded abstract remains in the source history above.  This revision uses
 % one self-contained abstract so that scope, estimand, implementation, and evidence
 % can be read without consulting tracked fragments.
-\latesttext{Machine-learning real estate valuation models can predict property sale prices with high accuracy, while still exhibiting systematic biases  or unfair patterns. One of the most common equity problems in this setting is that of \textit{regressivity}; a type of price-related bias. We study a deliberately narrow intervention for that problem in a research translation of the Cook County Assessor's Office (CCAO) residential LightGBM workflow. Understanding regressivity as an undesired dependence between log-price residuals and the actual sale prices, we add either (i) a direct squared-covariance penalty between that residual and log sale price or (ii) a sample-additive Jensen upper bound that is a log price distance-weighted squared-error objective. The direct LightGBM implementation supplies the exact squared-covariance gradient but only the diagonal of its dense rank-one Hessian, while the Surrogate is observation-additive which permits both the gradient and Hessian to be implemented exactly. Seven rolling-origin folds, a later held-out block, and a separate 2025 forward sample trace the complete---fixed base learner--- regularization paths rather than just blindly selecting a deployment penalty. Across considerable portions of both regularization paths, the targeted first-order dependence and several assessor-facing vertical-equity diagnostics move toward neutrality before stronger regularization produces predictive and ratio-shape deterioration. The full paths also show that first-order neutrality does not imply a flat conditional ratio profile, local equity, or residual--price independence. Because sale price is both outcome and a market value proxy, the penalty controls a price-related pattern among observed sales; that is, it does not identify inequity relative to latent market value or final tax burdens. The contribution is therefore a CCAO-motivated objective translation, an exact distinction between Direct and Surrogate mechanisms, and a temporal failure-mode audit of their attainable paths---not a general fairness guarantee or a selected operational model.}
+\latesttext{Machine-learning mass-appraisal models can be predictively strong yet leave a systematic
+price-related trend in valuation ratios: the pattern assessors call \emph{regressivity}. We
+study a narrow intervention in a research translation of the Cook County Assessor's Office
+residential LightGBM workflow. The target is one global, first-order quantity: the covariance
+between log valuation errors and log sale price among observed sales, the classical
+log-ratio/log-price slope. A Direct penalty acts on that squared covariance; a Jensen-derived
+Surrogate is observation-additive and so fits the standard boosting custom-objective interface.
+In a fixed prediction space with an intercept, Direct is exactly a one-parameter centered spread
+map and the Surrogate a generally multi-directional weighted projection. Seven chronological
+rolling-origin folds, a later held-out block, and a separate 2025 forward period trace
+prespecified penalty grids under a fixed base learner. A centered-spread post-hoc rescaling
+solved on development predictions reproduces much of Direct's first-order movement over the
+range Direct attains, so training-time regularization is not necessary to move this trend; yet
+at matched first-order correction the families are not interchangeable in residual structure,
+and none dominates. Across those folds, the held-out block, and 2025 the correction-strength
+relationship does not transport, so no penalty strength is selected. The contribution is one
+auditable first-order mechanism for observed sales with its temporal limits, not a fairness
+guarantee or a claim about tax burdens.}
 
 \end{abstract}
 
