@@ -855,8 +855,8 @@ The corresponding complementary baseline diagnostics are retained in Appendix Ta
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/baseline_models_motivation_2024_2025.pdf}
-\caption{Descriptive valuation-ratio profiles against sale price in the primary held-out evaluation and the 2025 forward evaluation. Curves show median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding interquartile ranges. The panel retains the historical township-level linear-regression trace as visual context only: no linear-regression quantitative result is reported in this paper, none should be read off this figure, and the assessor-facing level for the workflow benchmark is the statement accompanying Table~\ref{tab:ccao_baseline_results}.}
+\safeincludegraphics[width=0.45\textwidth]{img/generated_v12_994/baseline_models_motivation_2024_2025.pdf}
+\caption{Descriptive valuation-ratio profiles against sale price for ordinary LightGBM in the primary held-out evaluation and the 2025 forward evaluation. Curves show median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding interquartile ranges. The assessor-facing level for the workflow benchmark is the statement accompanying Table~\ref{tab:ccao_baseline_results}.}
 \label{fig:baseline_motivation}
 \end{figure}
 
@@ -1729,7 +1729,7 @@ The main tradeoff figure reports all four assessor-facing vertical-equity diagno
 \begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.98\textwidth]{img/generated_v12_994/accuracy_equity_trajectories_inprocessing_only.pdf}
-\caption{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Ordinary LightGBM is the workflow-benchmark context anchor; the historical linear-regression point is drawn for visual context only and supports no reported quantitative comparison. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims. Arrows indicate increasing $\rho$ and do not mark a selected point.}
+\caption{Accuracy--equity trajectories with $R^2_P$ on the vertical axis and PRD, PRB, MKI, and VEI on the horizontal axis, for held-out and 2025 evaluations. Ordinary LightGBM is the workflow-benchmark context anchor. Dotted vertical lines mark metric neutrality where applicable, and shaded regions are assessor-facing guidance ranges rather than compliance claims. Arrows indicate increasing $\rho$ and do not mark a selected point.}
 \label{fig:accuracy_equity_placeholder}
 \end{figure}
 The trajectories are not simple monotone accuracy--equity frontiers. At moderate regularization, parts of both paths move toward more neutral PRD and VEI while preserving or improving price-scale fit relative to the corresponding custom-objective $\rho=0$ control.
@@ -3304,7 +3304,7 @@ Fold & Cumulative window & $n_{\mathrm{train}}$ & $n_{\mathrm{val}}$ \\
 \subsection{Chronological Fold Stability}
 
 
-That summary figure is removed from the active presentation because the comprehensive fold figures immediately below now report prediction, valuation level and horizontal uniformity, vertical equity, and mechanism paths separately for all available CV metrics.\begin{figure}[!htbp]
+\begin{figure}[!htbp]
 \centering
 \safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/cv_predictive_metric_paths.pdf}
 \caption{Chronological-fold predictive-metric paths (thin gray) and equal-weight CV means (thick). The seven folds are overlapping cumulative-window constructions rather than independent replications, so their spread is descriptive and supports no standard error. No penalty strength is selected in this paper.}
@@ -3326,7 +3326,8 @@ That summary figure is removed from the active presentation because the comprehe
 \label{fig:cv_mechanism_metric_paths}
 \end{figure}
 
-The reconstructed CV $\Delta_{\mathrm{NL}}$ paths in the figure above are a retrospective diagnostic. No minimum value and no grid location is quoted from them, because the reconstructed CV path values are not part of the frozen numeric evidence, and no location on those paths is a selected operating point.
+The reconstructed CV $\Delta_{\mathrm{NL}}$ paths in
+Figure~\ref{fig:cv_mechanism_metric_paths} are a retrospective diagnostic. No minimum value and no grid location is quoted from them, because the reconstructed CV path values are not part of the frozen numeric evidence, and no location on those paths is a selected operating point.
 
 \begin{figure}[!htbp]
 \centering
@@ -3645,8 +3646,8 @@ period.
 
 \begin{figure}[!htbp]
 \centering
-\safeincludegraphics[width=0.8\textwidth]{img/generated_v12_994/vei_percentile_group_profile.pdf}
-\caption{VEI percentile-group median valuation ratios for ordinary LightGBM, drawn beside the historical township-level linear-regression trace, on the held-out and 2025 samples. The dashed line marks a valuation ratio of $1$; the dotted line marks the overall sample median ratio. The shaded ribbons are descriptive, deterministic percentile-bootstrap intervals for the plotted group medians at a nominal 90\% level, drawn only to convey sampling variability in this visualization. They are \emph{not} the rank-based order-statistic median interval that the May-2026 IAAO exposure draft specifies for its own VEI procedure in Appendix~D.2, and they are \emph{not} a standards-facing bootstrap-sensitivity calculation. No exposure-draft VEI verdict is attached to this figure. The historical township-level linear-regression trace is drawn for visual context only: no linear-regression quantitative result is reported in this paper, and none should be read off this figure.}
+\safeincludegraphics[width=0.43\textwidth]{img/generated_v12_994/vei_percentile_group_profile.pdf}
+\caption{VEI percentile-group median valuation ratios for ordinary LightGBM on the held-out and 2025 samples. The dashed line marks a valuation ratio of $1$; the dotted line marks the overall sample median ratio. The shaded ribbons are descriptive, deterministic percentile-bootstrap intervals for the plotted group medians at a nominal 90\% level, drawn only to convey sampling variability in this visualization. They are \emph{not} the rank-based order-statistic median interval that the May-2026 IAAO exposure draft specifies for its own VEI procedure in Appendix~D.2, and they are \emph{not} a standards-facing bootstrap-sensitivity calculation. No exposure-draft VEI verdict is attached to this figure.}
 \label{fig:vei_group_profile_placeholder}
 \end{figure}
 
