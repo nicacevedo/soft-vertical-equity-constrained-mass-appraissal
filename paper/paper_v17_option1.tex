@@ -1235,7 +1235,7 @@ Secondary forward evaluation & 2025-01-01--2025-12-29 & 26,641 \\
 The model uses 95 predictors, including property characteristics, location and proximity variables, Census measures, time variables, parcel-shape measures, neighborhood identifiers, and other assessor variables. Twenty-three are treated as categorical.
 {All predictors are constructed upstream by the CCAO pipeline. Standard and penalized LightGBM fits use the same 95 predictors, with the same 23 variables treated as categorical; the penalty introduces no additional predictors or feature engineering.}
 
-{Table~\ref{tab:feature_groups} summarizes the predictor information used by the models. The full feature list is fixed before model fitting and should be archived with the replication materials.}
+{Table~\ref{tab:feature_groups} summarizes the predictor information used by the models. The predictor set is fixed before model fitting and is identical across the standard and penalized fits. It is defined by the restricted extract identified above and is not redistributed as a separate artifact; Appendix~\ref{app:ccao_results} states what is and is not released.}
 
 {
 \begin{table}[!ht]
@@ -1320,7 +1320,7 @@ No deployment operating point is selected in the present analysis. The chronolog
 
 For compact presentation, we use five nominal decade-spaced positive display anchors, $\rho\in\{0.01,\allowbreak 0.1,\allowbreak 1,\allowbreak 10,\allowbreak 100\}$, and represent each nominal value by the nearest already-tested point on the frozen 82-point positive grid. The corresponding tested values are $0.0104811$, $0.1$, $0.954095$, $10.4811$, and $100$. This display convention is adopted only to make the tables and ratio-shape figures easy to read; it is not part of the frozen transition rule and does not select a penalty strength. Ordinary LightGBM remains the unpenalized baseline.
 
-All 82 positive values per family remain in the final path figures and machine-readable result table.
+All 82 positive values per family remain in the final path figures; no tested value is dropped from the reported paths.
 
 Ratio-shape figures additionally show the zero-penalty path origin for visual continuity. Because the Direct and Surrogate objectives have different numerical scales, equal nominal display anchors are common presentation coordinates only and must not be interpreted as equal-strength interventions across families.
 
@@ -2403,9 +2403,9 @@ The weighted mean ratio satisfies
 \frac{\sum_i\widehat P_i}{\sum_iP_i},
 \]
 and PRD is $\bar r/\bar r_W$. PRB follows the IAAO median-normalized regression
-definition. The full implementation used in the application should
-be released with the code so that all transformations, trimming rules, and proxy
-definitions are reproducible.
+definition. The implementation executed for this application is the metric code tracked in the
+repository, and the transformations, trimming rules and proxy definition it applies are fixed in
+the frozen conventions catalogued in Appendix~\ref{app:ccao_results}.
 
 \subsection{Mechanism and residual-structure diagnostics}
 
@@ -2503,8 +2503,10 @@ to conditional-mean structure. It has no assessor-standard reference range.
 Every reported value comes from one implementation: the
 \texttt{distance\_correlation} routine of the \texttt{dcor} Python package, called on the
 full evaluation sample with the package's default unit exponent and without bias
-correction, so the executed estimator is the usual biased, double-centered
-$V$-statistic rather than an unbiased $U$-centered variant. The executed call passes the
+correction, so the executed estimator is the usual biased distance correlation computed from
+double-centered distance matrices, rather than the $U$-centered bias-corrected
+squared-distance-correlation estimator the package also exports but that this paper never calls.
+The executed call passes the
 signed log residual $e=\log\widehat P-\log P$ as its first argument and $y=\log P$ as its
 second.
 
@@ -3033,8 +3035,14 @@ scaled Hessian $I+(\rho/2n)cc^{\top}$ whose off-diagonal rank-one term the obser
 interface cannot carry. The supplied Surrogate Hessian is $1+\rho c_i^2$. The executed LightGBM
 parameter vector is pinned by the configuration hash
 \texttt{\small 8f0f2acd83118de782604b5ca7143acfbd2af3fd186ea9376588f9bcf560585b}, re-verified against
-the frozen record, and the complete working-tree diff that generated the reported artifacts is
-archived with the replication materials. No factor-of-two or sample-size convention is absorbed into
+the frozen record. The source state that produced those artifacts is bounded rather than
+reconstructed. All three generating commits are ancestors of the frozen provenance head, and the
+objective, model-factory, split and metric files are byte-identical at every one of them; the two
+executed-path files that did drift are archived as per-file patches and adjudicated
+behaviour-neutral for prediction reproduction. All three generating trees were nonetheless dirty,
+and only a diff hash survives for two of them and none for the third, so the uncommitted state
+cannot be reconstructed from what was recorded. The frozen provenance discloses that residual as an
+irreducible limitation rather than resolving it. No factor-of-two or sample-size convention is absorbed into
 a relabelled $\rho$: the $\rho$ values indexing the reported paths are the values the executed
 objective received.
 
@@ -3108,12 +3116,13 @@ This appendix contains the complete diagnostics underlying the compact main-text
 
 \subsection{Complete Regularization-Path Results}
 
-The complete regularization path is provided in the machine-readable replication
-artifacts \path{combined_path_table.csv} and
-\path{combined_path_table.parquet}. These files contain every family--$\rho$
-configuration together with the seven fold values, equal-weight CV mean and
+The complete regularization path is held in the frozen combined path table, which carries every
+family--$\rho$ configuration together with the seven fold values, equal-weight CV mean and
 standard deviation, held-out results, and 2025 forward results for the
-Section~\ref{subsec:metrics} evaluation metrics.
+Section~\ref{subsec:metrics} evaluation metrics. That table is an output of the executed run root
+rather than a released file: the frozen evidence manifest identifies it by path, byte length and
+content hash, and it is not redistributed with this paper. Appendix~\ref{app:ccao_results} sets out
+which derived artifacts are tracked and which are hash-identified only.
 The compact main-text presentation is split in two. Table~\ref{tab:path_anchor_frozen} carries prediction, PRD and MKI at the two positive anchors the frozen reproduction audit re-derives, and Table~\ref{tab:path_anchor_standards} carries PRB, from the adopted Standard on Ratio Studies, and VEI, an Exposure-Draft diagnostic and therefore proposed rather than adopted, at all five nominal decade-spaced anchors $\{0.01,0.1,1,10,100\}$ mapped to the nearest frozen-grid points. Both show the ordinary-LightGBM workflow benchmark and the custom-objective zero-penalty origin as explicit rows; the wider zero-penalty implementation audit stays in the implementation appendix. No path row is omitted from the machine-readable results because of its observed performance.
 For completeness, the complementary baseline diagnostics and the complementary representative-$\rho$ diagnostics are reported here rather than in the main empirical narrative.
 
@@ -3247,7 +3256,7 @@ marked differently. COD and COV are reported in percent.
 \end{table}
 
 
-The machine-readable combined path table archived with the replication artifacts carries every family--$\rho$ configuration for the Section~\ref{subsec:metrics} metrics, together with the fold values, the equal-weight CV mean and standard deviation, and the held-out and 2025 forward results. Chronological-CV $\Delta_{\mathrm{NL}}$ was reconstructed fold by fold from the already-frozen validation predictions using the same fixed cross-fitted estimator specified in Appendix~\ref{app:metrics}; those CV values are archived separately and did not define the $\rho$ grid or any model-selection rule. Split-specific $\rho=0$ prediction-parity audits are stored in the same result root.
+The frozen combined path table carries every family--$\rho$ configuration for the Section~\ref{subsec:metrics} metrics, together with the fold values, the equal-weight CV mean and standard deviation, and the held-out and 2025 forward results; as Appendix~\ref{app:ccao_results} records, it is hash-identified in the frozen evidence manifest rather than redistributed. Chronological-CV $\Delta_{\mathrm{NL}}$ was reconstructed fold by fold from the already-frozen validation predictions using the same fixed cross-fitted estimator specified in Appendix~\ref{app:metrics}; those CV values did not define the $\rho$ grid or any model-selection rule. Split-specific $\rho=0$ prediction-parity audits belong to the same result root.
 
 
 \subsection{Prediction, Valuation-Level, and Horizontal-Uniformity Paths}
@@ -3349,8 +3358,8 @@ Section~\ref{subsec:posthoc_comparator} at the frozen base-value anchors, for th
 on both out-of-time blocks and for the secondary practical base cell on the held-out block. The
 complete path over all frozen base values, the per-fold summaries with their descriptive
 chronological spread, the base-value-one bitwise check, the linearity check against the closed form,
-the root verification, and the anchor-level centering sensitivity are archived with the replication
-artifacts. Two properties of the construction are worth restating here because they bound what the
+the root verification, and the anchor-level centering sensitivity are tracked in the repository as
+part of the frozen post-hoc comparator record. Two properties of the construction are worth restating here because they bound what the
 table can be read to show. First, $\beta_{\log}$ is exactly linear in the base value on a fixed
 evaluation sample, so the post-hoc first-order coordinate is solved rather than searched, and the
 frozen record verifies the achieved development value against the closed form. Second, the
@@ -3437,7 +3446,7 @@ Section~\ref{subsec:matched_beta_results} come from the frozen D3 branch, which 
 identical deterministic construction on the row-balanced coordinate and reproduces its targets from
 the pre-outcome record. The equal-weight and forward-year outcome columns, the pairwise difference
 tables, the crossing locations, the origin-identity check and the D3 twins of all four tables are
-archived with the replication artifacts.
+tracked in the repository as part of the frozen matched-target record.
 
 {\begin{table}[!htbp]
 \centering
@@ -3641,16 +3650,75 @@ period.
 \label{fig:vei_group_profile_placeholder}
 \end{figure}
 
-\section{CCAO Reproducibility Requirements}
+\section{Reproducibility and Archived Artifacts}
 \label{app:ccao_results}
 
-The planned CCAO replication package should contain the complete penalty grid; fold-level, held-out, and forward predictions for every valid configuration; the fixed baseline hyperparameters and configuration hash; the native/custom $\rho=0$ parity audit; and the fixed $\Delta_{\mathrm{NL}}$ specification and values. It should also archive the original and augmented grid manifests, CV-freeze status, event and leave-one-fold-out tables, retrospective concordance and regret outputs, decade-anchor mapping, figure-QA manifests, canonical paper-asset manifest, and hashes tying all outputs to the same data, configuration, and split identity.
-The final screening package should additionally archive the frozen generic v2.1 method specification, activity-onset and upper-guardrail tables, leave-one-fold-out endpoints, the Surrogate predictive-bend/predictive-harm/nonlinear-caution event-state table, raw-path QA, scale-equivariance and synthetic-behavior tests, the no-hardcoded-$\rho$ audit, and deterministic output hashes. Before operational use, the same analysis should report block-bootstrap intervals and ratio curves by township, property class, value range, and time. These outputs separate model-selection uncertainty, implementation effects, and local variation.
+This appendix states what the repository archives, what a reader can therefore check, and what
+cannot be reproduced from public material. A paper-specific guide, \path{paper/REPRODUCIBILITY.md},
+carries the path-level detail, the machine-readable inventory and the exact commands; only the
+substance is summarized here. Three levels are distinguished, and they are deliberately not
+collapsed into a single claim of reproducibility.
+
+\paragraph{Auditability of the reported results.} Every number printed in this paper can be
+re-derived without refitting anything. The manuscript source, the figures it includes, the frozen
+specifications and reference conventions, the provenance records, and a numeric ledger are tracked
+in the repository. The ledger binds each printed value to a tracked artifact by content hash,
+together with the selector that locates it, the transform applied to it and the rounding rule used
+to print it; a validator reopens each artifact, verifies its hash against both the file and the
+frozen manifest, re-executes the selector and compares the result with what the source prints. The
+executed metric code, including the ratio-study measures, the nonlinearity-gap estimator and the
+distance-correlation call site, is tracked and is byte-identical at every provenance commit.
+
+\paragraph{Reconstruction from frozen derived artifacts.} The derived evidence behind the reported
+comparisons is tracked and can be re-examined without the raw extract. This covers the matched
+first-order design and its outcomes, with the extended targets, pairwise differences, crossing
+locations, origin-identity check and the one-sale-one-vote sensitivity twins; the post-hoc
+comparator path over all frozen base values, with its per-fold summaries, closed-form linearity
+check, root verification and centering sensitivity; the zero-penalty control and the parity
+ladders; the retransformation-sensitivity, PRB and Exposure-Draft VEI inference tables; and the
+distance-correlation implementation record. What this level does not include is the
+per-configuration fold, held-out and forward prediction arrays, which are record-level outputs
+derived from restricted assessor data and are not released.
+
+\paragraph{End-to-end rerun.} A full rerun of the empirical pipeline is not publicly reproducible.
+It requires the Cook County extract identified in Section~\ref{subsec:ccao_design}, which is
+hash-pinned but not redistributed and for which no public availability is claimed, together with
+the executed run roots holding the stored predictions and the combined path table. The frozen
+evidence manifest records each of those inputs by path, byte length and content hash, so the reader
+can confirm which file was used; it does not put the file itself in the reader's hands. A reader
+without authorized access to that exact input can audit and reconstruct the reported results, but
+cannot refit the models.
+
+\paragraph{Two limitations belong with this account.} The recorded environment is the one the
+executed pipeline observed and not a lockfile: the interpreter and the seven libraries that matter
+for the results are pinned to exact versions in two independent frozen records, while the
+repository requirement file states only lower bounds and does not reconstruct that environment. And
+the source state that generated the frozen artifacts is bounded rather than recovered, for the
+reason given in Appendix~\ref{app:implementation}: the generating trees were dirty and the
+uncommitted portion was never archived.
+
+Nothing in this appendix is a statement about operational readiness. Before operational use, the
+same analysis should report block-bootstrap intervals and ratio curves by township, property class,
+value range, and time, so that model-selection uncertainty, implementation effects and local
+variation are separated. This paper reports none of those.
 
 
 \section*{Data, Code, and Institutional Statement}
 
-The primary application uses CCAO data and a research translation of the office's published residential modeling workflow. Reproducibility therefore depends on archiving the exact custom objectives, preprocessing specifications, temporal splits, prediction artifacts, metric code, and executed configuration hashes. The results reported here are research findings, not official CCAO assessment decisions. The paper makes no claim that CCAO has adopted the correction or placed it into production.
+The primary application uses Cook County Assessor's Office data together with a research
+translation of the office's published residential modeling workflow. The analysis code, the frozen
+specifications and conventions, the derived result tables behind every reported comparison, the
+provenance records and the numeric ledger are tracked in the public repository, and
+\path{paper/REPRODUCIBILITY.md} is the entry point for auditing this paper specifically; the
+repository's general development README describes a broader legacy workflow and is not the protocol
+behind these results. The raw CCAO extract is not redistributed. It is identified by content hash
+and byte length rather than by a version string, and no public availability is claimed for it, so an
+external reader can verify which input was used but cannot obtain it here. Consequently the reported
+results can be audited and reconstructed from tracked artifacts, while refitting the models requires
+authorized access to that exact input. The per-record prediction artifacts are not released. The
+results reported here are research findings from a research translation of the CCAO workflow, not
+official CCAO assessment decisions, and the paper makes no claim that CCAO has adopted the
+correction or placed it into production.
 
 
 \end{document}
