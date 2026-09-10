@@ -22,8 +22,15 @@ point.
 
 It claims three things, separately, and does not merge them into a single word:
 
-* **Level A — auditability.** Every number printed in the paper can be re-derived from tracked
-  artifacts, mechanically, without refitting anything. **Supported.**
+* **Level A — manuscript auditability.** Every active numeric token in the manuscript is
+  provenance-classified and checked by the Tier-B validator, and none is left unsupported
+  (check C02). Ledger-backed numerical results — the paper's scientific quantities — are
+  mechanically re-derived from tracked frozen artifacts without refitting, by the seven-step
+  recomputation in check C01. Sourced quantities are matched by value and anchor to a claim in
+  the frozen Tier-B0 numeric map; allowlisted quantities are constants accepted only under a
+  recorded justification in the frozen allowlist, with wildcard entries refused at the anchors
+  under deletion review. The census of the three classes is reported by every validator run as
+  `active_resolution`. **Supported.**
 * **Level B — reconstruction from frozen derived artifacts.** The derived tables behind every
   reported comparison are tracked and can be re-examined without the raw extract. **Supported, with
   one exclusion: the per-configuration prediction arrays are not released.**
