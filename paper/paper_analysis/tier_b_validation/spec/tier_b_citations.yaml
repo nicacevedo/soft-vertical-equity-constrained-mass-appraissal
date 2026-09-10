@@ -72,8 +72,11 @@ required_citations:
   why: classical vertical-equity testing literature; verifies field-by-field.
 - key: Cheng1974
   why: >-
-    classical vertical-equity testing literature; minimal citable core only, see
-    bib_field_rules.
+    classical vertical-equity testing literature, and the direct antecedent of
+    the log-ratio/log-price slope this paper trains on: Cheng's equation (28)
+    already writes a log assessment-to-sale ratio as a function that includes
+    log settlement price, at coefficient theta - 1. Field-by-field verification
+    status is in bib_field_rules.
 - key: Edelstein1979
   why: >-
     classical vertical-equity testing literature; only the confirmed start page
@@ -85,12 +88,20 @@ required_citations:
 bib_field_rules:
   Cheng1974:
     why: >-
-      A Crossref bibliographic query returned NO matching record, so every field
-      rests on the in-repo transcription alone and no DOI exists. The minimal
-      citable core (author, title, journal, year) is what a citation needs in
-      order to exist; volume, number, pages and doi are unverified detail and
-      are omitted rather than carried. None may be invented.
-    must_be_absent: [doi, volume, number, pages]
+      A Crossref bibliographic query returned NO matching record, which is why
+      the B0 pass carried only the minimal citable core and why no DOI exists
+      for this article: none was found and none may be invented. A later
+      primary-source audit of the article confirmed volume 29, issues 3--4 and
+      pages 268--284, consistent with independent bibliographic indexing of the
+      same volume, so those three fields moved from "unverified, omit" to
+      "verified, pin exactly". This TIGHTENS the rule rather than relaxing it:
+      the three fields are no longer merely permitted, they must carry these
+      exact values, and doi must still be absent.
+    must_be_absent: [doi]
+    must_equal:
+      volume: "29"
+      number: "3--4"
+      pages: "268--284"
   Edelstein1979:
     why: >-
       Crossref confirms the start page 753. The end page 768 in the in-repo
