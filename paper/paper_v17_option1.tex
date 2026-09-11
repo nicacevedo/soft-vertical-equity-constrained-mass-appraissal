@@ -829,8 +829,12 @@ For readability and to keep the empirical hierarchy explicit, the main text reta
 \begin{minipage}{\textwidth}
 \scriptsize
 \emph{Notes.}
-Every entry is cell A of the frozen full zero-penalty control, the assessor-facing workflow benchmark named \emph{Ordinary LightGBM (standard raw-label native)} in Section~\ref{subsec:comparators}. The linear-regression columns this table previously carried have been removed rather than requalified: no frozen artifact reproduces any of those values, and one of them printed the same $R^2_P$ to three decimals on two different evaluation samples. A qualitative historical note on the earlier township-level workflow survives in the text above; no linear-regression number is reported anywhere in this paper.
-There is no second column to compare against, so no entry is boldfaced and no entry denotes statistical significance, standards compliance, model selection, or a preferred penalty strength.
+Every entry reports the unpenalized workflow benchmark,
+\emph{Ordinary LightGBM (standard raw-label native)}, defined in
+Section~\ref{subsec:comparators}. The earlier township-level linear-regression
+workflow is discussed only as historical context and is neither re-estimated nor
+reported quantitatively in this study. No entry denotes statistical significance,
+standards compliance, model selection, or a preferred penalty strength.
 Preferred values and applicable reference ranges, and the guidance status of each measure, are defined in Table~\ref{tab:assessment_metrics_summary}: PRD and PRB belong to the adopted Standard on Ratio Studies, whereas MKI and VEI are Exposure-Draft diagnostics and therefore proposed rather than adopted.
 MAPE and VEI are reported in percent; MAE is reported in dollars.
 For the held-out evaluation the model is fit on the 344,607-sale development pool; for the 2025 forward evaluation it is refit on all 382,897 eligible 2016--2024 sales.
@@ -2991,8 +2995,8 @@ Held-out & Surrogate, $\rho=0$ & 0.893 & 0.289 & -0.147 & 3.24e-02 & 3.09e-01 \\
 \end{table}
 }
 
-\paragraph{The native-versus-custom decomposition, as measured.} The parity experiment
-that earlier drafts promised has been carried out, and it resolves in the negative. It compares the
+\paragraph{The native-versus-custom decomposition, as measured.} The native-versus-custom parity experiment has been
+carried out, and it resolves in the negative. It compares the
 three cells at three learner capacities --- a small and an intermediate diagnostic capacity, and the
 canonical capacity that produced the reported paths --- on both out-of-time samples. Ordinary
 LightGBM and the centered-label native L2 control agree to numerical tolerance at the two reduced
@@ -3126,6 +3130,10 @@ which derived artifacts are tracked and which are hash-identified only.
 The compact main-text presentation is split in two. Table~\ref{tab:path_anchor_frozen} carries prediction, PRD and MKI at the two positive anchors the frozen reproduction audit re-derives, and Table~\ref{tab:path_anchor_standards} carries PRB, from the adopted Standard on Ratio Studies, and VEI, an Exposure-Draft diagnostic and therefore proposed rather than adopted, at all five nominal decade-spaced anchors $\{0.01,0.1,1,10,100\}$ mapped to the nearest frozen-grid points. Both show the ordinary-LightGBM workflow benchmark and the custom-objective zero-penalty origin as explicit rows; the wider zero-penalty implementation audit stays in the implementation appendix. No path row is omitted from the machine-readable results because of its observed performance.
 For completeness, the complementary baseline diagnostics and the complementary representative-$\rho$ diagnostics are reported here rather than in the main empirical narrative.
 
+% Provenance: tab:ccao_baseline_complementary is sourced from the frozen full zero-penalty
+% control, analysis/p0_major_revision_validation/tables/zero_control_full.csv, cell_id=A,
+% which carries all eight complementary measures on both evaluations.
+
 \begin{table}[!htbp]
 \centering
 \scriptsize
@@ -3160,7 +3168,7 @@ For completeness, the complementary baseline diagnostics and the complementary r
 \begin{minipage}{\textwidth}
 \scriptsize
 \emph{Notes.}
-Every entry is cell A of the frozen full zero-penalty control, which carries all eight complementary measures on both evaluations. The linear-regression columns this table previously carried have been removed rather than requalified, because no frozen artifact reproduces any of those values. There is no second column to compare against, so no entry is boldfaced.
+Every entry reports the same unpenalized workflow benchmark, which carries all eight complementary measures on both evaluations. The earlier township-level linear-regression workflow is discussed only as historical context and is neither re-estimated nor reported quantitatively in this study.
 Median, mean, weighted-mean ratio, COD, and COV are assessor-facing valuation-level or horizontal-uniformity diagnostics defined in Section~\ref{subsec:metrics}. The first-order mechanism slope $\beta_{\log}$, correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$, and distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope}, \eqref{eq:nonlinearity_gap}, and~\eqref{eq:dcor_diagnostic}; the last two carry no assessor-standard reference range and are residual-structure diagnostics rather than equity measures.
 One reading matters for the motivation and is stated rather than left out: the workflow benchmark's COD is 21.6\% held-out and 21.3\% in 2025, both above the $[5,15]$ range the adopted Standard on Ratio Studies gives for single-family residential property (Table~\ref{tab:assessment_metrics_summary}), and COD rises further along the penalty paths (Appendix Table~\ref{tab:path_anchor_complementary}). No compliance claim is implied anywhere in this paper. This range comparison is interpretation offered here on values that do resolve from the frozen control; it is not itself a finding of the frozen inferential stage.
 COD and COV are reported in percent; COV is stored as a fraction in the frozen artifact and converted for display.
