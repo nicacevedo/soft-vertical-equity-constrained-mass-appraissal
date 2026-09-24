@@ -1,0 +1,46 @@
+% ---------------------------------------------------------------------------
+% ALTERNATIVE layout for tab:ccao_baseline_results: the v15-style four-column grid.
+% Same numbers as tab_ccao_baseline_results_panelled.tex; use whichever reads better.
+% ---------------------------------------------------------------------------
+{\begin{table}[!ht]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{1.06}
+\newcommand{\baselineprimarymetric}[1]{\hspace*{0.6em}#1}
+\caption{Prediction and vertical-equity measures for the ordinary linear-regression benchmark
+and ordinary LightGBM (standard raw-label native) on the held-out and 2025 forward evaluations.
+Both are unpenalized; neither is a CCAO production model.}
+\label{tab:ccao_baseline_results}
+\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{2.80cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+\toprule
+\textbf{Measure} & \multicolumn{2}{c}{\textbf{Held-out evaluation}} & \multicolumn{2}{c}{\textbf{2025 forward evaluation}} \\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+& \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} & \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} \\
+\midrule
+\multicolumn{5}{@{}l}{\textbf{Prediction}} \\
+\cmidrule(r){1-1}
+\baselineprimarymetric{$R^2_P$} & 0.799 & 0.894 & 0.799 & 0.904 \\
+\baselineprimarymetric{$\operatorname{MAE}_P$} & \$90,092 & \$75,655 & \$99,371 & \$78,484 \\
+\baselineprimarymetric{$\operatorname{MAPE}_P$} & 24.1\% & 21.2\% & 24.9\% & 20.8\% \\
+\baselineprimarymetric{$\operatorname{RMSE}_{\log P}$} & 0.322 & 0.289 & 0.313 & 0.278 \\
+\addlinespace[5pt]
+\multicolumn{5}{@{}l}{\textbf{Vertical equity}} \\
+\cmidrule(r){1-1}
+\baselineprimarymetric{PRD} & 1.042 & 1.069 & 1.052 & 1.079 \\
+\baselineprimarymetric{PRB} & -0.016 & -0.091 & -0.029 & -0.106 \\
+\baselineprimarymetric{MKI} & 0.975 & 0.923 & 0.954 & 0.907 \\
+\baselineprimarymetric{VEI} & -11.6\% & -26.5\% & -17.3\% & -28.6\% \\
+\bottomrule
+\end{tabularx}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+As in the panelled layout: same predictions, same metric code, no boldface ranking.
+For the held-out evaluation both models are fit on the 344,607-sale development pool; for the
+2025 forward evaluation both are refit on all 382,897 eligible 2016--2024 sales.
+\end{minipage}
+\end{table}
+
+}

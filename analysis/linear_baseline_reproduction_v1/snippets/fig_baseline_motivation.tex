@@ -1,0 +1,20 @@
+% ---------------------------------------------------------------------------
+% PROPOSED REPLACEMENT for the fig:baseline_motivation float (paper/paper_v20.tex, l.656-662).
+% Label preserved.  The new graphic must first be copied to
+%   paper/img/generated_v20_linear_baseline/baseline_models_motivation_linear_vs_lgbm_2024_2025_v20r1.pdf
+% from analysis/linear_baseline_reproduction_v1/figures/.  Do NOT overwrite
+% img/generated_v12_994/baseline_models_motivation_2024_2025.pdf: that asset is the
+% LightGBM-only figure produced by the P1-1 vector surgery in commit c630994d.
+% ---------------------------------------------------------------------------
+\begin{figure}[!htbp]
+\centering
+\safeincludegraphics[width=0.8\textwidth]{img/generated_v20_linear_baseline/baseline_models_motivation_linear_vs_lgbm_2024_2025_v20r1.pdf}
+\caption{Descriptive valuation-ratio profiles against sale price for the ordinary linear
+benchmark and ordinary LightGBM, in the held-out and 2025 forward evaluations. Curves show
+median ratios in 30 equal-count sale-price bins; shaded regions show the corresponding
+interquartile ranges. Binning, axis limits and the $\beta_{\log}$ annotation follow one
+convention across all four panels. The panels describe observed sales; they are not a
+standards-compliance finding and not evidence that either model class is intrinsically more
+or less regressive.}
+\label{fig:baseline_motivation}
+\end{figure}

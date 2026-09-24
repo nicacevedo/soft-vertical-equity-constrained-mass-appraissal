@@ -1,0 +1,74 @@
+% ---------------------------------------------------------------------------
+% PROPOSED REPLACEMENT for tab:ccao_baseline_results (paper/paper_v20.tex, l.617-654).
+% Label preserved, so \ref{tab:ccao_baseline_results} keeps resolving.
+% Source: analysis/linear_baseline_reproduction_v1/tables/lb_table1_main_baseline.csv
+% Provenance: frozen cached predictions, config_id fd63507d2456c789 (linear) and
+% 252a25d9c0ce796b (ordinary LightGBM), the latter bitwise identical to the frozen
+% zero-penalty benchmark, cell A of
+% analysis/p0_major_revision_validation/tables/zero_control_full.csv.
+% ---------------------------------------------------------------------------
+{\begin{table}[!ht]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{1.06}
+\newcommand{\baselineprimarymetric}[1]{\hspace*{0.6em}#1}
+\caption{Prediction and vertical-equity measures for the ordinary linear-regression
+benchmark and ordinary LightGBM (standard raw-label native) on the held-out and 2025
+forward evaluations. Both are unpenalized; neither is a CCAO production model.}
+\label{tab:ccao_baseline_results}
+\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{6.4cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+\toprule
+\textbf{Measure} & \textbf{Ordinary linear} & \textbf{Ordinary LightGBM} \\
+\midrule
+\multicolumn{3}{@{}l}{\textbf{Panel A. Held-out evaluation ($n=38{,}290$; fit on the 344,607-sale development pool)}} \\
+\cmidrule(r){1-1}
+\multicolumn{3}{@{}l}{\emph{Prediction}} \\
+\baselineprimarymetric{$R^2_P$} & 0.799 & 0.894 \\
+\baselineprimarymetric{$\operatorname{MAE}_P$} & \$90,092 & \$75,655 \\
+\baselineprimarymetric{$\operatorname{MAPE}_P$} & 24.1\% & 21.2\% \\
+\baselineprimarymetric{$\operatorname{RMSE}_{\log P}$} & 0.322 & 0.289 \\
+\addlinespace[3pt]
+\multicolumn{3}{@{}l}{\emph{Vertical equity}} \\
+\baselineprimarymetric{PRD} & 1.042 & 1.069 \\
+\baselineprimarymetric{PRB} & -0.016 & -0.091 \\
+\baselineprimarymetric{MKI} & 0.975 & 0.923 \\
+\baselineprimarymetric{VEI} & -11.6\% & -26.5\% \\
+\addlinespace[5pt]
+\multicolumn{3}{@{}l}{\textbf{Panel B. 2025 forward evaluation ($n=26{,}641$; refit on all 382,897 eligible 2016--2024 sales)}} \\
+\cmidrule(r){1-1}
+\multicolumn{3}{@{}l}{\emph{Prediction}} \\
+\baselineprimarymetric{$R^2_P$} & 0.799 & 0.904 \\
+\baselineprimarymetric{$\operatorname{MAE}_P$} & \$99,371 & \$78,484 \\
+\baselineprimarymetric{$\operatorname{MAPE}_P$} & 24.9\% & 20.8\% \\
+\baselineprimarymetric{$\operatorname{RMSE}_{\log P}$} & 0.313 & 0.278 \\
+\addlinespace[3pt]
+\multicolumn{3}{@{}l}{\emph{Vertical equity}} \\
+\baselineprimarymetric{PRD} & 1.052 & 1.079 \\
+\baselineprimarymetric{PRB} & -0.029 & -0.106 \\
+\baselineprimarymetric{MKI} & 0.954 & 0.907 \\
+\baselineprimarymetric{VEI} & -17.3\% & -28.6\% \\
+\bottomrule
+\end{tabularx}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+The LightGBM benchmark is defined in Section~\ref{subsec:comparators}. The linear column is an
+ordinary least-squares fit of log sale price, estimated on the same samples under the same
+temporal design; it is a research benchmark, not a reconstruction of the office's historical
+township-level production models, and no claim is made about how those models performed.
+The guidance status and reference ranges are in Table~\ref{tab:assessment_metrics_summary};
+MKI and VEI use proposed exposure-draft guidance, PRD and PRB adopted guidance. These point
+estimates do not establish standards compliance or statistical significance. MAPE and VEI are
+in percent; MAE is in dollars. Both models use direct exponentiation to return log predictions
+to dollars; Appendix~\ref{app:smearing} records the alternative, under which the accuracy
+ordering between these two columns is unchanged.
+The two model classes share the outcome, the sales, the splits and the metric code, but not the
+predictor representation: the linear pipeline drops two high-cardinality string location fields
+and adds target encodings, Box-Cox transforms and squared terms, so the accuracy difference is
+not a pure functional-form contrast (Appendix~\ref{app:implementation}).
+\end{minipage}
+\end{table}
+
+}

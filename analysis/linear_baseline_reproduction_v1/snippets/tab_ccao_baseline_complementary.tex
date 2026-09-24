@@ -1,0 +1,64 @@
+% ---------------------------------------------------------------------------
+% PROPOSED REPLACEMENT for tab:ccao_baseline_complementary (paper/paper_v20.tex, l.2359-2400).
+% Label preserved.  Source: analysis/linear_baseline_reproduction_v1/tables/
+% lb_table2_complementary_baseline.csv
+% ---------------------------------------------------------------------------
+\begin{table}[!htbp]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{1.06}
+\newcommand{\baselinecompmetric}[1]{\hspace*{0.6em}#1}
+\caption{Complementary baseline diagnostics for the ordinary linear benchmark and
+\emph{Ordinary LightGBM (standard raw-label native)}: valuation level, horizontal uniformity,
+and mechanism/residual structure. Descriptive levels for two unpenalized specifications, not a
+recommendation between them.}
+\label{tab:ccao_baseline_complementary}
+\begin{tabularx}{\textwidth}{@{} >{\raggedright\arraybackslash}p{2.80cm} >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X >{\centering\arraybackslash}X @{}}
+\toprule
+\textbf{Measure} & \multicolumn{2}{c}{\textbf{Held-out evaluation}} & \multicolumn{2}{c}{\textbf{2025 forward evaluation}} \\
+\cmidrule(lr){2-3}\cmidrule(l){4-5}
+& \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} & \textbf{Linear} & \textbf{\shortstack{Light\\GBM}} \\
+\midrule
+\multicolumn{5}{@{}l}{\textbf{Valuation level}} \\
+\cmidrule(r){1-1}
+\baselinecompmetric{Median ratio $m_S$} & 0.969 & 0.929 & 1.020 & 0.950 \\
+\baselinecompmetric{Mean ratio $\bar r_S$} & 1.020 & 0.989 & 1.081 & 1.015 \\
+\baselinecompmetric{Weighted mean $\bar r_{W,S}$} & 0.979 & 0.924 & 1.027 & 0.941 \\
+\addlinespace[5pt]
+\multicolumn{5}{@{}l}{\textbf{Horizontal uniformity}} \\
+\cmidrule(r){1-1}
+\baselinecompmetric{COD} & 24.7\% & 21.6\% & 24.3\% & 21.3\% \\
+\baselinecompmetric{COV} & 45.2\% & 39.7\% & 42.1\% & 37.2\% \\
+\addlinespace[5pt]
+\multicolumn{5}{@{}l}{\textbf{Mechanism and residual structure}} \\
+\cmidrule(r){1-1}
+\baselinecompmetric{$\beta_{\log}$} & -0.092 & -0.150 & -0.109 & -0.164 \\
+\baselinecompmetric{$\Delta_{\mathrm{NL}}$} & 0.131 & 0.119 & 0.122 & 0.121 \\
+\baselinecompmetric{$\operatorname{dCor}(e,y)$} & 0.250 & 0.387 & 0.269 & 0.422 \\
+\bottomrule
+\end{tabularx}
+\vspace{1mm}
+\begin{minipage}{\textwidth}
+\scriptsize
+\emph{Notes.}
+Median, mean, weighted-mean ratio, COD, and COV are assessor-facing valuation-level or
+horizontal-uniformity diagnostics defined in Section~\ref{subsec:metrics}. The first-order
+mechanism slope $\beta_{\log}$, correlation-ratio nonlinearity gap $\Delta_{\mathrm{NL}}$, and
+distance correlation are defined in Eqs.~\eqref{eq:log_ratio_slope},
+\eqref{eq:nonlinearity_gap}, and~\eqref{eq:dcor_diagnostic}; the last two carry no
+assessor-standard reference range and are residual-structure diagnostics rather than equity
+measures.
+Both columns' COD exceeds the $[5,15]$ range the adopted Standard on Ratio Studies gives for
+single-family residential property (Table~\ref{tab:assessment_metrics_summary}), and COD rises
+further along the penalty paths (Appendix Table~\ref{tab:path_anchor_complementary}). No
+compliance claim is implied anywhere in this paper. This range comparison is a descriptive
+interpretation of the reported values rather than a formal inferential finding.
+The PRB and VEI value proxy is model-specific by construction: it is
+$0.5\,P_i+0.5\,\widehat P_i/m_S$, so each column is read against a value axis that embeds that
+column's own valuations and its own median ratio. The two columns are therefore not ranked on a
+shared value axis.
+COD and COV are reported in percent; COV is stored as a fraction in the retained artifact and
+converted to percent for display.
+\end{minipage}
+\end{table}
